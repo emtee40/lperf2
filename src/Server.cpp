@@ -388,7 +388,7 @@ bool Server::InitTrafficLoop () {
 
     // Handle the case when the client spawns a server (no listener) and need the initial header
     // Case of --trip-times and --reverse or --fullduplex, listener handles normal case
-    if (isReverse(mSettings) && (isTripTime(mSettings) || isPeriodicBurst(mSettings))) {
+    if (isReverse(mSettings) && (isTripTime(mSettings) || isPeriodicBurst(mSettings) || isIsochronous(mSettings))) {
 	int n = 0;
 	uint32_t flags = 0;
 	int peeklen = 0;
@@ -439,7 +439,7 @@ bool Server::InitTrafficLoop () {
     }
     // skip the test exchange header to get to the first burst
     // The test exchange header was read in listener context
-    if (mSettings->skip && (isTripTime(mSettings) || isPeriodicBurst(mSettings))) {
+    if (mSettings->skip && (isTripTime(mSettings) || isPeriodicBurst(mSettings) || isIsochronous(mSettings))) {
 	reportstruct->packetLen = recvn(mSettings->mSock, mBuf, mSettings->skip, 0);
     }
     SetReportStartTime();
