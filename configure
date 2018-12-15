@@ -8702,7 +8702,7 @@ _ACEOF
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for multicast ssm support" >&5
 $as_echo_n "checking for multicast ssm support... " >&6; }
   ac_cv_ssm_multicast=no
-  if test "$ac_cv_have_decl_MCAST_JOIN_SOURCE_GROUP" = yes || "$ac_cv_have_decl_IP_ADD_SOURCE_MEMBERSHIP" = yes; then
+  if test "$ac_cv_have_decl_MCAST_JOIN_SOURCE_GROUP" = yes || test "$ac_cv_have_decl_IP_ADD_SOURCE_MEMBERSHIP" = yes; then
     if test "$ac_cv_type_struct_group_source_req" = yes; then
       ac_cv_ssm_multicast=yes
     fi
