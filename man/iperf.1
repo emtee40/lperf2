@@ -237,7 +237,7 @@ TCP connect time (or three way handshake time 3WHS)
 .br
 .B
 Write/Err
-Total number of socket writes and non-fatal socket write errors
+Total number of successful socket writes. Total number of non-fatal socket write errors
 .B
 .br
 Rtry
@@ -308,7 +308,7 @@ Total number of socket reads
 .B
 .br
 Dist(bin=size)
-Eight bin histogram of each read's byte count with bin width per size and total bin counts separated by a colon
+Eight bin histogram of the socktet reads byte count.  Bin width is set per size.  Bins are separated by a colon.  In the example, the bins are 0-1K, 1K-2K, ... 7K-8K.
 .br
 .RE
 .RE
@@ -367,7 +367,7 @@ where (per -e,)
 .RS
 .B
 Write/Err
-Total number of socket writes and non-fatal socket write errors
+Total number of successful socket writes. Total number of non-fatal socket write errors
 .B
 .br
 PPS
@@ -424,8 +424,8 @@ UDP buffer size:  208 KByte (default)
 where (per -e,)
 .RS
 .B
-Latency (requires clock synchronization)
-in mean, minimum, maximum, standard deviation format
+Latency
+End to end latency in mean/minimum/maximum/standard deviation format (Note: requires the client's and server's system clocks to be synchronized to a common reference, e.g. using precision time protocol PTP.  A GPS disciplined OCXO is a recommended reference.)
 .br
 .B
 .br
