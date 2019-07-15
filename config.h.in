@@ -172,9 +172,6 @@
 /* Define if you have POSIX threads libraries and header files. */
 #undef HAVE_PTHREAD
 
-/* Define to 1 if you have the `pthread_cancel' function. */
-#undef HAVE_PTHREAD_CANCEL
-
 /* Define to 1 if you have the `sched_setscheduler' function. */
 #undef HAVE_SCHED_SETSCHEDULER
 
