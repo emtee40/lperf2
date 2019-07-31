@@ -167,8 +167,8 @@ void client_spawn( thread_Settings *thread ) {
     if (!isServerReverse(thread)) {
       theClient->InitiateServer();
     }
-    // If this is a reverse test, then join the client thread to it
-    if (isReverse(thread)) {
+    // If this is a only reverse test, then join the client thread to it
+    if (isReverse(thread) && !isBidir(thread)) {
 	if (!thread_equalid(reverse_client->mTID, thread_zeroid())) {
 	  if (pthread_join(reverse_client->mTID, NULL) != 0) {
 	    WARN( 1, "pthread_join reverse failed" );

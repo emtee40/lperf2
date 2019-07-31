@@ -296,6 +296,7 @@ typedef struct thread_Settings {
 #define FLAG_MODEINFINITE   0x00010000
 #define FLAG_CONNECTONLY    0x00020000
 #define FLAG_SERVERREVERSE  0x00040000
+#define FLAG_BIDIR          0x00080000
 
 #define isBuflenSet(settings)      ((settings->flags & FLAG_BUFLENSET) != 0)
 #define isCompat(settings)         ((settings->flags & FLAG_COMPAT) != 0)
@@ -330,6 +331,7 @@ typedef struct thread_Settings {
 #define isPeerVerDetect(settings)  ((settings->flags_extend & FLAG_PEERVER) != 0)
 #define isSeqNo64b(settings)       ((settings->flags_extend & FLAG_SEQNO64) != 0)
 #define isReverse(settings)        ((settings->flags_extend & FLAG_REVERSE) != 0)
+#define isBidir(settings)        ((settings->flags_extend & FLAG_BIDIR) != 0)
 #define isServerReverse(settings)  ((settings->flags_extend & FLAG_SERVERREVERSE) != 0)
 #define isIsochronous(settings)    ((settings->flags_extend & FLAG_ISOCHRONOUS) != 0)
 #define isRxHistogram(settings)   ((settings->flags_extend & FLAG_RXHISTOGRAM) != 0)
@@ -375,6 +377,7 @@ typedef struct thread_Settings {
 #define setPeerVerDetect(settings) settings->flags_extend |= FLAG_PEERVER
 #define setSeqNo64b(settings)      settings->flags_extend |= FLAG_SEQNO64
 #define setReverse(settings)       settings->flags_extend |= FLAG_REVERSE
+#define setBidir(settings)         settings->flags_extend |= FLAG_BIDIR
 #define setServerReverse(settings) settings->flags_extend |= FLAG_SERVERREVERSE
 #define setIsochronous(settings)   settings->flags_extend |= FLAG_ISOCHRONOUS
 #define setRxHistogram(settings)  settings->flags_extend |= FLAG_RXHISTOGRAM
@@ -419,6 +422,7 @@ typedef struct thread_Settings {
 #define unsetPeerVerDetect(settings)    settings->flags_extend &= ~FLAG_PEERVER
 #define unsetSeqNo64b(settings)    settings->flags_extend &= ~FLAG_SEQNO64
 #define unsetReverse(settings)     settings->flags_extend &= ~FLAG_REVERSE
+#define unsetBidir(settings)       settings->flags_extend &= ~FLAG_BIDIR
 #define unsetServerReverse(settings) settings->flags_extend &= ~FLAG_SERVERREVERSE
 #define unsetIsochronous(settings) settings->flags_extend &= ~FLAG_ISOCHRONOUS
 #define unsetRxHistogram(settings)    settings->flags_extend &= ~FLAG_RXHISTOGRAM
@@ -455,6 +459,7 @@ typedef struct thread_Settings {
 #define SEQNO64B              0x00000002
 #define REALTIME              0x00000004
 #define REVERSE               0x00000008
+#define BIDIR                 0x00000010
 
 // later features
 #define HDRXACKMAX 2500000 // default 2.5 seconds, units microseconds

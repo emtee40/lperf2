@@ -74,6 +74,7 @@
 #endif
 
 static int reversetest = 0;
+static int bidirtest = 0;
 static int rxhistogram = 0;
 static int l2checks = 0;
 static int incrdstip = 0;
@@ -159,6 +160,7 @@ const struct option long_options[] =
 {"fq-rate", required_argument, &fqrate, 1},
 {"trip-time", no_argument, &triptime, 1},
 {"connect-only", optional_argument, &connectonly, 1},
+{"bidir", no_argument, &bidirtest, 1},
 #ifdef HAVE_ISOCHRONOUS
 {"ipg", required_argument, &burstipg, 1},
 {"isochronous", optional_argument, &isochronous, 1},
@@ -838,6 +840,11 @@ void Settings_Interpret( char option, const char *optarg, thread_Settings *mExtS
 	    }
 	    if (reversetest) {
 		reversetest = 0;
+		setReverse(mExtSettings);
+	    }
+	    if (bidirtest) {
+		bidirtest = 0;
+		setBidir(mExtSettings);
 		setReverse(mExtSettings);
 	    }
 	    if (fqrate) {
