@@ -171,12 +171,12 @@ void client_spawn( thread_Settings *thread ) {
 	// Create a bidir report if needed
 	if (isBidir(thread)) {
 #ifdef HAVE_THREAD_DEBUG
-	  thread_debug("Client spawn reverse (bidir) (sock=%d)", (void *) thread);
+	    thread_debug("Client spawn reverse (bidir) (sock=%d)", (void *) thread);
 #endif
 	    thread->bidirhdr = InitBiDirReport(thread, thread->mSock);
 	} else {
 #ifdef HAVE_THREAD_DEBUG
-	  thread_debug("Client spawn reverse (server) (sock=%d)", (void *) thread);
+	    thread_debug("Client spawn reverse (server) (sock=%d)", (void *) thread);
 #endif
 	    thread->bidirhdr = NULL;
 	}
@@ -190,12 +190,12 @@ void client_spawn( thread_Settings *thread ) {
 	setServerReverse(reverse_client); // cause the connection report to show reverse
 	reverse_client->bidirhdr = thread->bidirhdr; // reverse_client thread updates the bidir report
 	if (isModeTime(reverse_client)) {
-	  reverse_client->mAmount += (SLOPSECS * 100);  // add 2 sec for slop on reverse, units are 10 ms
+	    reverse_client->mAmount += (SLOPSECS * 100);  // add 2 sec for slop on reverse, units are 10 ms
         }
-	thread_start(reverse_client);
 	// RJM ADD a thread event here so reverse_client is in a known ready state prior to test exchange
 	// Now exchange client's test information with remote server
 	theClient->InitiateServer();
+	thread_start(reverse_client);
 	// Now handle bidir vs reverse-only for client side invocation
         if (!isBidir(thread)) {
 	  // Reverse only, client thread waits on reverse_server and never runs any traffic
@@ -212,8 +212,8 @@ void client_spawn( thread_Settings *thread ) {
 	    }
 	  }
 	} else {
-	  // bidir case, start the client traffic
-	  theClient->Run();
+	    // bidir case, start the client traffic
+	    theClient->Run();
 	}
     }
     // Call the client's destructor which will close the socket
