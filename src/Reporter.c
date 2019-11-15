@@ -124,6 +124,8 @@ report_statistics bidir_reports[kReport_MAXIMUM] = {
 
 char buffer[SNBUFFERSIZE]; // Buffer for printing
 struct ReportHeader *ReportRoot = NULL;
+struct ReportHeader *ReportPendingHead = NULL;
+struct ReportHeader *ReportPendingTail = NULL;
 int reporter_process_report ( struct ReportHeader *report );
 void process_report ( struct ReportHeader *report );
 int reporter_print( struct ReporterData *stats, int type, int end );
@@ -646,19 +648,26 @@ void PostReport (struct ReportHeader *reporthdr) {
 #ifdef HAVE_THREAD_DEBUG
       {
 	int timeout;
-	Condition_TimedLock( ReportCond, 2, timeout );
+	Condition_TimedLock( ReportsPending, 2, timeout );
 	if (timeout) {
 	  thread_debug("Lock failed in PostReport()");
 	  exit(-1);
 	}
       }
 #else
-	Condition_Lock( ReportCond );
+	Condition_Lock(ReportsPending);
 #endif
-	reporthdr->next = ReportRoot;
-	ReportRoot = reporthdr;
-	Condition_Signal( &ReportCond );
-	Condition_Unlock( ReportCond );
+	reporthdr->next = NULL;
+	if (!ReportPendingHead) {
+	  ReportPendingHead = reporthdr;
+	  ReportPendingTail = reporthdr;
+	} else {
+	  ReportPendingTail->next = reporthdr;
+	  ReportPendingTail = reporthdr;
+	}
+	Condition_Unlock(ReportsPending);
+	// wake up the reporter thread
+	Condition_Signal(&ReportCond);
 #else
 	/*
 	 * Process the report in this thread
@@ -724,11 +733,14 @@ void EndReport( struct ReportHeader *agent ) {
         thread_debug( "Traffic thread awaiting reporter to be done with %p and cond %p", (void *)agent, (void *) agent->packetring->awake_producer);
 #endif
         Condition_Lock((*(agent->packetring->awake_producer)));
+	int timeout = 0;
 	while (!agent->packetring->consumerdone) {
-	    Condition_TimedWait(agent->packetring->awake_producer, 1);
+	    timeout = 0;
+	    Condition_TimedWait(agent->packetring->awake_producer, 1, timeout);
 	    // printf("Consumer done may be stuck\n");
 	}
-        Condition_Unlock((*(agent->packetring->awake_producer)));
+	if (!timeout)
+	    Condition_Unlock((*(agent->packetring->awake_producer)));
 #ifdef HAVE_THREAD_DEBUG
 	thread_debug( "Traffic thread thinks reporter is done with %p", (void *)agent);
 #endif
@@ -954,10 +966,10 @@ static void reporter_jobq_dump(void) {
     thread_debug("reporter thread job queue request lock timed out");
   } else {
     thread_debug("reporter thread job queue lock");
-    struct ReportHeader **itr = &ReportRoot;
-    while (*itr) {
-      thread_debug("Job in queue %p",(void *) *itr);
-      *itr = (*itr)->next;
+    struct ReportHeader *itr = ReportRoot;
+    while (itr) {
+      thread_debug("Job in queue %p",(void *) itr);
+      itr = itr->next;
     }
     Condition_Unlock(ReportCond);
     thread_debug("reporter thread job queue unlock");
@@ -965,44 +977,44 @@ static void reporter_jobq_dump(void) {
 }
 #endif
 
-static void reporter_jobq_remove (struct ReportHeader *this_report, struct ReportHeader *prev) {
+// https://blog.kloetzl.info/beautiful-code/
+// Linked list removal/processing is derived from:
+//
+// remove_list_entry(entry) {
+//   indirect = &head;
+//   while ((*indirect) != entry) {
+//	indirect = &(*indirect)->next;
+//   }
+//   *indirect = entry->next
+// }
+static void reporter_jobq_remove_entry (struct ReportHeader *entry) {
 #ifdef HAVE_THREAD_DEBUG
-    thread_debug("Jobq report %p remove (prev=%p, next=%p)", \
-		 (void *) this_report, (void *) prev, (void *) this_report->next);
+    thread_debug("Jobq report %p remove (next=%p)", (void *) entry, (void *) entry->next);
 #endif
-    // remove current from the jobq
-    prev->next = this_report->next;
+    // First, remove the entry
+    Condition_Lock(ReportCond);
+    struct ReportHeader **indirect = &ReportRoot;
+    while ((*indirect) != entry)
+        indirect = &(*indirect)->next; // advance the search pointer
+    *indirect = entry->next; // remove the report
+    Condition_Unlock(ReportCond);
 
+    // Next, free it's memory either directly or indirectly
+    // by signaling the traffic thread to do so
+    if ((entry->report.type & TRANSFER_REPORT) == 0) {
 #ifdef HAVE_THREAD_DEBUG
-    {
-	int timeout;
-	Condition_TimedLock( ReportCond, 2, timeout );
-	if (timeout) {
-	    thread_debug("Lock failed in reporter_spawn()) at again tag");
-	    exit(-1);
-	}
-    }
-#else
-    Condition_Lock ( ReportCond );
+        thread_debug("Free report %p (flags = %X)", (void *) entry, entry->report.type);
 #endif
-    // If the report doesn't stay in the jobq, release it's memory
-    // either directly or by signaling the traffic thread to do so
-    if ((this_report->report.type & TRANSFER_REPORT) == 0) {
-#ifdef HAVE_THREAD_DEBUG
-        thread_debug("Free report %p (flags = %X)", (void *) this_report, this_report->report.type);
-#endif
-	free(this_report);
-    } else if ((this_report->report.type & (TRANSFER_REPORT | CONNECTION_REPORT)) == TRANSFER_REPORT) {
+	free(entry);
+    } else if ((entry->report.type & (TRANSFER_REPORT | CONNECTION_REPORT)) == TRANSFER_REPORT) {
 #ifdef HAVE_THREAD_DEBUG
 	thread_debug("Signal producer to free report %p and cond %p", \
-		     (void *) this_report, (void *) &(this_report->packetring->awake_producer));
+		     (void *) entry, (void *) &(entry->packetring->awake_producer));
 #endif
 	// Signal the producer (traffic thread) that the consumer (reporter thread)
 	// it is done with this report.
-
-	 Condition_Signal(this_report->packetring->awake_producer);
+	Condition_Signal(entry->packetring->awake_producer);
     }
-    Condition_Unlock ( ReportCond );
 }
 
 /*
@@ -1024,83 +1036,57 @@ void reporter_spawn( struct thread_Settings *thread ) {
     Condition_Unlock(reporter_state.await_reporter);
     Condition_Broadcast(&reporter_state.await_reporter);
 
-    do {
-	static struct ReportHeader *lastReportRoot = NULL;
-        // ReportRoot is a linked list configured as
-        // as a circular buffer, i.e. tail points to head
+    /*
+     * Keep the reporter thread alive under the following conditions
+     *
+     * o) There are more reports to ouput, ReportRoot has a report
+     * o) The number of threads is greater than one which indicates
+     *    either traffic threads are still running or a Listener thread
+     *    is running. If equal to 1 then only the reporter thread is alive
+     */
+    while (thread_numtrafficthreads() || ReportRoot) {
 #ifdef HAVE_THREAD_DEBUG
-        {
-	    int timeout;
-	    Condition_TimedLock( ReportCond, 2, timeout );
-	    if (timeout) {
-		thread_debug("Lock failed in reporter_spawn()");
-		exit(-1);
-	    }
-	}
-#else
-        Condition_Lock ( ReportCond );
+      // thread_debug("Pending traffic threads = %d", thread_numtrafficthreads());;
 #endif
-	// check the jobq for not empty
-        if ( ReportRoot != NULL ) {
-	    // Fist, check to see if the jobq needs to be updated,
-	    // this is done via a prepend of the linked list
-	    // by the pending reports which is another linked
-	    // list
-	    if (lastReportRoot && (ReportRoot != lastReportRoot)) {
-	        // new reports can be added to the jopq now
-	        struct ReportHeader *itr = ReportRoot;
-		while ( itr->next != lastReportRoot ) {
-		   itr = itr->next;
-		}
-		itr->next = lastReportRoot;
-	    }
-	} else {
-	    // Nothing to do, wait for a traffic thread
-	    // to signal this thread. Note: use a timed wait
-	    // because the traffic threads that signal this
-	    // condition may have terminated
-	    Condition_TimedWait ( &ReportCond, 1);
+
+        Condition_Lock(ReportCond);
+	// check the jobq for empty
+        if (ReportRoot == NULL) {
 	    // The reporter is starting from an empty state
 	    // so set the load detect to trigger an initial delay
 	    reset_consumption_detector();
-	}
-
-	// time to process the jobq
-        struct ReportHeader **current = &ReportRoot;
-	lastReportRoot = (*current);
-        Condition_Unlock ( ReportCond );
-        struct ReportHeader *prev = *current;
-	while (*current) {
-	    // Report process report returns true
-	    // if the reporter's jobq needs
-	    // to be updated per this report.
-	    // The common case will return false
-	    //
-	    // The update_jobq returns true if this
-	    // report needs to be processed again, i.e.
-	    // this report is a compound report
-
-            if (reporter_process_report(*current)) {
-	        reporter_jobq_remove(*current, prev);
-	    }
-	    prev = *current;
-	    *current = (*current)->next;
-	    printf("current = %p prev = %p\n", (void *) *current, (void *) prev);
         }
-	/*
-         * Keep the reporter thread alive under the following conditions
-         *
-         * o) There are more reports to ouput, ReportRoot has a report
-         * o) The number of threads is greater than one which indicates
-         *    either traffic threads are still running or a Listener thread
-         *    is running. If equal to 1 then only the reporter thread is alive
-         */
+	// update the jobq per pending reports
+	Condition_Lock(ReportsPending);
+	if (ReportPendingHead) {
+	    ReportPendingTail->next = ReportRoot;
+	    ReportRoot = ReportPendingHead;
 #ifdef HAVE_THREAD_DEBUG
-	if (sInterupted)
-	    reporter_jobq_dump();
+	    thread_debug( "Jobq *ROOT* %p (last=%p)", \
+			  (void *) ReportRoot, (void * ) ReportPendingTail->next);
 #endif
-    } while ((thread_numuserthreads() > 1) || ReportRoot);
+	    ReportPendingHead = NULL;
+	    ReportPendingTail = NULL;
+       }
+       Condition_Unlock(ReportsPending);
+       // Process the current jobq
+       struct ReportHeader *work_item = ReportRoot;
+       Condition_Unlock(ReportCond);
+       // Report process report returns true
+       // when a report needs to be removed
+       // from the jobq
+       while (work_item) {
 #ifdef HAVE_THREAD_DEBUG
+	 // thread_debug( "Jobq *NEXT* %p", work_item);
+#endif
+	   if (reporter_process_report(work_item))
+	       reporter_jobq_remove_entry(work_item);
+	   work_item = work_item->next;
+       }
+    }
+#ifdef HAVE_THREAD_DEBUG
+    if (sInterupted)
+        reporter_jobq_dump();
     thread_debug("Reporter thread finished");
 #endif
 }
