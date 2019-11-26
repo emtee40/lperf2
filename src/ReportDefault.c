@@ -540,6 +540,11 @@ void *reporter_reportpeer(struct ConnectionInfo *stats, int ID) {
 	if (isTripTime(stats)) {
 	    snprintf(b, PEERBUFSIZE-strlen(b), " (trip-times)");
 	    b += strlen(b);
+	    if (stats->mThreadMode == kMode_Server) {
+		snprintf(b, PEERBUFSIZE-strlen(b), " (%ld.%ld)", \
+			 stats->epochStartTime.tv_sec, stats->epochStartTime.tv_usec);
+		b += strlen(b);
+	    }
 	}
 	if (stats->l2mode) {
 	    snprintf(b, PEERBUFSIZE-strlen(b), " (%s=0x%X)", "l2mode", stats->l2mode);
@@ -594,7 +599,7 @@ void *reporter_reportpeer(struct ConnectionInfo *stats, int ID) {
 	                      0),
 #endif
 	         extbuf);
-	if (stats->epochStartTime.tv_sec) {
+        if ((stats->epochStartTime.tv_sec) && (stats->mThreadMode == kMode_Client)) {
 	    struct tm ts;
 	    char start_timebuf[80];
 #ifdef HAVE_CLOCK_GETTIME

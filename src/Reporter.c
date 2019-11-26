@@ -527,6 +527,7 @@ void InitDataReport(struct thread_Settings *mSettings) {
 	data->mTCPWin = mSettings->mTCPWin;
 	data->FQPacingRate = mSettings->mFQPacingRate;
 	data->flags = mSettings->flags;
+	data->flags_extend = mSettings->flags_extend;
 	data->mThreadMode = mSettings->mThreadMode;
 	data->mode = mSettings->mReportMode;
 	data->info.mFormat = mSettings->mFormat;
@@ -619,13 +620,19 @@ void InitConnectionReport (struct thread_Settings *mSettings) {
     data->connection.local = mSettings->local;
     data->connection.size_local = mSettings->size_local;
     data->connection.peerversion = mSettings->peerversion;
+    data->connection.mThreadMode = mSettings->mThreadMode;
     // Set the l2mode flags
     data->connection.l2mode = isL2LengthCheck(mSettings);
     if (data->connection.l2mode)
 	data->connection.l2mode = ((isIPV6(mSettings) << 1) | data->connection.l2mode);
-    if (isEnhanced(mSettings) && isTxStartTime(mSettings)) {
+    if (isEnhanced(mSettings)) {
+      if (isTxStartTime(mSettings)) {
 	data->connection.epochStartTime.tv_sec = mSettings->txstart_epoch.tv_sec;
 	data->connection.epochStartTime.tv_usec = mSettings->txstart_epoch.tv_usec;
+      } else if (isTripTime(mSettings)) {
+	data->connection.epochStartTime.tv_sec = mSettings->accept_time.tv_sec;
+	data->connection.epochStartTime.tv_usec = mSettings->accept_time.tv_usec;
+      }
     }
     if (isFQPacing(data) && (data->mThreadMode == kMode_Client)) {
 	char tmpbuf[40];
@@ -1346,7 +1353,7 @@ static inline double reporter_handle_packet_oneway_transit(struct ReporterData *
     double usec_transit = transit * 1e6;
 
     if (stats->latency_histogram) {
-	histogram_insert(stats->latency_histogram, transit);
+        histogram_insert(stats->latency_histogram, transit, NULL);
     }
 
     if (stats->transit.totcntTransit == 0) {
@@ -1412,7 +1419,7 @@ static inline void reporter_handle_burst_tcp_transit(struct ReporterData *data, 
     if (packet->frameID && packet->transit_ready) {
         double transit = reporter_handle_packet_oneway_transit(data, stats, packet);
 	if (stats->framelatency_histogram) {
-	    histogram_insert(stats->framelatency_histogram, transit);
+	  histogram_insert(stats->framelatency_histogram, transit, isTripTime(data) ? &packet->sentTime : NULL);
 	}
        // printf("***Burst id = %ld, transit = %f\n", packet->frameID, stats->transit.lastTransit);
     }
@@ -1456,7 +1463,7 @@ static inline void reporter_handle_packet_isochronous(struct ReporterData *data,
 		// last packet of a burst (or first-last in case of a duplicate) and frame id match
 		double frametransit = TimeDifference(packet->packetTime, packet->isochStartTime) \
 		    - ((packet->burstperiod * (packet->frameID - 1)) / 1000000.0);
-		histogram_insert(stats->framelatency_histogram, frametransit);
+		histogram_insert(stats->framelatency_histogram, frametransit, NULL);
 		matchframeid = 0;  // reset the matchid so any potential duplicate is ignored
 	    }
 	}
