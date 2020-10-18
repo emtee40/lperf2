@@ -1,6 +1,6 @@
 See doc/DESIGN_NOTES for some description around the software design
 
-2.0.14 change set (as of October 14th, 2020)
+2.0.14 change set (as of October 17th, 2020)
 ----------------------------------------
 o scaling improvements for -P, i.e. improved support for large numbers of traffic threads
 o major code refactoring (see doc/DESIGN_NOTES) for maintainability, extensibilty, performance, scaling, memory usage
