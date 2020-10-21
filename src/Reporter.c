@@ -505,7 +505,7 @@ int reporter_process_transfer_report (struct ReporterData *this_ireport) {
 		}
 		if (DecrSumReportRefCounter(this_ireport->GroupSumReport) == 0) {
 		    if ((this_ireport->GroupSumReport->transfer_protocol_sum_handler) && \
-			(this_ireport->GroupSumReport->reference.maxcount > (fullduplexstats ? 2 : 1))) {
+			(this_ireport->GroupSumReport->reference.maxcount > 1)) {
 			(*this_ireport->GroupSumReport->transfer_protocol_sum_handler)(&this_ireport->GroupSumReport->info, 1);
 		    }
 		    FreeSumReport(this_ireport->GroupSumReport);
@@ -1412,7 +1412,7 @@ int reporter_condprint_time_interval_report (struct ReporterData *data, struct R
 	if (sumstats) {
 	    if ((++data->GroupSumReport->threads) == data->GroupSumReport->reference.count)   {
 		data->GroupSumReport->threads = 0;
-		if (data->GroupSumReport->reference.count > (fullduplexstats ? 2 : 1)) {
+		if (data->GroupSumReport->reference.count > 1) {
 		    sumstats->filter_this_sample_ouput = 0;
 		} else {
 		    sumstats->filter_this_sample_ouput = 1;
