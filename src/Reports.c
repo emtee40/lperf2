@@ -483,42 +483,57 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
     // 1) packet_handler: does packet accounting per the test and protocol
     // 2) transfer_protocol_handler: performs output, e.g. interval reports, per the test and protocol
 
+    if (inSettings->mIntervalMode == kInterval_Time) {
+	ireport->info.ts.intervalTime.tv_sec = (long) (inSettings->mInterval / rMillion);
+	ireport->info.ts.intervalTime.tv_usec = (long) (inSettings->mInterval % rMillion);
+	ireport->transfer_interval_handler = reporter_condprint_time_interval_report;
+	ireport->info.ts.significant_partial = (double) inSettings->mInterval * PARTIALPERCENT / rMillion ;
+    }
     switch (inSettings->mThreadMode) {
     case kMode_Server :
 	if (isUDP(inSettings)) {
-	    ireport->packet_handler = reporter_handle_packet_server_udp;
-	    ireport->transfer_protocol_handler = reporter_transfer_protocol_server_udp;
-            if (inSettings->mReportMode == kReport_CSV) {
-		ireport->info.output_handler = udp_output_basic_csv;
-	    } else if (isSumOnly(inSettings)) {
-		ireport->info.output_handler = NULL;
-	    } else if (isTripTime(inSettings)) {
-		if (isIsochronous(inSettings))
-		    ireport->info.output_handler = udp_output_read_enhanced_triptime_isoch;
-		else
+	    if ((inSettings->mIntervalMode == kInterval_Frames) && isIsochronous(inSettings)) {
+		ireport->transfer_interval_handler = reporter_condprint_frame_interval_report_server_udp;
+	    } else {
+		ireport->packet_handler = reporter_handle_packet_server_udp;
+		ireport->transfer_protocol_handler = reporter_transfer_protocol_server_udp;
+		if (inSettings->mReportMode == kReport_CSV) {
+		    ireport->info.output_handler = udp_output_basic_csv;
+		} else if (isSumOnly(inSettings)) {
+		    ireport->info.output_handler = NULL;
+		} else if (isTripTime(inSettings)) {
+		    if (isIsochronous(inSettings))
+			ireport->info.output_handler = udp_output_read_enhanced_triptime_isoch;
+		    else
+			ireport->info.output_handler = udp_output_read_enhanced_triptime;
+		} else if (isEnhanced(inSettings)) {
 		    ireport->info.output_handler = udp_output_read_enhanced_triptime;
-	    } else if (isEnhanced(inSettings)) {
-		ireport->info.output_handler = udp_output_read_enhanced_triptime;
-	    } else if (isFullDuplex(inSettings)) {
-		ireport->info.output_handler = udp_output_read;
-	    } else {
-		ireport->info.output_handler = udp_output_read;
+		} else if (isFullDuplex(inSettings)) {
+		    ireport->info.output_handler = udp_output_read;
+		} else {
+		    ireport->info.output_handler = udp_output_read;
+		}
 	    }
-	} else {
-	    ireport->packet_handler = reporter_handle_packet_server_tcp;
-	    ireport->transfer_protocol_handler = reporter_transfer_protocol_server_tcp;
-            if (inSettings->mReportMode == kReport_CSV) {
-		ireport->info.output_handler = tcp_output_basic_csv;
-	    } else if (isSumOnly(inSettings)) {
-		ireport->info.output_handler = NULL;
-	    } else if (isTripTime(inSettings)) {
-		ireport->info.output_handler = tcp_output_read_enhanced_triptime;
-	    } else if (isEnhanced(inSettings)) {
-		ireport->info.output_handler = tcp_output_read_enhanced;
-	    } else if (!isFullDuplex(inSettings)) {
-		ireport->info.output_handler = tcp_output_read;
+	} else {  // TCP case
+	    if ((inSettings->mIntervalMode == kInterval_Frames) && (isTripTime(inSettings) || isIsochronous(inSettings))) {
+		ireport->transfer_interval_handler = reporter_condprint_frame_interval_report_server_tcp;
+		ireport->info.output_handler = tcp_output_frame_read_triptime;
 	    } else {
-		ireport->info.output_handler = tcp_output_read;
+		ireport->packet_handler = reporter_handle_packet_server_tcp;
+		ireport->transfer_protocol_handler = reporter_transfer_protocol_server_tcp;
+		if (inSettings->mReportMode == kReport_CSV) {
+		    ireport->info.output_handler = tcp_output_basic_csv;
+		} else if (isSumOnly(inSettings)) {
+		    ireport->info.output_handler = NULL;
+		} else if (isTripTime(inSettings)) {
+		    ireport->info.output_handler = tcp_output_read_enhanced_triptime;
+		} else if (isEnhanced(inSettings)) {
+		    ireport->info.output_handler = tcp_output_read_enhanced;
+		} else if (!isFullDuplex(inSettings)) {
+		    ireport->info.output_handler = tcp_output_read;
+		} else {
+		    ireport->info.output_handler = tcp_output_read;
+		}
 	    }
 	}
 	break;
@@ -554,10 +569,6 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
 	    }
 	}
 	break;
-    case kMode_WriteAckClient :
-	ireport->packet_handler = reporter_handle_packet_null;
-	ireport->transfer_protocol_handler = reporter_transfer_protocol_null;
-	break;
     case kMode_Unknown :
     case kMode_Reporter :
     case kMode_ReporterClient :
@@ -571,28 +582,6 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
 		 (void *)ireport, (void *)(ireport->packetring), (void *)(ireport->packetring->awake_producer));
 #endif
 
-    switch (inSettings->mIntervalMode) {
-    case kInterval_Time :
-	ireport->info.ts.intervalTime.tv_sec = (long) (inSettings->mInterval / rMillion);
-	ireport->info.ts.intervalTime.tv_usec = (long) (inSettings->mInterval % rMillion);
-	ireport->transfer_interval_handler = reporter_condprint_time_interval_report;
-	ireport->info.ts.significant_partial = (double) inSettings->mInterval * PARTIALPERCENT / rMillion ;
-	break;
-    case kInterval_Frames :
-	if (isUDP(inSettings)) {
-	    ireport->transfer_interval_handler = reporter_condprint_frame_interval_report_server_udp;
-	} else {
-	    if (isTripTime(inSettings) || isIsochronous(inSettings)) {
-		ireport->transfer_interval_handler = reporter_condprint_frame_interval_report_server_tcp;
-		ireport->info.output_handler = tcp_output_frame_read_triptime;
-	    } else
-		ireport->transfer_interval_handler = NULL;
-	}
-	break;
-    default :
-	ireport->transfer_interval_handler = NULL;
-	break;
-    }
     if (inSettings->mThreadMode == kMode_Server) {
 	ireport->info.sock_callstats.read.binsize = inSettings->mBufLen / 8;
 	if (isRxHistogram(inSettings) && isUDP(inSettings) && isTripTime(inSettings)) {

@@ -145,6 +145,18 @@ static inline void set_llawbuf(double lambda, double meantransit, struct Transfe
 	llaw_buf[sizeof(llaw_buf)-1] = '\0';
     }
 }
+static inline void set_llawbuf_udp (int lambda, double meantransit, double variance, struct TransferInfo *stats) {
+    int Lvar = 0;
+    int L  = round(lambda * meantransit);
+    if (variance > 0.0) {
+	Lvar  = round(lambda * variance);	
+    } else {
+	Lvar = 0;
+    }
+    snprintf(llaw_buf, sizeof(llaw_buf), "%ld/%d(%d) pkts", stats->cntIPG, L, Lvar);
+    llaw_buf[sizeof(llaw_buf) - 1] = '\0';
+}
+
 #define NETPWR_LOWERBOUNDS -1e7
 static inline void set_netpowerbuf(double meantransit, struct TransferInfo *stats) {
   if (meantransit == 0.0) {
@@ -401,8 +413,9 @@ void udp_output_read_enhanced_triptime (struct TransferInfo *stats) {
 		   (stats->cntIPG / stats->IPGsum));
 	} else {
 	    double meantransit = (stats->transit.cntTransit > 0) ? (stats->transit.sumTransit / stats->transit.cntTransit) : 0;
-	    double lambda = (stats->IPGsum > 0.0) ? ((double)stats->cntBytes / stats->IPGsum) : 0.0;
-	    set_llawbuf(lambda, meantransit, stats);
+	    int lambda =  ((stats->IPGsum > 0.0) ? (round (stats->cntIPG / stats->IPGsum)) : 0.0);
+	    double variance = (stats->transit.cntTransit < 2) ? 0 : (sqrt(stats->transit.m2Transit / (stats->transit.cntTransit - 1)) / 1e6);       
+	    set_llawbuf_udp(lambda, meantransit, variance, stats);
 	    set_netpowerbuf(meantransit, stats);
 	    printf(report_bw_jitter_loss_enhanced_format, stats->common->transferIDStr,
 		   stats->ts.iStart, stats->ts.iEnd,
