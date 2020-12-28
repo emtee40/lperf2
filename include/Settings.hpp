@@ -265,7 +265,10 @@ struct thread_Settings {
     int32_t peer_version_l;
     double connecttime;
     double rtt_nearcongest_divider;
+    struct timeval mPermitKeyTime;
     char *mPermitKey;
+    int mPermitKeyLen;
+    int mPermitKeyTTL;
 };
 
 /*

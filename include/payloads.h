@@ -58,20 +58,25 @@ extern "C" {
 #define HEADER_KEYCHECK     0x10000000
 #define HEADER_KEYL1        0x01000000
 #define HEADER_KEYL2        0x02000000
+#define HEADER_KEYLEN_MASK  0x0000FF00
+#define DEFAULT_PERMITKEY_LEN 16
+#define MIN_PERMITKEY_LEN 4
+#define MAX_PERMITKEY_LEN 256
+
 /*
  * base flags, keep compatible with older versions
  */
-#define HEADER_VERSION1     0x80000000
-#define HEADER_EXTEND       0x40000000
-#define HEADER_UDPTESTS     0x20000000
-#define HEADER_SEQNO64B     0x08000000
-#define HEADER_VERSION2     0x04000000
-#define HEADER_AVOID2       0x02000000
-#define HEADER_AVOID1       0x01000000
-#define HEADER_V2PEERDETECT 0x02000000
-#define HEADER_LEN_BIT      0x00010000
+#define HEADER_VERSION1      0x80000000
+#define HEADER_EXTEND        0x40000000
+#define HEADER_UDPTESTS      0x20000000
+#define HEADER_SEQNO64B      0x08000000
+#define HEADER_VERSION2      0x04000000
+#define HEADER_AVOID2        0x02000000
+#define HEADER_AVOID1        0x01000000
+#define HEADER_V2PEERDETECT  0x02000000
+#define HEADER_LEN_BIT       0x00010000
 #define SERVER_HEADER_EXTEND 0x40000000
-#define RUN_NOW             0x00000001
+#define RUN_NOW              0x00000001
 
 // newer flags available per HEADER_EXTEND
 // Below flags are used to pass test settings in *every* UDP packet
@@ -526,7 +531,7 @@ struct server_hdr {
 #define SIZEOF_UDPHDRMSG_EXT (sizeof(struct client_udp_testhdr))
 #define SIZEOF_TCPHDRMSG_V1 (sizeof(struct client_hdr_v1))
 #define SIZEOF_TCPHDRMSG_EXT (sizeof(struct client_tcp_testhdr))
-#define MINMBUFALLOCSIZE ((int) sizeof(struct client_udp_testhdr))
+#define MINMBUFALLOCSIZE ((int) sizeof(struct client_udp_testhdr) + MAX_PERMITKEY_LEN)
 #define MINTRIPTIMEPLAYOAD (int) (sizeof(struct client_udp_testhdr) - sizeof(struct client_hdrext_isoch_settings))
 #ifdef __cplusplus
 } /* end extern "C" */

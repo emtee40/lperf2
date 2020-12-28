@@ -99,7 +99,6 @@ void Settings_Interpret(char option, const char *optarg, struct thread_Settings 
 // apply compound settings after the command line has been fully parsed
 void Settings_ModalOptions(struct thread_Settings *mExtSettings);
 
-#define DEFAULT_PERMITKEY_LEN 16
 static void generate_permit_key(struct thread_Settings *mExtSettings, int length);
 
 /* -------------------------------------------------------------------
@@ -842,7 +841,7 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 		txstarttime = 0;
 		setTxStartTime(mExtSettings);
 		setEnhanced(mExtSettings);
-		match = sscanf(optarg,"%ld.%6ld", &seconds, &usecs);
+		match = sscanf(optarg,"%ld.%6" PRIdMAX, &seconds, &usecs);
 		mExtSettings->txstart_epoch.tv_usec = 0;
 		switch (match) {
 		case 2:
@@ -1012,16 +1011,21 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 
 
 static void generate_permit_key (struct thread_Settings *mExtSettings, int length) {
-    mExtSettings->mPermitKey = (char *) calloc(1, (length + 1));
+    Timestamp now;
+    mExtSettings->mPermitKeyTime.tv_sec = now.getSecs();
+    mExtSettings->mPermitKeyTime.tv_usec = now.getUsecs();
+    int ms = mExtSettings->mPermitKeyTime.tv_usec / 1000;
+    int timelen = snprintf(NULL, 0, "%ld.%03d-", (long) mExtSettings->mPermitKeyTime.tv_sec, ms);
+    mExtSettings->mPermitKey = new char[DEFAULT_PERMITKEY_LEN + timelen + 1];
+    snprintf(mExtSettings->mPermitKey, (timelen+1), "%ld.%03d-", (long) mExtSettings->mPermitKeyTime.tv_sec, ms);
     srand((unsigned int)(time(NULL)));
-    int index = 0;
-    char characters[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/,.-+=~<>:";
-    for(index = 0; index < length; index++) {
+    int index;
+    char characters[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/,.+<>%=:";
+    for(index = timelen; index < (DEFAULT_PERMITKEY_LEN + timelen); index++) {
 	sprintf(mExtSettings->mPermitKey + index, "%c", characters[rand() % ((int) sizeof(characters) - 1)]);
     }
-    mExtSettings->mPermitKey[length + 1] = '\0';
+    mExtSettings->mPermitKey[DEFAULT_PERMITKEY_LEN + timelen] = '\0';
 }
-
 
 static void strip_v6_brackets (char *v6addr) {
     char * results;
@@ -1109,6 +1113,15 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
     if (isCompat(mExtSettings) && compat_nosupport) {
 	fprintf(stderr, "ERROR: compatibility mode not supported with the requested with options\n");
 	bail = true;
+    }
+    if (isPermitKey(mExtSettings) && mExtSettings->mPermitKey) {
+	if (strlen(mExtSettings->mPermitKey) < MIN_PERMITKEY_LEN) {
+	    fprintf(stderr, "ERROR: value for --permit-key must have at least %d characters\n", MIN_PERMITKEY_LEN);
+	    bail = true;
+	} else if (strlen(mExtSettings->mPermitKey) > MAX_PERMITKEY_LEN) {
+	    fprintf(stderr, "ERROR: value for --permit-key can't be more than %d characters \n", MAX_PERMITKEY_LEN);
+	    bail = true;
+	}
     }
     if (mExtSettings->mThreadMode == kMode_Client) {
 	if (isPermitKey(mExtSettings) && !mExtSettings->mPermitKey) {
@@ -1481,10 +1494,8 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	    mExtSettings->mIfrnametx=NULL;
 	}
 #endif
-    } else {
-	if (isPermitKey(mExtSettings) && !mExtSettings->mPermitKey) {
-	    generate_permit_key(mExtSettings, DEFAULT_PERMITKEY_LEN);
-	}
+    } else if (isPermitKey(mExtSettings) && !mExtSettings->mPermitKey) {
+	generate_permit_key(mExtSettings, DEFAULT_PERMITKEY_LEN);
     }
 }
 
@@ -1881,10 +1892,13 @@ int Settings_GenerateClientHdr (struct thread_Settings *client, void *testhdr, s
 	}
 	hdr->base.flags = htonl(flags | ((len << 1) & 0xFFFE));
     } else { // TCP first write with test information
+	int keylen = 0;
 	if (isPermitKey(client)) {
+	    keylen = strlen(client->mPermitKey);
 	    flags |= HEADER_KEYCHECK;
-	    memcpy(testhdr, client->mPermitKey, 12);
-	    len = 12;
+	    memcpy(testhdr, client->mPermitKey, keylen);
+	    flags |= keylen & 0x0000FF00; // set the key length in the header
+	    len = keylen;
 	}
 	struct client_tcp_testhdr *hdr = (struct client_tcp_testhdr *) testhdr + len;
 	memset(hdr, 0, sizeof(struct client_tcp_testhdr));
