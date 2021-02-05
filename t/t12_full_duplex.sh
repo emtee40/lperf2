@@ -1,7 +1,13 @@
-#!/bin/sh -e
+#!/bin/bash -e
 . $(dirname $0)/base.sh
 
-iperf -s -i 1 -t 3 &
-sleep 0.5
-iperf -c $ip --full-duplex -i 1 -t 2
-wait
+# usage:
+# run_iperf -s server args   -c client args
+#
+# client args should contain $ip or -V $ip6
+# results returned in $results
+
+run_iperf    \
+    -s -P 1 -i 1 -t 3     \
+    -c $ip -P 1 --full-duplex -i 1 -t 2
+

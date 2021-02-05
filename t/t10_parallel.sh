@@ -1,7 +1,12 @@
-#!/bin/sh -ex
+#!/bin/bash -e
 . $(dirname $0)/base.sh
 
-iperf -s --parallel 2 -i 1 -t 3 &
-sleep 0.5
-iperf -c $ip --parallel 2 -i 1 -t 2
-wait
+# usage:
+# run_iperf -s server args   -c client args
+#
+# client args should contain $ip or -V $ip6
+# results returned in $results
+
+run_iperf    \
+    -s --parallel 4 -i 1 -t 3     \
+    -c $ip --parallel 4 -i 1 -t 2
