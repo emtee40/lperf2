@@ -238,14 +238,14 @@ bool Client::my_connect (bool close_on_fail) {
     return connected;
 } // end Connect
 
-bool Client::isConnected (void) {
+bool Client::isConnected () {
 #ifdef HAVE_THREAD_DEBUG
   // thread_debug("Client is connected %d", connected);
 #endif
     return connected;
 }
 
-void Client::TxDelay (void) {
+void Client::TxDelay () {
     if (isTxHoldback(mSettings)) {
 	clock_usleep(&mSettings->txholdback_timer);
     }
@@ -263,7 +263,7 @@ inline bool Client::myReportPacket (bool sample_tcpi) {
     reportstruct->packetLen = 0;
     return rc;
 }
-inline void Client::myReportPacket (void) {
+inline void Client::myReportPacket () {
     ReportPacket(myReport, reportstruct, NULL);
     reportstruct->packetLen = 0;
 }
@@ -278,7 +278,7 @@ inline void Client::myReportPacket (void) {
 // There are multiple startup synchronizations, this code
 // handles them all. The caller decides to apply them
 // either before connect() or after connect() and before writes()
-int Client::StartSynch (void) {
+int Client::StartSynch () {
 #ifdef HAVE_THREAD_DEBUG
     thread_debug("Client start sync enterred");
 #endif
@@ -359,7 +359,7 @@ int Client::StartSynch (void) {
     return 0;
 }
 
-inline void Client::SetFullDuplexReportStartTime (void) {
+inline void Client::SetFullDuplexReportStartTime () {
     assert(myReport->FullDuplexReport != NULL);
     struct TransferInfo *fullduplexstats = &myReport->FullDuplexReport->info;
     assert(fullduplexstats != NULL);
@@ -373,7 +373,7 @@ inline void Client::SetFullDuplexReportStartTime (void) {
     thread_debug("Client fullduplex report start=%ld.%ld next=%ld.%ld", fullduplexstats->ts.startTime.tv_sec, fullduplexstats->ts.startTime.tv_usec, fullduplexstats->ts.nextTime.tv_sec, fullduplexstats->ts.nextTime.tv_usec);
 #endif
 }
-inline void Client::SetReportStartTime (void) {
+inline void Client::SetReportStartTime () {
     assert(myReport!=NULL);
     now.setnow();
     myReport->info.ts.startTime.tv_sec = now.getSecs();
@@ -404,7 +404,7 @@ inline void Client::SetReportStartTime (void) {
 #endif
 }
 
-void Client::ConnectPeriodic (void) {
+void Client::ConnectPeriodic () {
     Timestamp end;
     Timestamp next;
     unsigned int amount_usec = 1000000;
@@ -447,7 +447,7 @@ void Client::ConnectPeriodic (void) {
 /* -------------------------------------------------------------------
  * Common traffic loop intializations
  * ------------------------------------------------------------------- */
-void Client::InitTrafficLoop (void) {
+void Client::InitTrafficLoop () {
     //  Enable socket write timeouts for responsive reporting
     //  Do this after the connection establishment
     //  and after Client::InitiateServer as during these
@@ -501,7 +501,7 @@ void Client::InitTrafficLoop (void) {
  * 4) UDP isochronous w/vbr
  *
  * ------------------------------------------------------------------- */
-void Client::Run (void) {
+void Client::Run () {
     // Initialize the report struct scratch pad
     // Peform common traffic setup
     InitTrafficLoop();
@@ -537,7 +537,7 @@ void Client::Run (void) {
 /*
  * TCP send loop
  */
-void Client::RunTCP (void) {
+void Client::RunTCP () {
     int burst_remaining = 0;
     int burst_id = 1;
 
@@ -637,7 +637,7 @@ void Client::RunTCP (void) {
 /*
  * TCP send loop
  */
-void Client::RunNearCongestionTCP (void) {
+void Client::RunNearCongestionTCP () {
     int burst_remaining = 0;
     int burst_id = 1;
     now.setnow();
@@ -723,7 +723,7 @@ void Client::RunNearCongestionTCP (void) {
 /*
  * A version of the transmit loop that supports TCP rate limiting using a token bucket
  */
-void Client::RunRateLimitedTCP (void) {
+void Client::RunRateLimitedTCP () {
     double tokens = 0;
     Timestamp time1, time2;
     int burst_size = mSettings->mBufLen;
@@ -825,7 +825,7 @@ void Client::RunRateLimitedTCP (void) {
 /*
  * UDP send loop
  */
-double Client::get_delay_target (void) {
+double Client::get_delay_target () {
     double delay_target;
     if (isIPG(mSettings)) {
 	delay_target = mSettings->mBurstIPG * 1000000;  // convert from milliseconds to nanoseconds
@@ -842,7 +842,7 @@ double Client::get_delay_target (void) {
     return delay_target;
 }
 
-void Client::RunUDP (void) {
+void Client::RunUDP () {
     struct UDP_datagram* mBuf_UDP = (struct UDP_datagram*) mBuf;
     int currLen;
 
@@ -964,7 +964,7 @@ void Client::RunUDP (void) {
 /*
  * UDP isochronous send loop
  */
-void Client::RunUDPIsochronous (void) {
+void Client::RunUDPIsochronous () {
     struct UDP_datagram* mBuf_UDP = (struct UDP_datagram*) mBuf;
     // skip over the UDP datagram (seq no, timestamp) to reach the isoch fields
     struct client_udp_testhdr *udp_payload = (client_udp_testhdr *) mBuf;
@@ -1166,7 +1166,7 @@ inline void Client::WriteTcpTxHdr (struct ReportStruct *reportstruct, int burst_
     return;
 }
 
-inline bool Client::InProgress (void) {
+inline bool Client::InProgress () {
     // Read the next data block from
     // the file if it's file input
     if (isFileInput(mSettings)) {
@@ -1195,7 +1195,7 @@ inline bool Client::InProgress (void) {
  * of order packets per these retries actually being received
  * by the server (e.g. -1000, -1000, -1000)
  */
-void Client::FinishTrafficActions (void) {
+void Client::FinishTrafficActions () {
     disarm_itimer();
     // Shutdown the TCP socket's writes as the event for the server to end its traffic loop
     if (!isUDP(mSettings)) {
@@ -1272,7 +1272,7 @@ void Client::FinishTrafficActions (void) {
  * stats to displayed on the client.  Attempt to re-transmit
  * until the fin is received
  * ------------------------------------------------------------------- */
-void Client::AwaitServerFinPacket (void) {
+void Client::AwaitServerFinPacket () {
     int rc;
     fd_set readSet;
     struct timeval timeout;
@@ -1329,7 +1329,7 @@ void Client::AwaitServerFinPacket (void) {
 }
 
 
-void Client::PostNullEvent (void) {
+void Client::PostNullEvent () {
     assert(myReport!=NULL);
     // push a nonevent into the packet ring
     // this will cause the reporter to process
@@ -1348,7 +1348,7 @@ void Client::PostNullEvent (void) {
 // return indicating the socket is closed for recv per the server
 // closing it's socket
 #define MINAWAITCLOSEUSECS 2000000
-void Client::AwaitServerCloseEvent (void) {
+void Client::AwaitServerCloseEvent () {
     // the await detection can take awhile so post a non event ahead of it
     PostNullEvent();
     unsigned int amount_usec = \
@@ -1366,7 +1366,7 @@ void Client::AwaitServerCloseEvent (void) {
 #endif
 }
 
-int Client::SendFirstPayload (void) {
+int Client::SendFirstPayload () {
     int pktlen = 0;
     if (!isConnectOnly(mSettings)) {
 	if (myReport && !TimeZero(myReport->info.ts.startTime) && !(mSettings->mMode == kTest_TradeOff)) {
@@ -1410,7 +1410,7 @@ int Client::SendFirstPayload (void) {
     return pktlen;
 }
 
-void Client::PeerXchange (void) {
+void Client::PeerXchange () {
     int n;
     client_hdr_ack ack;
     /*
