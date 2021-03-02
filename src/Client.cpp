@@ -1163,7 +1163,6 @@ inline void Client::WriteTcpTxHdr (struct ReportStruct *reportstruct, int burst_
     mBuf_burst->burst_period_us  = htonl(0x0);
     reportstruct->frameID=burst_id;
     reportstruct->burstsize=burst_size;
-    return;
 }
 
 inline bool Client::InProgress () {
