@@ -127,7 +127,7 @@ void thread_unsetignore( void );
 // Used for threads that may never terminate (ie Listener Thread)
 void thread_register_nonterm( void );
 void thread_unregister_nonterm( void );
-int thread_release_nonterm( int force );
+int thread_release_nonterm( int interrupt );
 
 /* -------------------------------------------------------------------
  * Return the current thread's ID.
