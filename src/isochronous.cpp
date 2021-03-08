@@ -52,8 +52,8 @@
 
 using namespace Isochronous;
 
-FrameCounter::FrameCounter (double value, Timestamp start) : frequency(value) {
-    period = (unsigned int) (1000000 / frequency);
+FrameCounter::FrameCounter (double value, const Timestamp& start) : frequency(value) {
+    period = static_cast<unsigned int>(1000000 / frequency);
     startTime = start;
     nextslotTime=start;
     lastcounter = 0;
@@ -67,7 +67,7 @@ FrameCounter::FrameCounter (double value) : frequency(value) {
     if (!SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL))
 	WARN_errno(1, "SetThreadPriority");
 #endif
-    period = (unsigned int) (1000000 / frequency); // unit us
+    period = static_cast<unsigned int>(1000000 / frequency); // unit us
     lastcounter = 0;
     slot_counter = 0;
     slip = 0;
@@ -117,7 +117,7 @@ int FrameCounter::mySetWaitableTimer (long delay_time) {
 #endif
 
 #if defined(HAVE_CLOCK_NANOSLEEP)
-unsigned int FrameCounter::wait_tick (void) {
+unsigned int FrameCounter::wait_tick () {
     Timestamp now;
     int rc = true;
     if (!slot_counter) {
@@ -170,12 +170,12 @@ unsigned int FrameCounter::wait_tick (void) {
     return(framecounter);
 }
 #endif
-inline unsigned int FrameCounter::get (void) {
+inline unsigned int FrameCounter::get () const {
     Timestamp now;
     return slot_counter + 1;
 }
 
-inline unsigned int FrameCounter::get (Timestamp slot) {
+inline unsigned int FrameCounter::get (const Timestamp& slot) const {
     return(slot_counter + 1); // Frame counter for packets starts at 1
 }
 
@@ -183,14 +183,14 @@ inline unsigned int FrameCounter::get (long *ticks_remaining) {
     assert(ticks_remaining != NULL);
     Timestamp sampleTime;  // Constructor will initialize timestamp to now
     long usecs = -startTime.subUsec(sampleTime);
-    unsigned int counter = (unsigned int) (usecs / period);
+    unsigned int counter = static_cast<unsigned int>(usecs / period);
     // figure out how many usecs before the next frame counter tick
     // the caller can use this to delay until the next tick
     *ticks_remaining = (counter * period) - usecs;
     return(counter + 1); // Frame counter for packets starts at 1
 }
 
-inline Timestamp FrameCounter::next_slot (void) {
+inline Timestamp FrameCounter::next_slot () {
     Timestamp next = startTime;
     slot_counter = get();
     // period unit is in microseconds, convert to seconds
@@ -198,11 +198,11 @@ inline Timestamp FrameCounter::next_slot (void) {
     return next;
 }
 
-unsigned int FrameCounter::period_us (void) {
+unsigned int FrameCounter::period_us () {
     return(period);
 }
 
-void FrameCounter::reset (void) {
+void FrameCounter::reset () {
     period = (1000000 / frequency);
     startTime.setnow();
 }
@@ -219,10 +219,10 @@ unsigned int FrameCounter::wait_sync (long sec, long usec) {
     return(framecounter);
 }
 
-long FrameCounter::getSecs (void) {
+long FrameCounter::getSecs () {
     return startTime.getSecs();
 }
 
-long FrameCounter::getUsecs (void) {
+long FrameCounter::getUsecs () {
     return startTime.getUsecs();
 }
