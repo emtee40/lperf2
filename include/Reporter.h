@@ -237,6 +237,7 @@ struct ReportCommon {
     int transferID;
     double rtt_weight;
     double ListenerTimeout;
+    double FPS;
 #if WIN32
     SOCKET socket;
 #else
@@ -257,7 +258,6 @@ struct ConnectionInfo {
     char peerversion[PEERVERBUFSIZE];
     struct MeanMinMaxStats connect_times;
     int MSS;
-    double FPS;
 };
 
 struct ShiftIntCounter {
@@ -356,6 +356,7 @@ struct TransferInfo {
     uint32_t frameID;
     char csv_peer[CSVPEERLIMIT];
     bool final;
+    bool check_next;
 };
 
 struct SumReport {
