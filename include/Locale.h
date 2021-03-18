@@ -134,9 +134,9 @@ extern const char wait_server_threads[];
 
 extern const char client_isochronous[];
 
-extern const char client_burstperiodic[];
+extern const char client_burstperiod[];
 
-extern const char server_burstperiodic[];
+extern const char server_burstperiod[];
 
 extern const char client_fq_pacing[];
 /* -------------------------------------------------------------------
@@ -266,6 +266,8 @@ extern const char report_frame_tcp_enhanced_header[];
 extern const char report_frame_read_tcp_enhanced_triptime_header[];
 
 extern const char report_frame_read_triptime_format[];
+
+extern const char report_frame_read_triptime_final_format[];
 
 extern const char report_udp_fullduplex_header[];
 
