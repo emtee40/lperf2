@@ -1162,6 +1162,10 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	    setEnhanced(mExtSettings);
 	    setFrameInterval(mExtSettings);
 	}
+        if (mExtSettings->mTTL > MAXTTL) {
+	    fprintf(stderr, "ERROR: option of -ttl (-T) must be less than %d\n", MAXTTL);
+	    bail = true;
+	}
 	if (isPermitKey(mExtSettings) && (mExtSettings->mPermitKey[0] == '\0')) {
 	    fprintf(stderr, "ERROR: option of --permit-key requires a value on the client\n");
 	    bail = true;
@@ -1194,13 +1198,19 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 		bail = true;
 	    }
 	}
-	if (isPeriodicBurst(mExtSettings) && isIsochronous(mExtSettings)) {
-	    fprintf(stderr, "ERROR: options of --burst-period and --isochronous cannot be applied together\n");
-	    bail = true;
-	}
-	if ((mExtSettings->mBurstSize > 0) && isIsochronous(mExtSettings)) {
-	    fprintf(stderr, "ERROR: options of --burst-size and --isochronous cannot be applied together\n");
-	    bail = true;
+	if (isPeriodicBurst(mExtSettings)) {
+	    if (isIsochronous(mExtSettings)) {
+		fprintf(stderr, "ERROR: options of --burst-period and --isochronous cannot be applied together\n");
+		bail = true;
+	    }
+	    if (isNearCongest(mExtSettings)) {
+		fprintf(stderr, "ERROR: options of --burst-period and --near-congestion cannot be applied together\n");
+		bail = true;
+	    }
+	    if (static_cast<int> (mExtSettings->mBurstSize) < mExtSettings->mBufLen) {
+		fprintf(stderr, "ERROR: option of --burst-size must be equal or larger to write length (-l)\n");
+		bail = true;
+	    }
 	}
 	if (isUDP(mExtSettings)) {
 	    if (isPeerVerDetect(mExtSettings)) {
@@ -1435,8 +1445,6 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	    // L2 settings
 	    if (l2checks && isUDP(mExtSettings)) {
 		l2checks = 0;
-		setL2LengthCheck(mExtSettings);
-	    } else {
 #if defined(HAVE_LINUX_FILTER_H) && defined(HAVE_AF_PACKET)
 		// Request server to do length checks
 		setL2LengthCheck(mExtSettings);
