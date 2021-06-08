@@ -400,7 +400,7 @@ void FreeReport (struct ReportHeader *reporthdr) {
 	Free_srReport((struct TransferInfo *)reporthdr->this_report);
 	break;
     default:
-	fprintf(stderr, "Invalid report type in free\n");
+	fprintf(stderr, "Invalid report type in free (%x)\n", reporthdr->type);
 	assert(0);
 	break;
     }
