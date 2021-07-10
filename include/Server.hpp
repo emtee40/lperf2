@@ -60,9 +60,12 @@
 #include "Timestamp.hpp"
 
 #ifdef WIN32
-#define NONFATALTCPREADERR(errno) (WSAGetLastError() != WSAEWOULDBLOCK)
+#define FATALTCPREADERR(errno) (WSAGetLastError() != WSAEWOULDBLOCK)
+#define FATALUDPREADERR(errno)  (((errno = WSAGetLastError()) != WSAEWOULDBLOCK) && (errno != WSAECONNREFUSED))
 #else
-#define NONFATALTCPREADERR(errno) (errno != EAGAIN && errno != EWOULDBLOCK)
+#define FATALTCPREADERR(errno) ((errno != EAGAIN) && (errno != EWOULDBLOCK) && (errno != EINTR))
+#define FATALUDPREADERR(errno) ((errno != EAGAIN) && (errno != EWOULDBLOCK) && \
+				(errno != EINTR) && (errno != ECONNREFUSED))
 #endif
 
 
