@@ -1,4 +1,3 @@
-
 /*---------------------------------------------------------------
  * Copyright (c) 1999,2000,2001,2002,2003
  * The Board of Trustees of the University of Illinois
@@ -539,7 +538,8 @@ void Client::Run () {
 	} else if (isNearCongest(mSettings)) {
 	    RunNearCongestionTCP();
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
-	} else if (isWritePrefetch(mSettings)) {
+	} else if (isWritePrefetch(mSettings) && \
+		   !isIsochronous(mSettings) && !isPeriodicBurst(mSettings)) {
 	    RunWriteEventsTCP();
 #endif
 	} else {
@@ -594,6 +594,11 @@ void Client::RunTCP () {
 			PostNullEvent();
 		    }
 		}
+#if HAVE_DECL_TCP_NOTSENT_LOWAT
+		if (isWritePrefetch(mSettings)) {
+		    AwaitWriteSelectEventTCP();
+		}
+#endif
 	    }
 	    now.setnow();
 	    reportstruct->packetTime.tv_sec = now.getSecs();
@@ -610,6 +615,11 @@ void Client::RunTCP () {
 	    // perform write
 	    if (isburst)
 		writelen = (mSettings->mBufLen > burst_remaining) ? burst_remaining : mSettings->mBufLen;
+#if HAVE_DECL_TCP_NOTSENT_LOWAT
+	    if (isWritePrefetch(mSettings)) {
+		AwaitWriteSelectEventTCP();
+	    }
+#endif
 	    reportstruct->packetLen = write(mySocket, mBuf, writelen);
 	    now.setnow();
 	    reportstruct->packetTime.tv_sec = now.getSecs();
@@ -847,64 +857,71 @@ void Client::RunRateLimitedTCP () {
 }
 
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
-void Client::RunWriteEventsTCP () {
-    int burst_id = 0;
-    int writelen = mSettings->mBufLen;
-    Timestamp write_event_timeout(0,0);
-    struct timeval select_timeout;
+inline bool Client::AwaitWriteSelectEventTCP (void) {
+    int rc;
+    struct timeval timeout;
+    fd_set writeset;
+    FD_ZERO(&writeset);
+    FD_SET(mySocket, &writeset);
     if (isModeTime(mSettings)) {
+        Timestamp write_event_timeout(0,0);
 	if (mSettings->mInterval && (mSettings->mIntervalMode == kInterval_Time)) {
 	    write_event_timeout.add((double) mSettings->mInterval / 1e6 * 2.0);
 	} else {
 	    write_event_timeout.add((double) mSettings->mAmount / 1e2 * 4.0);
 	}
-	select_timeout.tv_sec = write_event_timeout.getSecs();
-	select_timeout.tv_usec = write_event_timeout.getUsecs();
+	timeout.tv_sec = write_event_timeout.getSecs();
+        timeout.tv_usec = write_event_timeout.getUsecs();
     } else {
-	select_timeout.tv_sec = 10;
-	select_timeout.tv_usec = 0;
+	timeout.tv_sec = 10; // longest is 10 seconds
+	timeout.tv_usec = 0;
     }
+
+    Timestamp t1;
+    if ((rc = select(mySocket + 1, NULL, &writeset, NULL, &timeout)) <= 0) {
+        reportstruct->select_delay = -1;
+	WARN_errno((rc < 0), "select");
+#ifdef HAVE_THREAD_DEBUG
+	if (rc == 0)
+	    thread_debug("AwaitWrite timeout");
+#endif
+	return false;
+    }
+    Timestamp t2;
+    reportstruct->select_delay = t2.subSec(t1);
+    //    printf("*****t1 = %f\n", t2.subSec(t1));
+    return true;
+}
+
+void Client::RunWriteEventsTCP () {
+    int burst_id = 0;
+    int writelen = mSettings->mBufLen;
+
     now.setnow();
     reportstruct->packetTime.tv_sec = now.getSecs();
     reportstruct->packetTime.tv_usec = now.getUsecs();
-    fd_set writeset;
-    FD_ZERO(&writeset);
     while (InProgress()) {
         if (isModeAmount(mSettings)) {
 	    writelen = ((mSettings->mAmount < static_cast<unsigned>(mSettings->mBufLen)) ? mSettings->mAmount : mSettings->mBufLen);
 	}
-	FD_SET(mySocket, &writeset);
-	select_timeout.tv_sec = write_event_timeout.getSecs();
-	select_timeout.tv_usec = write_event_timeout.getUsecs();
 	now.setnow();
-	int rc;
-	if ((rc = select(mySocket + 1, NULL, &writeset, NULL, &select_timeout)) <= 0) {
-	    reportstruct->emptyreport = 0;
-	    WARN_errno(1, "select");
-	    reportstruct->packetLen = 0;
-#ifdef HAVE_THREAD_DEBUG
-	    thread_debug("Write select timeout");
-#endif
-	} else {
-	    reportstruct->prevPacketTime = myReport->info.ts.prevpacketTime;
-	    myReport->info.ts.prevpacketTime = reportstruct->packetTime;
+	bool rc = AwaitWriteSelectEventTCP();
+	reportstruct->emptyreport = (rc == false) ? 1 : 0;
+        if (rc) {
 	    now.setnow();
 	    reportstruct->packetTime.tv_sec = now.getSecs();
 	    reportstruct->packetTime.tv_usec = now.getUsecs();
 	    WriteTcpTxHdr(reportstruct, writelen, ++burst_id);
 	    reportstruct->sentTime = reportstruct->packetTime;
-	    myReport->info.ts.prevsendTime = reportstruct->packetTime;
 	    reportstruct->packetLen = writen(mySocket, mBuf, writelen);
-	    if (reportstruct->packetLen < 0) {
-		WARN_errno(1, "select writen()");
+	    if (reportstruct->packetLen <= 0) {
+		WARN_errno((reportstruct->packetLen < 0), "event writen()");
+		if (reportstruct->packetLen == 0) {
+		    peerclose = true;
+		}
 		reportstruct->packetLen = 0;
-		reportstruct->emptyreport = 0;
+		reportstruct->emptyreport = 1;
 	    }
-	}
-	if (reportstruct->packetLen == 0) {
-	    peerclose = true;
-	    reportstruct->packetLen = 0;
-	    reportstruct->emptyreport = 1;
 	}
 	if (isModeAmount(mSettings) && !reportstruct->emptyreport) {
 	    /* mAmount may be unsigned, so don't let it underflow! */

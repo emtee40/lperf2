@@ -1265,10 +1265,6 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	    fprintf(stderr, "ERROR: option of --permit-key requires a value on the client\n");
 	    bail = true;
 	}
-	if (isWritePrefetch(mExtSettings) && isIsochronous(mExtSettings)) {
-	    fprintf(stderr,"ERROR: options of --isochronous and --tcp-write-prefetch are mutually exclusive\n");
-	    bail = true;
-	}
 	if (!isUDP(mExtSettings) && isTxHoldback(mExtSettings) && isTxStartTime(mExtSettings)) {
 	    fprintf(stderr,"ERROR: options of --txstart-time and --txdelay-time are mutually exclusive\n");
 	    bail = true;
@@ -1386,7 +1382,8 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 		bail = true;
 	    }
 #endif
-	    if (isBWSet(mExtSettings) && ((mExtSettings->mAppRate / 8) < static_cast<uintmax_t>(mExtSettings->mBufLen))) {
+	    if (isBWSet(mExtSettings) && !(mExtSettings->mAppRateUnits == kRate_PPS) \
+		&& ((mExtSettings->mAppRate / 8) < static_cast<uintmax_t>(mExtSettings->mBufLen))) {
 		fprintf(stderr, "ERROR: option -b and -l of %d are incompatible, consider setting -l to %d or lower\n", \
 			mExtSettings->mBufLen, static_cast<int>(mExtSettings->mAppRate / 8));
 		bail = true;
