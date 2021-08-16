@@ -457,6 +457,8 @@ bool Server::InitTrafficLoop (void) {
 	}
     }
     SetReportStartTime();
+    reportstruct->prevPacketTime = myReport->info.ts.startTime;
+
     if (setfullduplexflag)
 	SetFullDuplexReportStartTime();
 
