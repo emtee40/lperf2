@@ -716,7 +716,7 @@ static inline void reporter_compute_packet_pps (struct TransferInfo *stats, stru
 
 static void reporter_handle_packet_oneway_transit (struct TransferInfo *stats, struct ReportStruct *packet) {
     // Transit or latency updates done inline below
-    double transit = TimeDifferenceUsec(packet->packetTime, packet->sentTime);
+    double transit = TimeDifference(packet->packetTime, packet->sentTime);
     if (stats->latency_histogram) {
         histogram_insert(stats->latency_histogram, transit, NULL);
     }
