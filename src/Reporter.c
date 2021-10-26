@@ -1514,7 +1514,9 @@ void reporter_transfer_protocol_client_tcp (struct ReporterData *data, int final
 	    stats->framelatency_histogram->final = 1;
 	}
 	stats->cntBytes = stats->total.Bytes.current;
+#if HAVE_DECL_TCP_NOTSENT_LOWAT
 	stats->drain_mmm.current = stats->drain_mmm.total;
+#endif
 	reporter_set_timestamps_time(&stats->ts, TOTAL);
     } else if (isIsochronous(stats->common)) {
 	stats->isochstats.cntFrames = stats->isochstats.framecnt.current - stats->isochstats.framecnt.prev;

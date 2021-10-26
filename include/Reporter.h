@@ -513,10 +513,12 @@ void tcp_output_write(struct TransferInfo *stats);
 void tcp_output_sum_write(struct TransferInfo *stats);
 void tcp_output_sumcnt_write(struct TransferInfo *stats);
 void tcp_output_write_enhanced (struct TransferInfo *stats);
-void tcp_output_write_enhanced_drain (struct TransferInfo *stats);
 void tcp_output_write_enhanced_isoch (struct TransferInfo *stats);
 void tcp_output_sum_write_enhanced (struct TransferInfo *stats);
 void tcp_output_sumcnt_write_enhanced (struct TransferInfo *stats);
+#if HAVE_DECL_TCP_NOTSENT_LOWAT
+void tcp_output_write_enhanced_drain (struct TransferInfo *stats);
+#endif
 // TCP fullduplex
 void tcp_output_fullduplex(struct TransferInfo *stats);
 void tcp_output_fullduplex_enhanced(struct TransferInfo *stats);

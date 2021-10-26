@@ -612,8 +612,10 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
 		ireport->info.output_handler = tcp_output_basic_csv;
 	    } else if (isSumOnly(inSettings)) {
 		ireport->info.output_handler = NULL;
+#if HAVE_DECL_TCP_NOTSENT_LOWAT
 	    } else if (isTcpDrain(inSettings)) {
 		ireport->info.output_handler = tcp_output_write_enhanced_drain;
+#endif
 	    } else if (isIsochronous(inSettings)) {
 		ireport->info.output_handler = tcp_output_write_enhanced_isoch;
 	    } else if (isEnhanced(inSettings)) {
@@ -662,9 +664,11 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
 	inSettings->mHistUnits = 6;  // usecs 10 pow(x)
 	inSettings->mHistci_lower = 5;
 	inSettings->mHistci_upper = 95;
+#if HAVE_DECL_TCP_NOTSENT_LOWAT
 	ireport->info.drain_histogram =  histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0,	\
 							pow(10,inSettings->mHistUnits), \
 							inSettings->mHistci_lower, inSettings->mHistci_upper, ireport->info.common->transferID, name);
+#endif
     }
 #endif
     return reporthdr;
