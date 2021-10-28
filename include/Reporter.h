@@ -218,6 +218,8 @@ struct ReportCommon {
     int BufLen;
     int MSS;
     int TCPWin;
+    int TOS;
+    int RTOS;
 #if HAVE_DECL_TCP_WINDOW_CLAMP
     int ClampSize;
 #endif

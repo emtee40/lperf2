@@ -132,6 +132,8 @@ static void common_copy (struct ReportCommon **common, struct thread_Settings *i
     (*common)->rtt_weight =inSettings->rtt_nearcongest_divider;
     (*common)->ListenerTimeout =inSettings->mListenerTimeout;
     (*common)->FPS = inSettings->mFPS;
+    (*common)->TOS = inSettings->mTOS;
+    (*common)->RTOS = inSettings->mRTOS;
 #if HAVE_DECL_TCP_WINDOW_CLAMP
     (*common)->ClampSize = inSettings->mClampSize;
 #endif

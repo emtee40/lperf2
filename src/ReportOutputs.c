@@ -1112,6 +1112,12 @@ static void reporter_output_listener_settings (struct ReportSettings *report) {
     if (isCongestionControl(report->common) && report->common->Congestion) {
 	fprintf(stdout, "TCP congestion control set to %s\n", report->common->Congestion);
     }
+    if (isOverrideTOS(report->common)) {
+	fprintf(stdout, "Reflected TOS will be set to 0x%x\n", report->common->RTOS);
+    }
+    if (report->common->TOS) {
+	fprintf(stdout, "TOS will be set to 0x%x\n", report->common->TOS);
+    }
     if (isUDP(report->common)) {
 	if (isSingleClient(report->common)) {
 	    fprintf(stdout, "WARN: Suggested to use lower case -u instead of -U (to avoid serialize & bypass of reporter thread)\n");
@@ -1320,9 +1326,23 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
 	    snprintf(b, SNBUFFERSIZE-strlen(b), " (trip-times)");
 	    b += strlen(b);
 	}
-
 	if (isEnhanced(report->common)) {
 	    snprintf(b, SNBUFFERSIZE-strlen(b), " (sock=%d)", report->common->socket);;
+	    b += strlen(b);
+	}
+	if (isOverrideTOS(report->common)) {
+	    if (isFullDuplex(report->common)) {
+		snprintf(b, SNBUFFERSIZE-strlen(b), " (tos rx/tx=0x%x/0x%x)", report->common->TOS, report->common->RTOS);
+	    } else if (isReverse(report->common)) {
+		snprintf(b, SNBUFFERSIZE-strlen(b), " (tos tx=0x%x)", report->common->TOS);
+	    }
+	    b += strlen(b);
+	} else if (report->common->TOS) {
+	    if (isFullDuplex(report->common)) {
+		snprintf(b, SNBUFFERSIZE-strlen(b), " (tos rx/tx=0x%x/0x%x)", report->common->TOS, report->common->TOS);
+	    } else if (isReverse(report->common)) {
+		snprintf(b, SNBUFFERSIZE-strlen(b), " (tos tx=0x%x)", report->common->TOS);
+	    }
 	    b += strlen(b);
 	}
 	if (isEnhanced(report->common) || isPeerVerDetect(report->common)) {
