@@ -117,7 +117,7 @@ struct WriteStats {
     int WriteErr;
     int totWriteCnt;
     int totWriteErr;
-#ifdef HAVE_STRUCT_TCP_INFO_TCPI_TOTAL_RETRANS
+#if (HAVE_TCP_STATS)
     int TCPretry;
     int totTCPretry;
     int cwnd;
@@ -201,6 +201,8 @@ struct ReportCommon {
     int BufLen;
     int MSS;
     int TCPWin;
+    int TOS;
+    int RTOS;
 #if HAVE_DECL_TCP_WINDOW_CLAMP
     int ClampSize;
 #endif
@@ -230,10 +232,6 @@ struct ReportCommon {
     double rtt_weight;
     double ListenerTimeout;
     double FPS;
-#ifdef HAVE_STRUCT_TCP_INFO_TCPI_TOTAL_RETRANS
-    bool enable_sampleTCPstats;
-    bool intervalonly_sampleTCPstats;
-#endif
 #if WIN32
     SOCKET socket;
 #else
@@ -321,9 +319,7 @@ struct ReportTimeStamps {
     struct timeval nextTime;
     struct timeval intervalTime;
     struct timeval IPGstart;
-#ifdef HAVE_STRUCT_TCP_INFO_TCPI_TOTAL_RETRANS
     struct timeval nextTCPStampleTime;
-#endif
 };
 
 struct TransferInfo {
@@ -356,6 +352,7 @@ struct TransferInfo {
     char csv_peer[CSVPEERLIMIT];
     bool final;
     bool burstid_transition;
+    bool isEnableTcpInfo;
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
     struct RunningMMMStats drain_mmm;
     struct histogram *drain_histogram;
@@ -415,11 +412,7 @@ struct ConnectionInfo* InitConnectOnlyReport(struct thread_Settings *thread);
 struct ReportHeader *InitSettingsReport(struct thread_Settings *inSettings);
 struct ReportHeader* InitServerRelayUDPReport(struct thread_Settings *inSettings, struct server_hdr *server);
 void PostReport(struct ReportHeader *reporthdr);
-#ifdef HAVE_STRUCT_TCP_INFO_TCPI_TOTAL_RETRANS
-bool ReportPacket (struct ReporterData* data, struct ReportStruct *packet, struct tcp_info *tcp_stats);
-#else
-void ReportPacket (struct ReporterData* data, struct ReportStruct *packet);
-#endif
+bool ReportPacket (struct ReporterData* data, struct ReportStruct *packet);
 int EndJob(struct ReportHeader *reporthdr,  struct ReportStruct *packet);
 void FreeReport(struct ReportHeader *reporthdr);
 void FreeSumReport (struct SumReport *sumreport);
@@ -495,10 +488,12 @@ void tcp_output_burst_write(struct TransferInfo *stats);
 void tcp_output_sum_write(struct TransferInfo *stats);
 void tcp_output_sumcnt_write(struct TransferInfo *stats);
 void tcp_output_write_enhanced (struct TransferInfo *stats);
-void tcp_output_write_enhanced_drain (struct TransferInfo *stats);
 void tcp_output_write_enhanced_isoch (struct TransferInfo *stats);
 void tcp_output_sum_write_enhanced (struct TransferInfo *stats);
 void tcp_output_sumcnt_write_enhanced (struct TransferInfo *stats);
+#if (HAVE_DECL_TCP_NOTSENT_LOWAT)
+void tcp_output_write_enhanced_drain (struct TransferInfo *stats);
+#endif
 // TCP fullduplex
 void tcp_output_fullduplex(struct TransferInfo *stats);
 void tcp_output_fullduplex_enhanced(struct TransferInfo *stats);

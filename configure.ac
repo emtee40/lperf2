@@ -18,11 +18,15 @@ m4_include([m4/ax_pthread.m4])
 
 AC_ARG_ENABLE(ipv6, AC_HELP_STRING([--disable-ipv6],
 	    [disable ipv6 support (default is autodetect)]),
-	ac_cv_have_ipv6=$enable_ipv6,)
+	ac_cv_have_ipv6=$enable_ipv6)
 
 AC_ARG_ENABLE(multicast, AC_HELP_STRING([--disable-multicast],
 	    [disable multicast support (default is autodetect)]),
-	ac_cv_multicast=$enable_multicast,)
+	ac_cv_multicast=$enable_multicast)
+
+AC_ARG_ENABLE(tcpstats, AC_HELP_STRING([--disable-tcpstats],
+	    [disable tcpstats support (default is autodetect)]),
+	ac_cv_tcpstats=$enable_tcpstats)
 
 AC_ARG_ENABLE(threads, AC_HELP_STRING([--disable-threads],
 	    [disable thread support (default is autodetect)]))
@@ -236,9 +240,10 @@ in_h='
 '
 
 AC_CHECK_DECLS([AF_INET6, SO_TIMESTAMP, SO_SNDTIMEO, SO_REUSEPORT, SO_BINDTODEVICE, MSG_DONTWAIT,
-			  SO_MAX_PACING_RATE, SO_DONTROUTE, IPV6_TCLASS, IP_MULTICAST_ALL,
-			  MCAST_JOIN_GROUP, MCAST_JOIN_SOURCE_GROUP, IPV6_JOIN_GROUP, TCP_NODELAY,
-			  IPV6_ADD_MEMBERSHIP, IPV6_MULTICAST_HOPS, MSG_PEEK, MSG_WAITALL, TCP_WINDOW_CLAMP,
+			  SO_MAX_PACING_RATE, SO_DONTROUTE, IPV6_TCLASS, IP_MULTICAST_ALL, IP_TOS,
+			  MCAST_JOIN_GROUP, MCAST_JOIN_SOURCE_GROUP, IPV6_JOIN_GROUP,
+			  IPV6_ADD_MEMBERSHIP, IPV6_MULTICAST_HOPS, MSG_PEEK, MSG_WAITALL,
+			  TCP_NODELAY, TCP_INFO, TCP_CONNECTION_INFO, TCP_WINDOW_CLAMP,
 			  TCP_NOTSENT_LOWAT, IP_ADD_MEMBERSHIP, IP_ADD_SOURCE_MEMBERSHIP],[],[],[$in_h])
 
 AC_CHECK_TYPES([struct sockaddr_storage, struct sockaddr_in6,
@@ -247,6 +252,11 @@ AC_CHECK_TYPES([struct sockaddr_storage, struct sockaddr_in6,
 
 AC_CHECK_MEMBERS([struct sockaddr_in6.sin6_len,
 			 struct ip_mreq_source.imr_multiaddr.s_addr], [], [],[$in_h])
+
+AC_CHECK_MEMBER([struct tcp_info.tcpi_total_retrans], [], [],[
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+])
 
 AC_CHECK_MEMBERS([struct tcp_info.tcpi_total_retrans], [], [],[
 #include <netinet/in.h>
@@ -294,6 +304,25 @@ if test "$ac_cv_multicast" != no; then
   AC_MSG_RESULT($ac_cv_ssm_multicast)
   if test "$ac_cv_ssm_multicast" = yes; then
     AC_DEFINE([HAVE_SSM_MULTICAST], 1, [Define to enable ssm multicast support])
+  fi
+fi
+
+dnl check for tcpstats
+if test "$ac_cv_tcpstats" != no; then
+  AC_MSG_CHECKING(for tcpstats support)
+  ac_cv_tcpstats=no
+  if test "$ac_cv_have_decl_TCP_INFO" = yes; then
+    AC_MSG_CHECKING(for TCP_INFO_TCPI_TOTAL_RETRANS support)
+     if test "$ac_cv_member_struct_tcp_info_tcpi_total_retrans" = yes; then
+       ac_cv_tcpstats=yes
+     fi
+  fi
+  if test "$ac_cv_have_decl_TCP_CONNECTION_INFO" = yes; then
+    ac_cv_tcpstats=yes
+  fi
+  AC_MSG_RESULT($ac_cv_tcpstats)
+  if test "$ac_cv_tcpstats" = yes; then
+    AC_DEFINE([HAVE_TCP_STATS], 1, [Define to enable tcp stats support])
   fi
 fi
 

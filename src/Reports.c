@@ -129,28 +129,17 @@ static void common_copy (struct ReportCommon **common, struct thread_Settings *i
     (*common)->HistBinsize =inSettings->mHistBinsize;
     (*common)->HistUnits =inSettings->mHistUnits;
     (*common)->pktIPG =inSettings->mBurstIPG;
-    (*common)->rtt_weight =inSettings->rtt_nearcongest_divider;
+    (*common)->rtt_weight = inSettings->rtt_nearcongest_weight_factor;
     (*common)->ListenerTimeout =inSettings->mListenerTimeout;
     (*common)->FPS = inSettings->mFPS;
+    (*common)->TOS = inSettings->mTOS;
+    (*common)->RTOS = inSettings->mRTOS;
 #if HAVE_DECL_TCP_WINDOW_CLAMP
     (*common)->ClampSize = inSettings->mClampSize;
 #endif
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
     (*common)->WritePrefetch = inSettings->mWritePrefetch;
 #endif
-#ifdef HAVE_STRUCT_TCP_INFO_TCPI_TOTAL_RETRANS
-    (*common)->enable_sampleTCPstats = false;
-    (*common)->intervalonly_sampleTCPstats = false;
-    if (isEnhanced(inSettings) && (inSettings->mThreadMode == kMode_Client)) {
-	(*common)->enable_sampleTCPstats = true;
-	(*common)->intervalonly_sampleTCPstats = true;
-	// Near congestion and peridiodic need sampling on every report packet
-	if (isNearCongest(inSettings) || isPeriodicBurst(inSettings)) {
-	    (*common)->intervalonly_sampleTCPstats = false;
-	}
-    }
-#endif
-
 #ifdef HAVE_THREAD_DEBUG
     thread_debug("Alloc common rpt/com/size/strsz %p/%p/%d/%d", (void *) common, (void *)(*common), sizeof(struct ReportCommon), bytecnt);
 #endif
@@ -505,6 +494,7 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
     common_copy(&ireport->info.common, inSettings);
     ireport->info.final = false;
     ireport->info.burstid_transition = false;
+    ireport->info.isEnableTcpInfo = false;
     // Create a new packet ring which is used to communicate
     // packet stats from the traffic thread to the reporter
     // thread.  The reporter thread does all packet accounting
@@ -612,15 +602,10 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
 		ireport->info.output_handler = tcp_output_basic_csv;
 	    } else if (isSumOnly(inSettings)) {
 		ireport->info.output_handler = NULL;
+#if HAVE_DECL_TCP_NOTSENT_LOWAT
 	    } else if (isTcpDrain(inSettings)) {
-		if (isPeriodicBurst(inSettings)) {
-		    ireport->transfer_interval_handler = reporter_condprint_burst_interval_report_client_tcp;
-		    ireport->info.output_handler = tcp_output_burst_write;
-		    ireport->packet_handler_pre_report = reporter_handle_packet_client;
-		    ireport->packet_handler_post_report = NULL;
-		} else {
-		    ireport->info.output_handler = tcp_output_write_enhanced_drain;
-		}
+		ireport->info.output_handler = tcp_output_write_enhanced_drain;
+#endif
 	    } else if (isIsochronous(inSettings)) {
 		ireport->info.output_handler = tcp_output_write_enhanced_isoch;
 	    } else if (isEnhanced(inSettings)) {
@@ -669,9 +654,11 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
 	inSettings->mHistUnits = 6;  // usecs 10 pow(x)
 	inSettings->mHistci_lower = 5;
 	inSettings->mHistci_upper = 95;
+#if HAVE_DECL_TCP_NOTSENT_LOWAT
 	ireport->info.drain_histogram =  histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0,	\
 							pow(10,inSettings->mHistUnits), \
 							inSettings->mHistci_lower, inSettings->mHistci_upper, ireport->info.common->transferID, name);
+#endif
     }
 #endif
     return reporthdr;

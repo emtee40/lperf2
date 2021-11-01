@@ -56,6 +56,13 @@ extern "C" {
 
 #define ACKRING_DEFAULTSIZE 100
 
+struct reportstruct_tcpstats {
+    bool isValid;
+    int cwnd;
+    int rtt;
+    intmax_t retry_tot;
+};
+
 struct ReportStruct {
     intmax_t packetID;
     intmax_t packetLen;
@@ -75,12 +82,8 @@ struct ReportStruct {
     intmax_t burstperiod;
     intmax_t remaining;
     int transit_ready;
-#ifdef HAVE_STRUCT_TCP_INFO_TCPI_TOTAL_RETRANS
-    int cwnd;
-    int rtt;
-    intmax_t retry_tot;
-    bool tcpistat_valid;
-#endif
+    int writecnt;
+    struct reportstruct_tcpstats tcpstats;
     double select_delay;
     long drain_time;
 };

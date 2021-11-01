@@ -73,6 +73,10 @@
    you don't. */
 #undef HAVE_DECL_IP_MULTICAST_ALL
 
+/* Define to 1 if you have the declaration of `IP_TOS', and to 0 if you don't.
+   */
+#undef HAVE_DECL_IP_TOS
+
 /* Define to 1 if you have the declaration of `MCAST_JOIN_GROUP', and to 0 if
    you don't. */
 #undef HAVE_DECL_MCAST_JOIN_GROUP
@@ -124,6 +128,14 @@
 /* Define to 1 if you have the declaration of `SO_TIMESTAMP', and to 0 if you
    don't. */
 #undef HAVE_DECL_SO_TIMESTAMP
+
+/* Define to 1 if you have the declaration of `TCP_CONNECTION_INFO', and to 0
+   if you don't. */
+#undef HAVE_DECL_TCP_CONNECTION_INFO
+
+/* Define to 1 if you have the declaration of `TCP_INFO', and to 0 if you
+   don't. */
+#undef HAVE_DECL_TCP_INFO
 
 /* Define to 1 if you have the declaration of `TCP_NODELAY', and to 0 if you
    don't. */
@@ -351,6 +363,9 @@
 
 /* Define to 1 if you have the <sys/types.h> header file. */
 #undef HAVE_SYS_TYPES_H
+
+/* Define to enable tcp stats support */
+#undef HAVE_TCP_STATS
 
 /* Define for thread level debugging of the code */
 #undef HAVE_THREAD_DEBUG

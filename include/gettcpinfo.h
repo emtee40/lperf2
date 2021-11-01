@@ -1,10 +1,10 @@
 /*---------------------------------------------------------------
- * Copyright (c) 1999,2000,2001,2002,2003
- * The Board of Trustees of the University of Illinois
+ * Copyright (c) 2021
+ * Broadcom Corporation
  * All Rights Reserved.
  *---------------------------------------------------------------
  * Permission is hereby granted, free of charge, to any person
- * obtaining a copy of this software (Iperf) and associated
+ * obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software
  * without restriction, including without limitation the
  * rights to use, copy, modify, merge, publish, distribute,
@@ -24,7 +24,7 @@
  * provided with the distribution.
  *
  *
- * Neither the names of the University of Illinois, NCSA,
+ * Neither the name of Broadcom Coporation,
  * nor the names of its contributors may be used to endorse
  * or promote products derived from this Software without
  * specific prior written permission.
@@ -38,31 +38,20 @@
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * ________________________________________________________________
- * National Laboratory for Applied Network Research
- * National Center for Supercomputing Applications
- * University of Illinois at Urbana-Champaign
- * http://www.ncsa.uiuc.edu
- * ________________________________________________________________
  *
- * PerfSocket.hpp
- * by Mark Gates <mgates@nlanr.net>
- *  &  Ajay Tirumala <tirumala@ncsa.uiuc.edu>
+ * gettcpinfo.c
+ * Suppport for tcp info in a portable way
+ *
+ * by Robert J. McMahon (rjmcmahon@rjmcmahon.com, bob.mcmahon@broadcom.com)
  * -------------------------------------------------------------------
- * Changes in version 1.6
- *   Incorporates class declarations for fetching data from files
- * ------------------------------------------------------------------- */
+ */
+#ifndef GETTCPINFO_H
+#define GETTCPINFO_H
 
+#include "headers.h"
+#include "Reporter.h"
+#include "packet_ring.h"
 
-#ifndef PERFSOCKET_H
-#define PERFSOCKET_H
+void gettcpinfo(struct ReporterData *data, struct ReportStruct *sample);
 
-#include "Mutex.h"
-#include "Settings.hpp"
-
-// int timer units is micorseconds
-void SetSocketOptions(struct thread_Settings *inSettings);
-void SetSocketOptionsSendTimeout(struct thread_Settings *mSettings, int timer);
-void SetSocketOptionsReceiveTimeout(struct thread_Settings *mSettings, int timer);
-void SetSocketOptionsIPTos (struct thread_Settings *mSettings, int tos);
-
-#endif // PERFSOCKET_H
+#endif

@@ -386,7 +386,7 @@ void tcp_output_burst_write (struct TransferInfo *stats) {
 void tcp_output_write_enhanced (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_bw_write_enhanced);
     _print_stats_common(stats);
-#ifndef HAVE_STRUCT_TCP_INFO_TCPI_TOTAL_RETRANS
+#if !(HAVE_TCP_STATS)
     printf(report_bw_write_enhanced_format,
 	   stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
 	   outbuffer, outbufferext,
@@ -427,7 +427,7 @@ void tcp_output_write_enhanced (struct TransferInfo *stats) {
 void tcp_output_write_enhanced_drain (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_write_enhanced_drain);
     _print_stats_common(stats);
-#ifndef HAVE_STRUCT_TCP_INFO_TCPI_TOTAL_RETRANS
+#if !(HAVE_TCP_STATS)
     printf(report_write_enhanced_drain_format,
 	   stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
 	   outbuffer, outbufferext,
@@ -486,7 +486,7 @@ void tcp_output_write_enhanced_drain (struct TransferInfo *stats) {
 void tcp_output_write_enhanced_isoch (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_write_enhanced_isoch);
     _print_stats_common(stats);
-#ifndef HAVE_STRUCT_TCP_INFO_TCPI_TOTAL_RETRANS
+#if !(HAVE_TCP_STATS)
     printf(report_write_enhanced_isoch_format,
 	   stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
 	   outbuffer, outbufferext,
@@ -938,7 +938,7 @@ void tcp_output_sum_write_enhanced (struct TransferInfo *stats) {
 	   outbuffer, outbufferext,
 	   stats->sock_callstats.write.WriteCnt,
 	   stats->sock_callstats.write.WriteErr
-#ifdef HAVE_STRUCT_TCP_INFO_TCPI_TOTAL_RETRANS
+#if HAVE_TCP_STATS
 	   ,stats->sock_callstats.write.TCPretry
 #endif
     );
@@ -952,7 +952,7 @@ void tcp_output_sumcnt_write_enhanced (struct TransferInfo *stats) {
 	   outbuffer, outbufferext,
 	   stats->sock_callstats.write.WriteCnt,
 	   stats->sock_callstats.write.WriteErr
-#ifdef HAVE_STRUCT_TCP_INFO_TCPI_TOTAL_RETRANS
+#if HAVE_TCP_STATS
 	   ,stats->sock_callstats.write.TCPretry
 #endif
     );
@@ -1144,6 +1144,12 @@ static void reporter_output_listener_settings (struct ReportSettings *report) {
     }
     if (isCongestionControl(report->common) && report->common->Congestion) {
 	fprintf(stdout, "TCP congestion control set to %s\n", report->common->Congestion);
+    }
+    if (isOverrideTOS(report->common)) {
+	fprintf(stdout, "Reflected TOS will be set to 0x%x\n", report->common->RTOS);
+    }
+    if (report->common->TOS) {
+	fprintf(stdout, "TOS will be set to 0x%x\n", report->common->TOS);
     }
     if (isUDP(report->common)) {
 	if (isSingleClient(report->common)) {
@@ -1352,9 +1358,23 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
 	    snprintf(b, SNBUFFERSIZE-strlen(b), " (trip-times)");
 	    b += strlen(b);
 	}
-
 	if (isEnhanced(report->common)) {
 	    snprintf(b, SNBUFFERSIZE-strlen(b), " (sock=%d)", report->common->socket);;
+	    b += strlen(b);
+	}
+	if (isOverrideTOS(report->common)) {
+	    if (isFullDuplex(report->common)) {
+		snprintf(b, SNBUFFERSIZE-strlen(b), " (tos rx/tx=0x%x/0x%x)", report->common->TOS, report->common->RTOS);
+	    } else if (isReverse(report->common)) {
+		snprintf(b, SNBUFFERSIZE-strlen(b), " (tos tx=0x%x)", report->common->TOS);
+	    }
+	    b += strlen(b);
+	} else if (report->common->TOS) {
+	    if (isFullDuplex(report->common)) {
+		snprintf(b, SNBUFFERSIZE-strlen(b), " (tos rx/tx=0x%x/0x%x)", report->common->TOS, report->common->TOS);
+	    } else if (isReverse(report->common)) {
+		snprintf(b, SNBUFFERSIZE-strlen(b), " (tos tx=0x%x)", report->common->TOS);
+	    }
 	    b += strlen(b);
 	}
 	if (isEnhanced(report->common) || isPeerVerDetect(report->common)) {

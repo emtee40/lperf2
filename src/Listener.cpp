@@ -317,6 +317,7 @@ void Listener::Run () {
 	if (isUDP(server) && isCompat(mSettings)) {
 	    setSeqNo64b(server);
 	}
+	setTransferID(server, 0);
 
 	// Read any more test settings and test values (not just the flags) and instantiate
 	// any settings objects for client threads (e.g. bidir or full duplex)
@@ -1034,6 +1035,11 @@ bool Listener::apply_client_settings (thread_Settings *server) {
 	rc = apply_client_settings_udp(server);
     } else if (!isConnectOnly(server)) {
 	rc = apply_client_settings_tcp(server);
+    }
+    if (isOverrideTOS(server)) {
+	SetSocketOptionsIPTos(server, server->mRTOS);
+    } else if (server->mTOS) {
+	SetSocketOptionsIPTos(server, server->mTOS);
     }
     return rc;
 }

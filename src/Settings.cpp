@@ -108,6 +108,7 @@ static int tunif = 0;
 static int hideips = 0;
 static int bounceback = 0;
 static int tcpdrain;
+static int overridetos;
 
 void Settings_Interpret(char option, const char *optarg, struct thread_Settings *mExtSettings);
 // apply compound settings after the command line has been fully parsed
@@ -201,6 +202,7 @@ const struct option long_options[] =
 {"burst-size", required_argument, &burstsize, 1},
 {"burst-period", required_argument, &burstperiodic, 1},
 {"tcp-drain", no_argument, &tcpdrain, 1},
+{"tos-override", required_argument, &overridetos, 1},
 {"tcp-rx-window-clamp", required_argument, &rxwinclamp, 1},
 {"tcp-write-prefetch", required_argument, &txnotsentlowwater, 1}, // see doc/DESIGN_NOTES
 {"tap-dev", optional_argument, &tapif, 1},
@@ -980,9 +982,9 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 		nearcongest = 0;
 		setNearCongest(mExtSettings);
 		if (optarg && (atof(optarg) >=  0.0)) {
-		    mExtSettings->rtt_nearcongest_divider = atof(optarg);
+		    mExtSettings->rtt_nearcongest_weight_factor = atof(optarg);
 		} else {
-		    mExtSettings->rtt_nearcongest_divider = NEARCONGEST_DEFAULT;
+		    mExtSettings->rtt_nearcongest_weight_factor = NEARCONGEST_DEFAULT;
 		}
 	    }
 	    if (permitkey) {
@@ -1018,6 +1020,11 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	    if (fullduplextest) {
 		fullduplextest = 0;
 		setFullDuplex(mExtSettings);
+	    }
+	    if (overridetos) {
+		overridetos = 0;
+		mExtSettings->mRTOS = strtol(optarg, NULL, 0);
+		setOverrideTOS(mExtSettings);
 	    }
 	    if (fqrate) {
 #if defined(HAVE_DECL_SO_MAX_PACING_RATE)
@@ -1264,6 +1271,12 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	fprintf(stderr, "ERROR: compatibility mode not supported with the requested with options\n");
 	bail = true;
     }
+#if !(HAVE_DECL_IP_TOS)
+    if (isOverrideTOS(mExtSettings) || mExtSettings->mTOS) {
+	unsetOverrideTOS(mExtSettings);
+	fprintf(stderr, "WARN: IP_TOS not supported\n");
+    }
+#endif
     if (isPermitKey(mExtSettings)) {
 	if (isUDP(mExtSettings)) {
 	    fprintf(stderr, "ERROR: Option of --permit-key not supported with UDP\n");
@@ -1292,6 +1305,10 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	}
 	if (isSumServerDstIP(mExtSettings)) {
 	    fprintf(stderr, "WARN: option of --sum-dstip not supported on the client\n");
+	}
+	if (isOverrideTOS(mExtSettings)) {
+	    unsetOverrideTOS(mExtSettings);
+	    fprintf(stderr, "WARN: option of --tos-override not supported on the client\n");
 	}
 	if (isRxClamp(mExtSettings)) {
 	    fprintf(stderr, "WARN: option of --tcp-rx-window-clamp not supported on the client\n");
@@ -1431,17 +1448,10 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 		}
 	    }
 	} else {
-#ifndef HAVE_STRUCT_TCP_INFO_TCPI_TOTAL_RETRANS
-	    if (isNearCongest(mExtSettings)) {
-		fprintf(stderr, "ERROR: option of --near-congestion not supported on this platform\n");
-		bail = true;
-	    }
-#else
 	    if ((mExtSettings->mAppRate > 0) && isNearCongest(mExtSettings)) {
 		fprintf(stderr, "ERROR: option of --near-congestion and -b rate limited are mutually exclusive\n");
 		bail = true;
 	    }
-#endif
 	    if (isBWSet(mExtSettings) && !(mExtSettings->mAppRateUnits == kRate_PPS) \
 		&& ((mExtSettings->mAppRate / 8) < static_cast<uintmax_t>(mExtSettings->mBufLen))) {
 		fprintf(stderr, "ERROR: option -b and -l of %d are incompatible, consider setting -l to %d or lower\n", \
