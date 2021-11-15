@@ -125,6 +125,11 @@ struct WriteStats {
 #endif
 };
 
+struct tcp_init_conditions {
+    int cwnd;
+    int rtt;
+    double connecttime;
+};
 /*
  * This struct contains all important information from the sending or
  * recieving thread.
@@ -232,6 +237,8 @@ struct ReportCommon {
     double rtt_weight;
     double ListenerTimeout;
     double FPS;
+    int bbsize;
+    int bbhold;
 #if WIN32
     SOCKET socket;
 #else
@@ -245,13 +252,13 @@ struct ReportCommon {
 struct ConnectionInfo {
     struct ReportCommon *common;
     struct timeval connect_timestamp;
-    double connecttime;
     struct timeval txholdbacktime;
     struct timeval epochStartTime;
     int winsize;
     char peerversion[PEERVERBUFSIZE];
     struct MeanMinMaxStats connect_times;
     int MSS;
+    struct tcp_init_conditions init_cond;
 };
 
 struct ShiftIntCounter {
@@ -336,7 +343,6 @@ struct TransferInfo {
     intmax_t cntIPG;
     intmax_t PacketID;
     double jitter;
-    double tripTime;
     double IPGsum;
     struct ShiftCounters total; // Shift counters used to calculate interval reports and hold totals
     union SendReadStats sock_callstats;
@@ -407,7 +413,7 @@ typedef void (* report_serverstatistics)( struct ConnectionInfo *, struct Transf
 void SetSumHandlers (struct thread_Settings *inSettings, struct SumReport* sumreport);
 struct SumReport* InitSumReport(struct thread_Settings *inSettings, int inID, int fullduplex);
 struct ReportHeader* InitIndividualReport(struct thread_Settings *inSettings);
-struct ReportHeader* InitConnectionReport(struct thread_Settings *inSettings, double ct);
+struct ReportHeader* InitConnectionReport(struct thread_Settings *inSettings, struct tcp_init_conditions *init_cond);
 struct ConnectionInfo* InitConnectOnlyReport(struct thread_Settings *thread);
 struct ReportHeader *InitSettingsReport(struct thread_Settings *inSettings);
 struct ReportHeader* InitServerRelayUDPReport(struct thread_Settings *inSettings, struct server_hdr *server);

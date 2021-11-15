@@ -53,7 +53,7 @@
 
 // These static variables are not thread safe but ok to use becase only
 // the repoter thread usses them
-#define SNBUFFERSIZE 256
+#define SNBUFFERSIZE 512
 #define SNBUFFEREXTENDSIZE 512
 static char outbuffer[SNBUFFERSIZE]; // Buffer for printing
 static char outbufferext[SNBUFFEREXTENDSIZE]; // Buffer for printing
@@ -150,8 +150,7 @@ static inline void _output_outoforder(struct TransferInfo *stats) {
 //
 #define LLAW_LOWERBOUNDS -1e7
 static inline void set_llawbuf(double lambda, double meantransit, struct TransferInfo *stats) {
-    double meantransit_sec = (1e-6 * meantransit);
-    double L  = lambda * meantransit_sec;
+    double L  = lambda * meantransit;
     if (L < LLAW_LOWERBOUNDS) {
 	strcpy(llaw_buf, "OBL");
     } else {
@@ -161,12 +160,10 @@ static inline void set_llawbuf(double lambda, double meantransit, struct Transfe
     }
 }
 static inline void set_llawbuf_udp (int lambda, double meantransit, double variance, struct TransferInfo *stats) {
-    double meantransit_sec = (1e-6 * meantransit);
-    double variance_sec = (1e-6 * variance);
     int Lvar = 0;
-    int L  = round(lambda * meantransit_sec);
+    int L  = round(lambda * meantransit);
     if (variance > 0.0) {
-	Lvar  = round(lambda * variance_sec);
+	Lvar  = round(lambda * variance);
     } else {
 	Lvar = 0;
     }
@@ -319,12 +316,12 @@ void tcp_output_burst_read (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_burst_read_tcp);
     _print_stats_common(stats);
     if (!stats->final) {
-	set_netpowerbuf(stats->tripTime, stats);
+	set_netpowerbuf(stats->transit.current.mean, stats);
 	printf(report_burst_read_tcp_format,
 	       stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
 	       outbuffer, outbufferext,
-	       stats->tripTime * 1e3,
-	       (1e3 * stats->tripTime * stats->common->FPS) / 10.0, // (1e3 / 100%)
+	       stats->transit.current.mean * 1e3,
+	       (1e2 * stats->transit.current.mean * stats->common->FPS), // (1e3 / 100%)
 	       stats->sock_callstats.read.cntRead,
 	       stats->sock_callstats.read.bins[0],
 	       stats->sock_callstats.read.bins[1],
@@ -368,12 +365,12 @@ void tcp_output_write (struct TransferInfo *stats) {
 
 void tcp_output_burst_write (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_burst_write_tcp);
-    set_netpowerbuf((stats->tripTime + stats->sock_callstats.write.rtt), stats);
+    set_netpowerbuf((stats->transit.current.mean + stats->sock_callstats.write.rtt), stats);
     _print_stats_common(stats);
     printf(report_burst_write_tcp_format, stats->common->transferIDStr,
 	   stats->ts.iStart, stats->ts.iEnd,
 	   outbuffer, outbufferext,
-	   stats->tripTime,
+	   stats->transit.current.mean,
 	   stats->sock_callstats.write.WriteCnt,
 	   stats->sock_callstats.write.WriteErr,
 	   stats->sock_callstats.write.TCPretry,
@@ -1222,7 +1219,7 @@ static void reporter_output_client_settings (struct ReportSettings *report) {
     }
     if (isBounceBack(report->common)) {
 	char tmpbuf[40];
-	byte_snprintf(tmpbuf, sizeof(tmpbuf), report->common->BurstSize, 'A');
+	byte_snprintf(tmpbuf, sizeof(tmpbuf), report->common->BufLen, 'A');
 	tmpbuf[39]='\0';
 	printf(client_bounceback, tmpbuf);
     }
@@ -1233,6 +1230,13 @@ static void reporter_output_client_settings (struct ReportSettings *report) {
     }
     if (isCongestionControl(report->common) && report->common->Congestion) {
 	fprintf(stdout, "TCP congestion control set to %s\n", report->common->Congestion);
+    }
+    if (isEnhanced(report->common)) {
+        if (isNoDelay(report->common)) {
+	    fprintf(stdout, "TOS set to 0x%x and nodelay (Nagle off)\n", report->common->TOS);
+	} else {
+	    fprintf(stdout, "TOS set to 0x%x (Nagle on)\n", report->common->TOS);
+	}
     }
     if (isNearCongest(report->common)) {
 	if (report->common->rtt_weight == NEARCONGEST_DEFAULT) {
@@ -1286,7 +1290,7 @@ void reporter_connect_printf_tcp_final (struct ConnectionInfo * report) {
 
 void reporter_print_connection_report (struct ConnectionInfo *report) {
     assert(report->common);
-    if (!(report->connecttime < 0)) {
+    if (report->init_cond.connecttime > 0) {
 	// copy the inet_ntop into temp buffers, to avoid overwriting
 	char local_addr[REPORT_ADDRLEN];
 	char remote_addr[REPORT_ADDRLEN];
@@ -1298,7 +1302,7 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
 	if (!isUDP(report->common) && (report->common->socket > 0) && (isPrintMSS(report->common) || isEnhanced(report->common)))  {
 	    if (isPrintMSS(report->common) && (report->MSS <= 0)) {
 		printf(report_mss_unsupported, report->MSS);
-	    } else {
+	    } else if (report->MSS != -1) {
 		snprintf(b, SNBUFFERSIZE-strlen(b), " (%s%d)", "MSS=", report->MSS);
 		b += strlen(b);
 	    }
@@ -1343,7 +1347,7 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
 	    b += strlen(b);
 	}
 	if (isBounceBack(report->common)) {
-	    snprintf(b, SNBUFFERSIZE-strlen(b), " (bounce-back)");
+	    snprintf(b, SNBUFFERSIZE-strlen(b), " (bb len/hold=%d/%d)", report->common->bbsize, report->common->bbhold);
 	    b += strlen(b);
 	}
 	if (isL2LengthCheck(report->common)) {
@@ -1390,7 +1394,13 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
 		char now_timebuf[80];
 		strftime(now_timebuf, sizeof(now_timebuf), "%Y-%m-%d %H:%M:%S (%Z)", &ts);
 		if (!isUDP(report->common) && (report->common->ThreadMode == kMode_Client)) {
-		    snprintf(b, SNBUFFERSIZE-strlen(b), " (ct=%4.2f ms) on %s", report->connecttime, now_timebuf);
+#if HAVE_TCP_STATS
+		    if (report->init_cond.connecttime > 0.0) {
+		        snprintf(b, SNBUFFERSIZE-strlen(b), " (irtt/icwnd=%u/%u)", report->init_cond.rtt, report->init_cond.cwnd);
+			b += strlen(b);
+		    }
+#endif
+		    snprintf(b, SNBUFFERSIZE-strlen(b), " (ct=%4.2f ms) on %s", report->init_cond.connecttime, now_timebuf);
 		} else {
 		    snprintf(b, SNBUFFERSIZE-strlen(b), " on %s", now_timebuf);
 		}

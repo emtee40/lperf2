@@ -155,10 +155,10 @@ bool ReportPacket (struct ReporterData* data, struct ReportStruct *packet) {
     struct TransferInfo *stats = &data->info;
     if (stats->isEnableTcpInfo) {
 	if (!TimeZero(stats->ts.nextTCPStampleTime) && (TimeDifference(stats->ts.nextTCPStampleTime, packet->packetTime) < 0)) {
-	    gettcpinfo(data, packet);
+	    gettcpinfo(data->info.common->socket, packet);
 	    TimeAdd(stats->ts.nextTCPStampleTime, stats->ts.intervalTime);
 	} else {
-	    gettcpinfo(data, packet);
+	    gettcpinfo(data->info.common->socket, packet);
 	}
     }
 #endif
@@ -210,7 +210,7 @@ int EndJob (struct ReportHeader *reporthdr, struct ReportStruct *finalpacket) {
     // tcpi stats are sampled on a final packet
     struct TransferInfo *stats = &report->info;
     if (stats->isEnableTcpInfo) {
-	gettcpinfo(report, finalpacket);
+	gettcpinfo(report->info.common->socket, finalpacket);
     }
 #endif
     // clear the reporter done predicate
@@ -242,7 +242,7 @@ int EndJob (struct ReportHeader *reporthdr, struct ReportStruct *finalpacket) {
 	    struct Condition *tmp = &report->FullDuplexReport->fullduplex_barrier.await;
 	    Condition_Destroy(tmp);
 #if HAVE_THREAD_DEBUG
-	    thread_debug("Socket fullduplex close sock=%d", stats->common->socket);
+	    thread_debug("Socket fullduplex close sock=%d", report->FullDuplexReport->info.common->socket);
 #endif
 	    FreeSumReport(report->FullDuplexReport);
 	} else {
@@ -628,9 +628,13 @@ inline int reporter_process_report (struct ReportHeader *reporthdr) {
     {
 	struct ConnectionInfo *creport = (struct ConnectionInfo *)reporthdr->this_report;
 	assert(creport!=NULL);
-	if (!isCompat(creport->common) && (creport->common->ThreadMode == kMode_Client)) {
+	if (!isCompat(creport->common) && (creport->common->ThreadMode == kMode_Client) && myConnectionReport) {
 	    // Clients' connect times will be inputs to the overall connect stats
-	    reporter_update_mmm(&myConnectionReport->connect_times, creport->connecttime);
+	    if (creport->init_cond.connecttime > 0.0) {
+		reporter_update_mmm(&myConnectionReport->connect_times, creport->init_cond.connecttime);
+	    } else {
+		myConnectionReport->connect_times.err++;
+	    }
 	}
 	reporter_print_connection_report(creport);
 	fflush(stdout);
@@ -752,7 +756,12 @@ static void reporter_handle_rxmsg_oneway_transit (struct TransferInfo *stats, st
 	stats->isochstats.frameID = packet->frameID;
     }
     if (packet->frameID && packet->transit_ready) {
-        reporter_handle_packet_oneway_transit(stats, packet);
+	double transit = TimeDifference(packet->packetTime, packet->sentTime);
+	reporter_update_mmm(&stats->transit.total, transit);
+	reporter_update_mmm(&stats->transit.current, transit);
+	if (stats->framelatency_histogram) {
+	    histogram_insert(stats->framelatency_histogram, transit, &packet->sentTime);
+	}
 	if (!TimeZero(stats->ts.prevpacketTime)) {
 	    double delta = TimeDifference(packet->sentTime, stats->ts.prevpacketTime);
 	    stats->IPGsum += delta;
@@ -1632,12 +1641,11 @@ int reporter_condprint_burst_interval_report_server_tcp (struct ReporterData *da
     struct TransferInfo *stats = &data->info;
     int advance_jobq = 0;
     if (packet->transit_ready) {
-	reporter_handle_packet_oneway_transit(stats, packet);
 	stats->ts.prevpacketTime = packet->prevSentTime;
 	stats->ts.packetTime = packet->packetTime;
 	reporter_set_timestamps_time(&stats->ts, INTERVALPARTIAL);
 	stats->cntBytes = stats->total.Bytes.current - stats->total.Bytes.prev;
-	if ((stats->output_handler) && !(stats->filter_this_sample_output))
+	if ((stats->output_handler) && !(stats->isMaskOutput))
 	    (*stats->output_handler)(stats);
 	reporter_reset_transfer_stats_server_tcp(stats);
 	advance_jobq = 1;

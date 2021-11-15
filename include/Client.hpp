@@ -88,6 +88,7 @@ public:
 private:
     inline void WritePacketID(intmax_t);
     inline void WriteTcpTxHdr(struct ReportStruct *, int, int);
+    inline void WriteTcpTxBBHdr(struct ReportStruct *, int);
     inline double get_delay_target(void);
     void InitTrafficLoop(void);
     void SetReportStartTime(void);
@@ -141,6 +142,7 @@ private:
     bool peerclose;
     Timestamp drain_start;
     Timestamp drain_end;
+    struct tcp_init_conditions my_init_cond;
 }; // end class Client
 
 #endif // CLIENT_H
