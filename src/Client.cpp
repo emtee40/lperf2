@@ -984,7 +984,6 @@ void Client::RunBounceBackTCP () {
 	reportstruct->sentTime = reportstruct->packetTime;
 	myReport->info.ts.prevsendTime = reportstruct->packetTime;
 	reportstruct->packetLen = writen(mySocket, mSettings->mBuf, writelen, &reportstruct->writecnt);
-	reportstruct->emptyreport = 1;
 	if (reportstruct->packetLen == writelen) {
 	    reportstruct->emptyreport = 0;
 	    totLen += reportstruct->packetLen;
@@ -1000,18 +999,18 @@ void Client::RunBounceBackTCP () {
 		reportstruct->packetTime.tv_usec = now.getUsecs();
 		reportstruct->emptyreport = 0;
 		myReportPacket();
+	    } else if (n == 0) {
+		peerclose = true;
 	    }
 	} else if ((reportstruct->packetLen < 0 ) && NONFATALTCPWRITERR(errno)) {
 	    reportstruct->packetLen = 0;
 	    reportstruct->emptyreport = 1;
 	    reportstruct->errwrite=WriteErrNoAccount;
-	} else if (reportstruct->packetLen == 0) {
-	    peerclose = true;
+	    myReportPacket();
 	} else {
 	    reportstruct->errwrite=WriteErrFatal;
 	    reportstruct->packetLen = -1;
-	    peerclose = true;
-	    WARN_errno(1, "tcp bounce-back write");
+	    FAIL_errno(1, "tcp bounce-back write", mSettings);
 	}
     }
     FinishTrafficActions();
