@@ -902,6 +902,7 @@ static inline void reporter_handle_packet_tcpistats (struct ReporterData *data, 
     stats->sock_callstats.write.totTCPretry = packet->tcpstats.retry_tot;
     stats->sock_callstats.write.cwnd = packet->tcpstats.cwnd;
     stats->sock_callstats.write.rtt = packet->tcpstats.rtt;
+    stats->sock_callstats.write.rttvar = packet->tcpstats.rttvar;
 }
 #endif
 

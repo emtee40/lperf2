@@ -139,6 +139,7 @@ struct WriteStats {
     int totTCPretry;
     int cwnd;
     int rtt;
+    int rttvar;
 #endif
 };
 
