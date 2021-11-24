@@ -192,35 +192,7 @@ void SockAddr_setHostname (const char* inHostname, iperf_sockaddr *inSockAddr, i
     struct addrinfo *res = NULL, *itr;
     struct addrinfo hints;
     memset(&hints, 0, sizeof(hints));
-    if (isIPv6) {
-#if HAVE_IPV6
-	hints.ai_family = AF_INET6;
-	ret_ga = getaddrinfo(inHostname, NULL, &hints, &res);
-	if (ret_ga == 0) {
-	    if (res && res->ai_addr) {
-		// Now search for a IPv6 Address
-		itr = res;
-		while (itr != NULL) {
-		    if (itr->ai_family == AF_INET6) {
-			memcpy(inSockAddr, (itr->ai_addr), (itr->ai_addrlen));
-			freeaddrinfo(res);
-			found = true;
-			break;
-		    } else {
-			itr = itr->ai_next;
-		    }
-		}
-	    }
-	} else {
-	    fprintf(stderr, "ERROR: %s (%s and v6)\n", gai_strerror(ret_ga), inHostname);
-	    exit(1);
-	}
-#endif // IPV6
-	if (!found) {
-	    fprintf(stderr, "ERROR: getaddrinfo failed to find an ipv6 address for host '%s'\n", inHostname);
-	    exit(1);
-	}
-    } else {
+    if (!isIPv6) {
 	hints.ai_family = AF_INET;
 	ret_ga = getaddrinfo(inHostname, NULL, &hints, &res);
 	if (ret_ga == 0) {
@@ -238,15 +210,30 @@ void SockAddr_setHostname (const char* inHostname, iperf_sockaddr *inSockAddr, i
 		    }
 		}
 	    }
-	} else {
-	    fprintf(stderr, "ERROR: %s (%s and v4)\n", gai_strerror(ret_ga), inHostname);
-	    exit(1);
-	}
-	if (!found) {
-	    fprintf(stderr, "ERROR: getaddrinfo failed to find an ipv4 address for host '%s'\n", inHostname);
-	    exit(1);
 	}
     }
+#if HAVE_IPV6
+    if (!found) {
+	hints.ai_family = AF_INET6;
+	ret_ga = getaddrinfo(inHostname, NULL, &hints, &res);
+	if (ret_ga == 0) {
+	    if (res && res->ai_addr) {
+		// Now search for a IPv6 Address
+		itr = res;
+		while (itr != NULL) {
+		    if (itr->ai_family == AF_INET6) {
+			memcpy(inSockAddr, (itr->ai_addr), (itr->ai_addrlen));
+			freeaddrinfo(res);
+			found = true;
+			break;
+		    } else {
+			itr = itr->ai_next;
+		    }
+		}
+	    }
+	}
+    }
+#endif // IPV6
     // getaddrinfo didn't find an address, fallback to gethostbyname for v4
     if (!found && !isIPv6) {
 	// first try just converting dotted decimal
@@ -280,8 +267,13 @@ void SockAddr_setHostname (const char* inHostname, iperf_sockaddr *inSockAddr, i
 		exit(1);
 		return; // TODO throw
 	    }
+	    found = true;
 	    memcpy(&sockaddr->sin_addr, *(hostP->h_addr_list), (hostP->h_length));
 	}
+    }
+    if (!found) {
+	fprintf(stderr, "ERROR: failed to find an ip address for host '%s'\n", inHostname);
+	exit(1);
     }
 }
 // end setHostname
