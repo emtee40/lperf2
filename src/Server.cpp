@@ -665,7 +665,7 @@ int Server::L2_quintuple_filter () {
 	    return -1;
     } else {
 	// Using the v6 addr structures
-#  ifdef HAVE_IPV6
+#  if HAVE_IPV6
 	struct in6_addr *v6peer = SockAddr_get_in6_addr(&mSettings->peer);
 	struct in6_addr *v6local = SockAddr_get_in6_addr(&mSettings->local);
 	if (isIPV6(mSettings)) {

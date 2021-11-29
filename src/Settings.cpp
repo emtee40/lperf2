@@ -127,6 +127,8 @@ static void generate_permit_key(struct thread_Settings *mExtSettings);
 const struct option long_options[] =
 {
 {"singleclient",     no_argument, NULL, '1'},
+{"v4",               no_argument, NULL, '4'},
+{"v6",               no_argument, NULL, '6'},
 {"bandwidth",  required_argument, NULL, 'b'},
 {"client",     required_argument, NULL, 'c'},
 {"dualtest",         no_argument, NULL, 'd'},
@@ -261,7 +263,7 @@ const struct option env_options[] =
 
 #define SHORT_OPTIONS()
 
-const char short_options[] = "1b:c:def:hi:l:mn:o:p:rst:uvw:x:y:zAB:CDF:H:IL:M:NP:RS:T:UVWXZ:";
+const char short_options[] = "146b:c:def:hi:l:mn:o:p:rst:uvw:x:y:zAB:CDF:H:IL:M:NP:RS:T:UVWXZ:";
 
 /* -------------------------------------------------------------------
  * defaults
@@ -505,6 +507,14 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
     switch (option) {
         case '1': // Single Client
             setSingleClient(mExtSettings);
+            break;
+
+        case '4': // v4 only
+            setIPV4(mExtSettings);
+            break;
+
+        case '6': // v4 only
+            setIPV6(mExtSettings);
             break;
 
         case 'b': // UDP bandwidth
@@ -848,7 +858,7 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
             break;
 
         case 'V': // IPv6 Domain
-#ifdef HAVE_IPV6
+#if HAVE_IPV6
             setIPV6(mExtSettings);
 #else
 	    fprintf(stderr, "The --ipv6_domain (-V) option is not enabled in this build.\n");
@@ -1290,6 +1300,17 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 		bail = true;
 	    }
 	}
+    }
+#if !HAVE_IPV6
+    if (isIPV6(mExtSettings)) {
+	fprintf(stderr, "ERROR: ipv6 not supported\n");
+	bail = true;
+    }
+#endif
+    if (isIPV4(mExtSettings) && isIPV6(mExtSettings)) {
+	fprintf(stderr, "WARN: both ipv4 and ipv6 set\n");
+	unsetIPV6(mExtSettings);
+	unsetIPV4(mExtSettings);
     }
     if (mExtSettings->mThreadMode == kMode_Client) {
 	if (isRemoveService(mExtSettings)) {
@@ -2027,7 +2048,7 @@ void Settings_GenerateClientSettings (struct thread_Settings *server, struct thr
 	    inet_ntop(AF_INET, &(reinterpret_cast<sockaddr_in*>(&server->peer))->sin_addr,
 		      reversed_thread->mHost, REPORT_ADDRLEN);
 	}
-#ifdef HAVE_IPV6
+#if HAVE_IPV6
 	else {
 	    inet_ntop(AF_INET6, &(reinterpret_cast<sockaddr_in6*>(&server->peer))->sin6_addr,
 		      reversed_thread->mHost, REPORT_ADDRLEN);

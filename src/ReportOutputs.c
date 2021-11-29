@@ -955,7 +955,7 @@ static void format_ips_ports_string (struct TransferInfo *stats) {
 		  local_addr, REPORT_ADDRLEN);
       }
     }
-#ifdef HAVE_IPV6
+#if HAVE_IPV6
     else {
         inet_ntop(AF_INET6, &((struct sockaddr_in6*)local)->sin6_addr,
 		  local_addr, REPORT_ADDRLEN);
@@ -970,7 +970,7 @@ static void format_ips_ports_string (struct TransferInfo *stats) {
 		  remote_addr, REPORT_ADDRLEN);
       }
     }
-#ifdef HAVE_IPV6
+#if HAVE_IPV6
     else {
         inet_ntop(AF_INET6, &((struct sockaddr_in6*)peer)->sin6_addr,
 		  remote_addr, REPORT_ADDRLEN);
@@ -979,14 +979,14 @@ static void format_ips_ports_string (struct TransferInfo *stats) {
     snprintf(__ips_ports_string, REPORT_ADDRLEN*2+10, reportCSV_peer,
 	     local_addr, (local->sa_family == AF_INET ?
 			  ntohs(((struct sockaddr_in*)local)->sin_port) :
-#ifdef HAVE_IPV6
+#if HAVE_IPV6
 			  ntohs(((struct sockaddr_in6*)local)->sin6_port)),
 #else
 	     0),
 #endif
 	remote_addr, (peer->sa_family == AF_INET ?
 		      ntohs(((struct sockaddr_in*)peer)->sin_port) :
-#ifdef HAVE_IPV6
+#if HAVE_IPV6
 		      ntohs(((struct sockaddr_in6*)peer)->sin6_port)));
 #else
                           0));
@@ -1077,7 +1077,7 @@ static void reporter_output_listener_settings (struct ReportSettings *report) {
 				  host_ip, REPORT_ADDRLEN);
 		      }
 		    }
-#ifdef HAVE_IPV6
+#if HAVE_IPV6
 		    else {
 			inet_ntop(AF_INET6, &((struct sockaddr_in6*)(&report->common->local))->sin6_addr,
 				  host_ip, REPORT_ADDRLEN);
@@ -1385,7 +1385,7 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
 	    inet_ntop(AF_INET, &((struct sockaddr_in*)local)->sin_addr, local_addr, REPORT_ADDRLEN);
 	}
     }
-#ifdef HAVE_IPV6
+#if HAVE_IPV6
     else {
 	inet_ntop(AF_INET6, &((struct sockaddr_in6*)local)->sin6_addr, local_addr, REPORT_ADDRLEN);
     }
@@ -1397,12 +1397,12 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
 	    inet_ntop(AF_INET, &((struct sockaddr_in*)peer)->sin_addr, remote_addr, REPORT_ADDRLEN);
 	}
     }
-#ifdef HAVE_IPV6
+#if HAVE_IPV6
     else {
 	inet_ntop(AF_INET6, &((struct sockaddr_in6*)peer)->sin6_addr, remote_addr, REPORT_ADDRLEN);
     }
 #endif
-#ifdef HAVE_IPV6
+#if HAVE_IPV6
     if (report->common->KeyCheck) {
 	if (isEnhanced(report->common) && report->common->Ifrname && (strlen(report->common->Ifrname) < SNBUFFERSIZE-strlen(b))) {
 	    printf(report_peer_dev, report->common->transferIDStr, local_addr, report->common->Ifrname, \

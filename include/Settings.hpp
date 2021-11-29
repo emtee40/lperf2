@@ -310,7 +310,7 @@ struct thread_Settings {
 #define FLAG_BUFLENSET      0x00000001
 #define FLAG_COMPAT         0x00000002
 #define FLAG_DAEMON         0x00000004
-#define FLAG_DOMAIN         0x00000008
+#define FLAG_DOMAINV6       0x00000008
 #define FLAG_FILEINPUT      0x00000010
 #define FLAG_NODELAY        0x00000020
 #define FLAG_PRINTMSS       0x00000040
@@ -384,11 +384,13 @@ struct thread_Settings {
 #define FLAG_TCPDRAIN       0x00000200
 #define FLAG_INCRSRCPORT    0x00000400
 #define FLAG_OVERRIDETOS    0x00000800
+#define FLAG_DOMAINV4       0x00001000
 
 #define isBuflenSet(settings)      ((settings->flags & FLAG_BUFLENSET) != 0)
 #define isCompat(settings)         ((settings->flags & FLAG_COMPAT) != 0)
 #define isDaemon(settings)         ((settings->flags & FLAG_DAEMON) != 0)
-#define isIPV6(settings)           ((settings->flags & FLAG_DOMAIN) != 0)
+#define isIPV6(settings)           ((settings->flags & FLAG_DOMAINV6) != 0)
+#define isIPV4(settings)           ((settings->flags_extend2 & FLAG_DOMAINV4) != 0)
 #define isFileInput(settings)      ((settings->flags & FLAG_FILEINPUT) != 0)
 #define isNoDelay(settings)        ((settings->flags & FLAG_NODELAY) != 0)
 #define isPrintMSS(settings)       ((settings->flags & FLAG_PRINTMSS) != 0)
@@ -460,7 +462,8 @@ struct thread_Settings {
 #define setBuflenSet(settings)     settings->flags |= FLAG_BUFLENSET
 #define setCompat(settings)        settings->flags |= FLAG_COMPAT
 #define setDaemon(settings)        settings->flags |= FLAG_DAEMON
-#define setIPV6(settings)          settings->flags |= FLAG_DOMAIN
+#define setIPV6(settings)          settings->flags |= FLAG_DOMAINV6
+#define setIPV4(settings)          settings->flags_extend2 |= FLAG_DOMAINV4
 #define setFileInput(settings)     settings->flags |= FLAG_FILEINPUT
 #define setNoDelay(settings)       settings->flags |= FLAG_NODELAY
 #define setPrintMSS(settings)      settings->flags |= FLAG_PRINTMSS
@@ -529,7 +532,8 @@ struct thread_Settings {
 #define unsetBuflenSet(settings)   settings->flags &= ~FLAG_BUFLENSET
 #define unsetCompat(settings)      settings->flags &= ~FLAG_COMPAT
 #define unsetDaemon(settings)      settings->flags &= ~FLAG_DAEMON
-#define unsetIPV6(settings)        settings->flags &= ~FLAG_DOMAIN
+#define unsetIPV6(settings)        settings->flags &= ~FLAG_DOMAINV6
+#define unsetIPV4(settings)        settings->flags_extend2 &= ~FLAG_DOMAINV4
 #define unsetFileInput(settings)   settings->flags &= ~FLAG_FILEINPUT
 #define unsetNoDelay(settings)     settings->flags &= ~FLAG_NODELAY
 #define unsetPrintMSS(settings)    settings->flags &= ~FLAG_PRINTMSS

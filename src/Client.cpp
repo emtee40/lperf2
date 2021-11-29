@@ -138,7 +138,7 @@ bool Client::my_connect (bool close_on_fail) {
     // create an internet socket
     int type = (isUDP(mSettings) ? SOCK_DGRAM : SOCK_STREAM);
     int domain = (SockAddr_isIPv6(&mSettings->peer) ?
-#ifdef HAVE_IPV6
+#if HAVE_IPV6
                   AF_INET6
 #else
                   AF_INET
