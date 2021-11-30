@@ -1,6 +1,40 @@
 See doc/DESIGN_NOTES for some description around the software design
 See doc/CLOCKSYNC_NOTES for some description around synchronizing the realtime clocks
 
+2.1.5 change set as of (November 30, 2021)
+--------------------------------------
+o fix some HAVE_IPV6 conditional changes
+o ren sockets.c to socket_io.c
+o fix compile breakage per abs() returning an int instead of float
+o support for gettcpinfo on Mac OS X
+o move setsock_blocking from sockets into PerfSocket
+o don't require -V for v6, instead try v6 when v4 hostname lookup fails, client only
+o add assert in writen
+o add tcp RTT variance to client output
+o use setsockopt to get the nagle status
+o show Nagle and TOS settings on client
+o more on connect-only testing
+o sample and output in the connect report initial rtt and cwnd, units usecs and mss respectively
+o fix multiple fullduplex regressions
+o fix for HAVE_TCP_STATS in configure, then linux compile
+o writen can have more than one write, fix accounting when this occurs
+o fix tos with --reverse and --full-duplex
+o add support for --tos-override <value> on server
+o add support for  --tcp-drain, add mmm stats, histograms - experimental feature
+o multiple man page updates
+o fix partial histogram print to not show (f)
+o work in python flows
+o fixes to incr-srcport
+o fix regression on very first UDP packet having transit latency of zero
+o fix --reverse and --isochronous when --trip-times not set
+o fix client_init regression, pull out tcp_shutdown
+o fixes for --incr-dstport
+o remove race by setting the predicate and issuing the signal under a lock, i.e. make this an atomic action
+o command line support for --bounce-back - logic itself not release here
+o fix first send accounting for small -n
+o fix configure.ac to use '=' instead of '=='
+
+
 2.1.4 change set as of (August 12, 2021)
 --------------------------------------
 o fix TCP isoch regression
