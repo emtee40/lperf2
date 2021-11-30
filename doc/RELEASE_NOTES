@@ -29,7 +29,7 @@ o fix regression on very first UDP packet having transit latency of zero
 o fix --reverse and --isochronous when --trip-times not set
 o fix client_init regression, pull out tcp_shutdown
 o fixes for --incr-dstport
-o remove race by setting the predicate and issuing the signal under a lock, i.e. make this an atomic action
+o fix reporter startup race and one second delay by setting the threads ready predicate and issuing the signal under a lock
 o command line support for --bounce-back - logic itself not release here
 o fix first send accounting for small -n
 o fix configure.ac to use '=' instead of '=='
