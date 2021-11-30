@@ -4,6 +4,7 @@ See doc/CLOCKSYNC_NOTES for some description around synchronizing the realtime c
 2.1.5 change set as of (November 30, 2021)
 --------------------------------------
 o fix some HAVE_IPV6 conditional changes
+o fix SO_TIMEOUT regressiony
 o ren sockets.c to socket_io.c
 o fix compile breakage per abs() returning an int instead of float
 o support for gettcpinfo on Mac OS X
