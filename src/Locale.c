@@ -119,7 +119,7 @@ Client specific:\n\
       --bounceback-congest request a concurrent full-duplex TCP stream\n\
       --bounceback-hold    request the server to insert a delay of n milliseconds between its read and write\n\
       --bounceback-period  request the client schedule a send every n milliseconds\n\
-      --bounceback-quickack request the server set the TCP_QUICKACK socket option disabling ACK delays during a bounceback test\n\
+      --bounceback-no-quickack request the server not set the TCP_QUICKACK socket option (disabling TCP ACK delays) during a bounceback test\n\
   -c, --client    <host>   run in client mode, connecting to <host>\n\
       --connect-only       run a connect only test\n\
       --connect-retries #  number of times to retry tcp connect\n\

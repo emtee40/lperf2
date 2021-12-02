@@ -180,8 +180,8 @@ request the server to insert a delay of n milliseconds between its read and writ
 .BR "    --bounceback-period " \fIn\fR
 request the client schedule a send every n milliseconds (w/o option bouncebacks are immediately scheduled. With option default vale is one second.)
 .TP
-.BR "    --bounceback-quickack "
-request the server set the TCP_QUICKACK socket option disabling ACK delays during a bounceback test
+.BR "    --bounceback-no-quickack "
+request the server not set the TCP_QUICKACK socket option (disabling TCP ACK delays) during a bounceback test (see NOTES)
 .TP
 .BR "    --burst-period " \fIn\fR
 Set the burst period in seconds. Defaults to one second. (Note: assumed use case is low duty cycle traffic bursts)
@@ -830,6 +830,9 @@ rate. The metric is scaled to assist with human readability.
 .P
 .B Multicast:
 Iperf 2 supports multicast with a couple of caveats. First, multicast streams cannot take advantage of the -P option. The server will serialize multicast streams. Also, it's highly encouraged to use a -t on a server that will be used for multicast clients. That is because the single end of traffic packet sent from client to server may get lost and there are no redundant end of traffic packets.  Setting -t on the server will kill the server thread in the event this packet is indeed lost.
+.P
+.B TCP_QUICACK:
+The TCP_QUICKACK socket option will be enabled during bounceback tests when the bounceback-hold is also set to a non-zero value. The socket option is applied after every read() on the server and before the hold delay call. It's not applied on the client. It's not supported (yet) for other TCP traffic tests. Use --bounceback-no-quickack to disable TCP ack delays per the socket.
 .P
 .B Fast Sampling:
 Use

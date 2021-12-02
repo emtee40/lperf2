@@ -322,17 +322,17 @@ void Server::RunBounceBackTCP () {
 	int n;
 	reportstruct->emptyreport=1;
 	do {
-#if HAVE_DECL_TCP_QUICKACK
-	    if (isTcpQuickAck(mSettings)) {
-		int opt = 1;
-		Socklen_t len = sizeof(opt);
-		int rc = setsockopt(mySocket, IPPROTO_TCP, TCP_QUICKACK,
-				    reinterpret_cast<char*>(&opt), len);
-		WARN_errno(rc == SOCKET_ERROR, "setsockopt TCP_QUICKACK");
-	    }
-#endif
 	    struct bounceback_hdr *bbhdr = reinterpret_cast<struct bounceback_hdr *>(mSettings->mBuf);
 	    if (mSettings->mBounceBackHold) {
+#if HAVE_DECL_TCP_QUICKACK
+		if (isTcpQuickAck(mSettings)) {
+		    int opt = 1;
+		    Socklen_t len = sizeof(opt);
+		    int rc = setsockopt(mySocket, IPPROTO_TCP, TCP_QUICKACK,
+					reinterpret_cast<char*>(&opt), len);
+		    WARN_errno(rc == SOCKET_ERROR, "setsockopt TCP_QUICKACK");
+		}
+#endif
 		delay_loop(mSettings->mBounceBackHold);
 	    }
 	    now.setnow();

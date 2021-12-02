@@ -109,10 +109,11 @@ static int hideips = 0;
 static int bounceback = 0;
 static int bouncebackhold = 0;
 static int bouncebackperiod = 0;
-static int tcpdrain;
-static int overridetos;
-static int tcpquickack;
-static int congest;
+static int tcpdrain = 0;
+static int overridetos = 0;
+static int notcpquickack = 0;
+static int notcpquickack_cliset = 0;
+static int congest = 0;
 
 void Settings_Interpret(char option, const char *optarg, struct thread_Settings *mExtSettings);
 // apply compound settings after the command line has been fully parsed
@@ -159,7 +160,7 @@ const struct option long_options[] =
 {"bounceback", no_argument, &bounceback, 1},
 {"bounceback-congest", no_argument, &congest, 1},
 {"bounceback-hold", required_argument, &bouncebackhold, 1},
-{"bounceback-quickack", no_argument, &tcpquickack, 1},
+{"bounceback-no-quickack", no_argument, &notcpquickack, 1},
 {"bounceback-period", required_argument, &bouncebackperiod, 1},
 {"compatibility",    no_argument, NULL, 'C'},
 {"daemon",           no_argument, NULL, 'D'},
@@ -1089,13 +1090,9 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 		fprintf(stderr, "--tcp-drain not supported on this platform\n");
 #endif
 	    }
-	    if (tcpquickack) {
-		tcpquickack= 0;
-#if HAVE_DECL_TCP_QUICKACK
-		setTcpQuickAck(mExtSettings);
-#else
-		fprintf(stderr, "--tcp-quickack not supported on this platform\n");
-#endif
+	    if (notcpquickack) {
+		notcpquickack = 0;
+		notcpquickack_cliset = 1;
 	    }
 	    if (congest) {
 		congest= 0;
@@ -1415,6 +1412,12 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	    }
 	    mExtSettings->mBounceBackBytes = mExtSettings->mBufLen;
 	    mExtSettings->mBurstSize = mExtSettings->mBufLen;
+#if HAVE_DECL_TCP_QUICKACK
+	    // be wary of double negatives here
+	    if (!notcpquickack_cliset && (mExtSettings->mBounceBackHold > 0))
+		setTcpQuickAck(mExtSettings);
+#endif
+
 	}
 	if (isPeriodicBurst(mExtSettings)) {
 	    if (isIsochronous(mExtSettings)) {
