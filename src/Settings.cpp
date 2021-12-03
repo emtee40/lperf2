@@ -127,8 +127,10 @@ static void generate_permit_key(struct thread_Settings *mExtSettings);
 const struct option long_options[] =
 {
 {"singleclient",     no_argument, NULL, '1'},
+#if 0
 {"v4",               no_argument, NULL, '4'},
 {"v6",               no_argument, NULL, '6'},
+#endif
 {"bandwidth",  required_argument, NULL, 'b'},
 {"client",     required_argument, NULL, 'c'},
 {"dualtest",         no_argument, NULL, 'd'},
