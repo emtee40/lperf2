@@ -127,8 +127,10 @@ static void generate_permit_key(struct thread_Settings *mExtSettings);
 const struct option long_options[] =
 {
 {"singleclient",     no_argument, NULL, '1'},
+#if 0 // to be released in 2.1.6
 {"v4",               no_argument, NULL, '4'},
 {"v6",               no_argument, NULL, '6'},
+#endif
 {"bandwidth",  required_argument, NULL, 'b'},
 {"client",     required_argument, NULL, 'c'},
 {"dualtest",         no_argument, NULL, 'd'},
@@ -154,7 +156,9 @@ const struct option long_options[] =
 // more esoteric options
 {"awdl",             no_argument, NULL, 'A'},
 {"bind",       required_argument, NULL, 'B'},
+#if 0 // to be released in 2.1.6
 {"bounce-back", optional_argument, &bounceback, 1},
+#endif
 {"compatibility",    no_argument, NULL, 'C'},
 {"daemon",           no_argument, NULL, 'D'},
 {"file_input", required_argument, NULL, 'F'},
