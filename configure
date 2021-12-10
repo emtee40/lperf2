@@ -8139,6 +8139,17 @@ fi
 cat >>confdefs.h <<_ACEOF
 #define HAVE_DECL_IPV6_JOIN_GROUP $ac_have_decl
 _ACEOF
+ac_fn_c_check_decl "$LINENO" "IPV6_V6ONLY" "ac_cv_have_decl_IPV6_V6ONLY" "$in_h
+"
+if test "x$ac_cv_have_decl_IPV6_V6ONLY" = xyes; then :
+  ac_have_decl=1
+else
+  ac_have_decl=0
+fi
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_IPV6_V6ONLY $ac_have_decl
+_ACEOF
 ac_fn_c_check_decl "$LINENO" "IPV6_ADD_MEMBERSHIP" "ac_cv_have_decl_IPV6_ADD_MEMBERSHIP" "$in_h
 "
 if test "x$ac_cv_have_decl_IPV6_ADD_MEMBERSHIP" = xyes; then :

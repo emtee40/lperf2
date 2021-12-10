@@ -417,7 +417,7 @@ void Listener::my_listen () {
 	// will be created to supercede this one
 	type = (isUDP(mSettings)  ?  SOCK_DGRAM  :  SOCK_STREAM);
 	domain = (SockAddr_isIPv6(&mSettings->local) ?
-#ifdef HAVE_IPV6
+#if HAVE_IPV6
 		  AF_INET6
 #else
 		  AF_INET
@@ -542,7 +542,7 @@ void Listener::my_multicast_join () {
 	    WARN_errno(rc == SOCKET_ERROR, "ip_multicast_all");
 #endif
 	} else {
-#if (HAVE_IPV6_MULTICAST && (HAVE_DECL_IPV6_JOIN_GROUP || HAVE_DECL_IPV6_ADD_MEMBERSHIP))
+#if (HAVE_IPV6 && HAVE_IPV6_MULTICAST && (HAVE_DECL_IPV6_JOIN_GROUP || HAVE_DECL_IPV6_ADD_MEMBERSHIP))
 	    struct ipv6_mreq mreq;
 	    memcpy(&mreq.ipv6mr_multiaddr, SockAddr_get_in6_addr(&mSettings->local), sizeof(mreq.ipv6mr_multiaddr));
 	    mreq.ipv6mr_interface = 0;
@@ -576,7 +576,7 @@ void Listener::my_multicast_join () {
 #endif
 
         if (isIPV6(mSettings)) {
-#ifdef HAVE_IPV6_MULTICAST
+#if HAVE_IPV6_MULTICAST
 	    if (mSettings->mSSMMulticastStr) {
 		struct group_source_req group_source_req;
 		struct sockaddr_in6 *group;
@@ -806,7 +806,7 @@ bool Listener::L2_setup (thread_Settings *server, int sockfd) {
     // Now optimize packet flow up the raw socket
     // Establish the flow BPF to forward up only "connected" packets to this raw socket
     if (l->sa_family == AF_INET6) {
-#ifdef HAVE_IPV6
+#if HAVE_IPV6
 	struct in6_addr *v6peer = SockAddr_get_in6_addr(&server->peer);
 	struct in6_addr *v6local = SockAddr_get_in6_addr(&server->local);
 	if (isIPV6(server)) {
@@ -859,7 +859,7 @@ bool Listener::tap_setup (thread_Settings *server, int sockfd) {
     // Now optimize packet flow up the raw socket
     // Establish the flow BPF to forward up only "connected" packets to this raw socket
     if (l->sa_family == AF_INET6) {
-#ifdef HAVE_IPV6
+#if HAVE_IPV6
 	struct in6_addr *v6peer = SockAddr_get_in6_addr(&server->peer);
 	struct in6_addr *v6local = SockAddr_get_in6_addr(&server->local);
 	if (isIPV6(server)) {
@@ -1063,7 +1063,7 @@ inline bool Listener::test_permit_key(uint32_t flags, thread_Settings *server, i
     }
     if (!isUDP(server)) {
 	int nread = 0;
-	nread = recvn(server->mSock, server->mBuf, keyoffset + keylen, 0);
+	nread = recvn(server->mSock, reinterpret_cast<char *>(&thiskey->value), keylen, 0);
 	FAIL_errno((nread < (keyoffset + keylen)), "read key", server);
     }
     strncpy(server->mPermitKey, thiskey->value, MAX_PERMITKEY_LEN + 1);
