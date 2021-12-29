@@ -676,7 +676,7 @@ void udp_output_read_enhanced (struct TransferInfo *stats) {
 		   (meantransit * 1e3),
 		   stats->transit.current.min * 1e3,
 		   stats->transit.current.max * 1e3,
-		   (stats->transit.current.cnt < 2) ? 0 : 1e3 * (sqrt(stats->transit.current.m2 / (stats->transit.current.cnt - 1))),
+		   (stats->transit.current.cnt < 2) ? 0 : 1e-3 * (sqrt(stats->transit.current.m2 / (stats->transit.current.cnt - 1))),
 		   (stats->cntIPG / stats->IPGsum),
 		   netpower_buf);
 	}
