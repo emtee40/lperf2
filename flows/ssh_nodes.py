@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------
-# * Copyright (c) 2018-2022
+# * Copyright (c) 2018
 # * Broadcom Corporation
 # * All Rights Reserved.
 # *---------------------------------------------------------------
@@ -51,7 +51,7 @@ class ssh_node:
             # On Windows, the ProactorEventLoop is necessary to listen on pipes
             cls.loop = asyncio.ProactorEventLoop()
         else:
-            cls.loop = asyncio.get_event_loop()
+            cls.loop = asyncio.new_event_loop()
         return cls.loop
 
     @classmethod
@@ -68,7 +68,7 @@ class ssh_node:
         if ssh_node.rexec_tasks :
             if text :
                 logging.info('Run all tasks: {})'.format(time, text))
-            ssh_node.loop.run_until_complete(asyncio.wait(ssh_node.rexec_tasks, timeout=timeout, loop=ssh_node.loop))
+            ssh_node.loop.run_until_complete(asyncio.wait(ssh_node.rexec_tasks, timeout=timeout))
             if stoptext :
                 logging.info('Commands done ({})'.format(stoptext))
             ssh_node.rexec_tasks = []
@@ -81,11 +81,11 @@ class ssh_node:
         tasks = []
         for node in nodes:
             if node.sshtype.lower() == 'ssh' :
-                tasks.append(asyncio.ensure_future(node.clean()))
+                tasks.append(asyncio.ensure_future(node.clean(), loop=ssh_node.loop))
         if tasks :
             logging.info('Run consoles clean')
             try :
-                ssh_node.loop.run_until_complete(asyncio.wait(tasks, timeout=20, loop=ssh_node.loop))
+                ssh_node.loop.run_until_complete(asyncio.wait(tasks, timeout=20))
             except asyncio.TimeoutError:
                 logging.error('console cleanup timeout')
 
@@ -105,7 +105,7 @@ class ssh_node:
             s = " "
             logging.info('Opening consoles: {}'.format(s.join(node_names)))
             try :
-                ssh_node.loop.run_until_complete(asyncio.wait(tasks, timeout=60, loop=ssh_node.loop))
+                ssh_node.loop.run_until_complete(asyncio.wait(tasks, timeout=60))
             except asyncio.TimeoutError:
                 logging.error('open console timeout')
                 raise
@@ -122,14 +122,14 @@ class ssh_node:
         node_names = []
         for node in nodes :
             if node.ssh_console_session :
-                node.console_task = asyncio.ensure_future(node.ssh_console_session.close())
+                node.console_task = asyncio.ensure_future(node.ssh_console_session.close(), loop=ssh_node.loop)
                 tasks.append(node.console_task)
                 node_names.append(node.name)
 
         if tasks :
             s = " "
             logging.info('Closing consoles: {}'.format(s.join(node_names)))
-            ssh_node.loop.run_until_complete(asyncio.wait(tasks, timeout=60, loop=ssh_node.loop))
+            ssh_node.loop.run_until_complete(asyncio.wait(tasks, timeout=60))
             logging.info('Closing consoles done: {}'.format(s.join(node_names)))
 
     def __init__(self, name=None, ipaddr=None, devip=None, console=False, device=None, ssh_speedups=True, silent_mode=False, sshtype='ssh', relay=None):
@@ -168,9 +168,9 @@ class ssh_node:
         cmd_timer = CMD_TIMEOUT
         connect_timer = CONNECT_TIMEOUT
         this_session = ssh_session(name=self.name, hostname=self.ipaddr, CONNECT_TIMEOUT=connect_timer, node=self, ssh_speedups=True)
-        this_task = asyncio.ensure_future(this_session.post_cmd(cmd=cmd, IO_TIMEOUT=io_timer, CMD_TIMEOUT=cmd_timer))
+        this_task = asyncio.ensure_future(this_session.post_cmd(cmd=cmd, IO_TIMEOUT=io_timer, CMD_TIMEOUT=cmd_timer), loop=ssh_node.loop)
         if run_now:
-            ssh_node.loop.run_until_complete(asyncio.wait([this_task], timeout=CMD_TIMEOUT, loop=ssh_node.loop))
+            ssh_node.loop.run_until_complete(asyncio.wait([this_task], timeout=CMD_TIMEOUT))
         else:
             ssh_node.rexec_tasks.append(this_task)
             self.my_tasks.append(this_task)
@@ -213,7 +213,7 @@ class ssh_session:
             if self._session.CONNECT_TIMEOUT is not None :
                 self.watchdog = ssh_node.loop.call_later(self._session.CONNECT_TIMEOUT, self.wd_timer)
             self._session.closed.clear()
-            self.timeout_occurred = asyncio.Event(loop=ssh_node.loop)
+            self.timeout_occurred = asyncio.Event()
             self.timeout_occurred.clear()
 
         @property
@@ -303,9 +303,9 @@ class ssh_session:
         self.hostname = hostname
         self.name = name
         self.user = user
-        self.opened = asyncio.Event(loop=ssh_node.loop)
-        self.closed = asyncio.Event(loop=ssh_node.loop)
-        self.connected = asyncio.Event(loop=ssh_node.loop)
+        self.opened = asyncio.Event()
+        self.closed = asyncio.Event()
+        self.connected = asyncio.Event()
         self.closed.set()
         self.opened.clear()
         self.connected.clear()
