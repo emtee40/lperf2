@@ -214,8 +214,15 @@ bool Client::my_connect (bool close_on_fail) {
 	SockAddr_Ifrname(mSettings);
 	if (isUDP(mSettings)) {
 	    int max = checksock_max_udp_payload(mSettings);
-	    if (max > 0) {
-		mSettings->mBufLen = max;
+	    if ((max > 0) && (max > mSettings->mBufLen)) {
+		char *tmp = new char[max];
+		if (tmp) {
+		    pattern(tmp, max);
+		    memcpy(tmp, mSettings->mBuf, sizeof(char));
+		    mSettings->mBufLen = max;
+		    DELETE_ARRAY(mSettings->mBuf);
+		    mSettings->mBuf = tmp;
+		}
 	    }
 	}
 	if (isUDP(mSettings) && !isIsochronous(mSettings) && !isIPG(mSettings)) {
@@ -1630,6 +1637,7 @@ int Client::SendFirstPayload () {
 	    reportstruct->packetTime.tv_sec = now.getSecs();
 	    reportstruct->packetTime.tv_usec = now.getUsecs();
 	}
+	pattern(mSettings->mBuf, mSettings->mBufLen);
 	if (isTxStartTime(mSettings)) {
 	    pktlen = Settings_GenerateClientHdr(mSettings, (void *) mSettings->mBuf, mSettings->txstart_epoch);
 	} else {
