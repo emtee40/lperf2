@@ -709,7 +709,8 @@ static void reporter_handle_packet_oneway_transit (struct TransferInfo *stats, s
 static void reporter_handle_frame_isoch_oneway_transit (struct TransferInfo *stats, struct ReportStruct *packet) {
     // printf("fid=%lu bs=%lu remain=%lu\n", packet->frameID, packet->burstsize, packet->remaining);
     if (packet->frameID && packet->transit_ready) {
-	int framedelta=0;
+	int framedelta = 0;
+	double frametransit = 0;
 	// very first isochronous frame
 	if (!stats->isochstats.frameID) {
 	    stats->isochstats.framecnt.current=packet->frameID;
@@ -717,6 +718,17 @@ static void reporter_handle_frame_isoch_oneway_transit (struct TransferInfo *sta
 	// perform client and server frame based accounting
 	if ((framedelta = (packet->frameID - stats->isochstats.frameID))) {
 	    stats->isochstats.framecnt.current++;
+	    // Triptimes use the frame start time in passed in the frame header while
+	    // it's calculated from the very first start time and frame id w/o trip timees
+	    if (isTripTime(stats->common)) {
+		frametransit = TimeDifference(packet->packetTime, packet->isochStartTime);
+		printf("**** ft with trip %f\n", frametransit);
+	    } else {
+		frametransit = TimeDifference(packet->packetTime, packet->isochStartTime) \
+		    - ((packet->burstperiod * (packet->frameID - 1)) / 1e6);
+		printf("**** ft no trip %f\n", frametransit);
+	    }
+	    reporter_update_mmm(&stats->transit.total, frametransit);
 	    if (framedelta > 1) {
 		if (stats->common->ThreadMode == kMode_Server) {
 		    int lost = framedelta - (packet->frameID - packet->prevframeID);
@@ -735,8 +747,6 @@ static void reporter_handle_frame_isoch_oneway_transit (struct TransferInfo *sta
 	    }
 	    if ((packet->packetLen == packet->remaining) && (packet->frameID == stats->matchframeID)) {
 		// last packet of a burst (or first-last in case of a duplicate) and frame id match
-		double frametransit = TimeDifference(packet->packetTime, packet->isochStartTime) \
-		    - ((packet->burstperiod * (packet->frameID - 1)) / 1000000.0);
 		histogram_insert(stats->framelatency_histogram, frametransit, NULL);
 		stats->matchframeID = 0;  // reset the matchid so any potential duplicate is ignored
 	    }

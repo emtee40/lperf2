@@ -275,7 +275,7 @@ struct client_hdrext_starttime_fq {
  *                +--------+--------+--------+--------+
  *            3   |        flags                      |
  *                +--------+--------+--------+--------+
- *            4   |        isoch burst period (s)     |
+ *            4   |        reserved                   |
  *                +--------+--------+--------+--------+
  *            5   |        isoch burst period (us)    |
  *                +--------+--------+--------+--------+
@@ -332,7 +332,7 @@ struct TCP_burst_payload {
     uint32_t start_tv_sec;
     uint32_t start_tv_usec;
     struct TCP_oneway_triptime send_tt;
-    uint32_t burst_period_s;
+    uint32_t reserved0;
     uint32_t burst_period_us;
     uint32_t burst_id;
     uint32_t burst_size;

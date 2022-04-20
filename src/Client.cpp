@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------
  * Copyright (c) 1999,2000,2001,2002,2003
- * The Board of Trustees of the University of Illinois
+ * The Board ofraTrustees of the University of Illinois
  * All Rights Reserved.
  *---------------------------------------------------------------
  * Permission is hereby granted, free of charge, to any person
@@ -98,6 +98,14 @@ Client::Client (thread_Settings *inSettings) {
     }
 
     pattern(mSettings->mBuf, mSettings->mBufLen);
+    if (isIsochronous(mSettings)) {
+	FAIL_errno(!(mSettings->mFPS > 0.0), "Invalid value for frames per second in the isochronous settings\n", mSettings);
+	// set the mbuf valid for burst period ahead of time. Will be set ahead of time for all burst writes
+	if (!isUDP(mSettings)) {
+	    struct TCP_burst_payload * mBuf_burst = reinterpret_cast<struct TCP_burst_payload *>(mSettings->mBuf);
+	    mBuf_burst->burst_period_us  = htonl(htonl(framecounter->period_us()));
+	}
+    }
     if (isFileInput(mSettings)) {
         if (!isSTDIN(mSettings))
             Extractor_Initialize(mSettings->mFileName, mSettings->mBufLen, mSettings);
@@ -107,9 +115,6 @@ Client::Client (thread_Settings *inSettings) {
         if (!Extractor_canRead(mSettings)) {
             unsetFileInput(mSettings);
         }
-    }
-    if (isIsochronous(mSettings)) {
-	FAIL_errno(!(mSettings->mFPS > 0.0), "Invalid value for frames per second in the isochronous settings\n", mSettings);
     }
     peerclose = false;
     isburst = (isIsochronous(mSettings) || isPeriodicBurst(mSettings) || ((isTripTime(mSettings) || isTcpDrain(mSettings)) && !isUDP(mSettings)));
@@ -1369,8 +1374,6 @@ inline void Client::WriteTcpTxHdr (struct ReportStruct *reportstruct, int burst_
     mBuf_burst->send_tt.write_tv_usec  = htonl(reportstruct->packetTime.tv_usec);
     mBuf_burst->burst_id  = htonl((uint32_t)burst_id);
     mBuf_burst->burst_size  = htonl((uint32_t)burst_size);
-    mBuf_burst->burst_period_s  = htonl(0x0);
-    mBuf_burst->burst_period_us  = htonl(0x0);
     reportstruct->frameID=burst_id;
     reportstruct->burstsize=burst_size;
 //    printf("**** Write tcp burst header size= %d id = %d\n", burst_size, burst_id);

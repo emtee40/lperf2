@@ -144,7 +144,7 @@ inline bool Server::InProgress () {
 void Server::RunTCP () {
     long currLen;
     intmax_t totLen = 0;
-    struct TCP_burst_payload burst_info;
+    struct TCP_burst_payload burst_info; // used to store burst header and report in last packet of burst
     Timestamp time1, time2;
     double tokens=0.000004;
 
@@ -154,7 +154,7 @@ void Server::RunTCP () {
 
     int burst_nleft = 0;
     burst_info.burst_id = 0;
-
+    burst_info.burst_period_us = 0;
     burst_info.send_tt.write_tv_sec = 0;
     burst_info.send_tt.write_tv_usec = 0;
     now.setnow();
@@ -195,6 +195,9 @@ void Server::RunTCP () {
 			reportstruct->sentTime.tv_sec = now.getSecs();
 			reportstruct->sentTime.tv_usec = now.getUsecs();
 		    }
+		    if (isIsochronous(mSettings) && !burst_info.burst_period_us) {
+			burst_info.burst_period_us = ntohl(burst_info.burst_period_us);
+		    }
 		    // This is the first stamp of the burst
 		    myReport->info.ts.prevsendTime = reportstruct->sentTime;
 		    burst_nleft = burst_info.burst_size - n;
@@ -226,6 +229,7 @@ void Server::RunTCP () {
 			burst_nleft -= n;
 			if (burst_nleft == 0) {
 			    reportstruct->prevSentTime = myReport->info.ts.prevsendTime;
+			    reportstruct->isochStartTime = myReport->info.ts.startTime;
 			    reportstruct->transit_ready = 1;
 			}
 		    }
