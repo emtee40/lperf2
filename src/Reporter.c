@@ -720,16 +720,6 @@ static void reporter_handle_frame_isoch_oneway_transit (struct TransferInfo *sta
 	// perform client and server frame based accounting
 	if ((framedelta = (packet->frameID - stats->isochstats.frameID))) {
 	    stats->isochstats.framecnt.current++;
-	    // Triptimes use the frame start time in passed in the frame header while
-	    // it's calculated from the very first start time and frame id w/o trip timees
-	    if (isTripTime(stats->common)) {
-		frametransit = TimeDifference(packet->packetTime, packet->isochStartTime);
-	    } else {
-		frametransit = TimeDifference(packet->packetTime, packet->isochStartTime) \
-		    - ((packet->burstperiod * (packet->frameID - 1)) / 1e6);
-	    }
-	    reporter_update_mmm(&stats->transit.total, frametransit);
-	    reporter_update_mmm(&stats->transit.current, frametransit);
 	    if (framedelta > 1) {
 		if (stats->common->ThreadMode == kMode_Server) {
 		    int lost = framedelta - (packet->frameID - packet->prevframeID);
@@ -738,6 +728,17 @@ static void reporter_handle_frame_isoch_oneway_transit (struct TransferInfo *sta
 		    stats->isochstats.framelostcnt.current += (framedelta-1);
 		    stats->isochstats.slipcnt.current++;
 		}
+	    } else if (stats->common->ThreadMode == kMode_Server) {
+		// Triptimes use the frame start time in passed in the frame header while
+		// it's calculated from the very first start time and frame id w/o trip timees
+		if (isTripTime(stats->common)) {
+		    frametransit = TimeDifference(packet->packetTime, packet->isochStartTime);
+		} else {
+		    frametransit = TimeDifference(packet->packetTime, packet->isochStartTime) \
+			- ((packet->burstperiod * (packet->frameID - 1)) / 1e6);
+		}
+		reporter_update_mmm(&stats->transit.total, frametransit);
+		reporter_update_mmm(&stats->transit.current, frametransit);
 	    }
 	}
 	// peform frame latency checks
