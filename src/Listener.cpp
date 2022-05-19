@@ -896,23 +896,37 @@ int Listener::udp_accept (thread_Settings *server) {
     // Preset the server socket to INVALID, hang recvfrom on the Listener's socket
     // The INVALID socket is used to keep the while loop going
     server->mSock = INVALID_SOCKET;
-    nread = recvfrom(ListenSocket, server->mBuf, server->mBufLen, 0, \
-		     reinterpret_cast<struct sockaddr*>(&server->peer), &server->size_peer);
-    // filter and ignore negative sequence numbers, these can be heldover from a previous run
-    struct UDP_datagram* mBuf_UDP  = reinterpret_cast<struct UDP_datagram*>(server->mBuf);
     intmax_t packetID;
-    if (isSeqNo64b(mSettings)) {
-	// New client - Signed PacketID packed into unsigned id2,id
-	packetID = (static_cast<uint32_t>(ntohl(mBuf_UDP->id))) | (static_cast<uintmax_t>(ntohl(mBuf_UDP->id2)) << 32);
-    } else {
-	// Old client - Signed PacketID in Signed id
-	packetID = static_cast<int32_t>(ntohl(mBuf_UDP->id));
-    }
-    if (packetID > 0) {
+    struct UDP_datagram* mBuf_UDP  = reinterpret_cast<struct UDP_datagram*>(server->mBuf);
+    // Look for a UDP packet with a postive seq no while draining any neg seq no packets
+    // The UDP client traffic thread uses negative seq numbers to indicate to the server that
+    // traffic is over. Some of those "final" packets can be in the stack/network pipeline after the server
+    // thread has ended and closed its reporting. The Listener will now receive them as if they are
+    // "first packets. Any "new" packets seen by the Listener causes a new "udp accept"
+    // per UDP's stateless design. So, in the case of negative seq nos, we know that this is
+    // most likely not a new client thread requiring a new server thread, but remnants of an
+    // old one that already ended. Hence, the Listener should ignore "first packets" when
+    // they have negative seq numbers.
+    do {
+	packetID = 0;
+	nread = recvfrom(ListenSocket, server->mBuf, server->mBufLen, 0, \
+			 reinterpret_cast<struct sockaddr*>(&server->peer), &server->size_peer);
+	if (nread > 0) {
+	    // filter and ignore negative sequence numbers, these can be heldover from a previous run
+	    if (isSeqNo64b(mSettings)) {
+		// New client - Signed PacketID packed into unsigned id2,id
+		packetID = (static_cast<uint32_t>(ntohl(mBuf_UDP->id))) | (static_cast<uintmax_t>(ntohl(mBuf_UDP->id2)) << 32);
+	    } else {
+		// Old client - Signed PacketID in Signed id
+		packetID = static_cast<int32_t>(ntohl(mBuf_UDP->id));
+	    }
+	}
+    } while ((nread > 0) && (packetID < 0) && !sInterupted);
+    FAIL_errno(nread == SOCKET_ERROR, "recvfrom", mSettings);
+    if ((nread > 0) && !sInterupted) {
 	Timestamp now;
 	server->accept_time.tv_sec = now.getSecs();
 	server->accept_time.tv_usec = now.getUsecs();
-
 #if HAVE_THREAD_DEBUG
 	{
 	    char tmpaddr[200];
@@ -922,34 +936,31 @@ int Listener::udp_accept (thread_Settings *server) {
 	    thread_debug("rcvfrom peer: %s port %d len=%d", tmpaddr, port, nread);
 	}
 #endif
-	FAIL_errno(nread == SOCKET_ERROR, "recvfrom", mSettings);
-	if (!(nread < 0) && !sInterupted) {
-	    // Handle connection for UDP sockets
-	    int gid = Iperf_push_host_port_conditional(server);
+	// Handle connection for UDP sockets
+	int gid = Iperf_push_host_port_conditional(server);
 #if HAVE_THREAD_DEBUG
-	    if (gid < 0)
-		thread_debug("rcvfrom peer: drop duplicate");
+	if (gid < 0)
+	    thread_debug("rcvfrom peer: drop duplicate");
 #endif
-	    if (gid > 0) {
-		int rc;
-		// We have a new UDP flow (based upon key of quintuple)
-		// so let's hand off this socket
-		// to the server and create a new listener socket
-		server->mSock = ListenSocket;
-		ListenSocket = INVALID_SOCKET;
-		// This connect() will allow the OS to only
-		// send packets with the ip quintuple up to the server
-		// socket and, hence, to the server thread (yet to be created)
-		// This connect() routing is only supported with AF_INET or AF_INET6 sockets,
-		// e.g. AF_PACKET sockets can't do this.  We'll handle packet sockets later
-		// All UDP accepts here will use AF_INET.  This is intentional and needed
-		rc = connect(server->mSock, reinterpret_cast<struct sockaddr*>(&server->peer), server->size_peer);
-		FAIL_errno(rc == SOCKET_ERROR, "connect UDP", mSettings);
-		server->size_local = sizeof(iperf_sockaddr);
-		getsockname(server->mSock, reinterpret_cast<sockaddr*>(&server->local), &server->size_local);
-		SockAddr_Ifrname(server);
-		server->firstreadbytes = nread;
-	    }
+	if (gid > 0) {
+	    int rc;
+	    // We have a new UDP flow (based upon key of quintuple)
+	    // so let's hand off this socket
+	    // to the server and create a new listener socket
+	    server->mSock = ListenSocket;
+	    ListenSocket = INVALID_SOCKET;
+	    // This connect() will allow the OS to only
+	    // send packets with the ip quintuple up to the server
+	    // socket and, hence, to the server thread (yet to be created)
+	    // This connect() routing is only supported with AF_INET or AF_INET6 sockets,
+	    // e.g. AF_PACKET sockets can't do this.  We'll handle packet sockets later
+	    // All UDP accepts here will use AF_INET.  This is intentional and needed
+	    rc = connect(server->mSock, reinterpret_cast<struct sockaddr*>(&server->peer), server->size_peer);
+	    FAIL_errno(rc == SOCKET_ERROR, "connect UDP", mSettings);
+	    server->size_local = sizeof(iperf_sockaddr);
+	    getsockname(server->mSock, reinterpret_cast<sockaddr*>(&server->local), &server->size_local);
+	    SockAddr_Ifrname(server);
+	    server->firstreadbytes = nread;
 	}
     }
     return server->mSock;
