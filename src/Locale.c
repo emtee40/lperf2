@@ -172,6 +172,10 @@ Miscellaneous:\n\
 Lowercase format characters are 10^3 based and uppercase are 2^n based\n\
 (e.g. 1k = 1000, 1K = 1024, 1m = 1,000,000 and 1M = 1,048,576)\n\
 \n\
+Accepted tos values are: af11, af12, af13, af21, af22, af23, af31, af32, af33, af41, af42, af43,\n\
+cs0, cs1, cs2, cs3, cs4, cs5, cs6, cs7, ef, le, nqb, nqb2, ac_be, ac_bk, ac_vi, ac_vo, lowdelay, throughput,\n\
+reliability, or a numeric value.\n\
+\n\
 The TCP window size option can be set by the environment variable\n\
 TCP_WINDOW_SIZE. Most other options can be set by an environment variable\n\
 IPERF_<long option name>, such as IPERF_BANDWIDTH.\n\
@@ -363,19 +367,19 @@ const char report_triptime_enhanced_format[] =
 
 #if HAVE_TCP_STATS
 const char report_client_bb_bw_header[] =
-"[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth         BB cnt(cnt/s)=avg/min/max/stdev         Rtry  Cwnd/RTT\n";
+"[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth         BB cnt=avg/min/max/stdev         Rtry  Cwnd/RTT    RPM\n";
 
 const char report_client_bb_bw_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec    %d(%d)=%.3f/%.3f/%.3f/%.3f ms %4d %4dK/%u us\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec    %d=%.3f/%.3f/%.3f/%.3f ms %4d %4dK/%u us    %d rpm\n";
 #else
 const char report_client_bb_bw_header[] =
-"[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth         BB cnt(cnt/s)=avg/min/max/stdev\n";
+"[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth         BB cnt=avg/min/max/stdev    RPM\n";
 
 const char report_client_bb_bw_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec    %d(%d)=%.3f/%.3f/%.3f/%.3f ms\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec    %d=%.3f/%.3f/%.3f/%.3f ms    %d rpm\n";
 #endif
 const char report_client_bb_bw_triptime_format[] =
-"%s" IPERFTimeFrmt " sec  OWD Delays (ms) Cnt=%d(%d) To=%.3f/%.3f/%.3f/%.3f From=%.3f/%.3f/%.3f/%.3f Asymmetry=%.3f/%.3f/%.3f/%.3f\n";
+"%s" IPERFTimeFrmt " sec  OWD Delays (ms) Cnt=%d To=%.3f/%.3f/%.3f/%.3f From=%.3f/%.3f/%.3f/%.3f Asymmetry=%.3f/%.3f/%.3f/%.3f    %d rpm\n";
 
 const char report_write_enhanced_write_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth       Write/Err  Rtry     Cwnd/RTT        NetPwr  write-times avg/min/max/stdev (cnt)\n";
