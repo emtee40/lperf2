@@ -405,7 +405,7 @@ inline void Client::SetReportStartTime () {
 	Mutex_Lock(&myReport->GroupSumReport->reference.lock);
 	if (TimeZero(sumstats->ts.startTime)) {
 	    sumstats->ts.startTime = myReport->info.ts.startTime;
-	    if (isModeTime(mSettings)) {
+	    if (isModeTime(mSettings) || isModeInfinite(mSettings)) {
 		sumstats->ts.nextTime = myReport->info.ts.nextTime;
 	    }
 #ifdef HAVE_THREAD_DEBUG
@@ -624,8 +624,15 @@ void Client::RunTCP () {
 	    myReport->info.ts.prevsendTime = reportstruct->packetTime;
 	    writelen = (mSettings->mBufLen > burst_remaining) ? burst_remaining : mSettings->mBufLen;
 	    // perform write, full header must succeed
+	    if (isTcpWriteTimes(mSettings)) {
+		write_start.setnow();
+	    }
 	    reportstruct->packetLen = writen(mySocket, mSettings->mBuf, writelen, &reportstruct->writecnt);
 	    FAIL_errno(reportstruct->packetLen < (intmax_t) sizeof(struct TCP_burst_payload), "burst written", mSettings);
+	    if (isTcpWriteTimes(mSettings)) {
+		now.setnow();
+		reportstruct->write_time = now.subUsec(write_start);
+	    }
 	} else {
 	    // printf("pl=%ld\n",reportstruct->packetLen);
 	    // perform write
@@ -922,6 +929,7 @@ inline bool Client::AwaitWriteSelectEventTCP (void) {
 void Client::RunWriteEventsTCP () {
     int burst_id = 0;
     int writelen = mSettings->mBufLen;
+    Timestamp write_end;
 
     now.setnow();
     reportstruct->packetTime.tv_sec = now.getSecs();
@@ -952,7 +960,7 @@ void Client::RunWriteEventsTCP () {
 		reportstruct->packetLen = 0;
 		reportstruct->emptyreport = 1;
 	    } else if (isTcpWriteTimes(mSettings)) {
-		Timestamp write_end;
+		write_end.setnow();
 		reportstruct->write_time = write_end.subUsec(write_start);
 	    }
 	}

@@ -791,6 +791,7 @@ static void reporter_handle_rxmsg_oneway_transit (struct TransferInfo *stats, st
     }
     if (packet->frameID && packet->transit_ready) {
 	double transit = TimeDifference(packet->packetTime, packet->sentTime);
+//	printf("**** r pt %ld.%ld st %ld.%ld %f\n", packet->packetTime.tv_sec, packet->packetTime.tv_usec, packet->sentTime.tv_sec, packet->sentTime.tv_usec, transit);
 	reporter_update_mmm(&stats->transit.total, transit);
 	reporter_update_mmm(&stats->transit.current, transit);
 	if (stats->framelatency_histogram) {
@@ -803,7 +804,6 @@ static void reporter_handle_rxmsg_oneway_transit (struct TransferInfo *stats, st
 	stats->ts.prevpacketTime = packet->sentTime;
 	stats->isochstats.frameID++;  // RJM fix this overload
 	stats->burstid_transition = true;
-	// printf("***Burst id = %ld, transit = %f\n", packet->frameID, stats->transit.lastTransit);
     } else if (stats->burstid_transition && packet->frameID && (packet->frameID != stats->isochstats.frameID)) {
 	stats->burstid_transition = false;
 	fprintf(stderr,"%sError: expected burst id %u but got %" PRIdMAX "\n", \
@@ -892,10 +892,10 @@ void reporter_handle_packet_client (struct ReporterData *data, struct ReportStru
 	    reporter_handle_txmsg_oneway_transit(stats, packet);
 	}
 	if (isTcpWriteTimes(stats->common) && !isUDP(stats->common) && (packet->write_time > 0)) {
-	    reporter_update_mmm(&stats->write_mmm.current, (double) packet->write_time);
-	    reporter_update_mmm(&stats->write_mmm.total, (double) packet->write_time);
+	    reporter_update_mmm(&stats->write_mmm.current, ((double) packet->write_time));
+	    reporter_update_mmm(&stats->write_mmm.total, ((double) packet->write_time));
 	    if (stats->write_histogram ) {
-		histogram_insert(stats->write_histogram, (1e-6 * packet->write_time), &packet->packetTime);
+		histogram_insert(stats->write_histogram, (1e-6 * packet->write_time), NULL);
 	    }
 	}
     }
@@ -1817,7 +1817,6 @@ int reporter_condprint_burst_interval_report_server_tcp (struct ReporterData *da
 }
 
 int reporter_condprint_burst_interval_report_client_tcp (struct ReporterData *data, struct ReportStruct *packet) {
-
     struct TransferInfo *stats = &data->info;
     int advance_jobq = 0;
     // first packet of a burst and not a duplicate
