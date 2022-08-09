@@ -1,6 +1,6 @@
-.TH IPERF 1 "June 2022" NLANR/DAST "User Manuals"
+.TH IPERF 1 "August 2022" NLANR/DAST "User Manuals"
 .SH NAME
-iperf \- perform network traffic tests using network sockets. Metrics include throughput and latency.
+iperf \- perform network traffic tests using network sockets. Metrics include throughput and latency or link capacity and responsiveness.
 .SH SYNOPSIS
 .BI "iperf -s [" options ]
 
@@ -13,7 +13,7 @@ iperf \- perform network traffic tests using network sockets. Metrics include th
 .SH DESCRIPTION
 .LP
 iperf 2 is a testing tool which performs network traffic measurements using network sockets. The performance
-metrics supported include throughput and latency. Iperf can use both TCP and UDP sockets (or
+metrics supported include throughput and latency, or link capacity and responsiveness. Iperf can use both TCP and UDP sockets (or
 protocols.) It supports unidirectional, full duplex (same socket) and bidirectional traffic, and supports
 multiple, simultaneous traffic streams. It supports multicast traffic including source specific
 multicast (SSM) joins. Its multi-threaded design allows for peak performance. Metrics displayed help to
