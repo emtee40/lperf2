@@ -528,6 +528,8 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
 	ireport->info.ts.intervalTime.tv_usec = (long) (inSettings->mInterval % rMillion);
 	ireport->transfer_interval_handler = reporter_condprint_time_interval_report;
 	ireport->info.ts.significant_partial = (double) inSettings->mInterval * PARTIALPERCENT / rMillion ;
+    } else {
+	ireport->transfer_interval_handler = NULL;
     }
     ireport->packet_handler_pre_report = NULL;
     ireport->packet_handler_post_report = NULL;

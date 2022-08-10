@@ -435,7 +435,7 @@ void tcp_output_write_bb (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_client_bb_bw);
     _print_stats_common(stats);
     if (stats->final) {
-        int rps = ((stats->ts.iRunningBB > 0) && (stats->bbrtt.total.cnt > 0)) ? ((int) ((double) stats->bbrtt.total.cnt / stats->ts.iRunningBB)) : 0;
+        int rps = ((stats->fBBrunning > 0) && (stats->bbrtt.total.cnt > 0)) ? ((int) ((double) stats->bbrtt.total.cnt / stats->fBBrunning)) : 0;
 #if HAVE_TCP_STATS
 	printf(report_client_bb_bw_format, stats->common->transferIDStr,
 	       stats->ts.iStart, stats->ts.iEnd,
@@ -482,7 +482,7 @@ void tcp_output_write_bb (struct TransferInfo *stats) {
 	    histogram_print(stats->bbrtt_histogram, stats->ts.iStart, stats->ts.iEnd);
 	}
     } else {
-	int rps = (stats->bbrtt.total.cnt > 0) ? ((int) ((double) stats->bbrtt.current.cnt / (stats->ts.iLastBB - stats->ts.iFirstBB))) : 0;
+	int rps = ((stats->bbrtt.current.cnt > 0) && (stats->iBBrunning > 0)) ? ((int) ((double) stats->bbrtt.current.cnt / stats->iBBrunning)) : 0;
 #if HAVE_TCP_STATS
 	printf(report_client_bb_bw_format, stats->common->transferIDStr,
 	       stats->ts.iStart, stats->ts.iEnd,
