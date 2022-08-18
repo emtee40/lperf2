@@ -1151,7 +1151,7 @@ static void format_ips_ports_string (struct TransferInfo *stats) {
 }
 
 void udp_output_basic_csv (struct TransferInfo *stats) {
-    format_timestamp(&stats->ts.nextTime, isEnhanced(stats->common));
+    format_timestamp((!stats->final ? &stats->ts.nextTime : &stats->ts.packetTime), isEnhanced(stats->common));
     if (stats->csv_peer[0] == '\0') {
 	format_ips_ports_string(stats);
 	strncpy(&stats->csv_peer[0], &__ips_ports_string[0], CSVPEERLIMIT);
@@ -1173,7 +1173,7 @@ void udp_output_basic_csv (struct TransferInfo *stats) {
 	    (100.0 * stats->cntError) / stats->cntDatagrams, stats->cntOutofOrder );
 }
 void tcp_output_basic_csv (struct TransferInfo *stats) {
-    format_timestamp(&stats->ts.nextTime, isEnhanced(stats->common));
+    format_timestamp((!stats->final ? &stats->ts.nextTime : &stats->ts.packetTime), isEnhanced(stats->common));
     if (stats->csv_peer[0] == '\0') {
 	format_ips_ports_string(stats);
 	strncpy(&stats->csv_peer[0], &__ips_ports_string[0], CSVPEERLIMIT);
