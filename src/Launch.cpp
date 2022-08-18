@@ -272,7 +272,13 @@ static void serverside_client_bidir (struct thread_Settings *thread, Client *the
     setTransferID(thread, 1);
     SockAddr_zeroAddress(&thread->peer);
     SockAddr_remoteAddr(thread);
-    unsetNoSettReport(thread);
+    if (thread->mReportMode == kReport_CSV) {
+	setNoSettReport(thread);
+	setNoConnReport(thread);
+    } else {
+	unsetNoSettReport(thread);
+	unsetNoConnReport(thread);
+    }
     setReport(thread);
     theClient->my_connect(false);
     if (theClient->isConnected()) {
