@@ -1664,7 +1664,7 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
 	    if (seconds_from_now > 0) {
 		printf(client_report_epoch_start_current, report->common->transferID, seconds_from_now, \
 		       start_timebuf, now_timebuf);
-	    } else {
+	    } else if (!isBounceBack(report->common)) {
 		printf(warn_start_before_now, report->common->transferID, report->epochStartTime.tv_sec, \
 		       report->epochStartTime.tv_usec, start_timebuf, now_timebuf);
 	    }

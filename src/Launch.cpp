@@ -169,6 +169,10 @@ void server_spawn(struct thread_Settings *thread) {
 static void clientside_client_basic (struct thread_Settings *thread, Client *theClient) {
     setTransferID(thread, 0);
     SockAddr_remoteAddr(thread);
+    // Bounceback start delays the connect too
+    if (isBounceBack(thread) && isTxStartTime(thread)) {
+	clock_usleep_abstime(&thread->txstart_epoch);
+    }
     theClient->my_connect(true);
 #ifdef HAVE_THREAD_DEBUG
     if (isBounceBack(thread)) {
