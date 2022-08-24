@@ -177,9 +177,14 @@ static void clientside_client_basic (struct thread_Settings *thread, Client *the
 #endif
     SockAddr_remoteAddr(thread);
     // Bounceback start delays the connect too
-    if (isBounceBack(thread) && isTxStartTime(thread)) {
-	theClient->mySockInit();
-	clock_usleep_abstime(&thread->txstart_epoch);
+    if (isBounceBack(thread)) {
+	if (isTxStartTime(thread)) {
+	    theClient->mySockInit();
+	    clock_usleep_abstime(&thread->txstart_epoch);
+	} else if (isTxHoldback(thread)) {
+	    unsetTxHoldback(thread);
+	    clock_usleep(&thread->txholdback_timer);
+	}
     }
     theClient->my_connect(true);
     if ((thread->mThreads > 1) && !isNoConnectSync(thread) && !isCompat(thread))
