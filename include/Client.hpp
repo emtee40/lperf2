@@ -79,6 +79,7 @@ public:
     void TxDelay(void);
     void ConnectPeriodic(void);
     bool my_connect(bool close_on_fail);
+    void mySockInit(void);
     bool isConnected(void) const;
     int SendFirstPayload(void);
     int BarrierClient(struct BarrierMutex *);
@@ -108,7 +109,6 @@ private:
     bool apply_first_udppkt_delay;
     int udp_payload_minimum;
     void myReportPacket(void);
-
     // TCP plain
     void RunTCP(void);
     // TCP version which supports rate limiting per -b
@@ -138,6 +138,7 @@ private:
     Timestamp connect_done, connect_start;
     Isochronous::FrameCounter *framecounter;
     bool isburst;
+    bool mysock_init_done;
     bool peerclose;
     Timestamp write_start;
 }; // end class Client

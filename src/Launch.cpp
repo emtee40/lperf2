@@ -168,12 +168,6 @@ void server_spawn(struct thread_Settings *thread) {
 
 static void clientside_client_basic (struct thread_Settings *thread, Client *theClient) {
     setTransferID(thread, 0);
-    SockAddr_remoteAddr(thread);
-    // Bounceback start delays the connect too
-    if (isBounceBack(thread) && isTxStartTime(thread)) {
-	clock_usleep_abstime(&thread->txstart_epoch);
-    }
-    theClient->my_connect(true);
 #ifdef HAVE_THREAD_DEBUG
     if (isBounceBack(thread)) {
 	thread_debug("Launch: spawn client bounce-back mode, size = %d", thread->mBurstSize);
@@ -181,6 +175,13 @@ static void clientside_client_basic (struct thread_Settings *thread, Client *the
 	thread_debug("Launch: client spawn thread basic (sock=%d)", thread->mSock);
     }
 #endif
+    SockAddr_remoteAddr(thread);
+    // Bounceback start delays the connect too
+    if (isBounceBack(thread) && isTxStartTime(thread)) {
+	theClient->mySockInit();
+	clock_usleep_abstime(&thread->txstart_epoch);
+    }
+    theClient->my_connect(true);
     if ((thread->mThreads > 1) && !isNoConnectSync(thread) && !isCompat(thread))
 	// When -P > 1 then all threads finish connect before starting traffic
 	theClient->BarrierClient(thread->connects_done);

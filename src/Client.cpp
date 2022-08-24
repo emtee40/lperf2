@@ -112,6 +112,7 @@ Client::Client (thread_Settings *inSettings) {
         }
     }
     peerclose = false;
+    mysock_init_done = false;
     isburst = (isIsochronous(mSettings) || isPeriodicBurst(mSettings) || (isTripTime(mSettings) && !isUDP(mSettings)));
 } // end Client
 
@@ -127,14 +128,12 @@ Client::~Client () {
     DELETE_PTR(framecounter);
 } // end ~Client
 
-
 /* -------------------------------------------------------------------
  * Setup a socket connected to a server.
  * If inLocalhost is not null, bind to that address, specifying
  * which outgoing interface to use.
  * ------------------------------------------------------------------- */
-bool Client::my_connect (bool close_on_fail) {
-    int rc;
+void Client::mySockInit (void) {
     // create an internet socket
     int type = (isUDP(mSettings) ? SOCK_DGRAM : SOCK_STREAM);
     int domain = (SockAddr_isIPv6(&mSettings->peer) ?
@@ -154,18 +153,28 @@ bool Client::my_connect (bool close_on_fail) {
     SockAddr_remoteAddr(mSettings);
     if (mSettings->mLocalhost != NULL) {
         // bind socket to local address
-        rc = bind(mySocket, reinterpret_cast<sockaddr*>(&mSettings->local),
+        int rc = bind(mySocket, reinterpret_cast<sockaddr*>(&mSettings->local),
 		  SockAddr_get_sizeof_sockaddr(&mSettings->local));
         WARN_errno(rc == SOCKET_ERROR, "bind");
     }
-
+    mysock_init_done = true;
     if (!isUDP(mSettings) && isReport(mSettings) && isSettingsReport(mSettings)) {
 	struct ReportHeader *tmp = InitSettingsReport(mSettings);
 	assert(tmp!=NULL);
 	PostReport(tmp);
 	setNoSettReport(mSettings);
     }
-
+}
+/* -------------------------------------------------------------------
+ * Setup a socket connected to a server.
+ * If inLocalhost is not null, bind to that address, specifying
+ * which outgoing interface to use.
+ * ------------------------------------------------------------------- */
+bool Client::my_connect (bool close_on_fail) {
+    int rc;
+    if (!mysock_init_done) {
+	mySockInit();
+    }
     // connect socket
     connected = false;
     mSettings->tcpinitstats.connecttime = -1;
