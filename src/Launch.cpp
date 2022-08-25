@@ -183,6 +183,7 @@ static void clientside_client_basic (struct thread_Settings *thread, Client *the
 	    clock_usleep_abstime(&thread->txstart_epoch);
 	} else if (isTxHoldback(thread)) {
 	    unsetTxHoldback(thread);
+	    theClient->mySockInit();
 	    clock_usleep(&thread->txholdback_timer);
 	}
     }
