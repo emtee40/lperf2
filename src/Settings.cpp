@@ -2287,11 +2287,17 @@ int Settings_GenerateClientHdr (struct thread_Settings *client, void *testhdr, s
     // flags common to both TCP and UDP
     if (isReverse(client) && !isCompat(client)) {
 	upperflags |= HEADER_REVERSE;
+	if (isTxStartTime(client) && !TimeZero(startTime)) {
+	    upperflags |= HEADER_EPOCH_START;
+	}
     }
     if (isFullDuplex(client) && !isCompat(client)) {
 	upperflags |= HEADER_FULLDUPLEX;
+	if (isTxStartTime(client) && !TimeZero(startTime)) {
+	    upperflags |= HEADER_EPOCH_START;
+	}
     }
-    if (isTxStartTime(client) && !TimeZero(startTime)) {
+    if (isTxStartTime(client) && isTripTime(client) && !TimeZero(startTime)) {
 	upperflags |= HEADER_EPOCH_START;
     }
 
