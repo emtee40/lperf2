@@ -307,6 +307,13 @@ struct SumReport* InitSumReport(struct thread_Settings *inSettings, int inID, in
 	sumreport->info.ts.intervalTime.tv_usec = (long) (inSettings->mInterval % rMillion);
 	sumreport->info.ts.significant_partial = ((double) inSettings->mInterval * PARTIALPERCENT / rMillion) ;
     }
+    // Note that for UDP the client flag settings have not been read (and set) so only use server side flags in tests
+    if (isHistogram(inSettings) && isUDP(inSettings) && isEnhanced(inSettings) && (inSettings->mThreadMode == kMode_Server) && !fullduplex_report) {
+	  char name[] = "SUMT8";
+	  sumreport->info.latency_histogram =  histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0,\
+							    pow(10,inSettings->mHistUnits), \
+							    inSettings->mHistci_lower, inSettings->mHistci_upper, sumreport->info.common->transferID, name);
+    }
     if (fullduplex_report) {
 	SetFullDuplexHandlers(inSettings, sumreport);
 	if (!isServerReverse(inSettings)) {

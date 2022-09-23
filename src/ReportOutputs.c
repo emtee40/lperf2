@@ -963,6 +963,9 @@ void udp_output_sum_read_enhanced (struct TransferInfo *stats) {
 	    outbuffer, outbufferext,
 	    stats->cntError, stats->cntDatagrams,
 	    (stats->cntIPG ? (stats->cntIPG / stats->IPGsum) : 0.0));
+    if (stats->latency_histogram && stats->final) {
+	histogram_print(stats->latency_histogram, stats->ts.iStart, stats->ts.iEnd);
+    }
     fflush(stdout);
 }
 void udp_output_sum_write_enhanced (struct TransferInfo *stats) {

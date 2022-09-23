@@ -1264,6 +1264,10 @@ void reporter_transfer_protocol_server_udp (struct ReporterData *data, int final
 	    stats->isochstats.cntSlips = stats->isochstats.slipcnt.current;
 	}
 	if (stats->latency_histogram) {
+	    if (sumstats && sumstats->latency_histogram) {
+	        histogram_add(sumstats->latency_histogram, stats->latency_histogram);
+		sumstats->latency_histogram->final = 1;
+	    }
 	    stats->latency_histogram->final = 1;
 	}
 	if (stats->framelatency_histogram) {

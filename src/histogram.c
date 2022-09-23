@@ -169,8 +169,25 @@ void histogram_clear(struct histogram *h) {
 
 void histogram_add(struct histogram *to, struct histogram *from) {
     int ix;
-    for (ix=0; ix < to->bincount; ix ++) {
-	to->mybins[ix] += from->mybins[ix];
+    assert(to != NULL);
+    assert(from != NULL);
+    if (to->bincount <= from->bincount) {
+        for (ix=0; ix < to->bincount; ix ++) {
+	    to->mybins[ix] += from->mybins[ix];
+	}
+	to->populationcnt += from->populationcnt;
+	to->cntloweroutofbounds += from->cntloweroutofbounds;
+	to->cntupperoutofbounds += from->cntupperoutofbounds;
+	if (from->maxbin > to->maxbin) {
+	    to->maxbin = from->maxbin;
+	}
+	if (from->maxts.tv_sec > to->maxts.tv_sec) {
+	    to->maxts.tv_sec = from->maxts.tv_sec;
+	    to->maxts.tv_usec = from->maxts.tv_usec;
+	} else if ((from->maxts.tv_sec == to->maxts.tv_sec) &&	\
+		   (from->maxts.tv_usec > to->maxts.tv_usec)) {
+	    to->maxts.tv_usec = from->maxts.tv_usec;
+	}
     }
 }
 
