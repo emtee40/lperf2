@@ -1014,6 +1014,9 @@ void tcp_output_sum_read_enhanced (struct TransferInfo *stats) {
 	   stats->sock_callstats.read.bins[5],
 	   stats->sock_callstats.read.bins[6],
 	   stats->sock_callstats.read.bins[7]);
+    if (stats->framelatency_histogram && stats->final) {
+	histogram_print(stats->framelatency_histogram, stats->ts.iStart, stats->ts.iEnd);
+    }
     fflush(stdout);
 }
 void tcp_output_sumcnt_read (struct TransferInfo *stats) {

@@ -308,11 +308,18 @@ struct SumReport* InitSumReport(struct thread_Settings *inSettings, int inID, in
 	sumreport->info.ts.significant_partial = ((double) inSettings->mInterval * PARTIALPERCENT / rMillion) ;
     }
     // Note that for UDP the client flag settings have not been read (and set) so only use server side flags in tests
-    if (isHistogram(inSettings) && isUDP(inSettings) && isEnhanced(inSettings) && (inSettings->mThreadMode == kMode_Server) && !fullduplex_report) {
-	  char name[] = "SUMT8";
-	  sumreport->info.latency_histogram =  histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0,\
-							    pow(10,inSettings->mHistUnits), \
-							    inSettings->mHistci_lower, inSettings->mHistci_upper, sumreport->info.common->transferID, name);
+    if (isHistogram(inSettings) && isEnhanced(inSettings) && (inSettings->mThreadMode == kMode_Server) && !fullduplex_report) {
+        if (isUDP(inSettings)) {
+	    char name[] = "SUMT8";
+	    sumreport->info.latency_histogram =  histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0,\
+							      pow(10,inSettings->mHistUnits), \
+							      inSettings->mHistci_lower, inSettings->mHistci_upper, sumreport->info.common->transferID, name);
+	} else {
+	    char name[] = "SUMF8";
+	    sumreport->info.framelatency_histogram =  histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0, \
+								   pow(10,inSettings->mHistUnits), inSettings->mHistci_lower, \
+								   inSettings->mHistci_upper, sumreport->info.common->transferID, name);
+	}
     }
     if (fullduplex_report) {
 	SetFullDuplexHandlers(inSettings, sumreport);
@@ -360,6 +367,15 @@ void FreeSumReport (struct SumReport *sumreport) {
     thread_debug("Free sum report hdr=%p", (void *)sumreport);
 #endif
     Condition_Destroy_Reference(&sumreport->reference);
+    if (sumreport->info.latency_histogram) {
+	histogram_delete(sumreport->info.latency_histogram);
+    }
+    if (sumreport->info.framelatency_histogram) {
+	histogram_delete(sumreport->info.framelatency_histogram);
+    }
+    if (sumreport->info.bbrtt_histogram) {
+	histogram_delete(sumreport->info.bbrtt_histogram);
+    }
     free_common_copy(sumreport->info.common);
     free(sumreport);
 }

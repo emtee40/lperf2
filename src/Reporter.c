@@ -1456,6 +1456,10 @@ void reporter_transfer_protocol_server_tcp (struct ReporterData *data, int final
 	}
 	stats->transit.current = stats->transit.total;
 	if (stats->framelatency_histogram) {
+	    if (sumstats && sumstats->framelatency_histogram) {
+	        histogram_add(sumstats->framelatency_histogram, stats->framelatency_histogram);
+		sumstats->framelatency_histogram->final = 1;
+	    }
 	    stats->framelatency_histogram->final = 1;
 	}
     } else if (isIsochronous(stats->common)) {
