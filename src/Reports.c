@@ -539,7 +539,7 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
 		 (void *) ireport->packetring, ireport->packetring->bytes, (void *) ireport->packetring->awake_producer, inSettings->mSock);
 #endif
     if (inSettings->numreportstructs)
-	fprintf (stdout, "[%3d] NUM_REPORT_STRUCTS override from %d to %d\n", inSettings->mSock, NUM_REPORT_STRUCTS, inSettings->numreportstructs);
+	fprintf (stdout, "%sNUM_REPORT_STRUCTS override from %d to %d\n", inSettings->mTransferIDStr, NUM_REPORT_STRUCTS, inSettings->numreportstructs);
     ireport->info.csv_peer[0] = '\0';
 
     // Set up the function vectors, there are three
