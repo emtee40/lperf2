@@ -87,6 +87,7 @@ Client/Server:\n\
 #endif
 "  -B, --bind <host>[:<port>][%<dev>] bind to <host>, ip addr (including multicast address) and optional port and device\n\
   -C, --compatibility      for use with older versions does not sent extra msgs\n\
+      --NUM_REPORT_STRUCTS increase the shared memory between the traffic threads and the reporter thread (default is 10,000 entries)\n\
   -M, --mss       #        set TCP maximum segment size using TCP_MAXSEG\n\
   -N, --nodelay            set TCP no delay, disabling Nagle's Algorithm\n\
   -S, --tos       #        set the socket's IP_TOS (byte) field\n\
