@@ -1160,10 +1160,10 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 			delete [] tmp;
 		    }
 		}
+	    }
 #else
 		fprintf(stderr, "bounceback-congest option requires a platform that supports threads\n");
 #endif
-	    }
 	}
 	if (bouncebackdelaystart) {
 	    bouncebackdelaystart = 0;
