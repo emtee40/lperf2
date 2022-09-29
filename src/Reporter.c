@@ -698,18 +698,24 @@ static void reporter_handle_packet_oneway_transit (struct TransferInfo *stats, s
         histogram_insert(stats->latency_histogram, transit, NULL);
     }
     double deltaTransit;
-    // from RFC 1889, Real Time Protocol (RTP)
-    // J = J + ( | D(i-1,i) | - J ) /
-    // Compute jitter
     deltaTransit = transit - stats->transit.current.last;
+    stats->transit.current.last = transit; // shift transit for next time
     if (deltaTransit < 0.0) {
 	deltaTransit = -deltaTransit;
     }
-    stats->jitter += (deltaTransit - stats->jitter) / (16.0);
     // Compute end/end delay stats
     reporter_update_mmm(&stats->transit.total, transit);
     reporter_update_mmm(&stats->transit.current, transit);
-    stats->transit.current.last = transit;
+    //
+    // Compute jitter though filter the case of isoch and between isoch frames
+    // or, in other words, only calculate jitter for packets within the same isoch frame
+    //
+    // Taken from RFC 1889, Real Time Protocol (RTP)
+    // J = J + ( | D(i-1,i) | - J ) /
+    //
+    if (!(isIsochronous(stats->common)  &&  \
+	  (packet->frameID - stats->isochstats.frameID)))
+	stats->jitter += (deltaTransit - stats->jitter) / (16.0);
 }
 
 
