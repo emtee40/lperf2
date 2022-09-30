@@ -743,7 +743,7 @@ static void reporter_handle_packet_oneway_transit (struct TransferInfo *stats, s
     // sampled.
     //
     if (isIsochronous(stats->common) && stats->isochstats.newburst) {
-        --stats->isochstats.newburst; //reset the first in burst flag
+        --stats->isochstats.newburst; // decr the burst counter, need for RTP estimator w/isoch
 	//	printf("**** skip value %f per frame change packet %d expected %d max = %f %d\n", deltaTransit, packet->frameID, stats->isochstats.frameID, stats->jittertotal.total.max, stats->isochstats.newburst);
 	//	stats->jitter = 0;
     } else {
