@@ -952,6 +952,8 @@ void write_UDP_AckFIN (struct TransferInfo *stats, int len) {
 	    hdr->extend2.outorder_cnt2 = htonl((long) (stats->cntOutofOrder >> 32) );
 	    hdr->extend2.datagrams2    = htonl((long) (stats->cntDatagrams >> 32));
 	}
+	//	printf("****** Server final estimator %f calculated average %f\n", stats->jitter, (stats->jittertotal.total.sum / stats->jittertotal.total.cnt));
+	stats->jitter = (stats->jittertotal.total.sum / stats->jittertotal.total.cnt); // overide the final estimator with an average
 	hdr->base.jitter1      = htonl((long) stats->jitter);
 	hdr->base.jitter2      = htonl((long) ((stats->jitter - (long)stats->jitter) * rMillion));
 

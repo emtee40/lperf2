@@ -285,6 +285,7 @@ struct IsochStats {
     unsigned int mBurstIPG; //IPG of packets within the burst
     uint32_t frameID;
     struct RunningMMMStats transit;
+    int newburst;
 };
 
 struct ReportSettings {

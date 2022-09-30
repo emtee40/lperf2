@@ -713,22 +713,56 @@ static void reporter_handle_packet_oneway_transit (struct TransferInfo *stats, s
     // Taken from RFC 1889, Real Time Protocol (RTP)
     // J = J + ( | D(i-1,i) | - J ) /
     //
-    if (!isIsochronous(stats->common)  ||  \
-	(packet->frameID != stats->isochstats.frameID)) {
+    // interarrival jitter:
+    //
+    // An estimate of the statistical variance of the RTP data packet
+    // interarrival time, measured in timestamp units and expressed as
+    // an unsigned integer. The interarrival jitter J is defined to be
+    // the mean deviation (smoothed absolute value) of the difference D
+    // in packet spacing at the receiver compared to the sender for a
+    // pair of packets. As shown in the equation below, this is
+    // equivalent to the difference in the "relative transit time" for
+    // the two packets; the relative transit time is the difference
+    // between a packet's RTP timestamp and the receiver's clock at the
+    // time of arrival, measured in the same units.
+    //
+    // If Si is the RTP timestamp from packet i, and Ri is the time of
+    // arrival in RTP timestamp units for packet i, then for two packets i
+    // and j, D may be expressed as
+    //
+    //             D(i,j)=(Rj-Ri)-(Sj-Si)=(Rj-Sj)-(Ri-Si)
+    //
+    // The interarrival jitter is calculated continuously as each data
+    // packet i is received from source SSRC_n, using this difference D for
+    // that packet and the previous packet i-1 in order of arrival (not
+    // necessarily in sequence), according to the formula
+    //
+    //              J=J+(|D(i-1,i)|-J)/16
+    //
+    // Whenever a reception report is issued, the current value of J is
+    // sampled.
+    //
+    if (isIsochronous(stats->common) && stats->isochstats.newburst) {
+        --stats->isochstats.newburst; //reset the first in burst flag
+	//	printf("**** skip value %f per frame change packet %d expected %d max = %f %d\n", deltaTransit, packet->frameID, stats->isochstats.frameID, stats->jittertotal.total.max, stats->isochstats.newburst);
+	//	stats->jitter = 0;
+    } else {
 	stats->jitter += (deltaTransit - stats->jitter) / (16.0);
 	reporter_update_mmm(&stats->jittertotal.total, stats->jitter);
+	//	printf("**** insert value %f per frame packet %d expected %d max = %f %d\n", deltaTransit, packet->frameID, stats->isochstats.frameID, stats->jittertotal.total.max, stats->isochstats.newburst);
     }
 }
 
 
 static void reporter_handle_isoch_oneway_transit_tcp (struct TransferInfo *stats, struct ReportStruct *packet) {
     // printf("fid=%lu bs=%lu remain=%lu\n", packet->frameID, packet->burstsize, packet->remaining);
-    if (packet->frameID && packet->transit_ready) {
-	int framedelta = 0;
+  if (packet->frameID && packet->transit_ready) {
+    int framedelta = 0;
 	double frametransit = 0;
 	// very first isochronous frame
 	if (!stats->isochstats.frameID) {
 	    stats->isochstats.framecnt.current=packet->frameID;
+	    stats->isochstats.newburst = 0; // no packet/read filtering of early samples for TCP
 	}
 	// perform client and server frame based accounting
 	if ((framedelta = (packet->frameID - stats->isochstats.frameID))) {
@@ -770,6 +804,7 @@ static void reporter_handle_isoch_oneway_transit_udp (struct TransferInfo *stats
 	stats->isochstats.framecnt.current++;
 //      stats->matchframeID = packet->frameID + 1;
 	if (framedelta == 1) {
+	    stats->isochstats.newburst = 2; // set to two per RTP's pair calculation
 	    // Triptimes use the frame start time in passed in the frame header while
 	    // it's calculated from the very first start time and frame id w/o trip timees
 	    frametransit = TimeDifference(packet->packetTime, packet->isochStartTime) \
@@ -779,7 +814,8 @@ static void reporter_handle_isoch_oneway_transit_udp (struct TransferInfo *stats
 	    if (stats->framelatency_histogram) {
 		histogram_insert(stats->framelatency_histogram, frametransit, &packet->packetTime);
 	    }
-	} else {
+	} else if (framedelta > 1) {
+	  stats->isochstats.newburst = 2; // set to two per RTP's pair calculation
 	    if (stats->common->ThreadMode == kMode_Server) {
 		stats->isochstats.framelostcnt.current += framedelta;
 	    } else {
@@ -814,7 +850,7 @@ static void reporter_handle_rxmsg_oneway_transit (struct TransferInfo *stats, st
 	stats->burstid_transition = true;
     } else if (stats->burstid_transition && packet->frameID && (packet->frameID != stats->isochstats.frameID)) {
 	stats->burstid_transition = false;
-	fprintf(stderr,"%sError: expected burst id %u but got %" PRIdMAX "\n", \
+	fprintf(stderr,"%sError: expected burst id %u but got %d\n", \
 		stats->common->transferIDStr, stats->isochstats.frameID + 1, packet->frameID);
 	stats->isochstats.frameID = packet->frameID;
     }
@@ -834,7 +870,7 @@ static inline void reporter_handle_txmsg_oneway_transit (struct TransferInfo *st
 	// printf("***Burst id = %ld, transit = %f\n", packet->frameID, stats->transit.lastTransit);
 	if (isIsochronous(stats->common)) {
 	    if (packet->frameID && (packet->frameID != (stats->isochstats.frameID + 1))) {
-		fprintf(stderr,"%sError: expected burst id %u but got %" PRIdMAX "\n", \
+		fprintf(stderr,"%sError: expected burst id %u but got %d\n", \
 			stats->common->transferIDStr, stats->isochstats.frameID + 1, packet->frameID);
 	    }
 	    stats->isochstats.frameID = packet->frameID;
@@ -1019,11 +1055,11 @@ inline void reporter_handle_packet_server_udp (struct ReporterData *data, struct
 	}
 	reporter_compute_packet_pps(stats, packet);
 	reporter_handle_packet_oneway_transit(stats, packet);
-	if (packet->transit_ready && packet->frameID) {
+	if (packet->transit_ready) {
 	    if (isIsochronous(stats->common)) {
-		reporter_handle_isoch_oneway_transit_udp(stats, packet);
+	        reporter_handle_isoch_oneway_transit_udp(stats, packet);
 	    } else if (isPeriodicBurst(stats->common)) {
-		reporter_handle_txmsg_oneway_transit(stats, packet);
+	        reporter_handle_txmsg_oneway_transit(stats, packet);
 	    }
 	}
     }
@@ -1157,6 +1193,7 @@ static inline void reporter_reset_transfer_stats_server_tcp (struct TransferInfo
 	stats->sock_callstats.read.bins[ix] = 0;
     }
     reporter_reset_mmm(&stats->transit.current);
+    reporter_reset_mmm(&stats->isochstats.transit.current);
     stats->IPGsum = 0;
 }
 
