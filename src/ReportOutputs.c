@@ -725,7 +725,8 @@ void udp_output_read (struct TransferInfo *stats) {
     printf(report_bw_jitter_loss_format, stats->common->transferIDStr,
 	    stats->ts.iStart, stats->ts.iEnd,
 	    outbuffer, outbufferext,
-	    (stats->jitter * 1e3), stats->cntError, stats->cntDatagrams,
+	    (stats->final) ? (stats->jittertotal.total.mean * 1e3) : (stats->jitter * 1e3),  \
+	    stats->cntError, stats->cntDatagrams,
 	    (100.0 * stats->cntError) / stats->cntDatagrams);
     _output_outoforder(stats);
     fflush(stdout);
@@ -748,7 +749,8 @@ void udp_output_read_triptime (struct TransferInfo *stats) {
 	    printf(report_bw_jitter_loss_suppress_enhanced_format, stats->common->transferIDStr,
 		   stats->ts.iStart, stats->ts.iEnd,
 		   outbuffer, outbufferext,
-		   (stats->jitter * 1e3), stats->cntError, stats->cntDatagrams,
+		   (stats->final) ? (stats->jittertotal.total.mean * 1e3) : (stats->jitter * 1e3),
+		   stats->cntError, stats->cntDatagrams,
 		   (100.0 * stats->cntError) / stats->cntDatagrams,
 		   (stats->cntIPG / stats->IPGsum));
 	} else {
@@ -761,7 +763,8 @@ void udp_output_read_triptime (struct TransferInfo *stats) {
 	    printf(report_bw_jitter_loss_enhanced_triptime_format, stats->common->transferIDStr,
 		   stats->ts.iStart, stats->ts.iEnd,
 		   outbuffer, outbufferext,
-		   (stats->jitter * 1e3), stats->cntError, stats->cntDatagrams,
+		   (stats->final) ? (stats->jittertotal.total.mean * 1e3) : (stats->jitter * 1e3),  \
+		   stats->cntError, stats->cntDatagrams,
 		   (100.0 * stats->cntError) / stats->cntDatagrams,
 		   (meantransit * 1e3),
 		   stats->transit.current.min * 1e3,
@@ -798,7 +801,8 @@ void udp_output_read_triptime_isoch (struct TransferInfo *stats) {
 	    printf(report_bw_jitter_loss_suppress_enhanced_format, stats->common->transferIDStr,
 		   stats->ts.iStart, stats->ts.iEnd,
 		   outbuffer, outbufferext,
-		   (stats->jitter * 1e3), stats->cntError, stats->cntDatagrams,
+		   (stats->final) ? (stats->jittertotal.total.mean * 1e3) : (stats->jitter * 1e3),
+		   stats->cntError, stats->cntDatagrams,
 		   (100.0 * stats->cntError) / stats->cntDatagrams,
 		   (stats->cntIPG / stats->IPGsum));
 	} else {
@@ -808,7 +812,8 @@ void udp_output_read_triptime_isoch (struct TransferInfo *stats) {
 	    printf(report_bw_jitter_loss_enhanced_isoch_format, stats->common->transferIDStr,
 		   stats->ts.iStart, stats->ts.iEnd,
 		   outbuffer, outbufferext,
-		   (stats->jitter * 1e3), stats->cntError, stats->cntDatagrams,
+		   (stats->final) ? (stats->jittertotal.total.mean * 1e3) : (stats->jitter * 1e3),  \
+		   stats->cntError, stats->cntDatagrams,
 		   (100.0 * stats->cntError) / stats->cntDatagrams,
 		   (meantransit * 1e3),
 		   stats->transit.current.min * 1e3,
@@ -927,7 +932,8 @@ void udp_output_sumcnt_read_enhanced (struct TransferInfo *stats) {
     printf(report_sumcnt_bw_read_enhanced_format, stats->threadcnt,
 	   stats->ts.iStart, stats->ts.iEnd,
 	   outbuffer, outbufferext,
-	   (stats->jitter * 1e3), stats->cntError, stats->cntDatagrams,
+	   (stats->final) ? (stats->jittertotal.total.mean * 1e3) : (stats->jitter * 1e3),  \
+	   stats->cntError, stats->cntDatagrams,
 	   (100.0 * stats->cntError) / stats->cntDatagrams);
     if (stats->cntOutofOrder > 0) {
 	if (isSumOnly(stats->common)) {
@@ -1173,7 +1179,7 @@ void udp_output_basic_csv (struct TransferInfo *stats) {
 	    stats->ts.iEnd,
 	    stats->cntBytes,
 	    speed,
-	    (stats->jitter * 1e3),
+	    (stats->final) ? (stats->jittertotal.total.mean * 1e3) : (stats->jitter * 1e3),
 	    stats->cntError,
 	    stats->cntDatagrams,
 	    (100.0 * stats->cntError) / stats->cntDatagrams, stats->cntOutofOrder );

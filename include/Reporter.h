@@ -342,6 +342,7 @@ struct TransferInfo {
     struct IsochStats isochstats;
     struct histogram *latency_histogram;
     struct RunningMMMStats transit;
+    struct RunningMMMStats jittertotal;
     struct histogram *framelatency_histogram;
     struct RunningMMMStats frame; // isochronous frame or msg burst
     struct histogram *bbrtt_histogram;

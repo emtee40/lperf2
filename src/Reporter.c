@@ -713,9 +713,11 @@ static void reporter_handle_packet_oneway_transit (struct TransferInfo *stats, s
     // Taken from RFC 1889, Real Time Protocol (RTP)
     // J = J + ( | D(i-1,i) | - J ) /
     //
-    if (!(isIsochronous(stats->common)  &&  \
-	  (packet->frameID - stats->isochstats.frameID)))
+    if (!isIsochronous(stats->common)  ||  \
+	(packet->frameID != stats->isochstats.frameID)) {
 	stats->jitter += (deltaTransit - stats->jitter) / (16.0);
+	reporter_update_mmm(&stats->jittertotal.total, stats->jitter);
+    }
 }
 
 
