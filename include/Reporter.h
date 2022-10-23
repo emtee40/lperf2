@@ -351,6 +351,7 @@ struct TransferInfo {
     struct RunningMMMStats bbowdto;
     struct RunningMMMStats bbowdfro;
     struct RunningMMMStats bbasym;
+    struct MeanMinMaxStats schedule_error;
     struct L2Stats l2counts;
     // Packet and frame state info
     uint32_t matchframeID;

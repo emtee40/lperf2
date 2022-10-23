@@ -80,6 +80,8 @@ struct ReportStruct {
     int transit_ready;
     int writecnt;
     long write_time;
+    bool scheduled;
+    long sched_err;
     struct timeval sentTimeRX;
     struct timeval sentTimeTX;
     struct iperf_tcpstats tcpstats;

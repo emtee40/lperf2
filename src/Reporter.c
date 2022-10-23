@@ -756,8 +756,8 @@ static void reporter_handle_packet_oneway_transit (struct TransferInfo *stats, s
 
 static void reporter_handle_isoch_oneway_transit_tcp (struct TransferInfo *stats, struct ReportStruct *packet) {
     // printf("fid=%lu bs=%lu remain=%lu\n", packet->frameID, packet->burstsize, packet->remaining);
-  if (packet->frameID && packet->transit_ready) {
-    int framedelta = 0;
+    if (packet->frameID && packet->transit_ready) {
+	int framedelta = 0;
 	double frametransit = 0;
 	// very first isochronous frame
 	if (!stats->isochstats.frameID) {
@@ -815,7 +815,7 @@ static void reporter_handle_isoch_oneway_transit_udp (struct TransferInfo *stats
 		histogram_insert(stats->framelatency_histogram, frametransit, &packet->packetTime);
 	    }
 	} else if (framedelta > 1) {
-	  stats->isochstats.newburst = 2; // set to two per RTP's pair calculation
+	    stats->isochstats.newburst = 2; // set to two per RTP's pair calculation
 	    if (stats->common->ThreadMode == kMode_Server) {
 		stats->isochstats.framelostcnt.current += framedelta;
 	    } else {
@@ -880,37 +880,21 @@ static inline void reporter_handle_txmsg_oneway_transit (struct TransferInfo *st
 
 static void reporter_handle_frame_isoch_oneway_transit (struct TransferInfo *stats, struct ReportStruct *packet) {
     // printf("fid=%lu bs=%lu remain=%lu\n", packet->frameID, packet->burstsize, packet->remaining);
+    if (packet->scheduled) {
+	reporter_update_mmm(&stats->schedule_error, (double) abs(packet->sched_err));
+    }
     if (packet->frameID && packet->transit_ready) {
 	int framedelta=0;
 	// very first isochronous frame
 	if (!stats->isochstats.frameID) {
 	    stats->isochstats.framecnt.current=packet->frameID;
 	}
-	// perform client and server frame based accounting
+	// perform frame based accounting
 	if ((framedelta = (packet->frameID - stats->isochstats.frameID))) {
 	    stats->isochstats.framecnt.current++;
 	    if (framedelta > 1) {
-		if (stats->common->ThreadMode == kMode_Server) {
-		    int lost = framedelta - (packet->frameID - packet->prevframeID);
-		    stats->isochstats.framelostcnt.current += lost;
-		} else {
-		    stats->isochstats.framelostcnt.current += (framedelta-1);
-		    stats->isochstats.slipcnt.current++;
-		}
-	    }
-	}
-	// peform frame latency checks
-	if (stats->framelatency_histogram) {
-	    // first packet of a burst and not a duplicate
-	    if ((packet->burstsize == packet->remaining) && (stats->matchframeID!=packet->frameID)) {
-		stats->matchframeID=packet->frameID;
-	    }
-	    if ((packet->packetLen == packet->remaining) && (packet->frameID == stats->matchframeID)) {
-		// last packet of a burst (or first-last in case of a duplicate) and frame id match
-		double frametransit = TimeDifference(packet->packetTime, packet->isochStartTime) \
-		    - ((packet->burstperiod * (packet->frameID - 1)) / 1000000.0);
-		histogram_insert(stats->framelatency_histogram, frametransit, NULL);
-		stats->matchframeID = 0;  // reset the matchid so any potential duplicate is ignored
+		stats->isochstats.framelostcnt.current += (framedelta-1);
+		stats->isochstats.slipcnt.current++;
 	    }
 	}
 	stats->isochstats.frameID = packet->frameID;
@@ -946,12 +930,6 @@ void reporter_handle_packet_client (struct ReporterData *data, struct ReportStru
     if (isUDP(stats->common)) {
 	stats->PacketID = packet->packetID;
 	reporter_compute_packet_pps(stats, packet);
-    } else if (packet->transit_ready) {
-	if (isIsochronous(stats->common) && packet->frameID) {
-	    reporter_handle_frame_isoch_oneway_transit(stats, packet);
-	} else if (isPeriodicBurst(stats->common) || isTripTime(stats->common)) {
-	    reporter_handle_rxmsg_oneway_transit(stats, packet);
-	}
     }
 }
 

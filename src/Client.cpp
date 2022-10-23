@@ -583,6 +583,7 @@ void Client::RunTCP () {
     reportstruct->write_time = 0;
     while (InProgress()) {
 	reportstruct->writecnt = 0;
+	reportstruct->scheduled = false;
         if (isModeAmount(mSettings)) {
 	    writelen = ((mSettings->mAmount < static_cast<unsigned>(mSettings->mBufLen)) ? mSettings->mAmount : mSettings->mBufLen);
 	}
@@ -601,7 +602,8 @@ void Client::RunTCP () {
 		burst_remaining = static_cast<int>(sizeof(struct TCP_burst_payload));
 	    // apply scheduling if needed
 	    if (framecounter) {
-		burst_id = framecounter->wait_tick();
+		burst_id = framecounter->wait_tick(&reportstruct->sched_err);
+		reportstruct->scheduled = true;
 		if (isPeriodicBurst(mSettings)) {
 		    // low duty cycle traffic needs special event handling
 		    now.setnow();
@@ -1015,7 +1017,7 @@ void Client::RunBounceBackTCP () {
 	reportstruct->writecnt = 0;
 	bool isFirst;
 	if (framecounter) {
-	    burst_id = framecounter->wait_tick();
+	    burst_id = framecounter->wait_tick(NULL);
 	    PostNullEvent(); // this will set the now timestamp
 	    reportstruct->sentTime.tv_sec = now.getSecs();
 	    reportstruct->sentTime.tv_usec = now.getUsecs();
@@ -1261,7 +1263,8 @@ void Client::RunUDPIsochronous () {
 	udp_payload->isoch.burstsize  = htonl(bytecnt);
 	udp_payload->isoch.prevframeid  = htonl(frameid);
 	reportstruct->burstsize=bytecnt;
-	frameid =  framecounter->wait_tick();
+	frameid =  framecounter->wait_tick(&reportstruct->sched_err);
+	reportstruct->scheduled = true;
 	udp_payload->isoch.frameid  = htonl(frameid);
 	lastPacketTime.setnow();
 	if (!initdone) {
@@ -1358,6 +1361,7 @@ void Client::RunUDPIsochronous () {
 	    reportstruct->packetLen = static_cast<unsigned long>(currLen);
 	    reportstruct->prevPacketTime = myReport->info.ts.prevpacketTime;
 	    myReportPacket();
+	    reportstruct->scheduled = false; // reset to false after the report
 	    reportstruct->packetID++;
 	    myReport->info.ts.prevpacketTime = reportstruct->packetTime;
 	    // Insert delay here only if the running delay is greater than 1 usec,
@@ -1542,6 +1546,11 @@ void Client::FinishTrafficActions () {
 	reportstruct->packetLen = 0;
     }
     int do_close = EndJob(myJob, reportstruct);
+    if (isIsochronous(mSettings) && (myReport->info.schedule_error.cnt > 2)) {
+	fprintf(stderr,"%sIsoch schedule errors (mean/min/max/stdev) = %0.3f/%0.3f/%0.3f/%0.3f ms\n",mSettings->mTransferIDStr, \
+		((myReport->info.schedule_error.sum /  myReport->info.schedule_error.cnt) * 1e-3), (myReport->info.schedule_error.min * 1e-3), \
+		(myReport->info.schedule_error.max * 1e-3), (1e-3 * (sqrt(myReport->info.schedule_error.m2 / (myReport->info.schedule_error.cnt - 1)))));
+    }
     if (isUDP(mSettings) && !isMulticast(mSettings) && !isNoUDPfin(mSettings)) {
 	/*
 	 *  For UDP, there is a final handshake between the client and the server,

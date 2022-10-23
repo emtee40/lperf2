@@ -118,8 +118,8 @@ int FrameCounter::mySetWaitableTimer (long delay_time) {
 }
 #endif
 
-#if defined(HAVE_CLOCK_NANOSLEEP)
-unsigned int FrameCounter::wait_tick () {
+#if HAVE_CLOCK_NANOSLEEP
+unsigned int FrameCounter::wait_tick (long *sched_err) {
     Timestamp now;
     int rc = true;
     if (!slot_counter) {
@@ -146,6 +146,11 @@ unsigned int FrameCounter::wait_tick () {
     rc = mySetWaitableTimer(10 * duration); // convert us to 100ns
     //int rc = clock_nanosleep(0, TIMER_ABSTIME, &txtime_ts, NULL);
   #endif
+    if (sched_err) {
+        // delay_loop(2020);
+	Timestamp actual;
+	*sched_err = actual.subUsec(nextslotTime);
+    }
     WARN_errno((rc!=0), "wait_tick failed");
   #ifdef HAVE_THREAD_DEBUG
     // thread_debug("Client tick occurred per %ld.%ld", txtime_ts.tv_sec, txtime_ts.tv_nsec / 1000);
@@ -154,7 +159,7 @@ unsigned int FrameCounter::wait_tick () {
     return(slot_counter);
 }
 #else
-unsigned int FrameCounter::wait_tick (void) {
+unsigned int FrameCounter::wait_tick (long *sched_err) {
     long remaining;
     unsigned int framecounter;
 
@@ -174,7 +179,16 @@ unsigned int FrameCounter::wait_tick (void) {
 	    tv0.tv_sec++;
 	    tv0.tv_nsec -= BILLION;
 	}
+	Timestamp slotstart = startTime;
+	slot_counter = get();
+	// period unit is in microseconds, convert to seconds
+	slotstart.add(slot_counter * period * 1e-6);
 	int rc = nanosleep(&tv0, &tv1);
+	if (sched_err) {
+	    Timestamp actual;
+	    *sched_err = actual.subUsec(slotstart);
+//	    printf("**** slot %ld.%ld actual %ld.%ld %ld\n", slotstart.getSecs(), slotstart.getUsecs(), actual.getSecs(), actual.getUsecs(), *sched_err);
+	}
 	WARN_errno((rc != 0), "nanosleep wait_tick");	    ;
 //	printf("****** rc = %d, remain %ld.%ld\n", rc, tv1.tv_sec, tv1.tv_nsec);
 	framecounter ++;
