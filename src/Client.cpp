@@ -1311,6 +1311,7 @@ void Client::RunUDPIsochronous () {
 
 	    reportstruct->errwrite = WriteNoErr;
 	    reportstruct->emptyreport = 0;
+	    reportstruct->writecnt = 1;
 
 	    // perform write
 	    if (isModeAmount(mSettings) && (mSettings->mAmount < static_cast<unsigned>(mSettings->mBufLen))) {
