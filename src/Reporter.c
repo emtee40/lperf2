@@ -881,7 +881,7 @@ static inline void reporter_handle_txmsg_oneway_transit (struct TransferInfo *st
 static void reporter_handle_frame_isoch_oneway_transit (struct TransferInfo *stats, struct ReportStruct *packet) {
     // printf("fid=%lu bs=%lu remain=%lu\n", packet->frameID, packet->burstsize, packet->remaining);
     if (packet->scheduled) {
-	reporter_update_mmm(&stats->schedule_error, (double) abs(packet->sched_err));
+	reporter_update_mmm(&stats->schedule_error, (double) labs(packet->sched_err));
     }
     if (packet->frameID && packet->transit_ready) {
 	int framedelta=0;
