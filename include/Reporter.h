@@ -77,7 +77,7 @@ struct server_hdr;
 #define UNREALISTIC_LATENCYMINMIN -0.01*1e6
 #define UNREALISTIC_LATENCYMINMAX 60*1e6
 #define JITTER_BINCNT 1000000 // 1 million
-#define JITTER_BINWIDTH 10 // 10 usecs
+#define JITTER_BINWIDTH 100 // 100 usecs
 #define JITTER_UNITS 1e6 // usecs
 #define JITTER_LCI 5 // 5%
 #define JITTER_UCI 95 // 95%

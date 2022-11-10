@@ -325,7 +325,7 @@ struct SumReport* InitSumReport(struct thread_Settings *inSettings, int inID, in
 	}
 	if (isJitterHistogram(inSettings) && isUDP(inSettings)) {
 	    char name[] = "SUMJ8";
-	    sumreport->info.jitter_histogram = histogram_init(JITTER_BINCNT,JITTER_BINWIDTH,0,JITTER_UNITS, \
+	    sumreport->info.jitter_histogram = histogram_init(JITTER_BINCNT,inSettings->jitter_binwidth,0,JITTER_UNITS, \
 							      JITTER_LCI, JITTER_UCI, sumreport->info.common->transferID, name);
 	}
     }
@@ -684,7 +684,7 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
 	if (isUDP(inSettings)) {
 	    if (isJitterHistogram(inSettings)) {
 		char name[] = "J8";
-		ireport->info.jitter_histogram = histogram_init(JITTER_BINCNT,JITTER_BINWIDTH,0,JITTER_UNITS, \
+		ireport->info.jitter_histogram = histogram_init(JITTER_BINCNT,inSettings->jitter_binwidth,0,JITTER_UNITS, \
 							      JITTER_LCI, JITTER_UCI, ireport->info.common->transferID, name);
 	    }
 	    if (isTripTime(inSettings) && isHistogram(inSettings)) {

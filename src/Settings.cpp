@@ -1070,7 +1070,7 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	    if (optarg) {
 		mExtSettings->jitter_binwidth = atoi(optarg);
 	    } else {
-		mExtSettings->jitter_binwidth = 100; // units are usecs
+		mExtSettings->jitter_binwidth = JITTER_BINWIDTH; // units are usecs
 	    }
 	}
 	if (reversetest) {
