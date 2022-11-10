@@ -740,16 +740,22 @@ static void reporter_handle_packet_oneway_transit (struct TransferInfo *stats, s
     //              J=J+(|D(i-1,i)|-J)/16
     //
     // Whenever a reception report is issued, the current value of J is
-    // sampled.
+    // sampled. This algorithm is the optimal first-order estimator and
+    // the gain parameter 1/16 gives a good noise reduction ratio while /
+    // maintaining a reasonable rate of convergence
     //
     if (isIsochronous(stats->common) && stats->isochstats.newburst) {
         --stats->isochstats.newburst; // decr the burst counter, need for RTP estimator w/isoch
-	//	printf("**** skip value %f per frame change packet %d expected %d max = %f %d\n", deltaTransit, packet->frameID, stats->isochstats.frameID, stats->jittertotal.total.max, stats->isochstats.newburst);
+	//	printf("**** skip value %f per frame change packet %d expected %d max = %f %d\n", deltaTransit, packet->frameID, stats->isochstats.frameID, stats->inline_jitter.total.max, stats->isochstats.newburst);
 	//	stats->jitter = 0;
     } else {
 	stats->jitter += (deltaTransit - stats->jitter) / (16.0);
-	reporter_update_mmm(&stats->jittertotal.total, stats->jitter);
-	//	printf("**** insert value %f per frame packet %d expected %d max = %f %d\n", deltaTransit, packet->frameID, stats->isochstats.frameID, stats->jittertotal.total.max, stats->isochstats.newburst);
+	reporter_update_mmm(&stats->inline_jitter.total, stats->jitter);
+	reporter_update_mmm(&stats->inline_jitter.current, stats->jitter);
+	if (stats->jitter_histogram) {
+	    histogram_insert(stats->jitter_histogram, deltaTransit, NULL);
+	}
+	//	printf("**** insert value %f per frame packet %d expected %d max = %f %d\n", deltaTransit, packet->frameID, stats->isochstats.frameID, stats->inline_jitter.total.max, stats->isochstats.newburst);
     }
 }
 
@@ -1216,7 +1222,9 @@ void reporter_transfer_protocol_server_udp (struct ReporterData *data, int final
     if (stats->latency_histogram) {
         stats->latency_histogram->final = final;
     }
-
+    if (stats->jitter_histogram) {
+        stats->jitter_histogram->final = final;
+    }
     if (isIsochronous(stats->common)) {
 	stats->isochstats.cntFrames = stats->isochstats.framecnt.current - stats->isochstats.framecnt.prev;
 	stats->isochstats.cntFramesMissed = stats->isochstats.framelostcnt.current - stats->isochstats.framelostcnt.prev;
@@ -1292,6 +1300,13 @@ void reporter_transfer_protocol_server_udp (struct ReporterData *data, int final
 		sumstats->latency_histogram->final = 1;
 	    }
 	    stats->latency_histogram->final = 1;
+	}
+	if (stats->jitter_histogram) {
+	    if (sumstats && sumstats->jitter_histogram) {
+	        histogram_add(sumstats->jitter_histogram, stats->jitter_histogram);
+		sumstats->jitter_histogram->final = 1;
+	    }
+	    stats->jitter_histogram->final = 1;
 	}
 	if (stats->framelatency_histogram) {
 	    stats->framelatency_histogram->final = 1;

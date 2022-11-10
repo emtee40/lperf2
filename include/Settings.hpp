@@ -296,6 +296,7 @@ struct thread_Settings {
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
     int mWritePrefetch;
 #endif
+    int jitter_binwidth;
 };
 
 /*
@@ -390,8 +391,9 @@ struct thread_Settings {
 #define FLAG_OVERRIDETOS    0x00000800
 #define FLAG_TCPQUICKACK    0x00001000
 #define FLAG_WORKING_LOAD_DOWN 0x00002000
-#define FLAG_WORKING_LOAD_UP 0x00004000
-#define FLAG_DOMAINV4       0x00008000
+#define FLAG_WORKING_LOAD_UP   0x00004000
+#define FLAG_DOMAINV4          0x00008000
+#define FLAG_JITTER_HISTOGRAM  0x00010000
 
 #define isBuflenSet(settings)      ((settings->flags & FLAG_BUFLENSET) != 0)
 #define isCompat(settings)         ((settings->flags & FLAG_COMPAT) != 0)
@@ -468,6 +470,7 @@ struct thread_Settings {
 #define isTcpQuickAck(settings)    ((settings->flags_extend2 & FLAG_TCPQUICKACK) != 0)
 #define isWorkingLoadUp(settings)  ((settings->flags_extend2 & FLAG_WORKING_LOAD_UP) != 0)
 #define isWorkingLoadDown(settings)  ((settings->flags_extend2 & FLAG_WORKING_LOAD_DOWN) != 0)
+#define isJitterHistogram(settings)  ((settings->flags_extend2 & FLAG_JITTER_HISTOGRAM) != 0)
 
 #define setBuflenSet(settings)     settings->flags |= FLAG_BUFLENSET
 #define setCompat(settings)        settings->flags |= FLAG_COMPAT
@@ -541,6 +544,7 @@ struct thread_Settings {
 #define setTcpQuickAck(settings)   settings->flags_extend2 |= FLAG_TCPQUICKACK
 #define setWorkingLoadUp(settings)   settings->flags_extend2 |= FLAG_WORKING_LOAD_UP
 #define setWorkingLoadDown(settings) settings->flags_extend2 |= FLAG_WORKING_LOAD_DOWN
+#define setJitterHistogram(settings) settings->flags_extend2 |= FLAG_JITTER_HISTOGRAM
 
 #define unsetBuflenSet(settings)   settings->flags &= ~FLAG_BUFLENSET
 #define unsetCompat(settings)      settings->flags &= ~FLAG_COMPAT
@@ -613,6 +617,7 @@ struct thread_Settings {
 #define unsetTcpQuickAck(settings)   settings->flags_extend2 &= ~FLAG_TCPQUICKACK
 #define unsetWorkingLoadUp(settings)   settings->flags_extend2 &= ~FLAG_WORKING_LOAD_UP
 #define unsetWorkingLoadDown(settings) settings->flags_extend2 &= ~FLAG_WORKING_LOAD_DOWN
+#define unsetJitterHistogram(settings) settings->flags_extend2 &= ~FLAG_JITTER_HISTOGRAM
 
 // set to defaults
 void Settings_Initialize(struct thread_Settings* main);

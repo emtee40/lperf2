@@ -76,6 +76,11 @@ struct server_hdr;
 // latency output. Units are seconds
 #define UNREALISTIC_LATENCYMINMIN -0.01*1e6
 #define UNREALISTIC_LATENCYMINMAX 60*1e6
+#define JITTER_BINCNT 1000000 // 1 million
+#define JITTER_BINWIDTH 10 // 10 usecs
+#define JITTER_UNITS 1e6 // usecs
+#define JITTER_LCI 5 // 5%
+#define JITTER_UCI 95 // 95%
 
 #ifdef __cplusplus
 extern "C" {
@@ -231,6 +236,7 @@ struct ReportCommon {
     int bbsize;
     int bbhold;
     int bbcount;
+    int jitter_binwidth;
 #if WIN32
     SOCKET socket;
 #else
@@ -342,8 +348,9 @@ struct TransferInfo {
     union SendReadStats sock_callstats;
     struct IsochStats isochstats;
     struct histogram *latency_histogram;
+    struct histogram *jitter_histogram;
     struct RunningMMMStats transit;
-    struct RunningMMMStats jittertotal;
+    struct RunningMMMStats inline_jitter; // per RTP inline calc
     struct histogram *framelatency_histogram;
     struct RunningMMMStats frame; // isochronous frame or msg burst
     struct histogram *bbrtt_histogram;

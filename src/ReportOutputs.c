@@ -730,7 +730,7 @@ void udp_output_read (struct TransferInfo *stats) {
     printf(report_bw_jitter_loss_format, stats->common->transferIDStr,
 	    stats->ts.iStart, stats->ts.iEnd,
 	    outbuffer, outbufferext,
-	    (stats->final) ? ((stats->jittertotal.total.sum / (double) stats->jittertotal.total.cnt) * 1e3) : (stats->jitter * 1e3),  \
+	    (stats->final) ? ((stats->inline_jitter.total.sum / (double) stats->inline_jitter.total.cnt) * 1e3) : (stats->jitter * 1e3),  \
 	    stats->cntError, stats->cntDatagrams,
 	    (100.0 * stats->cntError) / stats->cntDatagrams);
     _output_outoforder(stats);
@@ -754,7 +754,7 @@ void udp_output_read_triptime (struct TransferInfo *stats) {
 	    printf(report_bw_jitter_loss_suppress_enhanced_format, stats->common->transferIDStr,
 		   stats->ts.iStart, stats->ts.iEnd,
 		   outbuffer, outbufferext,
-		   (stats->final) ? ((stats->jittertotal.total.sum / (double) stats->jittertotal.total.cnt) * 1e3) : (stats->jitter * 1e3),
+		   (stats->final) ? ((stats->inline_jitter.total.sum / (double) stats->inline_jitter.total.cnt) * 1e3) : (stats->jitter * 1e3),
 		   stats->cntError, stats->cntDatagrams,
 		   (100.0 * stats->cntError) / stats->cntDatagrams,
 		   (stats->cntIPG / stats->IPGsum));
@@ -768,7 +768,7 @@ void udp_output_read_triptime (struct TransferInfo *stats) {
 	    printf(report_bw_jitter_loss_enhanced_triptime_format, stats->common->transferIDStr,
 		   stats->ts.iStart, stats->ts.iEnd,
 		   outbuffer, outbufferext,
-		   (stats->final) ? ((stats->jittertotal.total.sum / (double) stats->jittertotal.total.cnt) * 1e3) : (stats->jitter * 1e3),  \
+		   (stats->final) ? ((stats->inline_jitter.total.sum / (double) stats->inline_jitter.total.cnt) * 1e3) : (stats->jitter * 1e3),  \
 		   stats->cntError, stats->cntDatagrams,
 		   (100.0 * stats->cntError) / stats->cntDatagrams,
 		   (meantransit * 1e3),
@@ -782,6 +782,9 @@ void udp_output_read_triptime (struct TransferInfo *stats) {
     }
     if (stats->latency_histogram) {
 	histogram_print(stats->latency_histogram, stats->ts.iStart, stats->ts.iEnd);
+    }
+    if (stats->jitter_histogram) {
+	histogram_print(stats->jitter_histogram, stats->ts.iStart, stats->ts.iEnd);
     }
     _output_outoforder(stats);
     fflush(stdout);
@@ -806,7 +809,7 @@ void udp_output_read_triptime_isoch (struct TransferInfo *stats) {
 	    printf(report_bw_jitter_loss_suppress_enhanced_format, stats->common->transferIDStr,
 		   stats->ts.iStart, stats->ts.iEnd,
 		   outbuffer, outbufferext,
-		   (stats->final) ? ((stats->jittertotal.total.sum / (double) stats->jittertotal.total.cnt) * 1e3) : (stats->jitter * 1e3),
+		   (stats->final) ? ((stats->inline_jitter.total.sum / (double) stats->inline_jitter.total.cnt) * 1e3) : (stats->jitter * 1e3),
 		   stats->cntError, stats->cntDatagrams,
 		   (100.0 * stats->cntError) / stats->cntDatagrams,
 		   (stats->cntIPG / stats->IPGsum));
@@ -817,7 +820,7 @@ void udp_output_read_triptime_isoch (struct TransferInfo *stats) {
 	    printf(report_bw_jitter_loss_enhanced_isoch_format, stats->common->transferIDStr,
 		   stats->ts.iStart, stats->ts.iEnd,
 		   outbuffer, outbufferext,
-		   (stats->final) ? ((stats->jittertotal.total.sum / (double) stats->jittertotal.total.cnt) * 1e3) : (stats->jitter * 1e3),  \
+		   (stats->final) ? ((stats->inline_jitter.total.sum / (double) stats->inline_jitter.total.cnt) * 1e3) : (stats->jitter * 1e3),  \
 		   stats->cntError, stats->cntDatagrams,
 		   (100.0 * stats->cntError) / stats->cntDatagrams,
 		   (meantransit * 1e3),
@@ -833,13 +836,16 @@ void udp_output_read_triptime_isoch (struct TransferInfo *stats) {
 		   netpower_buf);
 #if 0
 	    if (stats->final) {
-	      printf("***** Jitter MMM = %f/%f/%f\n",stats->jittertotal.total.mean, stats->jittertotal.total.min, stats->jittertotal.total.max);
+	      printf("***** Jitter MMM = %f/%f/%f\n",stats->inline_jitter.total.mean, stats->inline_jitter.total.min, stats->inline_jitter.total.max);
 	    }
 #endif
 	}
     }
     if (stats->latency_histogram) {
 	histogram_print(stats->latency_histogram, stats->ts.iStart, stats->ts.iEnd);
+    }
+    if (stats->jitter_histogram) {
+	histogram_print(stats->jitter_histogram, stats->ts.iStart, stats->ts.iEnd);
     }
     if (stats->framelatency_histogram) {
 	histogram_print(stats->framelatency_histogram, stats->ts.iStart, stats->ts.iEnd);
@@ -942,7 +948,7 @@ void udp_output_sumcnt_read_enhanced (struct TransferInfo *stats) {
     printf(report_sumcnt_bw_read_enhanced_format, stats->threadcnt,
 	   stats->ts.iStart, stats->ts.iEnd,
 	   outbuffer, outbufferext,
-	   (stats->final) ? ((stats->jittertotal.total.sum / (double) stats->jittertotal.total.cnt) * 1e3) : (stats->jitter * 1e3),  \
+	   (stats->final) ? ((stats->inline_jitter.total.sum / (double) stats->inline_jitter.total.cnt) * 1e3) : (stats->jitter * 1e3),  \
 	   stats->cntError, stats->cntDatagrams,
 	   (100.0 * stats->cntError) / stats->cntDatagrams);
     if (stats->cntOutofOrder > 0) {
@@ -981,6 +987,9 @@ void udp_output_sum_read_enhanced (struct TransferInfo *stats) {
 	    (stats->cntIPG ? (stats->cntIPG / stats->IPGsum) : 0.0));
     if (stats->latency_histogram && stats->final) {
 	histogram_print(stats->latency_histogram, stats->ts.iStart, stats->ts.iEnd);
+    }
+    if (stats->jitter_histogram && stats->final) {
+	histogram_print(stats->jitter_histogram, stats->ts.iStart, stats->ts.iEnd);
     }
     fflush(stdout);
 }
@@ -1189,7 +1198,7 @@ void udp_output_basic_csv (struct TransferInfo *stats) {
 	    stats->ts.iEnd,
 	    stats->cntBytes,
 	    speed,
-	    (stats->final) ? ((stats->jittertotal.total.sum / (double) stats->jittertotal.total.cnt) * 1e3) : (stats->jitter * 1e3),
+	    (stats->final) ? ((stats->inline_jitter.total.sum / (double) stats->inline_jitter.total.cnt) * 1e3) : (stats->jitter * 1e3),
 	    stats->cntError,
 	    stats->cntDatagrams,
 	    (100.0 * stats->cntError) / stats->cntDatagrams, stats->cntOutofOrder );
@@ -1320,6 +1329,9 @@ static void reporter_output_listener_settings (struct ReportSettings *report) {
     if (isHistogram(report->common)) {
 	fprintf(stdout, "Enabled receive histograms bin-width=%0.3f ms, bins=%d (clients should use --trip-times)\n", \
 		((1e3 * report->common->HistBinsize) / pow(10,report->common->HistUnits)), report->common->HistBins);
+    }
+    if (isJitterHistogram(report->common)) {
+	fprintf(stdout, "Enabled jitter histograms (bin-width=%d us)\n", report->common->jitter_binwidth);
     }
     if (isFrameInterval(report->common)) {
 #if HAVE_FASTSAMPLING

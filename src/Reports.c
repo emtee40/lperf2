@@ -123,6 +123,7 @@ static void common_copy (struct ReportCommon **common, struct thread_Settings *i
 #endif
     (*common)->peer = inSettings->peer;
     (*common)->size_peer = inSettings->size_peer;
+    (*common)->jitter_binwidth = inSettings->jitter_binwidth;
     (*common)->local = inSettings->local;
     (*common)->size_local = inSettings->size_local;
     (*common)->HistBins =inSettings->mHistBins;
@@ -308,17 +309,24 @@ struct SumReport* InitSumReport(struct thread_Settings *inSettings, int inID, in
 	sumreport->info.ts.significant_partial = ((double) inSettings->mInterval * PARTIALPERCENT / rMillion) ;
     }
     // Note that for UDP the client flag settings have not been read (and set) so only use server side flags in tests
-    if (isHistogram(inSettings) && isEnhanced(inSettings) && (inSettings->mThreadMode == kMode_Server) && !fullduplex_report) {
-        if (isUDP(inSettings)) {
-	    char name[] = "SUMT8";
-	    sumreport->info.latency_histogram =  histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0,\
-							      pow(10,inSettings->mHistUnits), \
-							      inSettings->mHistci_lower, inSettings->mHistci_upper, sumreport->info.common->transferID, name);
-	} else {
-	    char name[] = "SUMF8";
-	    sumreport->info.framelatency_histogram =  histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0, \
-								   pow(10,inSettings->mHistUnits), inSettings->mHistci_lower, \
-								   inSettings->mHistci_upper, sumreport->info.common->transferID, name);
+    if (isEnhanced(inSettings) && (inSettings->mThreadMode == kMode_Server) && !fullduplex_report) {
+	if (isHistogram(inSettings)) {
+	    if (isUDP(inSettings)) {
+		char name[] = "SUMT8";
+		sumreport->info.latency_histogram = histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0,\
+								    pow(10,inSettings->mHistUnits), \
+								    inSettings->mHistci_lower, inSettings->mHistci_upper, sumreport->info.common->transferID, name);
+	    } else {
+		char name[] = "SUMF8";
+		sumreport->info.framelatency_histogram = histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0, \
+									 pow(10,inSettings->mHistUnits), inSettings->mHistci_lower, \
+									 inSettings->mHistci_upper, sumreport->info.common->transferID, name);
+	    }
+	}
+	if (isJitterHistogram(inSettings) && isUDP(inSettings)) {
+	    char name[] = "SUMJ8";
+	    sumreport->info.jitter_histogram = histogram_init(JITTER_BINCNT,JITTER_BINWIDTH,0,JITTER_UNITS, \
+							      JITTER_LCI, JITTER_UCI, sumreport->info.common->transferID, name);
 	}
     }
     if (fullduplex_report) {
@@ -376,6 +384,9 @@ void FreeSumReport (struct SumReport *sumreport) {
     if (sumreport->info.bbrtt_histogram) {
 	histogram_delete(sumreport->info.bbrtt_histogram);
     }
+    if (sumreport->info.jitter_histogram) {
+	histogram_delete(sumreport->info.jitter_histogram);
+    }
     free_common_copy(sumreport->info.common);
     free(sumreport);
 }
@@ -399,6 +410,9 @@ static void Free_iReport (struct ReporterData *ireport) {
     }
     if (ireport->info.latency_histogram) {
 	histogram_delete(ireport->info.latency_histogram);
+    }
+    if (ireport->info.jitter_histogram) {
+	histogram_delete(ireport->info.jitter_histogram);
     }
     if (ireport->info.framelatency_histogram) {
 	histogram_delete(ireport->info.framelatency_histogram);
@@ -667,16 +681,23 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
 
     if (inSettings->mThreadMode == kMode_Server) {
 	ireport->info.sock_callstats.read.binsize = inSettings->mBufLen / 8;
-	if (isHistogram(inSettings) && isUDP(inSettings) && isTripTime(inSettings)) {
-	    char name[] = "T8";
-	    ireport->info.latency_histogram =  histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0,\
-							      pow(10,inSettings->mHistUnits), \
-							      inSettings->mHistci_lower, inSettings->mHistci_upper, ireport->info.common->transferID, name);
+	if (isUDP(inSettings)) {
+	    if (isJitterHistogram(inSettings)) {
+		char name[] = "J8";
+		ireport->info.jitter_histogram = histogram_init(JITTER_BINCNT,JITTER_BINWIDTH,0,JITTER_UNITS, \
+							      JITTER_LCI, JITTER_UCI, ireport->info.common->transferID, name);
+	    }
+	    if (isTripTime(inSettings) && isHistogram(inSettings)) {
+		char name[] = "T8";
+		ireport->info.latency_histogram = histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0,\
+								  pow(10,inSettings->mHistUnits), \
+								  inSettings->mHistci_lower, inSettings->mHistci_upper, ireport->info.common->transferID, name);
+	    }
 	}
 	if (isHistogram(inSettings) && (isIsochronous(inSettings) || (!isUDP(inSettings) && isTripTime(inSettings)))) {
 	    char name[] = "F8";
 	    // make sure frame bin size min is 100 microsecond
-	    ireport->info.framelatency_histogram =  histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0, \
+	    ireport->info.framelatency_histogram = histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0, \
 								   pow(10,inSettings->mHistUnits), inSettings->mHistci_lower, \
 								   inSettings->mHistci_upper, ireport->info.common->transferID, name);
 	}
@@ -684,12 +705,12 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
     if ((inSettings->mThreadMode == kMode_Client) && !isUDP(inSettings) && isHistogram(inSettings)) {
 	if (isTcpWriteTimes(inSettings)) {
 	    char name[] = "W8";
-	    ireport->info.write_histogram =  histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0,\
+	    ireport->info.write_histogram = histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0,\
 							    pow(10,inSettings->mHistUnits), \
 							    inSettings->mHistci_lower, inSettings->mHistci_upper, ireport->info.common->transferID, name);
 	} else if (isWritePrefetch(inSettings)) {
 	    char name[] = "S8";
-	    ireport->info.latency_histogram =  histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0,\
+	    ireport->info.latency_histogram = histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0,\
 							      pow(10,inSettings->mHistUnits), \
 							      inSettings->mHistci_lower, inSettings->mHistci_upper, ireport->info.common->transferID, name);
 	}
@@ -701,7 +722,7 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
 	inSettings->mHistUnits = 6;  // usecs 10 pow(x)
 	inSettings->mHistci_lower = 5;
 	inSettings->mHistci_upper = 95;
-	ireport->info.bbrtt_histogram =  histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0,	\
+	ireport->info.bbrtt_histogram = histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0,	\
 							pow(10,inSettings->mHistUnits), \
 							inSettings->mHistci_lower, inSettings->mHistci_upper, ireport->info.common->transferID, name);
     }
@@ -952,9 +973,9 @@ void write_UDP_AckFIN (struct TransferInfo *stats, int len) {
 	    hdr->extend2.outorder_cnt2 = htonl((long) (stats->cntOutofOrder >> 32) );
 	    hdr->extend2.datagrams2    = htonl((long) (stats->cntDatagrams >> 32));
 	}
-	//	printf("****** Server final estimator %f calculated average %f\n", stats->jitter, (stats->jittertotal.total.sum / stats->jittertotal.total.cnt));
-	if (stats->jittertotal.total.cnt > 0)
-	    stats->jitter = (stats->jittertotal.total.sum / stats->jittertotal.total.cnt); // overide the final estimator with an average
+	//	printf("****** Server final estimator %f calculated average %f\n", stats->jitter, (stats->inline_jitter.total.sum / stats->inline_jitter.total.cnt));
+	if (stats->inline_jitter.total.cnt > 0)
+	    stats->jitter = (stats->inline_jitter.total.sum / stats->inline_jitter.total.cnt); // overide the final estimator with an average
 	hdr->base.jitter1      = htonl((long) stats->jitter);
 	hdr->base.jitter2      = htonl((long) ((stats->jitter - (long)stats->jitter) * rMillion));
 

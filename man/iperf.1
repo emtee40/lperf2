@@ -124,6 +124,9 @@ run in server mode
 .BR "    --histograms[="\fIbinwidth\fR[u],\fIbincount\fR,[\fIlowerci\fR],[\fIupperci\fR] "]"
 enable latency histograms for udp packets (-u), for tcp writes (with --trip-times), or for either udp or tcp with --isochronous clients. The binning can be modified. Bin widths (default 1 millisecond, append u for microseconds, m for milliseconds) bincount is total bins (default 1000), ci is confidence interval between 0-100% (default lower 5%, upper 95%, 3 stdev 99.7%)
 .TP
+.BR "    --jitter-histograms[=" \fI<binwidth>\fR "]"
+enable jitter histograms for udp packets (-u). Optional value is the bin width where units are microseconds and defaults to 100 usecs
+.TP
 .BR "    --permit-key [=" \fI<value>\fR "]"
 Set a key value that must match for the server to accept traffic from a client (also set with --permit-key.) The server will autogenerate a globally unique key when the option is given without a value. This value will be displayed in the server's initial settings report. The lifetime of the key is set using --permit-key-timeout and defaults to twenty seconds. TCP only, no UDP support.
 .TP

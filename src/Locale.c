@@ -98,11 +98,11 @@ Server specific:\n\
   -s, --server             run in server mode\n\
   -1, --singleclient       run one server at a time\n\
       --histograms         enable latency histograms\n\
+      --jitter-histograms  enable jitter histograms\n\
       --permit-key-timeout set the timeout for a permit key in seconds\n\
       --tcp-rx-window-clamp set the TCP receive window clamp size in bytes\n\
       --tap-dev   #[<dev>] use TAP device to receive at L2 layer\n\
   -t, --time      #        time in seconds to listen for new connections as well as to receive traffic (default not set)\n\
-      --udp-histogram #,#  enable UDP latency histogram(s) with bin width and count, e.g. 1,1000=1(ms),1000(bins)\n\
   -B, --bind <ip>[%<dev>]  bind to multicast address and optional device\n\
   -U, --single_udp         run in single threaded UDP mode\n\
       --sum-dstip          sum traffic threads based upon destination ip address (default is src ip)\n\

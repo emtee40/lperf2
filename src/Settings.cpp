@@ -78,6 +78,7 @@
 static int reversetest = 0;
 static int fullduplextest = 0;
 static int histogram = 0;
+static int jitter_histogram = 0;
 static int l2checks = 0;
 static int incrdstip = 0;
 static int incrsrcip = 0;
@@ -194,6 +195,7 @@ const struct option long_options[] =
 {"tcp-congestion", required_argument, NULL, 'Z'},
 {"histograms", optional_argument, &histogram, 1},
 {"hide-ips", no_argument, &hideips, 1},
+{"jitter-histograms", optional_argument, &jitter_histogram, 1},
 {"udp-histograms", optional_argument, &histogram, 1}, // keep support per 2.0.13 usage
 {"l2checks", no_argument, &l2checks, 1},
 {"incr-dstip", no_argument, &incrdstip, 1},
@@ -1061,6 +1063,16 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 		mExtSettings->mHistogramStr = NULL;
 	    }
 	}
+	if (jitter_histogram) {
+	    jitter_histogram = 0;
+	    setJitterHistogram(mExtSettings);
+	    setEnhanced(mExtSettings);
+	    if (optarg) {
+		mExtSettings->jitter_binwidth = atoi(optarg);
+	    } else {
+		mExtSettings->jitter_binwidth = 100; // units are usecs
+	    }
+	}
 	if (reversetest) {
 	    reversetest = 0;
 	    setReverse(mExtSettings);
@@ -1459,6 +1471,10 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	    fprintf(stderr, "WARN: option of --tcp-rx-window-clamp not supported on the client\n");
 	    unsetRxClamp(mExtSettings);
 	}
+	if (isJitterHistogram(mExtSettings)) {
+	    fprintf(stderr, "WARN: option of --jitter-histogram not supported on the client\n");
+	    unsetJitterHistogram(mExtSettings);
+	}
 	if (isIncrSrcPort(mExtSettings) && !mExtSettings->mBindPort) {
 	    fprintf(stderr, "WARN: option of --incr-srcport requires -B bind option w/port to be set\n");
 	    unsetIncrSrcPort(mExtSettings);
@@ -1644,6 +1660,10 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 		fprintf(stderr, "ERROR: units of pps not supported with TCP\n");
 		bail = true;
 	    }
+	    if (isJitterHistogram(mExtSettings)) {
+		fprintf(stderr, "ERROR: option of --jitter-histogram not supported with TCP\n");
+		bail = true;
+	    }
 	}
 	if (!isReverse(mExtSettings) && !isFullDuplex(mExtSettings) && isHistogram(mExtSettings)){
 	    setTcpWriteTimes(mExtSettings);
@@ -1758,14 +1778,14 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
     if (isHistogram(mExtSettings)) {
 	if (!mExtSettings->mHistogramStr) {
 	    if (mExtSettings->mThreadMode == kMode_Server) {
-		// set default histogram settings, milliseconds bins between 0 and 1 secs
+		// set default rx histogram settings, milliseconds bins between 0 and 1 secs
 		mExtSettings->mHistBins = 1000;
 		mExtSettings->mHistBinsize = 1;
 		mExtSettings->mHistUnits = 3;
 		mExtSettings->mHistci_lower = 5;
 		mExtSettings->mHistci_upper = 95;
 	    } else {
-		// set default histogram settings, milliseconds bins between 0 and 1 secs
+		// set default tx histogram settings, microseconds with 100 us bins
 		mExtSettings->mHistBins = 10000;
 		mExtSettings->mHistBinsize = 100;
 		mExtSettings->mHistUnits = 6;
