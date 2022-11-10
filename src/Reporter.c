@@ -752,10 +752,10 @@ static void reporter_handle_packet_oneway_transit (struct TransferInfo *stats, s
 	stats->jitter += (deltaTransit - stats->jitter) / (16.0);
 	reporter_update_mmm(&stats->inline_jitter.total, stats->jitter);
 	reporter_update_mmm(&stats->inline_jitter.current, stats->jitter);
-	if (stats->jitter_histogram) {
-	    histogram_insert(stats->jitter_histogram, deltaTransit, NULL);
-	}
 	//	printf("**** insert value %f per frame packet %d expected %d max = %f %d\n", deltaTransit, packet->frameID, stats->isochstats.frameID, stats->inline_jitter.total.max, stats->isochstats.newburst);
+    }
+    if (stats->jitter_histogram) {
+        histogram_insert(stats->jitter_histogram, deltaTransit, NULL);
     }
 }
 
