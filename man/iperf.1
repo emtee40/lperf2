@@ -828,40 +828,40 @@ Histograms are supported so this information is made available.
 .P
 .B Histogram output interpretation:
 Below is an example bounceback histogram and how to interpret it
-.TP
-.P
+
 .br
-[  1] 0.00-5.10 sec BB8-PDF: bin(w=100us):cnt(50)=35:1,37:1,39:1,40:3,41:4,42:1,43:1,52:1,57:1,65:1,68:1,69:1,70:1,72:2,74:1,75:5,78:1,79:2,80:4,81:3,82:1,83:1,88:2,90:2,92:1,94:1,117:1,126:1,369:1,1000:1,1922:1,3710:1 (5.00/95.00/99.7%=39/1000/3710,Outliers=4,obl/obu=0/0)
+[  1] 0.00-5.10 sec BB8-PDF:
 .br
+bin(w=100us):cnt(50)=35:1,37:1,39:1,40:3,41:4,42:1,43:1,52:1,57:1,65:1,68:1,69:1,70:1,72:2,74:1,75:5,78:1,79:2,80:4,81:3,82:1,83:1,88:2,90:2,92:1,94:1,117:1,126:1,369:1,1000:1,1922:1,3710:1 (5.00/95.00/99.7%=39/1000/3710,Outliers=4,obl/obu=0/0)
 .TP
 .B where,
-.IP
 .B [  1]
 The traffic thread number
-.IP
+.br
 .B 0.00-5.10 sec
 The time interval of the histogram
-.IP
+.br
 .B BB8-PDF
 BB8 is the histogram name and the PDF indicates a histogram raw output
-.IP
+.br
 .B bin(w=100us)
 provides the bin width. The bin width of this histogram is 100 microseconds
-.IP
+.br
 .B cnt(50)
 provides the total number of samples in the histogram. There are 50 samples in this histogram
-.IP
+.br
 .B 35:1
 provides the bin no then the number of samples in that bin. Bin 35 with bin width 100us is 3.4 ms - 3.5 ms and there was one sample that landed there
-.IP
+.br
 .B 5.00/95.00/99.7%=39/1000/3710
 provides the bin confidence intervals (per the integrated cumulative distribution function.) 5% landed in 3.9 ms or better (recall bin number multiplies by bin width.) 95% landed in 10 ms or better. 99.7% or 3 standards of deviation landed in 37.1 ms or better
-.IP
+.br
 .B Outliers=4
 provides the outlier count, similar to 3IQR (3 times the inter quartile range) but uses 10% and 90% for inner & outer fence post, then 3 times that for outlier detection.
-.IP
+.br
 .B obl/obu=0/0
 out of bounds lower and out of bands upper, provides the number of samples that could not be binned because the value landed outside of all possible bins
+
 .P
 .B
 Binding
