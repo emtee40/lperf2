@@ -589,9 +589,9 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	break;
 
     case 'h': // print help and exit
-	fprintf(stderr, "%s", usage_long1);
-	fprintf(stderr, "%s", usage_long2);
-	exit(1);
+	fprintf(stdout, "%s", usage_long1);
+	fprintf(stdout, "%s", usage_long2);
+	exit(0);
 	break;
 
     case 'i': // specify interval between periodic bw reports
@@ -722,8 +722,8 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	break;
 
     case 'v': // print version and exit
-	fprintf(stderr, "%s", version);
-	exit(1);
+	fprintf(stdout, "%s", version);
+	exit(0);
 	break;
 
     case 'w': // TCP window size (socket buffer size)
