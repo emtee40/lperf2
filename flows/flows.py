@@ -126,7 +126,12 @@ class iperf_flow(object):
         iperf_flow.sleep(time=0.3, text="wait for rx up", stoptext="rx up done")
 
         if epoch_sync :
-            epoch_sync_time = (datetime.now()).timestamp() + 2
+            dt = (datetime.now()).timestamp()
+            tsec = str(dt).split('.')
+            epoch_sync_time = int(tsec[0]) + 2
+        else :
+            epoch_sync_time = None
+
         tasks = [asyncio.ensure_future(flow.tx.start(time=time, amount=amount, parallel=parallel, epoch_sync_time=epoch_sync_time), loop=iperf_flow.loop) for flow in flows]
 
         try :
@@ -949,7 +954,9 @@ class iperf_client(object):
             client_dst = self.dstip + '%' + self.client_device
         else :
             client_dst = self.dstip
-        self.sshcmd=[self.ssh, self.user + '@' + self.host, self.iperf, '-c', client_dst, '-p ' + str(self.dstport), '-e', '-f{}'.format(self.format), '-S ', iperf_flow.txt_to_tos(self.tos), '-w' , self.window ,'--realtime']
+        self.sshcmd=[self.ssh, self.user + '@' + self.host, self.iperf, '-c', client_dst, '-p ' + str(self.dstport), '-e', '-f{}'.format(self.format), '-w' , self.window ,'--realtime']
+        if self.tos :
+            self.sshcmd.extend(['-S ', self.tos])
         if self.length :
             self.sshcmd.extend(['-l ', str(self.length)])
         if time:

@@ -42,8 +42,8 @@ from flows import *
 from ssh_nodes import *
 
 parser = argparse.ArgumentParser(description='Run a bufferbloat test')
-parser.add_argument('--host_wifi1', type=str, default="10.59.13.58", required=False, help='STA host to run iperf')
-parser.add_argument('--host_wifi2', type=str, default="10.59.13.70", required=False, help='STA host to run iperf')
+parser.add_argument('--host_wifi1', type=str, default="10.59.13.xx", required=False, help='STA host to run iperf')
+parser.add_argument('--host_wifi2', type=str, default="10.59.13.xx", required=False, help='STA host to run iperf')
 parser.add_argument('-i','--interval', type=int, required=False, default=1, help='iperf report interval')
 parser.add_argument('-n','--runcount', type=int, required=False, default=2, help='number of runs')
 parser.add_argument('-t','--time', type=float, default=10, required=False, help='time or duration to run traffic')
@@ -82,8 +82,8 @@ wifi2 = ssh_node(name='WiFi_B', ipaddr=args.host_wifi2, device='eth1', devip='19
 
 #instantiate traffic objects or flows
 
-video=iperf_flow(name='VIDEO_FACETIME_UDP', user='root', server=wifi1, client=wifi2, dstip=wifi1.devip, proto='UDP', interval=1, debug=False, srcip=wifi2.devip, srcport='6001', dstport='6001', offered_load='30:600K',trip_times=True, tos='ac_vi', latency=True, fullduplex=True)
-audio=iperf_flow(name='AUDIO_FACETIME_UDP', user='root', server=wifi1, client=wifi2, dstip=wifi1.devip, proto='UDP', interval=1, debug=False, srcip=wifi2.devip, srcport='6002', dstport='6002', offered_load='50:25K',trip_times=True, tos='ac_vo', latency=True, fullduplex=True)
+video=iperf_flow(name='VIDEO_FACETIME_UDP', user='root', server=wifi2, client=wifi1, dstip=wifi2.devip, proto='UDP', interval=1, debug=False, srcip=wifi1.devip, srcport='6001', dstport='6001', offered_load='30:600K',trip_times=True, tos='ac_vi', latency=True, fullduplex=True)
+audio=iperf_flow(name='AUDIO_FACETIME_UDP', user='root', server=wifi2, client=wifi1, dstip=wifi2.devip, proto='UDP', interval=1, debug=False, srcip=wifi1.devip, srcport='6002', dstport='6002', offered_load='50:25K',trip_times=True, tos='ac_vo', latency=True, fullduplex=True)
 
 ssh_node.open_consoles(silent_mode=True)
 
@@ -92,7 +92,7 @@ try:
     if traffic_flows:
         for runid in range(args.runcount) :
             for traffic_flow in traffic_flows:
-                print("Running ({}/{}) {} traffic client={} server={} dest={} with load {} for {} seconds".format(str(runid+1), str(args.runcount), traffic_flow.proto, traffic_flow.client, traffic_flow.server, traffic_flow.dstip, traffic_flow.offered_load, args.time))
+                print("Running ({}/{}) {} traffic client={} server={} dest={} with load {} for {} seconds".format(str(runid+1), str(args.runcount), traffic_flow.name, traffic_flow.client, traffic_flow.server, traffic_flow.dstip, traffic_flow.offered_load, args.time))
             gc.disable()
             iperf_flow.run(time=args.time, flows='all', epoch_sync=True)
             gc.enable()
