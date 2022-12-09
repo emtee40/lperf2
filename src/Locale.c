@@ -488,7 +488,7 @@ const char report_bw_jitter_loss_enhanced_isoch_header[] =
 
 const char report_bw_jitter_loss_enhanced_isoch_triptime_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer     Bandwidth        Jitter   Lost/Total \
-Latency avg/min/max/stdev  PPS  Frame:rx/lost  latency  NetPwr\n";
+Latency avg/min/max/stdev  PPS  Frame:rx/lost  Frame-latency avg/min/max/stdev  NetPwr\n";
 
 const char report_bw_jitter_loss_enhanced_isoch_format[] =
 "%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %6.3f ms %" PRIdMAX "/%" PRIdMAX " (%.2g%%) %.3f/%.3f/%.3f/%.3f ms %.0f pps  %3d/%d  %.3f/%.3f/%.3f/%.3f ms %s\n";
