@@ -285,7 +285,10 @@ int Client::StartSynch () {
 #ifdef HAVE_THREAD_DEBUG
     thread_debug("Client start sync enterred");
 #endif
-
+    bool delay_test_exchange = (isFullDuplex(mSettings) && isUDP(mSettings));
+    if (isTxStartTime(mSettings) && delay_test_exchange) {
+        clock_usleep_abstime(&mSettings->txstart_epoch);
+    }
     myJob = InitIndividualReport(mSettings);
     myReport = static_cast<struct ReporterData *>(myJob->this_report);
     myReport->info.common->socket=mySocket;
@@ -321,7 +324,7 @@ int Client::StartSynch () {
 		}
 	    }
 	}
-	if (isTxStartTime(mSettings)) {
+	if (isTxStartTime(mSettings) && !delay_test_exchange) {
 	    clock_usleep_abstime(&mSettings->txstart_epoch);
 	} else if (isTxHoldback(mSettings)) {
 	    TxDelay();
