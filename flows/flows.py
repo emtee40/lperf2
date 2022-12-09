@@ -98,7 +98,7 @@ class iperf_flow(object):
 
 
     @classmethod
-    def run(cls, time=None, amount=None, flows='all', sample_delay=None, io_timer=None, preclean=True, parallel=None) :
+    def run(cls, time=None, amount=None, flows='all', sample_delay=None, io_timer=None, preclean=True, parallel=None, epoch_sync=False) :
         if flows == 'all' :
             flows = iperf_flow.get_instances()
         if not flows:
@@ -124,7 +124,11 @@ class iperf_flow(object):
             logging.error('flow server start timeout')
             raise
         iperf_flow.sleep(time=0.3, text="wait for rx up", stoptext="rx up done")
-        tasks = [asyncio.ensure_future(flow.tx.start(time=time, amount=amount, parallel=parallel), loop=iperf_flow.loop) for flow in flows]
+
+        if epoch_sync :
+            epoch_sync_time = (datetime.now()).timestamp() + 2
+        tasks = [asyncio.ensure_future(flow.tx.start(time=time, amount=amount, parallel=parallel, epoch_sync_time=epoch_sync_time), loop=iperf_flow.loop) for flow in flows]
+
         try :
             iperf_flow.loop.run_until_complete(asyncio.wait(tasks, timeout=10))
         except asyncio.TimeoutError:
@@ -290,7 +294,7 @@ class iperf_flow(object):
         }
         return switcher.get(txt.upper(), None)
 
-    def __init__(self, name='iperf', server='localhost', client='localhost', user=None, proto='TCP', dstip='127.0.0.1', interval=1, format='b', offered_load=None, tos='BE', window='4M', src=None, srcip=None, srcport=None, dstport=None,  debug=False, length=None, ipg=0.005, amount=None, trip_times=True, prefetch=None, latency=True, bb=False, bb_congest=False, bb_period=None, bb_hold=None, txstart_delay_sec=None, burst_size=None, burst_period=None, fullduplex=False):
+    def __init__(self, name='iperf', server='localhost', client='localhost', user=None, proto='TCP', dstip='127.0.0.1', interval=1, format='b', offered_load=None, tos='BE', window='4M', src=None, srcip=None, srcport=None, dstport=None,  debug=False, length=None, ipg=0.0, amount=None, trip_times=True, prefetch=None, latency=True, bb=False, bb_congest=False, bb_period=None, bb_hold=None, txstart_delay_sec=None, burst_size=None, burst_period=None, fullduplex=False):
         iperf_flow.instances.add(self)
         self.name = name
         self.latency = latency
@@ -723,6 +727,7 @@ class iperf_server(object):
             self.sshcmd.extend(['-u'])
         if self.latency :
             self.sshcmd.extend(['--histograms=100u,100000,5,95'])
+            self.sshcmd.extend(['--jitter-histograms'])
 
         logging.info('{}'.format(str(self.sshcmd)))
         self._transport, self._protocol = await iperf_flow.loop.subprocess_exec(lambda: self.IperfServerProtocol(self, self.flow), *self.sshcmd)
@@ -929,7 +934,7 @@ class iperf_client(object):
     def __getattr__(self, attr):
         return getattr(self.flow, attr)
 
-    async def start(self, time=None, amount=None, parallel=None):
+    async def start(self, time=None, amount=None, parallel=None, epoch_sync_time=None):
         if not self.closed.is_set() :
             return
 
@@ -972,7 +977,7 @@ class iperf_client(object):
         if self.proto == 'UDP' :
             self.sshcmd.extend(['-u '])
             if self.isoch :
-                self.sshcmd.extend(['--isochronous=' + self.offered_load + ' --ipg ' + str(self.ipg)])
+                self.sshcmd.extend(['--isochronous=' + self.offered_load, ' --ipg ', str(self.ipg)])
             elif self.offered_load :
                 self.sshcmd.extend(['-b', self.offered_load])
         elif self.proto == 'TCP' and self.offered_load :
@@ -994,7 +999,10 @@ class iperf_client(object):
             if self.flow.bb_congest :
                 self.sshcmd.extend(['--bounceback-congest'])
 
-        if self.txstart_delay_sec :
+        if epoch_sync_time :
+            self.sshcmd.extend(['--txstart-time', str(epoch_sync_time)])
+
+        elif self.txstart_delay_sec :
             # use incoming txstart_delay_sec and convert it to epoch_time_sec to use with '--txstart-time' iperf parameter
             logging.info('{}'.format(str(datetime.now())))
             epoch_time_sec = (datetime.now()).timestamp()
