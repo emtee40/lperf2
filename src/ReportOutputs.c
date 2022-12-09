@@ -1583,7 +1583,8 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
     }
 #endif
 
-    if (!isServerReverse(report->common) && (isEnhanced(report->common) || isConnectOnly(report->common))) {
+    if ((isFullDuplex(report->common) || !isServerReverse(report->common)) \
+	&& (isEnhanced(report->common) || isConnectOnly(report->common))) {
 	if (report->connect_timestamp.tv_sec > 0) {
 	    struct tm ts;
 	    ts = *localtime(&report->connect_timestamp.tv_sec);
