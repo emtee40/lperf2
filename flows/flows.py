@@ -998,7 +998,7 @@ class iperf_client(object):
             self.sshcmd.extend(['--bounceback-period', str(self.bb_period)])
         elif self.proto == 'TCP' and self.offered_load :
             self.sshcmd.extend(['-b', self.offered_load])
-        if self.bb == None and self.fullduplex :
+        if not self.bb and self.fullduplex :
             self.sshcmd.extend(['--full-duplex', str(" ")])
 
         if self.flow.bb :
