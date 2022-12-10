@@ -438,11 +438,7 @@ class iperf_flow(object):
     def stats(self):
         logging.info('stats')
 
-    def compute_ks_table(self, runcount, plot=True, directory='.', title=None) :
-
-        tmp = "Processing histogram for traffic with Server={0} Client={1} {2} and run count {3}".format(self.server, self.client, self.dstip, runcount)
-        logging.info(tmp)
-        print(tmp)
+    def compute_ks_table(self, plot=True, directory='.', title=None) :
 
         if len(self.histogram_names) < 1 :
             tmp = "***Failed. Expected 1 histogram_names, but instead got {0}".format(len(self.histogram_names))
@@ -458,12 +454,6 @@ class iperf_flow(object):
             tmp = "{} KS Table has {} entries".format(self.name, len(histograms))
             logging.info(tmp)
             print(tmp)
-
-            if runcount != len(histograms) :
-                tmp = "***Failed. Expected {0} KS table entries, but instead got {1}".format(runcount, len(histograms))
-                logging.info(tmp)
-                print(tmp)
-                #raise
 
             self.condensed_distance_matrix = ([])
 
