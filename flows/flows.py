@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------
-# * Copyright (c) 2018
+# * Copyright (c) 2018-2023
 # * Broadcom Corporation
 # * All Rights Reserved.
 # *---------------------------------------------------------------
@@ -23,7 +23,7 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # Author Robert J. McMahon, Broadcom LTD
-# Date April 2016
+# Date April 2016 - December 2022
 
 import re
 import subprocess
