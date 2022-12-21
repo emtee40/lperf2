@@ -453,6 +453,7 @@ void Client::ConnectPeriodic () {
 	    int rc = close(mySocket);
 	    WARN_errno(rc == SOCKET_ERROR, "client close");
 	    mySocket = INVALID_SOCKET;
+	    mysock_init_done = false;
 	}
 	if (mSettings->mInterval > 0) {
 	    now.setnow();
