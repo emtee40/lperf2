@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------
-# * Copyright (c) 2018
+# * Copyright (c) 2018-2023
 # * Broadcom Corporation
 # * All Rights Reserved.
 # *---------------------------------------------------------------
@@ -23,7 +23,7 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # Author Robert J. McMahon, Broadcom LTD
-# Date April 2016
+# Date April 2016 - December 2022
 
 import re
 import subprocess
@@ -98,7 +98,7 @@ class iperf_flow(object):
 
 
     @classmethod
-    def run(cls, time=None, amount=None, flows='all', sample_delay=None, io_timer=None, preclean=True, parallel=None) :
+    def run(cls, time=None, amount=None, flows='all', sample_delay=None, io_timer=None, preclean=True, parallel=None, epoch_sync=False) :
         if flows == 'all' :
             flows = iperf_flow.get_instances()
         if not flows:
@@ -124,7 +124,16 @@ class iperf_flow(object):
             logging.error('flow server start timeout')
             raise
         iperf_flow.sleep(time=0.3, text="wait for rx up", stoptext="rx up done")
-        tasks = [asyncio.ensure_future(flow.tx.start(time=time, amount=amount, parallel=parallel), loop=iperf_flow.loop) for flow in flows]
+
+        if epoch_sync :
+            dt = (datetime.now()).timestamp()
+            tsec = str(dt).split('.')
+            epoch_sync_time = int(tsec[0]) + 2
+        else :
+            epoch_sync_time = None
+
+        tasks = [asyncio.ensure_future(flow.tx.start(time=time, amount=amount, parallel=parallel, epoch_sync_time=epoch_sync_time), loop=iperf_flow.loop) for flow in flows]
+
         try :
             iperf_flow.loop.run_until_complete(asyncio.wait(tasks, timeout=10))
         except asyncio.TimeoutError:
@@ -290,7 +299,7 @@ class iperf_flow(object):
         }
         return switcher.get(txt.upper(), None)
 
-    def __init__(self, name='iperf', server='localhost', client='localhost', user=None, proto='TCP', dstip='127.0.0.1', interval=1, format='b', offered_load=None, tos='BE', window='4M', src=None, srcip=None, srcport=None, dstport=None,  debug=False, length=None, ipg=0.005, amount=None, trip_times=True, prefetch=None, latency=True, bb=False, bb_congest=False, bb_period=None, bb_hold=None, txstart_delay_sec=None, burst_size=None, burst_period=None, fullduplex=False):
+    def __init__(self, name='iperf', server='localhost', client='localhost', user=None, proto='TCP', dstip='127.0.0.1', interval=1, format='b', offered_load=None, tos='BE', window='4M', src=None, srcip=None, srcport=None, dstport=None,  debug=False, length=None, ipg=0.0, amount=None, trip_times=True, prefetch=None, latency=True, bb=False, bb_congest=False, bb_period=None, bb_hold=None, txstart_delay_sec=None, burst_size=None, burst_period=None, fullduplex=False):
         iperf_flow.instances.add(self)
         self.name = name
         self.latency = latency
@@ -429,11 +438,7 @@ class iperf_flow(object):
     def stats(self):
         logging.info('stats')
 
-    def compute_ks_table(self, runcount, plot=True, directory='.', title=None) :
-
-        tmp = "Processing histogram for traffic with Server={0} Client={1} {2} and run count {3}".format(self.server, self.client, self.dstip, runcount)
-        logging.info(tmp)
-        print(tmp)
+    def compute_ks_table(self, plot=True, directory='.', title=None) :
 
         if len(self.histogram_names) < 1 :
             tmp = "***Failed. Expected 1 histogram_names, but instead got {0}".format(len(self.histogram_names))
@@ -449,12 +454,6 @@ class iperf_flow(object):
             tmp = "{} KS Table has {} entries".format(self.name, len(histograms))
             logging.info(tmp)
             print(tmp)
-
-            if runcount != len(histograms) :
-                tmp = "***Failed. Expected {0} KS table entries, but instead got {1}".format(runcount, len(histograms))
-                logging.info(tmp)
-                print(tmp)
-                #raise
 
             self.condensed_distance_matrix = ([])
 
@@ -723,6 +722,7 @@ class iperf_server(object):
             self.sshcmd.extend(['-u'])
         if self.latency :
             self.sshcmd.extend(['--histograms=100u,100000,5,95'])
+            self.sshcmd.extend(['--jitter-histograms'])
 
         logging.info('{}'.format(str(self.sshcmd)))
         self._transport, self._protocol = await iperf_flow.loop.subprocess_exec(lambda: self.IperfServerProtocol(self, self.flow), *self.sshcmd)
@@ -929,7 +929,7 @@ class iperf_client(object):
     def __getattr__(self, attr):
         return getattr(self.flow, attr)
 
-    async def start(self, time=None, amount=None, parallel=None):
+    async def start(self, time=None, amount=None, parallel=None, epoch_sync_time=None):
         if not self.closed.is_set() :
             return
 
@@ -944,7 +944,9 @@ class iperf_client(object):
             client_dst = self.dstip + '%' + self.client_device
         else :
             client_dst = self.dstip
-        self.sshcmd=[self.ssh, self.user + '@' + self.host, self.iperf, '-c', client_dst, '-p ' + str(self.dstport), '-e', '-f{}'.format(self.format), '-S ', iperf_flow.txt_to_tos(self.tos), '-w' , self.window ,'--realtime']
+        self.sshcmd=[self.ssh, self.user + '@' + self.host, self.iperf, '-c', client_dst, '-p ' + str(self.dstport), '-e', '-f{}'.format(self.format), '-w' , self.window ,'--realtime']
+        if self.tos :
+            self.sshcmd.extend(['-S ', self.tos])
         if self.length :
             self.sshcmd.extend(['-l ', str(self.length)])
         if time:
@@ -972,7 +974,7 @@ class iperf_client(object):
         if self.proto == 'UDP' :
             self.sshcmd.extend(['-u '])
             if self.isoch :
-                self.sshcmd.extend(['--isochronous=' + self.offered_load + ' --ipg ' + str(self.ipg)])
+                self.sshcmd.extend(['--isochronous=' + self.offered_load, ' --ipg ', str(self.ipg)])
             elif self.offered_load :
                 self.sshcmd.extend(['-b', self.offered_load])
         elif self.proto == 'TCP' and self.offered_load :
@@ -986,7 +988,7 @@ class iperf_client(object):
             self.sshcmd.extend(['--bounceback-period', str(self.bb_period)])
         elif self.proto == 'TCP' and self.offered_load :
             self.sshcmd.extend(['-b', self.offered_load])
-        if self.bb == None and self.fullduplex :
+        if not self.bb and self.fullduplex :
             self.sshcmd.extend(['--full-duplex', str(" ")])
 
         if self.flow.bb :
@@ -994,7 +996,10 @@ class iperf_client(object):
             if self.flow.bb_congest :
                 self.sshcmd.extend(['--bounceback-congest'])
 
-        if self.txstart_delay_sec :
+        if epoch_sync_time :
+            self.sshcmd.extend(['--txstart-time', str(epoch_sync_time)])
+
+        elif self.txstart_delay_sec :
             # use incoming txstart_delay_sec and convert it to epoch_time_sec to use with '--txstart-time' iperf parameter
             logging.info('{}'.format(str(datetime.now())))
             epoch_time_sec = (datetime.now()).timestamp()

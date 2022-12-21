@@ -524,10 +524,12 @@ void Server::ClientReverseFirstRead (void) {
 	    default :
 		struct client_udp_testhdr *udp_pkt = reinterpret_cast<struct client_udp_testhdr *>(mSettings->mBuf);
 		flags = ntohl(udp_pkt->base.flags);
+		mSettings->sent_time.tv_sec = 0;
 		if (isTripTime(mSettings)) {
 		    mSettings->sent_time.tv_sec = ntohl(udp_pkt->start_fq.start_tv_sec);
 		    mSettings->sent_time.tv_usec = ntohl(udp_pkt->start_fq.start_tv_usec);
-		} else {
+		}
+		if (!mSettings->sent_time.tv_sec) {
 		    now.setnow();
 		    mSettings->sent_time.tv_sec = now.getSecs();
 		    mSettings->sent_time.tv_usec = now.getUsecs();
