@@ -123,6 +123,7 @@ struct WriteStats {
     intmax_t WriteErr;
     intmax_t totWriteCnt;
     intmax_t totWriteErr;
+    intmax_t totWriteWarn;
     struct iperf_tcpstats tcpstats;
 };
 

@@ -1043,9 +1043,20 @@ void Client::RunBounceBackTCP () {
 	    WriteTcpTxBBHdr(reportstruct, burst_id, 0);
 	    reportstruct->packetLen = writen(mySocket, mSettings->mBuf, writelen, &reportstruct->writecnt);
 	    if (reportstruct->packetLen <= 0) {
-		peerclose = true;
-		reportstruct->errwrite=WriteErrFatal;
-		// WARN_errno(1, "tcp bounce-back write");
+		if ((reportstruct->packetLen < 0) && FATALTCPWRITERR(errno)) {
+		    reportstruct->errwrite=WriteErrFatal;
+		    WARN_errno(1, "tcp bounceback write fatal error");
+		    peerclose = true;
+		} else if (reportstruct->packetLen == 0) {
+		    peerclose = true;
+		} else if (reportstruct->packetLen != writelen) {
+		    WARN_errno(1, "tcp bounceback writen incomplete");
+		    peerclose = true;
+		} else {
+		    // retry the write
+		    bb_burst++;
+		    continue;
+		}
 		break;
 	    }
 	    if (reportstruct->packetLen == writelen) {
@@ -1075,8 +1086,10 @@ void Client::RunBounceBackTCP () {
 		    myReportPacket();
 		} else if (n == 0) {
 		    peerclose = true;
-		} else {
-		    FAIL_errno(1, "tcp bounce-back read", mSettings);
+		} else if ((n < 0) && (FATALTCPREADERR(errno))) {
+		    WARN_errno(1, "bounceback read");
+		    peerclose = true;
+		    n = 0;
 		}
 	    } else if ((reportstruct->packetLen < 0 ) && NONFATALTCPWRITERR(errno)) {
 		reportstruct->packetLen = 0;
