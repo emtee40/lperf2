@@ -99,6 +99,7 @@ extern "C" {
 #define MAXTTL 255
 #endif
 #define DEFAULT_BOUNCEBACK_BYTES 100
+#define SMALL_WRITE_PREFETCH (1024 * 16)
 
 // server/client mode
 enum ThreadMode {
