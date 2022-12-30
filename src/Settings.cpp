@@ -1330,10 +1330,9 @@ static void strip_v6_brackets (char *v6addr) {
 static char * isv6_bracketed_port (char *v6addr) {
     char *results = NULL;
     if (v6addr && (*v6addr ==  '[') && ((results = strtok(v6addr, "]")) != NULL)) {
+	results = strtok(NULL, ":");
 	strip_v6_brackets(v6addr);
-	if (results[0]==':') {
-	    return ++results;
-	}
+	return results;
     }
     return NULL;
 }
