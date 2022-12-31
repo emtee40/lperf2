@@ -175,6 +175,7 @@ static inline void set_llawbuf_udp (int lambda, double meantransit, double varia
     llaw_buf[sizeof(llaw_buf) - 1] = '\0';
 }
 
+#if 0
 static inline void set_llawbuf_frames (int lambda, double meantransit, double variance, intmax_t framecnt) {
     int Lvar = 0;
     int L  = round(lambda * meantransit);
@@ -186,6 +187,7 @@ static inline void set_llawbuf_frames (int lambda, double meantransit, double va
     snprintf(llaw_buf, sizeof(llaw_buf), "%" PRIdMAX "/%d(%d) frames", framecnt, L, Lvar);
     llaw_buf[sizeof(llaw_buf) - 1] = '\0';
 }
+#endif
 
 #define NETPWR_LOWERBOUNDS -1e7
 static inline void set_netpowerbuf(double meantransit, struct TransferInfo *stats) {
