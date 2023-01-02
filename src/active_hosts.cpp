@@ -180,6 +180,7 @@ void Iperf_remove_host (struct thread_Settings *agent) {
 	if (--(*tmp)->thread_count == 0) {
 	    Iperf_ListEntry *remove = (*tmp);
 	    active_table.count--;
+	    agent->mSumReport = NULL;
 #if HAVE_THREAD_DEBUG
 	    active_table_show_entry("delete", remove, 1);
 #endif
