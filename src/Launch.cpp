@@ -422,6 +422,10 @@ void client_init(struct thread_Settings *clients) {
 		unsetPeriodicBurst(next);
 		unsetTxHoldback(next); // don't delay working load threads
 		next->mTOS = 0; // disable any QoS on the congestion stream
+#if HAVE_DECL_TCP_NOTSENT_LOWAT
+		next->mWritePrefetch = SMALL_WRITE_PREFETCH;
+		setWritePrefetch(next);
+#endif
 		if (isWorkingLoadUp(clients) && isWorkingLoadDown(clients)) {
 		    setFullDuplex(next);
 		} else if (isWorkingLoadDown(clients)) {

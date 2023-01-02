@@ -1308,7 +1308,9 @@ static void generate_permit_key (struct thread_Settings *mExtSettings) {
     int index;
     char characters[] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
     for(index = timestrlength; index < (DEFAULT_PERMITKEY_LEN + timestrlength); index++) {
-	sprintf(mExtSettings->mPermitKey + index, "%c", characters[rand() % (static_cast<int>(sizeof(characters)) - 1)]);
+        int len = snprintf(mExtSettings->mPermitKey + index, sizeof(char) + 1, "%c", \
+			   characters[rand() % (static_cast<int>(sizeof(characters)) - 1)]);
+        FAIL_errno ((len < 0), "permit-key gen", mExtSettings);
     }
     mExtSettings->mPermitKey[DEFAULT_PERMITKEY_LEN + timestrlength] = '\0';
     if (strlen(mExtSettings->mPermitKey) > MAX_PERMITKEY_LEN) {
@@ -1330,10 +1332,9 @@ static void strip_v6_brackets (char *v6addr) {
 static char * isv6_bracketed_port (char *v6addr) {
     char *results = NULL;
     if (v6addr && (*v6addr ==  '[') && ((results = strtok(v6addr, "]")) != NULL)) {
+	results = strtok(NULL, ":");
 	strip_v6_brackets(v6addr);
-	if (results[0]==':') {
-	    return ++results;
-	}
+	return results;
     }
     return NULL;
 }
