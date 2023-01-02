@@ -184,6 +184,7 @@ void Iperf_remove_host (struct thread_Settings *agent) {
 	    active_table_show_entry("delete", remove, 1);
 #endif
 	    *tmp = remove->next;
+	    FreeSumReport(remove->sum_report);
 	    delete remove;
 	} else {
 #if HAVE_THREAD_DEBUG

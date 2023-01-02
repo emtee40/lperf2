@@ -260,9 +260,6 @@ void Listener::Run () {
 	    // Not allowed, reset things and restart the loop
 	    // Don't forget to delete the UDP entry (inserted in my_accept)
 	    Iperf_remove_host(server);
-	    if (DecrSumReportRefCounter(server->mSumReport) <= 0) {
-		FreeSumReport(server->mSumReport);
-	    }
 	    if (!isUDP(server))
 	        close(server->mSock);
 	    assert(server != mSettings);
@@ -291,9 +288,6 @@ void Listener::Run () {
 		PostReport(reporthdr);
 	    }
 	    Iperf_remove_host(server);
-	    if (DecrSumReportRefCounter(server->mSumReport) <= 0) {
-		FreeSumReport(server->mSumReport);
-	    }
 	    close(server->mSock);
 	    assert(server != mSettings);
 	    Settings_Destroy(server);
@@ -305,9 +299,6 @@ void Listener::Run () {
 	    if (!isCompat(mSettings) && !isTapDev(mSettings) && (isL2LengthCheck(mSettings) || isL2LengthCheck(server)) && !L2_setup(server, server->mSock)) {
 		// Requested L2 testing but L2 setup failed
 		Iperf_remove_host(server);
-		if (DecrSumReportRefCounter(server->mSumReport) <= 0) {
-		    FreeSumReport(server->mSumReport);
-		}
 		assert(server != mSettings);
 		Settings_Destroy(server);
 		continue;

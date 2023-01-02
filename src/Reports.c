@@ -526,7 +526,6 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
 
     struct ReporterData *ireport = (struct ReporterData *)(reporthdr->this_report);
     if (inSettings->mSumReport) {
-	IncrSumReportRefCounter(inSettings->mSumReport);
 	ireport->GroupSumReport = inSettings->mSumReport;
     }
     if (isFullDuplex(inSettings)) {
