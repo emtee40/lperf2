@@ -403,6 +403,10 @@ void Settings_Copy (struct thread_Settings *from, struct thread_Settings **into,
 	    (*into)->mIsochronousStr = new char[strlen(from->mIsochronousStr) + 1];
 	    strcpy((*into)->mIsochronousStr, from->mIsochronousStr);
 	}
+	if (from->mHideHost != NULL) {
+	    (*into)->mHideHost = static_cast<char *>(calloc(strlen(from->mHideHost) + 1, sizeof(char)));
+	    strcpy((*into)->mHideHost, from->mHideHost);
+	}
 	if (from->mCongestion != NULL) {
 	    (*into)->mCongestion = new char[strlen(from->mCongestion) + 1];
 	    strcpy((*into)->mCongestion, from->mCongestion);
