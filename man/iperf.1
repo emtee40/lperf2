@@ -274,7 +274,7 @@ Measure the socket write times
 time in seconds to transmit traffic, use zero for infinite (default is 10 secs)
 .TP
 .BR "    --trip-times "
-enable the measurement of end to end write to read latencies (client and server clocks must be synchronized)
+enable the measurement of end to end write to read latencies (client and server clocks must be synchronized.) See notes about tcp-write-prefetch being enabled.
 .TP
 .BR "    --txdelay-time "
 time in seconds to hold back or delay after the TCP connect and prior to the socket writes. For UDP it's the delay between the traffic thread starting and the first write.
@@ -813,6 +813,12 @@ af22, af23, af31, af32, af33, af41, af42, af43, cs0, cs1, cs2, cs3, cs4, cs5, cs
 ac_be, ac_bk, ac_vi, ac_vo, lowdelay, throughput, reliability\fR, a numeric value, or none to use the operating system default.
 The ac_xx values are the four access categories defined in WMM for Wi-Fi, and they are aliases for DSCP values that will be mapped
 to the corresponding ACs under the assumption that the device uses the DSCP-to-UP mapping table specified in IETF RFC 8325.
+.P
+.B --trip-times
+The --trip-times option enables many one way delay (OWD) metrics. Also note that using --trip-times on a TCP client
+will cause --tcp-write-prefetch to be set to a small value if tcp-write-prefetch hasn't hasn't also been set. This is
+done to reduce send side bloat latency (which is unrelated to network induced latency.) Set --tcp-write-prefetch
+to zero to disable this (which will disable TCP_NOTSENT_LOWAT) and will allow for send side bloat.
 .P
 .B Synchronized clocks:
 The --trip-times option indicates that the client's and server's clocks are synchronized to a common reference.

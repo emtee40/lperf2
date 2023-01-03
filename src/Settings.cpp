@@ -1555,7 +1555,19 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 		mExtSettings->mBounceBackBurst = 10;
 	    }
 	}
-
+#if HAVE_DECL_TCP_NOTSENT_LOWAT
+	if (isTripTime(mExtSettings)) {
+	    if (isWritePrefetch(mExtSettings)) {
+		if (mExtSettings->mWritePrefetch <= 0) {
+		    unsetWritePrefetch(mExtSettings);
+		}
+	    } else {
+		mExtSettings->mWritePrefetch = SMALL_WRITE_PREFETCH;
+		setWritePrefetch(mExtSettings);
+		setEnhanced(mExtSettings);
+	    }
+	}
+#endif
 	if (isPeriodicBurst(mExtSettings)) {
 	    if (isIsochronous(mExtSettings)) {
 		fprintf(stderr, "ERROR: options of --burst-period and --isochronous cannot be applied together\n");
@@ -1582,6 +1594,10 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	    }
 	    if (isConnectOnly(mExtSettings)) {
 		fprintf(stderr, "ERROR: option of --connect-only not supported with -u UDP\n");
+		bail = true;
+	    }
+	    if (isBounceBack(mExtSettings)) {
+		fprintf(stderr, "ERROR: option of -X or --bounceback not supported with -u UDP\n");
 		bail = true;
 	    }
 	    if (isNearCongest(mExtSettings)) {
