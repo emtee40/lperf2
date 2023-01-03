@@ -252,7 +252,6 @@ static void clientside_client_fullduplex (struct thread_Settings *thread, Client
     if (theClient->isConnected()) {
 	thread->mFullDuplexReport->info.common->socket = thread->mSock;
 	FAIL((!reverse_client || !(thread->mSock > 0)), "Reverse test failed to start per thread settings or socket problem",  thread);
-	reverse_client->mSumReport = thread->mSumReport;
 	reverse_client->mSock = thread->mSock; // use the same socket for both directions
 	reverse_client->mThreadMode = kMode_Server;
 	setReverse(reverse_client);

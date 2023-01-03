@@ -596,12 +596,9 @@ int reporter_process_transfer_report (struct ReporterData *this_ireport) {
 		if (TimeDifference(sumstats->ts.packetTime, packet->packetTime) > 0) {
 		    sumstats->ts.packetTime = packet->packetTime;
 		}
-		if (DecrSumReportRefCounter(this_ireport->GroupSumReport) == 0) {
-		    if (this_ireport->GroupSumReport->transfer_protocol_sum_handler && \
-			((this_ireport->GroupSumReport->reference.maxcount > 1) || isSumOnly(this_ireport->info.common))) {
-			(*this_ireport->GroupSumReport->transfer_protocol_sum_handler)(&this_ireport->GroupSumReport->info, 1);
-		    }
-		    FreeSumReport(this_ireport->GroupSumReport);
+		if (this_ireport->GroupSumReport->transfer_protocol_sum_handler &&\
+		    ((--this_ireport->GroupSumReport->reference.maxcount) == 0)) {
+		    (*this_ireport->GroupSumReport->transfer_protocol_sum_handler)(&this_ireport->GroupSumReport->info, 1);
 		}
 	    }
 	}
