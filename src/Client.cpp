@@ -846,30 +846,45 @@ void Client::RunRateLimitedTCP () {
 	    int len = 0;
 	    int len2 = 0;
 	    if (burst_remaining == 0) {
-	      burst_remaining = mSettings->mBufLen;
-	      now.setnow();
-	      reportstruct->packetTime.tv_sec = now.getSecs();
-	      reportstruct->packetTime.tv_usec = now.getUsecs();
-	      reportstruct->sentTime = reportstruct->packetTime;
-	      WriteTcpTxHdr(reportstruct, burst_size, burst_id++);
-	      // perform write
-	      if (isTripTime(mSettings)) {
-		len = writen(mySocket, mSettings->mBuf, mSettings->mBufLen, &reportstruct->writecnt);
-		WARN(len != mSettings->mBufLen, "burst write failed");
-	      } else {
-		len = writen(mySocket, mSettings->mBuf, sizeof(struct TCP_burst_payload), &reportstruct->writecnt);
-		WARN(len != sizeof(struct TCP_burst_payload), "burst hdr write failed");
-	      }
-	      burst_remaining -= len;
-	      // thread_debug("***write burst header %d id=%d", burst_size, (burst_id - 1));
+		burst_remaining = mSettings->mBufLen;
+		now.setnow();
+		reportstruct->packetTime.tv_sec = now.getSecs();
+		reportstruct->packetTime.tv_usec = now.getUsecs();
+		reportstruct->sentTime = reportstruct->packetTime;
+		WriteTcpTxHdr(reportstruct, burst_size, burst_id++);
+		// perform write
+		if (isTripTime(mSettings)) {
+		    len = writen(mySocket, mSettings->mBuf, mSettings->mBufLen, &reportstruct->writecnt);
+		    WARN(len != mSettings->mBufLen, "burst write failed");
+		} else {
+		    len = writen(mySocket, mSettings->mBuf, sizeof(struct TCP_burst_payload), &reportstruct->writecnt);
+		    WARN(len != sizeof(struct TCP_burst_payload), "burst hdr write failed");
+		}
+		if (len < 0) {
+		    len = 0;
+		    if (NONFATALTCPWRITERR(errno)) {
+			reportstruct->errwrite=WriteErrAccount;
+		    } else if (FATALTCPWRITERR(errno)) {
+			reportstruct->errwrite=WriteErrFatal;
+			WARN_errno(1, "write");
+			fatalwrite_err = 1;
+			break;
+		    } else {
+			reportstruct->errwrite=WriteErrNoAccount;
+		    }
+		} else {
+		    burst_remaining -= len;
+		}
+		// thread_debug("***write burst header %d id=%d", burst_size, (burst_id - 1));
 	    } else if (reportstruct->packetLen > burst_remaining) {
-	      reportstruct->packetLen = burst_remaining;
+		reportstruct->packetLen = burst_remaining;
 	    }
 	    if (burst_remaining > 0) {
-	      len2 = write(mySocket, mSettings->mBuf, reportstruct->packetLen);
-	      reportstruct->writecnt++;
+		len2 = write(mySocket, mSettings->mBuf, reportstruct->packetLen);
+		reportstruct->writecnt++;
 	    }
-	    if ((len < 0) || (len2 < 0)) {
+	    if (len2 < 0) {
+		len2 = 0;
 	        if (NONFATALTCPWRITERR(errno)) {
 		    reportstruct->errwrite=WriteErrAccount;
 		} else if (FATALTCPWRITERR(errno)) {
@@ -880,8 +895,6 @@ void Client::RunRateLimitedTCP () {
 		} else {
 		    reportstruct->errwrite=WriteErrNoAccount;
 	        }
-		len = 0;
-		len2 = 0;
 	    } else {
 		// Consume tokens per the transmit
 	        tokens -= (len + len2);
