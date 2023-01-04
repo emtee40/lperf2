@@ -836,11 +836,6 @@ void Client::RunRateLimitedTCP () {
 	}
 	tokens += time2.subSec(time1) * (var_rate / 8.0);
 	time1 = time2;
-#if HAVE_DECL_TCP_NOTSENT_LOWAT
-	if (isWritePrefetch(mSettings)) {
-	    AwaitWriteSelectEventTCP();
-	}
-#endif
 	if (tokens >= 0.0) {
 	    if (isModeAmount(mSettings)) {
 	        reportstruct->packetLen = ((mSettings->mAmount < static_cast<unsigned>(mSettings->mBufLen)) ? mSettings->mAmount : mSettings->mBufLen);
@@ -924,7 +919,14 @@ void Client::RunRateLimitedTCP () {
 	    }
         } else {
 	    // Use a 4 usec delay to fill tokens
-	    delay_loop(4);
+#if HAVE_DECL_TCP_NOTSENT_LOWAT
+	    if (isWritePrefetch(mSettings)) {
+		AwaitWriteSelectEventTCP();
+	    } else
+#endif
+	    {
+		delay_loop(4);
+	    }
 	}
     }
     FinishTrafficActions();
