@@ -594,7 +594,7 @@ void Listener::my_multicast_join () {
 #endif
 		rc = -1;
 #if HAVE_DECL_MCAST_JOIN_SOURCE_GROUP
-		rc = setsockopt(ListenSocket,IPPROTO_IPV6,MCAST_JOIN_SOURCE_GROUP, &group_source_req,
+		rc = setsockopt(ListenSocket,IPPROTO_IPV6,MCAST_JOIN_SOURCE_GROUP, reinterpret_cast<const char *>(&group_source_req),
 				sizeof(group_source_req));
 #endif
 		FAIL_errno(rc == SOCKET_ERROR, "mcast v6 join source group",mSettings);
@@ -613,7 +613,7 @@ void Listener::my_multicast_join () {
 		group->sin6_port = 0;    /* Ignored */
 		rc = -1;
 #if HAVE_DECL_MCAST_JOIN_GROUP
-		rc = setsockopt(ListenSocket,IPPROTO_IPV6,MCAST_JOIN_GROUP, &group_req,
+		rc = setsockopt(ListenSocket,IPPROTO_IPV6,MCAST_JOIN_GROUP, reinterpret_cast<const char *>(&group_req),
 				sizeof(group_source_req));
 #endif
 		FAIL_errno(rc == SOCKET_ERROR, "mcast v6 join group",mSettings);
@@ -661,7 +661,7 @@ void Listener::my_multicast_join () {
 		rc = -1;
 
 #if HAVE_DECL_MCAST_JOIN_SOURCE_GROUP
-		rc = setsockopt(ListenSocket,IPPROTO_IP,MCAST_JOIN_SOURCE_GROUP, &group_source_req,
+		rc = setsockopt(ListenSocket,IPPROTO_IP,MCAST_JOIN_SOURCE_GROUP, reinterpret_cast<const char *>(&group_source_req),
 				sizeof(group_source_req));
 #endif
 
@@ -698,7 +698,7 @@ void Listener::my_multicast_join () {
 		group->sin_port = 0;    /* Ignored */
 		rc = -1;
 #if HAVE_DECL_MCAST_JOIN_GROUP
-		rc = setsockopt(ListenSocket,IPPROTO_IP,MCAST_JOIN_GROUP, &group_req,
+		rc = setsockopt(ListenSocket,IPPROTO_IP,MCAST_JOIN_GROUP, reinterpret_cast<const char *>(&group_req),
 				sizeof(group_source_req));
 #endif
 		FAIL_errno(rc == SOCKET_ERROR, "mcast join group",mSettings);
