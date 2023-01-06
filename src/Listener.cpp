@@ -217,7 +217,7 @@ void Listener::Run () {
 	    WARN(1, "Failed setting socket to blocking mode");
 	}
 	// Instantiate another settings object to be used by the server thread
-	Settings_Copy(mSettings, &server, 1);
+	Settings_Copy(mSettings, &server, DEEP_COPY);
 	FAIL(!server, "Failed memory allocation for server settings", mSettings);
 	server->mThreadMode = kMode_Server;
 	if (!isDataReport(mSettings))

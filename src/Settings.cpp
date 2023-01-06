@@ -2037,7 +2037,7 @@ void Settings_GetLowerCaseArg (const char *inarg, char *outarg) {
 #define DUALTIMER_MS 300
 void Settings_GenerateListenerSettings (struct thread_Settings *client, struct thread_Settings **listener) {
     if ((client->mMode == kTest_DualTest) || (client->mMode == kTest_TradeOff)) {
-	Settings_Copy(client, listener, 0);
+	Settings_Copy(client, listener, SHALLOW_COPY);
         unsetDaemon((*listener));
         setCompat((*listener));
         if (client->mListenPort != 0) {
@@ -2148,7 +2148,7 @@ void Settings_GenerateClientSettings (struct thread_Settings *server, struct thr
     if (isFullDuplex(server) || isServerReverse(server))
 	setTransferID(server, 1);
     if (isFullDuplex(server) || v1test) {
-	Settings_Copy(server, client, 0);
+	Settings_Copy(server, client, SHALLOW_COPY);
 	reversed_thread = *client;
 	if (isFullDuplex(server) && !(flags & HEADER_VERSION1)) {
 	    setFullDuplex(reversed_thread);

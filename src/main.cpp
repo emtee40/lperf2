@@ -284,7 +284,7 @@ int main(int argc, char **argv) {
     {
 	thread_Settings *into = NULL;
 	// Create the settings structure for the reporter thread
-	Settings_Copy(ext_gSettings, &into, 1);
+	Settings_Copy(ext_gSettings, &into, DEEP_COPY);
 	into->mThreadMode = ReporterThreadMode;
 	into->mSumReport = NULL;
 	into->mFullDuplexReport = NULL;
@@ -429,7 +429,7 @@ VOID ServiceStart (DWORD dwArgc, LPTSTR *lpszArgv) {
     {
         thread_Settings *into = NULL;
 #ifdef HAVE_THREAD
-        Settings_Copy(ext_gSettings, &into, 1);
+        Settings_Copy(ext_gSettings, &into, DEEP_COPY);
         into->mThreadMode = kMode_Reporter;
         into->runNow = ext_gSettings;
 #else

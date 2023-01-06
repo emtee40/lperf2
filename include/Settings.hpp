@@ -101,6 +101,8 @@ extern "C" {
 #define DEFAULT_BOUNCEBACK_BYTES 100
 #define SMALL_WRITE_PREFETCH (1024 * 16)
 
+#define SHALLOW_COPY 1
+#define DEEP_COPY 1
 // server/client mode
 enum ThreadMode {
     kMode_Unknown = 0,

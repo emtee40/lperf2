@@ -199,7 +199,8 @@ static void clientside_client_basic (struct thread_Settings *thread, Client *the
     }
 }
 
-static void clientside_client_reverse (struct thread_Settings *thread, Client *theClient) {
+static void clientside_client_reverse (struct thread_Settings *thread,  \
+				       struct thread_Settings *reverse_client, Client *theClient) {
     setTransferID(thread, 0);
     SockAddr_remoteAddr(thread);
     theClient->my_connect(true);
@@ -210,8 +211,6 @@ static void clientside_client_reverse (struct thread_Settings *thread, Client *t
 	// When -P > 1 then all threads finish connect before starting traffic
 	theClient->BarrierClient(thread->connects_done);
     if (theClient->isConnected()) {
-	struct thread_Settings *reverse_client = NULL;
-	Settings_Copy(thread, &reverse_client, 0);
 	FAIL((!reverse_client || !(thread->mSock > 0)), "Reverse test failed to start per thread settings or socket problem",  thread);
 	setTransferID(reverse_client, 1);
 	theClient->StartSynch();
@@ -227,14 +226,14 @@ static void clientside_client_reverse (struct thread_Settings *thread, Client *t
     }
 }
 
-static void clientside_client_fullduplex (struct thread_Settings *thread, Client *theClient) {
-    struct thread_Settings *reverse_client = NULL;
+static void clientside_client_fullduplex (struct thread_Settings *thread, \
+					  struct thread_Settings *reverse_client, Client *theClient) {
     setTransferID(thread, 0);
     SockAddr_remoteAddr(thread);
     if (!isBounceBack(thread)) {
         thread->mFullDuplexReport = InitSumReport(thread, -1, 1);
     }
-    Settings_Copy(thread, &reverse_client, 0);
+    Settings_Copy(thread, &reverse_client, SHALLOW_COPY);
     if ((thread->mThreads > 1) || isSumOnly(thread) || \
 	(!(thread->mThreads > 1) && !isEnhanced(thread))) {
 	Iperf_push_host(thread);
@@ -339,9 +338,15 @@ void client_spawn (struct thread_Settings *thread) {
 	if (!isReverse(thread) && !isFullDuplex(thread)) {
 	    clientside_client_basic(thread, theClient);
 	} else if (isReverse(thread) && !isFullDuplex(thread)) {
-	    clientside_client_reverse(thread, theClient);
+	    struct thread_Settings *reverse_thread = NULL;
+	    Settings_Copy(thread, &reverse_thread, DEEP_COPY);
+	    FAIL((reverse_thread == NULL), "Reverse thread alloc failed",  thread);
+	    clientside_client_reverse(thread, reverse_thread, theClient);
 	} else if (isFullDuplex(thread)) {
-	    clientside_client_fullduplex(thread, theClient);
+	    struct thread_Settings *reverse_thread = NULL;
+	    Settings_Copy(thread, &reverse_thread, DEEP_COPY);
+	    FAIL((reverse_thread == NULL), "Reverse in full-duplex thread alloc failed",  thread);
+	    clientside_client_fullduplex(thread, reverse_thread, theClient);
 	} else {
 	    fprintf(stdout, "Program error in client side client_spawn");
 	    _exit(0);
@@ -387,7 +392,7 @@ void client_init(struct thread_Settings *clients) {
     // provided settings, unsetting the report flag and add
     // to the list of threads to start
     for (int i = 1; i < clients->mThreads; i++) {
-	Settings_Copy(clients, &next, 1);
+	Settings_Copy(clients, &next, DEEP_COPY);
 	// printf("*****port/thread = %d/%d\n", next->mPort + i, i);
 	if (next) {
 	    if (isIncrSrcIP(clients) && (clients->mLocalhost != NULL)) {
@@ -415,7 +420,7 @@ void client_init(struct thread_Settings *clients) {
     if (isBounceBack(clients) && (isWorkingLoadUp(clients) || isWorkingLoadDown(clients))) {
 	int bbwlthreads = (clients->mBounceBackCongestThreads == 0) ? 1 : clients->mBounceBackCongestThreads;
 	while (bbwlthreads--) {
-	    Settings_Copy(clients, &next, 1);
+	    Settings_Copy(clients, &next, DEEP_COPY);
 	    if (next != NULL) {
 		unsetBounceBack(next);
 		unsetPeriodicBurst(next);
@@ -457,7 +462,7 @@ void listeners_init(struct thread_Settings *listener) {
     struct thread_Settings *itr = listener;
     struct thread_Settings *next = NULL;
     for (int ix = 1; ix < (listener->mPortLast - listener->mPort + 1); ix++)  {
-	Settings_Copy(listener, &next, 1);
+	Settings_Copy(listener, &next, DEEP_COPY);
 	if (next != NULL) {
 	    setNoSettReport(next);
 	    next->mPort = listener->mPort + ix;
