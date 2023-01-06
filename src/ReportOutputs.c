@@ -286,7 +286,7 @@ void tcp_output_read_triptime (struct TransferInfo *stats) {
         meantransit = (stats->transit.total.cnt > 0) ? (stats->transit.total.sum / stats->transit.total.cnt) : 0;
 	set_netpowerbuf(meantransit, stats);
 	set_llawbuf(lambda, meantransit);
-	printf(report_bw_read_enhanced_format,
+	printf(report_bw_read_enhanced_netpwr_format,
 	       stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
 	       outbuffer, outbufferext,
 	       (meantransit * 1e3),
