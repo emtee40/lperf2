@@ -368,27 +368,27 @@ void Settings_Copy (struct thread_Settings *from, struct thread_Settings **into,
     if (copyall) {
 	// Don't allocate memory for these if this is a reverse client
 	if (from->mHost != NULL) {
-	    (*into)->mHost = new char[ strlen(from->mHost) + 1];
+	    (*into)->mHost = new char[strlen(from->mHost) + 1];
 	    strcpy((*into)->mHost, from->mHost);
 	}
 	if (from->mOutputFileName != NULL) {
-	    (*into)->mOutputFileName = new char[ strlen(from->mOutputFileName) + 1];
+	    (*into)->mOutputFileName = new char[strlen(from->mOutputFileName) + 1];
 	    strcpy((*into)->mOutputFileName, from->mOutputFileName);
 	}
 	if (from->mLocalhost != NULL) {
-	    (*into)->mLocalhost = new char[ strlen(from->mLocalhost) + 1];
+	    (*into)->mLocalhost = new char[strlen(from->mLocalhost) + 1];
 	    strcpy((*into)->mLocalhost, from->mLocalhost);
 	}
 	if (from->mFileName != NULL) {
-	    (*into)->mFileName = new char[ strlen(from->mFileName) + 1];
+	    (*into)->mFileName = new char[strlen(from->mFileName) + 1];
 	    strcpy((*into)->mFileName, from->mFileName);
 	}
 	if (from->mHistogramStr != NULL) {
-	    (*into)->mHistogramStr = new char[ strlen(from->mHistogramStr) + 1];
+	    (*into)->mHistogramStr = new char[strlen(from->mHistogramStr) + 1];
 	    strcpy((*into)->mHistogramStr, from->mHistogramStr);
 	}
 	if (from->mSSMMulticastStr != NULL) {
-	    (*into)->mSSMMulticastStr = new char[ strlen(from->mSSMMulticastStr) + 1];
+	    (*into)->mSSMMulticastStr = new char[strlen(from->mSSMMulticastStr) + 1];
 	    strcpy((*into)->mSSMMulticastStr, from->mSSMMulticastStr);
 	}
 	if (from->mIfrname != NULL) {
@@ -404,7 +404,7 @@ void Settings_Copy (struct thread_Settings *from, struct thread_Settings **into,
 	    strcpy((*into)->mIsochronousStr, from->mIsochronousStr);
 	}
 	if (from->mHideHost != NULL) {
-	    (*into)->mHideHost = static_cast<char *>(calloc(strlen(from->mHideHost) + 1, sizeof(char)));
+	    (*into)->mHideHost = new char[strlen(from->mHideHost) + 1];
 	    strcpy((*into)->mHideHost, from->mHideHost);
 	}
 	if (from->mCongestion != NULL) {
@@ -424,7 +424,7 @@ void Settings_Copy (struct thread_Settings *from, struct thread_Settings **into,
 	(*into)->mCongestion = NULL;
 	// apply the server side congestion setting to reverse clients
 	if (from->mIsochronousStr != NULL) {
-	    (*into)->mIsochronousStr = new char[ strlen(from->mIsochronousStr) + 1];
+	    (*into)->mIsochronousStr = new char[strlen(from->mIsochronousStr) + 1];
 	    strcpy((*into)->mIsochronousStr, from->mIsochronousStr);
 	}
     }
@@ -561,7 +561,7 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
     setBWSet(mExtSettings);
     break;
     case 'c': // client mode w/ server host to connect to
-	mExtSettings->mHost = new char[ strlen(optarg) + 1 ];
+	mExtSettings->mHost = new char[strlen(optarg) + 1 ];
 	strcpy(mExtSettings->mHost, optarg);
 
 	if (mExtSettings->mThreadMode == kMode_Unknown) {
@@ -789,7 +789,7 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 
     case 'B': // specify bind address
 	if (mExtSettings->mLocalhost == NULL) {
-	    mExtSettings->mLocalhost = new char[ strlen(optarg) + 1 ];
+	    mExtSettings->mLocalhost = new char[strlen(optarg) + 1 ];
 	    strcpy(mExtSettings->mLocalhost, optarg);
 	}
 	break;
@@ -1061,7 +1061,7 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	    setHistogram(mExtSettings);
 	    setEnhanced(mExtSettings);
 	    if (optarg) {
-		mExtSettings->mHistogramStr = new char[ strlen(optarg) + 1 ];
+		mExtSettings->mHistogramStr = new char[strlen(optarg) + 1 ];
 		strcpy(mExtSettings->mHistogramStr, optarg);
 	    } else {
 		mExtSettings->mHistogramStr = NULL;
@@ -1113,7 +1113,7 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	    mExtSettings->mVariance = 0.0;
 	    mExtSettings->mBurstIPG = 5e-6;
 	    if (optarg) {
-		mExtSettings->mIsochronousStr = new char[ strlen(optarg) + 1 ];
+		mExtSettings->mIsochronousStr = new char[strlen(optarg) + 1 ];
 		strcpy(mExtSettings->mIsochronousStr, optarg);
 	    }
 	}
