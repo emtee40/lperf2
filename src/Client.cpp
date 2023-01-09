@@ -1,6 +1,6 @@
 /*---------------------------------------------------------------
  * Copyright (c) 1999,2000,2001,2002,2003
- * The Board ofraTrustees of the University of Illinois
+ * The Board of Trustees of the University of Illinois
  * All Rights Reserved.
  *---------------------------------------------------------------
  * Permission is hereby granted, free of charge, to any person
