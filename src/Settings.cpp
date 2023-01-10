@@ -535,7 +535,7 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	setIPV4(mExtSettings);
 	break;
 
-    case '6': // v4 only
+    case '6': // v6 only
 	setIPV6(mExtSettings);
 	break;
 

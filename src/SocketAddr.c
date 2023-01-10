@@ -433,13 +433,16 @@ int SockAddr_isMulticast (iperf_sockaddr *inSockAddr) {
         return(IN6_IS_ADDR_MULTICAST(&(((struct sockaddr_in6*) inSockAddr)->sin6_addr)));
     } else
 #endif
-    {
-        // 224.0.0.0 to 239.255.255.255 (e0.00.00.00 to ef.ff.ff.ff)
-        const unsigned long kMulticast_Mask = 0xe0000000L;
-
-        return(kMulticast_Mask ==
-               (ntohl(((struct sockaddr_in*) inSockAddr)->sin_addr.s_addr) & kMulticast_Mask));
-    }
+	{
+	    // 224.0.0.0 to 239.255.255.255 (e0.00.00.00 to ef.ff.ff.ff)
+#ifdef IN_MULTICAST
+	    return(IN_MULTICAST(&(((struct sockaddr_in*) inSockAddr)->sin_addr.s_addr)));
+#else
+	    const unsigned long kClassD_Mask = 0xf0000000L;
+	    const unsigned long kMulticast = 0xe0000000L;
+	    return((((ntohl(((struct sockaddr_in*) inSockAddr)->sin_addr.s_addr)) & kClassD_Mask) == kMulticast));
+#endif
+	}
 }
 // end isMulticast
 
