@@ -140,7 +140,7 @@ void SetSocketOptions (struct thread_Settings *inSettings) {
 #endif
     } else
 #endif
-#if (HAVE_DECL_SO_BINDTODEVICE) && 0
+#if (HAVE_DECL_SO_BINDTODEVICE)
     {
 	char **device = (inSettings->mThreadMode == kMode_Client) ? &inSettings->mIfrnametx : &inSettings->mIfrname;
 	if (*device) {
