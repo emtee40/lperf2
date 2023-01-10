@@ -434,9 +434,12 @@ int SockAddr_isMulticast (iperf_sockaddr *inSockAddr) {
     } else
 #endif
 	{
-	    // 224.0.0.0 to 239.255.255.255 (e0.00.00.00 to ef.ff.ff.ff)
+
 #ifdef IN_MULTICAST
-	    return(IN_MULTICAST(&(((struct sockaddr_in*) inSockAddr)->sin_addr.s_addr)));
+	    // 224.0.0.0 to 239.255.255.255 (e0.00.00.00 to ef.ff.ff.ff)
+	    // convert from network to host byte order
+	    uint32_t maddr = ntohl((uint32_t)(((struct sockaddr_in*) inSockAddr)->sin_addr.s_addr));
+	    return (IN_MULTICAST(maddr));
 #else
 	    const unsigned long kClassD_Mask = 0xf0000000L;
 	    const unsigned long kMulticast = 0xe0000000L;
