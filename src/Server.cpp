@@ -658,11 +658,14 @@ inline int Server::ReadWithRxTimestamp () {
     cmsg = reinterpret_cast<struct cmsghdr *>(&ctrl);
     currLen = recvmsg(mSettings->mSock, &message, mSettings->recvflags);
     if (currLen > 0) {
-	if (cmsg->cmsg_level == SOL_SOCKET &&
-	    cmsg->cmsg_type  == SCM_TIMESTAMP &&
-	    cmsg->cmsg_len   == CMSG_LEN(sizeof(struct timeval))) {
-	    memcpy(&(reportstruct->packetTime), CMSG_DATA(cmsg), sizeof(struct timeval));
-	    tsdone = 1;
+	for (cmsg = CMSG_FIRSTHDR(&message); cmsg != NULL;
+	     cmsg = CMSG_NXTHDR(&message, cmsg)) {
+	    if (cmsg->cmsg_level == SOL_SOCKET &&
+		cmsg->cmsg_type  == SCM_TIMESTAMP &&
+		cmsg->cmsg_len   == CMSG_LEN(sizeof(struct timeval))) {
+		memcpy(&(reportstruct->packetTime), CMSG_DATA(cmsg), sizeof(struct timeval));
+		tsdone = 1;
+	    }
 	}
     }
 #else
