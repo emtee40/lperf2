@@ -167,7 +167,6 @@ const struct option long_options[] =
 {"awdl",             no_argument, NULL, 'A'},
 {"bind",       required_argument, NULL, 'B'},
 {"bounceback", optional_argument, &bounceback, 1},
-{"bounceback-congest", optional_argument, &workingload, 1},
 {"bounceback-txdelay", required_argument, &bouncebackdelaystart, 1},
 {"bounceback-hold", required_argument, &bouncebackhold, 1},
 {"bounceback-no-quickack", no_argument, &notcpbbquickack, 1},
@@ -228,6 +227,7 @@ const struct option long_options[] =
 {"tcp-write-times", no_argument, &tcpwritetimes, 1},
 {"tap-dev", optional_argument, &tapif, 1},
 {"tun-dev", optional_argument, &tunif, 1},
+{"working-load", optional_argument, &workingload, 1},
 {"NUM_REPORT_STRUCTS", required_argument, &numreportstructs, 1},
 #ifdef WIN32
 {"reverse", no_argument, &reversetest, 1},
@@ -1168,10 +1168,10 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 			    setWorkingLoadUp(mExtSettings);
 			    setWorkingLoadDown(mExtSettings);
 			} else {
-			    fprintf(stderr, "Unrecoginized value of %s for bounceback-congestion, use 'up', 'down' or 'bidir'\n", results);
+			    fprintf(stderr, "Unrecoginized value of %s for --working-load, use 'up', 'down' or 'bidir'\n", results);
 			}
 			if ((results = strtok(NULL, ",")) != NULL) {
-			    mExtSettings->mBounceBackCongestThreads = atoi(results);
+			    mExtSettings->mWorkingLoadThreads = atoi(results);
 			}
 			delete [] tmp;
 		    }

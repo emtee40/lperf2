@@ -417,12 +417,14 @@ void client_init(struct thread_Settings *clients) {
 	itr->runNow = next;
 	itr = next;
     }
-    if (isBounceBack(clients) && (isWorkingLoadUp(clients) || isWorkingLoadDown(clients))) {
-	int bbwlthreads = (clients->mBounceBackCongestThreads == 0) ? 1 : clients->mBounceBackCongestThreads;
-	while (bbwlthreads--) {
+    if ((isBounceBack(clients) || isConnectOnly(clients) || isPeriodicBurst(next))\
+	&& (isWorkingLoadUp(clients) || isWorkingLoadDown(clients))) {
+	int working_load_threads = (clients->mWorkingLoadThreads == 0) ? 1 : clients->mWorkingLoadThreads;
+	while (working_load_threads--) {
 	    Settings_Copy(clients, &next, DEEP_COPY);
 	    if (next != NULL) {
 		unsetBounceBack(next);
+		unsetConnectOnly(next);
 		unsetPeriodicBurst(next);
 		unsetTxHoldback(next); // don't delay working load threads
 		next->mTOS = 0; // disable any QoS on the congestion stream
@@ -435,7 +437,7 @@ void client_init(struct thread_Settings *clients) {
 		} else if (isWorkingLoadDown(clients)) {
 		    setReverse(next);
 		}
-		if (isBounceBack(clients) && (clients->mBounceBackCongestThreads > 1)) {
+		if (isBounceBack(clients) && (clients->mWorkingLoadThreads > 1)) {
 		    Iperf_push_host(clients);
 		}
 		// Bump the bounceback time to include the delay time

@@ -299,7 +299,7 @@ class iperf_flow(object):
         }
         return switcher.get(txt.upper(), None)
 
-    def __init__(self, name='iperf', server='localhost', client='localhost', user=None, proto='TCP', dstip='127.0.0.1', interval=1, format='b', offered_load=None, tos='BE', window='4M', src=None, srcip=None, srcport=None, dstport=None,  debug=False, length=None, ipg=0.0, amount=None, trip_times=True, prefetch=None, latency=True, bb=False, bb_congest=False, bb_period=None, bb_hold=None, txstart_delay_sec=None, burst_size=None, burst_period=None, fullduplex=False):
+    def __init__(self, name='iperf', server='localhost', client='localhost', user=None, proto='TCP', dstip='127.0.0.1', interval=1, format='b', offered_load=None, tos='BE', window='4M', src=None, srcip=None, srcport=None, dstport=None,  debug=False, length=None, ipg=0.0, amount=None, trip_times=True, prefetch=None, latency=True, bb=False, working_load=False, bb_period=None, bb_hold=None, txstart_delay_sec=None, burst_size=None, burst_period=None, fullduplex=False):
         iperf_flow.instances.add(self)
         self.name = name
         self.latency = latency
@@ -357,7 +357,7 @@ class iperf_flow(object):
         self.debug = debug
         self.TRAFFIC_EVENT_TIMEOUT = round(self.interval * 4, 3)
         self.bb = bb
-        self.bb_congest = bb_congest
+        self.working_load = working_load
         self.bb_period = bb_period
         self.bb_hold = bb_hold
         self.fullduplex = fullduplex
@@ -993,8 +993,8 @@ class iperf_client(object):
 
         if self.flow.bb :
             self.sshcmd.extend(['--bounceback'])
-            if self.flow.bb_congest :
-                self.sshcmd.extend(['--bounceback-congest'])
+            if self.flow.working_load :
+                self.sshcmd.extend(['--working-load'])
 
         if epoch_sync_time :
             self.sshcmd.extend(['--txstart-time', str(epoch_sync_time)])

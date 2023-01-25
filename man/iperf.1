@@ -175,9 +175,6 @@ set target bandwidth to \fIn\fR bits/sec (default 1 Mbit/sec) or
 .BR "    --bounceback[=" \fIn\fR "]"
 run a TCP bounceback or rps test with optional number writes in a burst per value of n. The default is ten writes every period and the default period is one second (Note: set size with -l or --len which defaults to 100 bytes)
 .TP
-.BR "    --bounceback-congest[="\fBup|down|bidir][\fR,\fIn\fR\fB]\fR
-request a concurrent working load, currently TCP stream(s), defaults to full duplex (or bidir) unless the \fBup\fR or \fBdown\fR option is provided. The number of TCP streams defaults to 1 and can be changed via the n value, e.g. \fB--bounceback-congest=down,4\fR will use four TCP streams from server to the client as the working load. The IP ToS will be BE (0x0) for working load traffic.
-.TP
 .BR "    --bounceback-hold " \fIn\fR
 request the server to insert a delay of n milliseconds between its read and write (default is no delay)
 .TP
@@ -305,6 +302,10 @@ set the socket's IP_TOS value. Versions 2.1.5 or greater will reflect this tos s
 .TP
 .BR -T ", " --ttl " \fIn\fR"
 time-to-live, for multicast (default 1)
+.TP
+.BR "    --working-load[="\fBup|down|bidir][\fR,\fIn\fR\fB]\fR
+request a concurrent working load, currently TCP stream(s), defaults to full duplex (or bidir) unless the \fBup\fR or \fBdown\fR option is provided. The number of TCP streams defaults to 1 and can be changed via the n value, e.g. \fB--working-load=down,4\fR will use four TCP streams from server to the client as the working load. The IP ToS will be BE (0x0) for working load traffic.
+.TP
 .BR -V ", " --ipv6_domain " "
 Set the domain to IPv6 (send packets over IPv6)
 .TP

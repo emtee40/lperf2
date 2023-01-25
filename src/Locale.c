@@ -117,7 +117,6 @@ const char usage_long2[] = "\
 \n\
 Client specific:\n\
       --bounceback         request a bounceback test (use -l for size, defaults to 100 bytes)\n\
-      --bounceback-congest request a concurrent full-duplex TCP stream\n\
       --bounceback-hold    request the server to insert a delay of n milliseconds between its read and write\n\
       --bounceback-period  request the client schedule a send every n milliseconds\n\
       --bounceback-no-quickack request the server not set the TCP_QUICKACK socket option (disabling TCP ACK delays) during a bounceback test\n\
@@ -160,6 +159,7 @@ Client specific:\n\
 #endif
 "  -S, --tos                IP DSCP or tos settings\n\
   -T, --ttl       #        time-to-live, for multicast (default 1)\n\
+      --working-load request a concurrent TCP stream\n\
   -V, --ipv6_domain        Set the domain to IPv6 (send packets over IPv6)\n\
   -X, --peer-detect        perform server version detection and version exchange\n\
 \n\
