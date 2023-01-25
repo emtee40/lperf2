@@ -1078,7 +1078,7 @@ inline bool Listener::test_permit_key(uint32_t flags, thread_Settings *server, i
     if (!isUDP(server)) {
 	int nread = 0;
 	nread = recvn(server->mSock, reinterpret_cast<char *>(&thiskey->value), keylen, 0);
-	FAIL_errno((nread < (keyoffset + keylen)), "read key", server);
+	FAIL_errno((nread < keylen), "read key", server);
     }
     strncpy(server->mPermitKey, thiskey->value, MAX_PERMITKEY_LEN + 1);
     if (strncmp(server->mPermitKey, mSettings->mPermitKey, keylen) != 0) {
