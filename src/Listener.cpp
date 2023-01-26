@@ -184,7 +184,8 @@ void Listener::Run () {
 	}
 	// Use a select() with a timeout if -t is set or if this is a v1 -r or -d test
 	fd_set set;
-	if ((mMode_Time) || isCompat(mSettings) || (isPermitKey(mSettings) && (mSettings->mListenerTimeout != 0))) {
+	if (((mMode_Time || isCompat(mSettings)) && (!isPermitKey(mSettings) && (mSettings->mAmount != 0))) \
+	    || (isPermitKey(mSettings) && (mSettings->mListenerTimeout != 0))) {
 	    // Hang a select w/timeout on the listener socket
 	    struct timeval timeout;
 	    if (!isPermitKey(mSettings)) {
