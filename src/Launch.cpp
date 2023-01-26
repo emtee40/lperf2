@@ -417,7 +417,7 @@ void client_init(struct thread_Settings *clients) {
 	itr->runNow = next;
 	itr = next;
     }
-    if ((isBounceBack(clients) || isConnectOnly(clients) || isPeriodicBurst(next))\
+    if ((isBounceBack(clients) || isConnectOnly(clients) || isPeriodicBurst(clients)) \
 	&& (isWorkingLoadUp(clients) || isWorkingLoadDown(clients))) {
 	int working_load_threads = (clients->mWorkingLoadThreads == 0) ? 1 : clients->mWorkingLoadThreads;
 	while (working_load_threads--) {
