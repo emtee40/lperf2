@@ -1556,7 +1556,7 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	    }
 	}
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
-	if (isTripTime(mExtSettings)) {
+	if (isTripTime(mExtSettings) && !isUDP(mExtSettings)) {
 	    if (isWritePrefetch(mExtSettings)) {
 		if (mExtSettings->mWritePrefetch <= 0) {
 		    unsetWritePrefetch(mExtSettings);
