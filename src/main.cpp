@@ -213,12 +213,10 @@ int main(int argc, char **argv) {
     if (!isSTDOUT(ext_gSettings)) {
 #ifdef HAVE_FREOPEN
 	FILE *fd;
-	fprintf(stdout, "Output from stdout and stderr will be redirected to file %s\n", ext_gSettings->mOutputFileName);
+	fprintf(stdout, "Output from stdout (but not from stderr) will be redirected to file %s\n", ext_gSettings->mOutputFileName);
 	fflush(stdout);
 	fd = freopen(ext_gSettings->mOutputFileName, "w", stdout);
 	FAIL_errno(fd == NULL, "freopen stdout\n", ext_gSettings);
-	fd = freopen(ext_gSettings->mOutputFileName, "w", stderr);
-	FAIL_errno(fd == NULL, "freopen stderr\n", ext_gSettings);
 #else
 	fprintf(stderr, "Output to file not supported\n");
 #endif
