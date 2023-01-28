@@ -238,13 +238,13 @@ void SetSumHandlers (struct thread_Settings *inSettings, struct SumReport* sumre
     switch (inSettings->mThreadMode) {
     case kMode_Server :
 	if (isUDP(inSettings)) {
-	    if (inSettings->mReportMode == kReport_CSV) {
-	        sumreport->info.output_handler = udp_output_basic_csv;
-	    } else {
-	        sumreport->transfer_protocol_sum_handler = reporter_transfer_protocol_sum_server_udp;
-	    }
+	    sumreport->transfer_protocol_sum_handler = reporter_transfer_protocol_sum_server_udp;
 	    if (isSumOnly(inSettings)) {
-		sumreport->info.output_handler = udp_output_sumcnt_enhanced;
+	        if (inSettings->mReportMode == kReport_CSV) {
+		    sumreport->info.output_handler = udp_output_basic_csv;
+		} else {
+		    sumreport->info.output_handler = udp_output_sumcnt_enhanced;
+		}
 	    } else if (isFullDuplex(inSettings)) {
 		sumreport->info.output_handler = udp_output_fullduplex_sum;
 	    } else {
@@ -1054,7 +1054,8 @@ void write_UDP_AckFIN (struct TransferInfo *stats, int len) {
 	}
 	free(ackPacket);
     }
-    if (!success)
+    if (!success && (stats->common->ReportMode != kReport_CSV)) {
 	fprintf(stderr, warn_ack_failed, stats->common->socket);
+    }
 }
 // end write_UDP_AckFIN
