@@ -763,7 +763,7 @@ void udp_output_read_triptime (struct TransferInfo *stats) {
 	    int lambda =  ((stats->IPGsum > 0.0) ? (round (stats->cntIPG / stats->IPGsum)) : 0.0);
 	    double variance = (stats->transit.current.cnt < 2) ? 0 : \
 		(sqrt(stats->transit.current.m2 / (stats->transit.current.cnt - 1)));
-	    set_llawbuf_udp(lambda, meantransit, variance, stats->cntIPG);
+	    set_llawbuf_udp(lambda, meantransit, variance, stats->transit.current.cnt);
 	    set_netpowerbuf(meantransit, stats);
 	    printf(report_bw_jitter_loss_enhanced_triptime_format, stats->common->transferIDStr,
 		   stats->ts.iStart, stats->ts.iEnd,
