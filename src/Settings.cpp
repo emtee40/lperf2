@@ -73,6 +73,7 @@
 #include "payloads.h"
 #include "PerfSocket.hpp"
 #include "dscp.h"
+#include "iperf_formattime.h"
 #include <math.h>
 
 static int reversetest = 0;
@@ -117,6 +118,7 @@ static int notcpbbquickack = 0;
 static int tcpquickack = 0;
 static int notcpbbquickack_cliset = 0;
 static int workingload = 0;
+static int utctimes = 0;
 static int bouncebackdelaystart = 0;
 static int tcpwritetimes = 0;
 
@@ -228,6 +230,7 @@ const struct option long_options[] =
 {"tap-dev", optional_argument, &tapif, 1},
 {"tun-dev", optional_argument, &tunif, 1},
 {"working-load", optional_argument, &workingload, 1},
+{"utc", no_argument, &utctimes, 1},
 {"NUM_REPORT_STRUCTS", required_argument, &numreportstructs, 1},
 #ifdef WIN32
 {"reverse", no_argument, &reversetest, 1},
@@ -1150,6 +1153,9 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	    setTcpQuickAck(mExtSettings);
 #endif
 	}
+	if (utctimes) {
+	    setUTC(mExtSettings);
+	}
 	if (workingload) {
 	    workingload = 0;
 #ifdef HAVE_THREAD
@@ -1501,22 +1507,19 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	    bail = true;
 	} else if (isTxStartTime(mExtSettings) || isTxHoldback(mExtSettings)) {
 	    Timestamp now;
-	    time_t nowsecs = now.getSecs();
-	    // fill out the formats in the event they are needed per an time error
-	    char start_timebuf[80];
-	    struct tm ts = *localtime(&mExtSettings->txstart_epoch.tv_sec);
-	    strftime(start_timebuf, sizeof(start_timebuf), "(%Y-%m-%d %H:%M:%S %Z)", &ts);
-	    char now_timebuf[80];
-	    ts = *localtime(&nowsecs);
-	    strftime(now_timebuf, sizeof(now_timebuf), "%Y-%m-%d %H:%M:%S %Z", &ts);
 	    if (isTxStartTime(mExtSettings)) {
 		if (mExtSettings->txstart_epoch.tv_sec < 0) {
 		    fprintf(stderr, "ERROR: --txstart-time must be a positive value\n");
 		    unsetTxStartTime(mExtSettings);
 		    bail = true;
 		} else if ((mExtSettings->txstart_epoch.tv_sec - now.getSecs()) > MAXDIFFTXSTART) {
+		    char timestr[120];
+		    struct timeval t;
+		    t.tv_sec = now.getSecs();
+		    t.tv_usec = now.getUsecs();
+		    iperf_formattime(timestr, sizeof(timestr), t, isEnhanced(mExtSettings), isUTC(mExtSettings), YearThruSecTZ);
 		    printf(error_starttime_exceeds, mExtSettings->txstart_epoch.tv_sec, mExtSettings->txstart_epoch.tv_usec, \
-			   start_timebuf, MAXDIFFTXSTART);
+			  timestr, MAXDIFFTXSTART);
 		    bail = true;
 		}
 	    } else if (mExtSettings->txholdback_timer.tv_sec > MAXDIFFTXDELAY) {

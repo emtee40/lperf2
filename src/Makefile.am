@@ -48,7 +48,8 @@ iperf_SOURCES = \
 		packet_ring.c \
 		tcp_window_size.c \
 		pdfs.c \
-		dscp.c
+		dscp.c \
+		iperf_formattime.c
 iperf_LDADD = $(LIBCOMPAT_LDADDS)
 
 

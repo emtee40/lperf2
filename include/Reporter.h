@@ -139,7 +139,7 @@ enum WriteErrType {
     WriteNoErr  = 0,
     WriteErrAccount,
     WriteErrFatal,
-    WriteErrNoAccount,
+    WriteErrNoAccount
 };
 
 struct L2Stats {

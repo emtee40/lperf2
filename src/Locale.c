@@ -81,6 +81,7 @@ Client/Server:\n\
       --permit-key         permit key to be used to verify client and server (TCP only)\n\
       --sum-only           output sum only reports\n\
   -u, --udp                use UDP rather than TCP\n\
+      --utc                use coordinated universal time (UTC) with time output\n\
   -w, --window    #[KM]    TCP window size (socket buffer size)\n"
 #ifdef HAVE_SCHED_SETSCHEDULER
 "  -z, --realtime           request realtime scheduler\n"

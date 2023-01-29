@@ -120,6 +120,14 @@ BOOL WINAPI sig_dispatcher(DWORD type);
 void warn      (const char *inMessage, const char *inFile, int inLine);
 void warn_errno(const char *inMessage, const char *inFile, int inLine);
 
+#define FAIL_exit(cond, msg)       \
+  do {                                          \
+    if (cond) {                               \
+      warn(msg, __FILE__, __LINE__);          \
+      exit(1);                                \
+    }                                           \
+  } while(0)
+
 #if defined(HAVE_POSIX_THREAD) || defined(HAVE_WIN32_THREAD)
 #define FAIL(cond, msg, settings)             \
   do {                                          \

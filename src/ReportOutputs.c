@@ -50,6 +50,7 @@
 #include "Reporter.h"
 #include "Locale.h"
 #include "SocketAddr.h"
+#include "iperf_formattime.h"
 
 // These static variables are not thread safe but ok to use becase only
 // the repoter thread usses them
@@ -1116,16 +1117,6 @@ void tcp_output_sumcnt_write_enhanced (struct TransferInfo *stats) {
 }
 
 // CSV output (note, not thread safe, only reporter can call these)
-static char __timestring[200];
-static void format_timestamp (struct timeval *timestamp, int enhanced) {
-    if (!enhanced) {
-	strftime(__timestring, 80, "%Y%m%d%H%M%S", localtime(&timestamp->tv_sec));
-    } else {
-	strftime(__timestring, 80, "%Y%m%d%H%M%S", localtime(&timestamp->tv_sec));
-	snprintf((__timestring + strlen(__timestring)), 160, ".%.3d", (int) (timestamp->tv_usec/1000));
-    }
-}
-
 static char __ips_ports_string[CSVPEERLIMIT];
 static void format_ips_ports_string (struct TransferInfo *stats) {
     char local_addr[REPORT_ADDRLEN];
@@ -1182,7 +1173,9 @@ static void format_ips_ports_string (struct TransferInfo *stats) {
 }
 
 void udp_output_basic_csv (struct TransferInfo *stats) {
-    format_timestamp((!stats->final ? &stats->ts.nextTime : &stats->ts.packetTime), isEnhanced(stats->common));
+    char timestr[120];
+    iperf_formattime(timestr, sizeof(timestr), (!stats->final ? stats->ts.nextTime : stats->ts.packetTime), \
+		     isEnhanced(stats->common), isUTC(stats->common), CSV);
     if (stats->csv_peer[0] == '\0') {
 	format_ips_ports_string(stats);
 	strncpy(&stats->csv_peer[0], &__ips_ports_string[0], CSVPEERLIMIT);
@@ -1191,7 +1184,7 @@ void udp_output_basic_csv (struct TransferInfo *stats) {
     intmax_t speed = (intmax_t) (((stats->cntBytes > 0) && (stats->ts.iEnd -  stats->ts.iStart) > 0.0) ? \
 				 (((double)stats->cntBytes * 8.0) / (stats->ts.iEnd -  stats->ts.iStart)) : 0);
     printf(reportCSV_bw_jitter_loss_format,
-	   __timestring,
+	    timestr,
 	    stats->csv_peer,
 	    stats->common->transferID,
 	    stats->ts.iStart,
@@ -1204,7 +1197,9 @@ void udp_output_basic_csv (struct TransferInfo *stats) {
 	    (100.0 * stats->cntError) / stats->cntDatagrams, stats->cntOutofOrder );
 }
 void tcp_output_basic_csv (struct TransferInfo *stats) {
-    format_timestamp((!stats->final ? &stats->ts.nextTime : &stats->ts.packetTime), isEnhanced(stats->common));
+    char timestr[80];
+    iperf_formattime(timestr, sizeof(timestr), (!stats->final ? stats->ts.nextTime : stats->ts.packetTime), \
+		     isEnhanced(stats->common), isUTC(stats->common), CSV);
     if (stats->csv_peer[0] == '\0') {
 	format_ips_ports_string(stats);
 	strncpy(&stats->csv_peer[0], &__ips_ports_string[0], CSVPEERLIMIT);
@@ -1213,7 +1208,7 @@ void tcp_output_basic_csv (struct TransferInfo *stats) {
     intmax_t speed = (intmax_t) (((stats->cntBytes > 0) && (stats->ts.iEnd -  stats->ts.iStart) > 0.0) ? \
 				 (((double)stats->cntBytes * 8.0) / (stats->ts.iEnd -  stats->ts.iStart)) : 0);
     printf(reportCSV_bw_format,
-	   __timestring,
+	   timestr,
 	   stats->csv_peer,
 	   stats->common->transferID,
 	   stats->ts.iStart,
@@ -1588,14 +1583,13 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
     if ((isFullDuplex(report->common) || !isServerReverse(report->common)) \
 	&& (isEnhanced(report->common) || isConnectOnly(report->common))) {
 	if (report->connect_timestamp.tv_sec > 0) {
-	    struct tm ts;
-	    ts = *localtime(&report->connect_timestamp.tv_sec);
-	    char now_timebuf[80];
-	    strftime(now_timebuf, sizeof(now_timebuf), "%Y-%m-%d %H:%M:%S (%Z)", &ts);
+	    char timestr[80];
+	    iperf_formattime(timestr, sizeof(timestr), report->connect_timestamp, \
+		     isEnhanced(report->common), isUTC(report->common), YearThruSecTZ);
 	    if (!isUDP(report->common) && (report->common->ThreadMode == kMode_Client) && (report->tcpinitstats.connecttime > 0)) {
-		snprintf(b, SNBUFFERSIZE-strlen(b), " (ct=%4.2f ms) on %s", report->tcpinitstats.connecttime, now_timebuf);
+		snprintf(b, SNBUFFERSIZE-strlen(b), " (ct=%4.2f ms) on %s", report->tcpinitstats.connecttime, timestr);
 	    } else {
-		snprintf(b, SNBUFFERSIZE-strlen(b), " on %s", now_timebuf);
+		snprintf(b, SNBUFFERSIZE-strlen(b), " on %s", timestr);
 	    }
 	    b += strlen(b);
 	}
@@ -1668,10 +1662,7 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
 #endif
     if ((report->common->ThreadMode == kMode_Client) && !isServerReverse(report->common)) {
 	if (isTxHoldback(report->common) || isTxStartTime(report->common)) {
-	    struct tm ts;
-	    char start_timebuf[80];
 	    struct timeval now;
-	    struct timeval start;
 #ifdef HAVE_CLOCK_GETTIME
 	    struct timespec t1;
 	    clock_gettime(CLOCK_REALTIME, &t1);
@@ -1680,22 +1671,23 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
 #else
 	    gettimeofday(&now, NULL);
 #endif
-	    ts = *localtime(&now.tv_sec);
-	    char now_timebuf[80];
-	    strftime(now_timebuf, sizeof(now_timebuf), "%Y-%m-%d %H:%M:%S (%Z)", &ts);
-	    // Format time, "ddd yyyy-mm-dd hh:mm:ss zzz"
 	    int seconds_from_now;
 	    if (isTxHoldback(report->common)) {
 		seconds_from_now = report->txholdbacktime.tv_sec;
 		if (report->txholdbacktime.tv_usec > 0)
 		    seconds_from_now++;
-		start.tv_sec = now.tv_sec + seconds_from_now;
-		ts = *localtime(&start.tv_sec);
 	    } else {
-		ts = *localtime(&report->epochStartTime.tv_sec);
 		seconds_from_now = ceil(TimeDifference(report->epochStartTime, now));
 	    }
-	    strftime(start_timebuf, sizeof(start_timebuf), "%Y-%m-%d %H:%M:%S", &ts);
+	    struct timeval start;
+	    start = now;
+	    char start_timebuf[80];
+	    start.tv_sec = now.tv_sec + seconds_from_now;
+	    char now_timebuf[80];
+	    iperf_formattime(now_timebuf, sizeof(now_timebuf), now, \
+			     isEnhanced(report->common), isUTC(report->common), YearThruSecTZ);
+	    iperf_formattime(start_timebuf, sizeof(start_timebuf), start, \
+			     isEnhanced(report->common), isUTC(report->common), YearThruSec);
 	    if (seconds_from_now > 0) {
 		printf(client_report_epoch_start_current, report->common->transferID, seconds_from_now, \
 		       start_timebuf, now_timebuf);
