@@ -1174,7 +1174,7 @@ void format_ips_port_string (struct TransferInfo *stats, bool sum) {
 void udp_output_basic_csv (struct TransferInfo *stats) {
     char timestr[120];
     iperf_formattime(timestr, sizeof(timestr), (!stats->final ? stats->ts.nextTime : stats->ts.packetTime), \
-		     isEnhanced(stats->common), isUTC(stats->common), CSV);
+		     isEnhanced(stats->common), isUTC(stats->common), (isEnhanced(stats->common) ? CSVTZ : CSV));
     intmax_t speed = (intmax_t) (((stats->cntBytes > 0) && (stats->ts.iEnd -  stats->ts.iStart) > 0.0) ? \
 				 (((double)stats->cntBytes * 8.0) / (stats->ts.iEnd -  stats->ts.iStart)) : 0);
     printf(reportCSV_bw_jitter_loss_format,
@@ -1193,7 +1193,7 @@ void udp_output_basic_csv (struct TransferInfo *stats) {
 void tcp_output_basic_csv (struct TransferInfo *stats) {
     char timestr[80];
     iperf_formattime(timestr, sizeof(timestr), (!stats->final ? stats->ts.nextTime : stats->ts.packetTime), \
-		     isEnhanced(stats->common), isUTC(stats->common), CSV);
+		     isEnhanced(stats->common), isUTC(stats->common), (isEnhanced(stats->common) ? CSVTZ : CSV));
     intmax_t speed = (intmax_t) (((stats->cntBytes > 0) && (stats->ts.iEnd -  stats->ts.iStart) > 0.0) ? \
 				 (((double)stats->cntBytes * 8.0) / (stats->ts.iEnd -  stats->ts.iStart)) : 0);
     printf(reportCSV_bw_format,

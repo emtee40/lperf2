@@ -84,6 +84,15 @@ inline void iperf_formattime (char *timestr, int buflen, struct timeval timestam
 	    }
 	}
 	break;
+    case CSVTZ:
+	strftime(timestr, buflen, "%z:%Y%m%d%H%M%S", &ts);
+	if (prec_ms) {
+	    int currlen = strlen(timestr);
+	    if (currlen > 5) {
+		snprintf((timestr + currlen), 5, ".%.3d", (int) (timestamp.tv_usec/1000));
+	    }
+	}
+	break;
     default:
 	FAIL_exit(1, "iperf_formattime program error");
     }

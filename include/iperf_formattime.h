@@ -57,7 +57,8 @@ extern "C" {
 enum TimeFormatType {
     YearThruSec = 0,
     YearThruSecTZ,
-    CSV
+    CSV,
+    CSVTZ
 };
 void iperf_formattime (char *timestr, int buflen, struct timeval timestamp, bool prec_ms, bool utc_time, enum TimeFormatType ftype);
 
