@@ -1181,6 +1181,10 @@ bool Listener::apply_client_settings_udp (thread_Settings *server) {
 	    if (upperflags & HEADER_REVERSE)  {
 		server->mThreadMode=kMode_Client;
 		setServerReverse(server);
+		if (server->mSumReport != NULL) {
+		    server->mSumReport->info.common->ThreadMode=kMode_Client;
+		    setServerReverse(server->mSumReport->info.common);
+		}
 		setNoUDPfin(server);
 		unsetReport(server);
 	    }
@@ -1333,6 +1337,10 @@ bool Listener::apply_client_settings_tcp (thread_Settings *server) {
 			if (upperflags & HEADER_REVERSE) {
 			    server->mThreadMode=kMode_Client;
 			    setServerReverse(server);
+			    if (server->mSumReport != NULL) {
+				server->mSumReport->info.common->ThreadMode=kMode_Client;
+				setServerReverse(server->mSumReport->info.common);
+			    }
 			}
 		    }
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
