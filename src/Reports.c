@@ -310,7 +310,7 @@ struct SumReport* InitSumReport(struct thread_Settings *inSettings, int inID, in
     Mutex_Initialize(&sumreport->reference.lock);
     sumreport->threads = 0;
     common_copy(&sumreport->info.common, inSettings);
-    sumreport->info.common->transferID = inID; // this will be overwritten by the active table code
+    // sumreport->info.common->transferID = inID; // this is now set in the active code
     sumreport->info.threadcnt = 0;
     sumreport->info.isMaskOutput = false;
     if (inSettings->mReportMode == kReport_CSV) {
@@ -555,8 +555,6 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
     ireport->info.final = false;
     ireport->info.burstid_transition = false;
     ireport->info.isEnableTcpInfo = false;
-    if (inSettings->mReportMode == kReport_CSV)
-        format_ips_port_string(&ireport->info, 0);
 
     // Create a new packet ring which is used to communicate
     // packet stats from the traffic thread to the reporter
@@ -573,7 +571,6 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
 #endif
     if (inSettings->numreportstructs)
 	fprintf (stdout, "%sNUM_REPORT_STRUCTS override from %d to %d\n", inSettings->mTransferIDStr, NUM_REPORT_STRUCTS, inSettings->numreportstructs);
-    ireport->info.csv_peer[0] = '\0';
 
     // Set up the function vectors, there are three
     // 1) packet_handler: does packet accounting per the test and protocol

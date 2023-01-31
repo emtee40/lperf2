@@ -293,6 +293,9 @@ int Client::StartSynch () {
     myReport = static_cast<struct ReporterData *>(myJob->this_report);
     myReport->info.common->socket=mySocket;
     myReport->info.isEnableTcpInfo = false; // default here, set in init traffic actions
+    if (mSettings->mReportMode == kReport_CSV) {
+	format_ips_port_string(&myReport->info, 0);
+    }
 
     // Perform delays, usually between connect() and data xfer though before connect
     // Two delays are supported:

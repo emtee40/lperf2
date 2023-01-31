@@ -580,6 +580,9 @@ bool Server::InitTrafficLoop (void) {
     myJob = InitIndividualReport(mSettings);
     myReport = static_cast<struct ReporterData *>(myJob->this_report);
     assert(myJob != NULL);
+    if (mSettings->mReportMode == kReport_CSV) {
+	format_ips_port_string(&myReport->info, 0);
+    }
     //  copy the thread drop socket to this object such
     //  that the destructor can close it if needed
 #if defined(HAVE_LINUX_FILTER_H) && defined(HAVE_AF_PACKET)
@@ -621,7 +624,7 @@ bool Server::InitTrafficLoop (void) {
     if (isServerModeTime(mSettings) || (isModeTime(mSettings) && (isBounceBack(mSettings) || isServerReverse(mSettings) || isFullDuplex(mSettings) || isReverse(mSettings)))) {
 
 	if (isServerReverse(mSettings) || isFullDuplex(mSettings) || isReverse(mSettings))
-	   mSettings->mAmount += (SLOPSECS * 100);  // add 2 sec for slop on reverse, units are 10 ms
+	    mSettings->mAmount += (SLOPSECS * 100);  // add 2 sec for slop on reverse, units are 10 ms
 
 	int end_usecs  (mSettings->mAmount * 10000); //amount units is 10 ms
 	if (int err = set_itimer(end_usecs))
