@@ -1116,52 +1116,53 @@ void tcp_output_sumcnt_write_enhanced (struct TransferInfo *stats) {
     fflush(stdout);
 }
 
-// CSV output (note, not thread safe, only reporter can call these)
-static char __ips_ports_string[CSVPEERLIMIT];
-static void format_ips_ports_string (struct TransferInfo *stats) {
+// CSV outputs
+void format_ips_port_string (struct TransferInfo *stats, bool sum) {
     char local_addr[REPORT_ADDRLEN];
     char remote_addr[REPORT_ADDRLEN];
     int reverse = (stats->common->ThreadMode == kMode_Server);
     struct sockaddr *local = (reverse ? (struct sockaddr*)&stats->common->peer : (struct sockaddr*)&stats->common->local);
     struct sockaddr *peer = (reverse ? (struct sockaddr*)&stats->common->local : (struct sockaddr*)&stats->common->peer);
-    __ips_ports_string[0] = '\0';
     if (local->sa_family == AF_INET) {
-      if (isHideIPs(stats->common)) {
-	inet_ntop_hide(AF_INET, &((struct sockaddr_in*)local)->sin_addr,
-		       local_addr, REPORT_ADDRLEN);
-      } else {
-	inet_ntop(AF_INET, &((struct sockaddr_in*)local)->sin_addr,
-		  local_addr, REPORT_ADDRLEN);
+	if (isHideIPs(stats->common)) {
+	  inet_ntop_hide(AF_INET, &((struct sockaddr_in*)local)->sin_addr,
+			 local_addr, REPORT_ADDRLEN);
+	} else {
+	  inet_ntop(AF_INET, &((struct sockaddr_in*)local)->sin_addr,
+		    local_addr, REPORT_ADDRLEN);
+	}
       }
-    }
 #if HAVE_IPV6
-    else {
+      else {
         inet_ntop(AF_INET6, &((struct sockaddr_in6*)local)->sin6_addr,
 		  local_addr, REPORT_ADDRLEN);
-    }
-#endif
-    if (peer->sa_family == AF_INET) {
-      if (isHideIPs(stats->common)) {
-        inet_ntop_hide(AF_INET, &((struct sockaddr_in*)peer)->sin_addr,
-		  remote_addr, REPORT_ADDRLEN);
-      } else {
-        inet_ntop(AF_INET, &((struct sockaddr_in*)peer)->sin_addr,
-		  remote_addr, REPORT_ADDRLEN);
       }
-    }
+#endif
+      if (peer->sa_family == AF_INET) {
+	if (isHideIPs(stats->common)) {
+	  inet_ntop_hide(AF_INET, &((struct sockaddr_in*)peer)->sin_addr,
+			 remote_addr, REPORT_ADDRLEN);
+	} else {
+	  inet_ntop(AF_INET, &((struct sockaddr_in*)peer)->sin_addr,
+		    remote_addr, REPORT_ADDRLEN);
+	}
+      }
 #if HAVE_IPV6
-    else {
+      else {
         inet_ntop(AF_INET6, &((struct sockaddr_in6*)peer)->sin6_addr,
 		  remote_addr, REPORT_ADDRLEN);
-    }
+      }
 #endif
-    snprintf(__ips_ports_string, REPORT_ADDRLEN*2+10, reportCSV_peer,
-	     local_addr, (local->sa_family == AF_INET ?
-			  ntohs(((struct sockaddr_in*)local)->sin_port) :
+      if (sum) {
+	snprintf((char *)&stats->csv_peer, CSVPEERLIMIT, reportCSV_peer, local_addr, 0);
+      } else {
+	snprintf((char *)&stats->csv_peer, CSVPEERLIMIT, reportCSV_peer,
+		 local_addr, (local->sa_family == AF_INET ?
+			    ntohs(((struct sockaddr_in*)local)->sin_port) :
 #if HAVE_IPV6
-			  ntohs(((struct sockaddr_in6*)local)->sin6_port)),
+			    ntohs(((struct sockaddr_in6*)local)->sin6_port)),
 #else
-	     0),
+	       0),
 #endif
 	remote_addr, (peer->sa_family == AF_INET ?
 		      ntohs(((struct sockaddr_in*)peer)->sin_port) :
@@ -1170,17 +1171,14 @@ static void format_ips_ports_string (struct TransferInfo *stats) {
 #else
                           0));
 #endif
+      }
+      stats->csv_peer[(CSVPEERLIMIT-1)] = '\0';
 }
 
 void udp_output_basic_csv (struct TransferInfo *stats) {
     char timestr[120];
     iperf_formattime(timestr, sizeof(timestr), (!stats->final ? stats->ts.nextTime : stats->ts.packetTime), \
 		     isEnhanced(stats->common), isUTC(stats->common), CSV);
-    if (stats->csv_peer[0] == '\0') {
-	format_ips_ports_string(stats);
-	strncpy(&stats->csv_peer[0], &__ips_ports_string[0], CSVPEERLIMIT);
-	stats->csv_peer[(CSVPEERLIMIT - 1)] = '\0';
-    }
     intmax_t speed = (intmax_t) (((stats->cntBytes > 0) && (stats->ts.iEnd -  stats->ts.iStart) > 0.0) ? \
 				 (((double)stats->cntBytes * 8.0) / (stats->ts.iEnd -  stats->ts.iStart)) : 0);
     printf(reportCSV_bw_jitter_loss_format,
@@ -1200,11 +1198,6 @@ void tcp_output_basic_csv (struct TransferInfo *stats) {
     char timestr[80];
     iperf_formattime(timestr, sizeof(timestr), (!stats->final ? stats->ts.nextTime : stats->ts.packetTime), \
 		     isEnhanced(stats->common), isUTC(stats->common), CSV);
-    if (stats->csv_peer[0] == '\0') {
-	format_ips_ports_string(stats);
-	strncpy(&stats->csv_peer[0], &__ips_ports_string[0], CSVPEERLIMIT);
-	stats->csv_peer[(CSVPEERLIMIT - 1)] = '\0';
-    }
     intmax_t speed = (intmax_t) (((stats->cntBytes > 0) && (stats->ts.iEnd -  stats->ts.iStart) > 0.0) ? \
 				 (((double)stats->cntBytes * 8.0) / (stats->ts.iEnd -  stats->ts.iStart)) : 0);
     printf(reportCSV_bw_format,

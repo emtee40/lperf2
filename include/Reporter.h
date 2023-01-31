@@ -88,7 +88,6 @@ extern "C" {
 
 extern struct Condition ReportCond;
 extern struct Condition ReportsPending;
-extern int groupID;
 extern Mutex transferid_mutex;
 
 /*
@@ -564,6 +563,7 @@ int reporter_process_transfer_report (struct ReporterData *this_ireport);
 int reporter_process_report (struct ReportHeader *reporthdr);
 
 void setTransferID(struct thread_Settings *inSettings, int role_reversal);
+void format_ips_port_string (struct TransferInfo *stats, bool sum);
 
 #ifdef __cplusplus
 } /* end extern "C" */

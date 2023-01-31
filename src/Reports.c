@@ -310,10 +310,13 @@ struct SumReport* InitSumReport(struct thread_Settings *inSettings, int inID, in
     Mutex_Initialize(&sumreport->reference.lock);
     sumreport->threads = 0;
     common_copy(&sumreport->info.common, inSettings);
-    sumreport->info.groupID = inID;
-    sumreport->info.common->transferID = 0;
+    sumreport->info.common->transferID = inID; // this will be overwritten by the active table code
     sumreport->info.threadcnt = 0;
     sumreport->info.isMaskOutput = false;
+    if (inSettings->mReportMode == kReport_CSV) {
+        format_ips_port_string(&sumreport->info, 1);
+    }
+
     // Only initialize the interval time here
     // The startTime and nextTime for summing reports will be set by
     // the reporter thread in realtime
@@ -552,6 +555,9 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
     ireport->info.final = false;
     ireport->info.burstid_transition = false;
     ireport->info.isEnableTcpInfo = false;
+    if (inSettings->mReportMode == kReport_CSV)
+        format_ips_port_string(&ireport->info, 0);
+
     // Create a new packet ring which is used to communicate
     // packet stats from the traffic thread to the reporter
     // thread.  The reporter thread does all packet accounting

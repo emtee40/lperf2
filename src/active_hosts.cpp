@@ -117,6 +117,7 @@ static void active_table_update (iperf_sockaddr *host, struct thread_Settings *a
 	this_entry->sum_report = InitSumReport(agent, active_table.total_count, 0);
 	IncrSumReportRefCounter(this_entry->sum_report);
 	agent->mSumReport = this_entry->sum_report;
+	this_entry->sum_report->info.common->transferID = -active_table.groupid; // sum ids are negative
 #if HAVE_THREAD_DEBUG
 	active_table_show_entry("new entry", this_entry, ((SockAddr_are_Equal(&this_entry->host, host) && SockAddr_Hostare_Equal(&this_entry->host, host))));
 #endif
