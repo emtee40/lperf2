@@ -218,6 +218,8 @@ static void clientside_client_reverse (struct thread_Settings *thread,  \
 	reverse_client->mThreadMode = kMode_Server;
 	setReverse(reverse_client);
 	setNoUDPfin(reverse_client); // disable the fin report - no need
+	reverse_client->size_local = sizeof(iperf_sockaddr);
+	getsockname(reverse_client->mSock, reinterpret_cast<sockaddr*>(&reverse_client->local), &reverse_client->size_local);
         if ((thread->mThreads > 1) || isSumOnly(thread))
 	    Iperf_push_host(reverse_client);
 	thread_start(reverse_client);
