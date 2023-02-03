@@ -46,7 +46,7 @@
  * -------------------------------------------------------------------
  */
 #ifndef IPERFFORMATTIME_H
-#define IPERFFROMATTIME_H
+#define IPERFFORMATTIME_H
 
 #include "headers.h"
 
