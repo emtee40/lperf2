@@ -634,10 +634,19 @@ const char report_l2length_error[] =
 const char reportCSV_bw_format[] =
 "%s,%s,%d,%.1f-%.1f,%" PRIdMAX ",%" PRIdMAX "\n";
 
+const char reportCSV_bw_read_enhanced_format[] =
+"%s,%s,%d,%.1f-%.1f,%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%d,%d,%d,%d,%d,%d,%d,%d\n";
+
+const char reportCSV_bw_write_enhanced_format[] =
+"%s,%s,%d,%.1f-%.1f,%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%d,%u,%u\n";
+
 const char reportCSV_bw_jitter_loss_format[] =
 "%s,%s,%d,%.1f-%.1f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%" PRIdMAX "\n";
 
- /* -------------------------------------------------------------------
+const char reportCSV_bw_jitter_loss_pps_format[] =
+"%s,%s,%d,%.1f-%.1f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%f\n";
+
+/* -------------------------------------------------------------------
  * warnings
  * ------------------------------------------------------------------- */
 

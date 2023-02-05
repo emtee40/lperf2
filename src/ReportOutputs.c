@@ -1190,6 +1190,32 @@ void udp_output_basic_csv (struct TransferInfo *stats) {
 	    stats->cntDatagrams,
 	    (100.0 * stats->cntError) / stats->cntDatagrams, stats->cntOutofOrder );
 }
+
+void udp_output_enhanced_csv (struct TransferInfo *stats) {
+    char timestr[80];
+    iperf_formattime(timestr, sizeof(timestr), (!stats->final ? stats->ts.nextTime : stats->ts.packetTime), \
+		     isEnhanced(stats->common), isUTC(stats->common),
+		     isEnhanced(stats->common) ? CSVTZ : CSV);
+    intmax_t speed = (intmax_t) (((stats->cntBytes > 0) && (stats->ts.iEnd -  stats->ts.iStart) > 0.0) ? \
+				 (((double)stats->cntBytes * 8.0) / (stats->ts.iEnd -  stats->ts.iStart)) : 0);
+    printf(reportCSV_bw_jitter_loss_pps_format,
+	   timestr,
+	   stats->csv_peer,
+	   stats->common->transferID,
+	   stats->ts.iStart,
+	   stats->ts.iEnd,
+	   stats->cntBytes,
+	   speed,
+	   (stats->jitter * 1e3),
+	   stats->cntError,
+	   stats->cntDatagrams,
+	   (100.0 * stats->cntError) / stats->cntDatagrams,
+	   stats->cntOutofOrder,
+	   stats->sock_callstats.write.WriteCnt,
+	   stats->sock_callstats.write.WriteErr,
+	   (stats->cntIPG ? (stats->cntIPG / stats->IPGsum) : 0.0));
+}
+
 void tcp_output_basic_csv (struct TransferInfo *stats) {
     char timestr[80];
     iperf_formattime(timestr, sizeof(timestr), (!stats->final ? stats->ts.nextTime : stats->ts.packetTime), \
@@ -1204,6 +1230,105 @@ void tcp_output_basic_csv (struct TransferInfo *stats) {
 	   stats->ts.iEnd,
 	   stats->cntBytes,
 	   speed);
+}
+
+void tcp_output_read_enhanced_csv (struct TransferInfo *stats) {
+    char timestr[80];
+    iperf_formattime(timestr, sizeof(timestr), (!stats->final ? stats->ts.nextTime : stats->ts.packetTime), \
+		     isEnhanced(stats->common), isUTC(stats->common),
+		     isEnhanced(stats->common) ? CSVTZ : CSV);
+    intmax_t speed = (intmax_t) (((stats->cntBytes > 0) && (stats->ts.iEnd -  stats->ts.iStart) > 0.0) ? \
+				 (((double)stats->cntBytes * 8.0) / (stats->ts.iEnd -  stats->ts.iStart)) : 0);
+    printf(reportCSV_bw_read_enhanced_format,
+	   timestr,
+	   stats->csv_peer,
+	   stats->common->transferID,
+	   stats->ts.iStart,
+	   stats->ts.iEnd,
+	   stats->cntBytes,
+	   speed,
+	   stats->sock_callstats.read.cntRead,
+	   stats->sock_callstats.read.bins[0],
+	   stats->sock_callstats.read.bins[1],
+	   stats->sock_callstats.read.bins[2],
+	   stats->sock_callstats.read.bins[3],
+	   stats->sock_callstats.read.bins[4],
+	   stats->sock_callstats.read.bins[5],
+	   stats->sock_callstats.read.bins[6],
+	   stats->sock_callstats.read.bins[7]);
+}
+
+void tcp_output_write_enhanced_csv (struct TransferInfo *stats) {
+    char timestr[80];
+    iperf_formattime(timestr, sizeof(timestr), (!stats->final ? stats->ts.nextTime : stats->ts.packetTime), \
+		     isEnhanced(stats->common), isUTC(stats->common),
+		     isEnhanced(stats->common) ? CSVTZ : CSV);
+    intmax_t speed = (intmax_t) (((stats->cntBytes > 0) && (stats->ts.iEnd -  stats->ts.iStart) > 0.0) ? \
+				 (((double)stats->cntBytes * 8.0) / (stats->ts.iEnd -  stats->ts.iStart)) : 0);
+#if !(HAVE_TCP_STATS)
+    printf(reportCSV_bw_write_enhanced_format,
+	   timestr,
+	   stats->csv_peer,
+	   stats->common->transferID,
+	   stats->ts.iStart,
+	   stats->ts.iEnd,
+	   stats->cntBytes,
+	   speed,
+	   -1,
+	   -1,
+	   -1,
+	   -1,
+	   0,
+	   0);
+#else
+    if (stats->common->transferID == -1) {
+	/* Sums */
+	printf(reportCSV_bw_write_enhanced_format,
+	       timestr,
+	       stats->csv_peer,
+	       stats->common->transferID,
+	       stats->ts.iStart,
+	       stats->ts.iEnd,
+	       stats->cntBytes,
+	       speed,
+	       stats->sock_callstats.write.WriteCnt,
+	       stats->sock_callstats.write.WriteErr,
+	       stats->sock_callstats.write.tcpstats.retry,
+	       -1,
+	       0,
+	       0);
+    } else if (stats->sock_callstats.write.tcpstats.cwnd > 0) {
+	printf(reportCSV_bw_write_enhanced_format,
+	       timestr,
+	       stats->csv_peer,
+	       stats->common->transferID,
+	       stats->ts.iStart,
+	       stats->ts.iEnd,
+	       stats->cntBytes,
+	       speed,
+	       stats->sock_callstats.write.WriteCnt,
+	       stats->sock_callstats.write.WriteErr,
+	       stats->sock_callstats.write.tcpstats.retry,
+	       stats->sock_callstats.write.tcpstats.cwnd,
+	       stats->sock_callstats.write.tcpstats.rtt,
+	       stats->sock_callstats.write.tcpstats.rttvar);
+    } else {
+	printf(reportCSV_bw_write_enhanced_format,
+	       timestr,
+	       stats->csv_peer,
+	       stats->common->transferID,
+	       stats->ts.iStart,
+	       stats->ts.iEnd,
+	       stats->cntBytes,
+	       speed,
+	       stats->sock_callstats.write.WriteCnt,
+	       stats->sock_callstats.write.WriteErr,
+	       stats->sock_callstats.write.tcpstats.retry,
+	       -1,
+	       stats->sock_callstats.write.tcpstats.rtt,
+	       0);
+    }
+#endif
 }
 
 /*

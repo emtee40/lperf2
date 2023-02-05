@@ -546,7 +546,10 @@ void udp_output_fullduplex_sum(struct TransferInfo *stats);
 
 // CSV output
 void udp_output_basic_csv(struct TransferInfo *stats);
+void udp_output_enhanced_csv(struct TransferInfo *stats);
 void tcp_output_basic_csv(struct TransferInfo *stats);
+void tcp_output_read_enhanced_csv(struct TransferInfo *stats);
+void tcp_output_write_enhanced_csv(struct TransferInfo *stats);
 
 // The report output routines that are simpler and aren't related to stats
 void reporter_print_connection_report(struct ConnectionInfo *report);
