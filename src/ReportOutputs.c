@@ -1122,7 +1122,7 @@ void format_ips_port_string (struct TransferInfo *stats, bool sum) {
     char remote_addr[REPORT_ADDRLEN];
     in_port_t local_port;
     in_port_t remote_port;
-    int swap = (isServerReverse(stats->common));
+    int swap = (isServerReverse(stats->common) || isReverse(stats->common));
     struct sockaddr *local = (swap ? (struct sockaddr*)&stats->common->peer : (struct sockaddr*)&stats->common->local);
     struct sockaddr *peer = (swap ? (struct sockaddr*)&stats->common->local : (struct sockaddr*)&stats->common->peer);
 
