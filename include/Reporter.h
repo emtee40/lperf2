@@ -380,6 +380,7 @@ struct SumReport {
     void (*transfer_protocol_sum_handler) (struct TransferInfo *stats, int final);
     struct BarrierMutex fullduplex_barrier;
     int sum_fd_set;
+    bool sum_reverse_set;
 };
 
 struct ReporterData {

@@ -310,6 +310,10 @@ void Listener::Run () {
 	    setSeqNo64b(server);
 	}
 	setTransferID(server, 0);
+	if ((mSettings->mReportMode == kReport_CSV) && server->mSumReport && !server->mSumReport->sum_reverse_set) {
+	    format_ips_port_string(&server->mSumReport->info, 1);
+	    server->mSumReport->sum_reverse_set = true;
+	}
 
 	// Read any more test settings and test values (not just the flags) and instantiate
 	// any settings objects for client threads (e.g. bidir or full duplex)

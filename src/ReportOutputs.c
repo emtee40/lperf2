@@ -1120,9 +1120,12 @@ void tcp_output_sumcnt_write_enhanced (struct TransferInfo *stats) {
 void format_ips_port_string (struct TransferInfo *stats, bool sum) {
     char local_addr[REPORT_ADDRLEN];
     char remote_addr[REPORT_ADDRLEN];
-    int reverse = (stats->common->ThreadMode == kMode_Server);
-    struct sockaddr *local = (reverse ? (struct sockaddr*)&stats->common->peer : (struct sockaddr*)&stats->common->local);
-    struct sockaddr *peer = (reverse ? (struct sockaddr*)&stats->common->local : (struct sockaddr*)&stats->common->peer);
+    in_port_t local_port;
+    in_port_t remote_port;
+    int swap = (isServerReverse(stats->common));
+    struct sockaddr *local = (swap ? (struct sockaddr*)&stats->common->peer : (struct sockaddr*)&stats->common->local);
+    struct sockaddr *peer = (swap ? (struct sockaddr*)&stats->common->local : (struct sockaddr*)&stats->common->peer);
+
     if (local->sa_family == AF_INET) {
 	if (isHideIPs(stats->common)) {
 	    inet_ntop_hide(AF_INET, &((struct sockaddr_in*)local)->sin_addr,
@@ -1131,13 +1134,24 @@ void format_ips_port_string (struct TransferInfo *stats, bool sum) {
 	    inet_ntop(AF_INET, &((struct sockaddr_in*)local)->sin_addr,
 		      local_addr, REPORT_ADDRLEN);
 	}
+	if (swap && sum)
+	    local_port = 0;
+	else
+	    local_port = ntohs(((struct sockaddr_in*)local)->sin_port);
+    } else {
+        if (HAVE_IPV6 && local->sa_family == AF_INET6) {
+	    inet_ntop(AF_INET6, &((struct sockaddr_in6*)local)->sin6_addr,
+		      local_addr, REPORT_ADDRLEN);
+	    if (swap && sum)
+		local_port = 0;
+	    else
+		local_port = ntohs(((struct sockaddr_in6*)local)->sin6_port);
+	} else {
+	    local_addr[0] = '\0';
+	    local_port = 0;
+	}
     }
-#if HAVE_IPV6
-    else {
-        inet_ntop(AF_INET6, &((struct sockaddr_in6*)local)->sin6_addr,
-		  local_addr, REPORT_ADDRLEN);
-    }
-#endif
+
     if (peer->sa_family == AF_INET) {
 	if (isHideIPs(stats->common)) {
 	    inet_ntop_hide(AF_INET, &((struct sockaddr_in*)peer)->sin_addr,
@@ -1146,29 +1160,29 @@ void format_ips_port_string (struct TransferInfo *stats, bool sum) {
 	    inet_ntop(AF_INET, &((struct sockaddr_in*)peer)->sin_addr,
 		      remote_addr, REPORT_ADDRLEN);
 	}
+	if (!swap && sum)
+	    remote_port = 0;
+	else
+	    remote_port = ntohs(((struct sockaddr_in*)peer)->sin_port);
+    } else {
+        if (HAVE_IPV6 && local->sa_family == AF_INET6) {
+	    inet_ntop(AF_INET6, &((struct sockaddr_in6*)peer)->sin6_addr,
+		      remote_addr, REPORT_ADDRLEN);
+	    if (swap && sum)
+		remote_port = 0;
+	    else
+		remote_port = ntohs(((struct sockaddr_in6*)peer)->sin6_port);
+	} else {
+	    remote_addr[0] = '\0';
+	    remote_port = 0;
+	}
     }
-#if HAVE_IPV6
-    else {
-        inet_ntop(AF_INET6, &((struct sockaddr_in6*)peer)->sin6_addr,
-		  remote_addr, REPORT_ADDRLEN);
-    }
-#endif
+
     snprintf((char *)&stats->csv_peer, CSVPEERLIMIT, reportCSV_peer,
-	     local_addr, (sum ? 0 : (local->sa_family == AF_INET ?
-				     ntohs(((struct sockaddr_in*)local)->sin_port) :
-#if HAVE_IPV6
-				     ntohs(((struct sockaddr_in6*)local)->sin6_port))),
-#else
-	     0),
-#endif
-	remote_addr, (peer->sa_family == AF_INET ?
-		      ntohs(((struct sockaddr_in*)peer)->sin_port) :
-#if HAVE_IPV6
-		      ntohs(((struct sockaddr_in6*)peer)->sin6_port)));
-#else
-    0));
-#endif
-      stats->csv_peer[(CSVPEERLIMIT-1)] = '\0';
+	     local_addr, local_port,
+	     remote_addr, remote_port);
+    stats->csv_peer[(CSVPEERLIMIT-1)] = '\0';
+    // printf("*** output = %s %d %d\n", stats->csv_peer, swap, sum);
 }
 
 void udp_output_basic_csv (struct TransferInfo *stats) {
