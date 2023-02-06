@@ -1168,7 +1168,7 @@ void format_ips_port_string (struct TransferInfo *stats, bool sum) {
         if (HAVE_IPV6 && local->sa_family == AF_INET6) {
 	    inet_ntop(AF_INET6, &((struct sockaddr_in6*)peer)->sin6_addr,
 		      remote_addr, REPORT_ADDRLEN);
-	    if (swap && sum)
+	    if (!swap && sum)
 		remote_port = 0;
 	    else
 		remote_port = ntohs(((struct sockaddr_in6*)peer)->sin6_port);
