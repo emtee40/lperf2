@@ -1120,8 +1120,8 @@ void tcp_output_sumcnt_write_enhanced (struct TransferInfo *stats) {
 void format_ips_port_string (struct TransferInfo *stats, bool sum) {
     char local_addr[REPORT_ADDRLEN];
     char remote_addr[REPORT_ADDRLEN];
-    in_port_t local_port;
-    in_port_t remote_port;
+    uint16_t local_port;
+    uint16_t remote_port;
     int swap = (stats->common->ThreadMode == kMode_Server);
     int reverse = (isServerReverse(stats->common) || isReverse(stats->common));
     struct sockaddr *local = (swap ? (struct sockaddr*)&stats->common->peer : (struct sockaddr*)&stats->common->local);
