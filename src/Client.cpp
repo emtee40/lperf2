@@ -293,7 +293,7 @@ int Client::StartSynch () {
     myReport = static_cast<struct ReporterData *>(myJob->this_report);
     myReport->info.common->socket=mySocket;
     myReport->info.isEnableTcpInfo = false; // default here, set in init traffic actions
-    if (mSettings->mReportMode == kReport_CSV) {
+    if (!isReverse(mSettings) && (mSettings->mReportMode == kReport_CSV)) {
 	format_ips_port_string(&myReport->info, 0);
     }
 

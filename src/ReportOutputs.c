@@ -1122,7 +1122,8 @@ void format_ips_port_string (struct TransferInfo *stats, bool sum) {
     char remote_addr[REPORT_ADDRLEN];
     in_port_t local_port;
     in_port_t remote_port;
-    int swap = (isServerReverse(stats->common) || isReverse(stats->common));
+    int swap = (stats->common->ThreadMode == kMode_Server);
+    int reverse = (isServerReverse(stats->common) || isReverse(stats->common));
     struct sockaddr *local = (swap ? (struct sockaddr*)&stats->common->peer : (struct sockaddr*)&stats->common->local);
     struct sockaddr *peer = (swap ? (struct sockaddr*)&stats->common->local : (struct sockaddr*)&stats->common->peer);
 
@@ -1134,19 +1135,22 @@ void format_ips_port_string (struct TransferInfo *stats, bool sum) {
 	    inet_ntop(AF_INET, &((struct sockaddr_in*)local)->sin_addr,
 		      local_addr, REPORT_ADDRLEN);
 	}
-	if (swap && sum)
+	if (!reverse && sum)
 	    local_port = 0;
 	else
 	    local_port = ntohs(((struct sockaddr_in*)local)->sin_port);
     } else {
-        if (HAVE_IPV6 && local->sa_family == AF_INET6) {
+#if HAVE_IPV6
+        if (local->sa_family == AF_INET6) {
 	    inet_ntop(AF_INET6, &((struct sockaddr_in6*)local)->sin6_addr,
 		      local_addr, REPORT_ADDRLEN);
 	    if (swap && sum)
 		local_port = 0;
 	    else
 		local_port = ntohs(((struct sockaddr_in6*)local)->sin6_port);
-	} else {
+	} else
+#endif
+	{
 	    local_addr[0] = '\0';
 	    local_port = 0;
 	}
@@ -1160,19 +1164,22 @@ void format_ips_port_string (struct TransferInfo *stats, bool sum) {
 	    inet_ntop(AF_INET, &((struct sockaddr_in*)peer)->sin_addr,
 		      remote_addr, REPORT_ADDRLEN);
 	}
-	if (!swap && sum)
+	if (reverse && sum)
 	    remote_port = 0;
 	else
 	    remote_port = ntohs(((struct sockaddr_in*)peer)->sin_port);
     } else {
-        if (HAVE_IPV6 && local->sa_family == AF_INET6) {
+#if HAVE_IPV6
+        if (local->sa_family == AF_INET6) {
 	    inet_ntop(AF_INET6, &((struct sockaddr_in6*)peer)->sin6_addr,
 		      remote_addr, REPORT_ADDRLEN);
 	    if (!swap && sum)
 		remote_port = 0;
 	    else
 		remote_port = ntohs(((struct sockaddr_in6*)peer)->sin6_port);
-	} else {
+	} else
+#endif
+	{
 	    remote_addr[0] = '\0';
 	    remote_port = 0;
 	}
@@ -1182,7 +1189,9 @@ void format_ips_port_string (struct TransferInfo *stats, bool sum) {
 	     local_addr, local_port,
 	     remote_addr, remote_port);
     stats->csv_peer[(CSVPEERLIMIT-1)] = '\0';
-    // printf("*** output = %s %d %d\n", stats->csv_peer, swap, sum);
+#if 0 // use to debug CSV ouput
+    printf("*** output = %s swap=%d reverse=%d sum=%d\n", stats->csv_peer, swap, reverse, sum);
+#endif
 }
 
 void udp_output_basic_csv (struct TransferInfo *stats) {
