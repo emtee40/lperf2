@@ -442,7 +442,7 @@ void tcp_output_write (struct TransferInfo *stats) {
 void tcp_output_write_bb (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_client_bb_bw);
     _print_stats_common(stats);
-    char rps_string[40];
+    char rps_string[80];
     if (stats->final) {
         double rps = ((stats->fBBrunning > 0) && (stats->bbrtt.total.cnt > 0)) ? ((double) stats->bbrtt.total.cnt / stats->fBBrunning) : 0;
 	if (rps < 10)
