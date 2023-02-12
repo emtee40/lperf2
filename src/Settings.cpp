@@ -1962,8 +1962,10 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	}
 	mExtSettings->mIfrnametx = NULL; // default off SO_BINDTODEVICE
 	if (((results = strtok(mExtSettings->mHost, "%")) != NULL) && ((results = strtok(NULL, "%")) != NULL)) {
-	    mExtSettings->mIfrnametx = static_cast<char *>(calloc(strlen(results) + 1, sizeof(char)));
-	    strcpy(mExtSettings->mIfrnametx, results);
+	    size_t len = strlen(results) + 1;
+	    mExtSettings->mIfrnametx = static_cast<char *>(calloc(len, sizeof(char)));
+	    strncpy(mExtSettings->mIfrnametx, results, len);
+	    mExtSettings->mIfrnametx[len] = '\0';
 	}
 	if (isIPV6(mExtSettings))
 	    strip_v6_brackets(mExtSettings->mHost);
