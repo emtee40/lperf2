@@ -935,7 +935,7 @@ are shown in units of rps and time delays.
 The TCP_QUICKACK socket option will be enabled during bounceback tests when the bounceback-hold
 is set to a non-zero value. The socket option is applied after every read() on the server
 and before the hold delay call. It's also applied on the client. Use --bounceback-no-quickack
-to disable TCP ack delays per the socket.
+to have TCP run in default mode per the socket (which is most likley TCP_QUICKACK being off.)
 .P
 .B TCP Connect times:
 The TCP connect time (or three way handshake) can be seen on the iperf
