@@ -351,7 +351,7 @@ void client_spawn (struct thread_Settings *thread) {
 	    clientside_client_fullduplex(thread, reverse_thread, theClient);
 	} else {
 	    fprintf(stdout, "Program error in client side client_spawn");
-	    _exit(0);
+	    _exit(-1);
 	}
     } else {
 	if (thread->mMode != kTest_Normal) {
