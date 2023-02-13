@@ -153,11 +153,22 @@ unsigned int FrameCounter::wait_tick (long *sched_err) {
 	*sched_err = actual.subUsec(nextslotTime);
 //	printf("**** sched err %ld\n", *sched_err);
 	if (*sched_err < 0) {
-	    *sched_err = -(*sched_err);
+	    *sched_err = -(*sched_err); // err is an absolute value
+            // Per windows docs, this timer can go off early per:
+            // APIs that deal with timers use various different hardware clocks. These clocks may have resolutions
+	    // significantly different from what you expect: some may be measured in milliseconds (for those that
+	    // use an RTC-based timer chip), to those measured in nanoseconds (for those that use ACPI or TSC counters).
+	    // You can change the resolution of your API with a call to the timeBeginPeriod and timeEndPeriod functions.
+	    // How precise you can change the resolution depends on which hardware clock the particular API uses.
+	    // For more information, check your hardware documentation.
+            //
+	    // I noticed the timer going off up to 8 ms early on a Windows 11 cross compile - yikes.
+	    // Do a WAR hack here to add delay if & when that occurs
+#ifdef WIN32
 	    if (*sched_err > 1000) {
 		delay_loop(*sched_err);
-//		printf("*** add delay\n");
 	    }
+#endif
 	}
     }
     WARN_errno((rc!=0), "wait_tick failed");
