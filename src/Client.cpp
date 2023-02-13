@@ -1047,8 +1047,8 @@ void Client::RunBounceBackTCP () {
 	reportstruct->writecnt = 0;
 	bool isFirst;
 	if (framecounter) {
-	    burst_id = framecounter->wait_tick(NULL);
-	    PostNullEvent(); // this will set the now timestamp
+	    burst_id = framecounter->wait_tick(&reportstruct->sched_err);
+	    PostNullEvent(true); // this will set the now timestamp
 	    reportstruct->sentTime.tv_sec = now.getSecs();
 	    reportstruct->sentTime.tv_usec = now.getUsecs();
 	    isFirst = true;
@@ -1679,7 +1679,7 @@ void Client::AwaitServerFinPacket () {
 }
 
 
-void Client::PostNullEvent () {
+void Client::PostNullEvent (void) {
     assert(myReport!=NULL);
     // push a nonevent into the packet ring
     // this will cause the reporter to process
@@ -1689,6 +1689,20 @@ void Client::PostNullEvent () {
     reportstruct->packetTime.tv_sec = now.getSecs();
     reportstruct->packetTime.tv_usec = now.getUsecs();
     reportstruct->emptyreport=1;
+    myReportPacket();
+}
+
+void Client::PostNullEvent (bool isFirst) {
+    assert(myReport!=NULL);
+    // push a nonevent into the packet ring
+    // this will cause the reporter to process
+    // up to this event
+    memset(reportstruct, 0, sizeof(struct ReportStruct));
+    now.setnow();
+    reportstruct->packetTime.tv_sec = now.getSecs();
+    reportstruct->packetTime.tv_usec = now.getUsecs();
+    reportstruct->emptyreport=1;
+    reportstruct->scheduled = isFirst;
     myReportPacket();
 }
 

@@ -130,6 +130,7 @@ unsigned int FrameCounter::wait_tick (long *sched_err) {
 	while (!now.before(nextslotTime)) {
 	    now.setnow();
 	    nextslotTime.add(period);
+//	    printf("***** next slot %ld.%ld\n",nextslotTime.getSecs(), nextslotTime.getUsecs());
 	    slot_counter++;
 	}
 	if (lastcounter && ((slot_counter - lastcounter) > 1)) {
@@ -143,13 +144,21 @@ unsigned int FrameCounter::wait_tick (long *sched_err) {
     rc = clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &txtime_ts, NULL);
   #else
     long duration = nextslotTime.subUsec(now);
-    rc = mySetWaitableTimer(10 * duration); // convert us to 100ns
+    rc = mySetWaitableTimer(10 * duration); // convert us to 100 ns
     //int rc = clock_nanosleep(0, TIMER_ABSTIME, &txtime_ts, NULL);
   #endif
     if (sched_err) {
         // delay_loop(2020);
 	Timestamp actual;
 	*sched_err = actual.subUsec(nextslotTime);
+//	printf("**** sched err %ld\n", *sched_err);
+	if (*sched_err < 0) {
+	    *sched_err = -(*sched_err);
+	    if (*sched_err > 1000) {
+		delay_loop(*sched_err);
+//		printf("*** add delay\n");
+	    }
+	}
     }
     WARN_errno((rc!=0), "wait_tick failed");
   #ifdef HAVE_THREAD_DEBUG

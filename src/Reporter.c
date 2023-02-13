@@ -884,7 +884,7 @@ static inline void reporter_handle_txmsg_oneway_transit (struct TransferInfo *st
 static void reporter_handle_frame_isoch_oneway_transit (struct TransferInfo *stats, struct ReportStruct *packet) {
     // printf("fid=%lu bs=%lu remain=%lu\n", packet->frameID, packet->burstsize, packet->remaining);
     if (packet->scheduled) {
-	reporter_update_mmm(&stats->schedule_error, (double) labs(packet->sched_err));
+	reporter_update_mmm(&stats->schedule_error, (double)(packet->sched_err));
     }
     if (packet->frameID && packet->transit_ready) {
 	int framedelta=0;
@@ -938,8 +938,11 @@ void reporter_handle_packet_client (struct ReporterData *data, struct ReportStru
 
 #define DEBUG_BB_TIMESTAMPS 0
 void reporter_handle_packet_bb_client (struct ReporterData *data, struct ReportStruct *packet) {
+    struct TransferInfo *stats = &data->info;
+    if (packet->scheduled) {
+	reporter_update_mmm(&stats->schedule_error, (double)(packet->sched_err));
+    }
     if (!packet->emptyreport && (packet->packetLen > 0)) {
-        struct TransferInfo *stats = &data->info;
 	stats->total.Bytes.current += packet->packetLen;
 	double bbrtt = TimeDifference(packet->packetTime, packet->sentTime);
 	double bbowdto = TimeDifference(packet->sentTimeRX, packet->sentTime);
@@ -1779,6 +1782,7 @@ int reporter_condprint_time_interval_report (struct ReporterData *data, struct R
     // Also signal to the caller to move to the next report (or packet ring)
     // if there was output. This will allow for more precise interval sum accounting.
     // printf("***** pt = %ld.%ld next = %ld.%ld\n", packet->packetTime.tv_sec, packet->packetTime.tv_usec, stats->ts.nextTime.tv_sec, stats->ts.nextTime.tv_usec);
+    // printf("***** nt %ld.%ld pt %ld.%ld pid=%lld empty=%d\n", stats->ts.nextTime.tv_sec, stats->ts.nextTime.tv_usec, packet->packetTime.tv_sec, packet->packetTime.tv_usec, packet->packetID, packet->emptyreport);
     if (TimeDifference(stats->ts.nextTime, packet->packetTime) < 0) {
 	assert(data->transfer_protocol_handler!=NULL);
 	advance_jobq = 1;
