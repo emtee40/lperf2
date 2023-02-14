@@ -4,8 +4,8 @@ See doc/CLOCKSYNC_NOTES for some description around synchronizing the realtime c
 2.1.9 (as of February 13th, 2023)
 ------------------------------
 o --bounceback officially supported (including Windows) for repsonsiveness test scenarios
-o deprecated --bounceback-congest introduced in 2.1.8 with --working-loads
-o --working-loads supports is generalized; works with --bounce-back, --connect-only & --burst-period
+o deprecated --bounceback-congest introduced in 2.1.8, replaced by --working-loads
+o --working-loads support generalized; works with --bounceback, --connect-only & --burst-period
 o default TCP_NOTSENT_LOWAT with the --working-loads concurrent traffic
 o add support for GMT time formatting via --utc option
 o --trip-times will auto set TCP_NOTSENT_LOWAT
@@ -15,7 +15,7 @@ o CSV output support with --enhanced
 o Fix to isoch wait_tick with Windows
 o fix support for --txstart-time with --bounceback
 o Add support for summing histograms in histogram sum outputs
-o Multiple sum report fixes per threading where needing mutex protections
+o Multiple sum report fixes per threading & needing mutex protections
 o Jitter packet IPG calcluations ignore inter frame gaps
 o Isoch jitter output to use running value vs sampled value
 o Add support for --jitter-histograms
@@ -28,10 +28,10 @@ o fix v6 source port parsing with -B and brackets
 o fix malloc error with --hideips
 o fixes for rate limited TCP with --trip-times
 o add support for TCL_NOTSENT_LOWAT with rate limited TCP
-o permit key now supports -P using listen() with a backlog, no longer single threaded limit
+o permit key now supports -P using listen() with a backlog, no longer single thread limited
 o fixes for zero valued permit-key
 o fixes for multiple permit-key regressions
-o fix token bucket delay wiht TCP await write
+o fix token bucket delay with TCP await write
 o fix isMulticast test for ipv4 - previous logic indicate true for 240.x.x.x which is not multicast
 o fix regression on jitter calc - starts on second transit time
 o add cmsg for loop with UDP rx timestamp, cmsg processing best to use loop w/test
