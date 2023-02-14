@@ -1,6 +1,47 @@
 See doc/DESIGN_NOTES for some description around the software design
 See doc/CLOCKSYNC_NOTES for some description around synchronizing the realtime clocks
 
+2.1.9 (as of February 13th, 2023)
+------------------------------
+o --bounceback officially supported (including Windows) for repsonsiveness test scenarios
+o deprecated --bounceback-congest introduced in 2.1.8 with --working-loads
+o --working-loads supports is generalized; works with --bounce-back, --connect-only & --burst-period
+o default TCP_NOTSENT_LOWAT with the --working-loads concurrent traffic
+o add support for GMT time formatting via --utc option
+o --trip-times will auto set TCP_NOTSENT_LOWAT
+o CSV output fixes for reverse
+o CSV output regressions fixed per sum outputs using negative transfer ids
+o CSV output support with --enhanced
+o Fix to isoch wait_tick with Windows
+o fix support for --txstart-time with --bounceback
+o Add support for summing histograms in histogram sum outputs
+o Multiple sum report fixes per threading where needing mutex protections
+o Jitter packet IPG calcluations ignore inter frame gaps
+o Isoch jitter output to use running value vs sampled value
+o Add support for --jitter-histograms
+o man page content updates
+o output isoch scheduling errors at end of isoch run
+o PRIdMAX fix for ARM systems
+o better work around in isochronous with Windows per early return of WaitForSingleObject()
+o fix SO_BINDTODEVICE regression
+o fix v6 source port parsing with -B and brackets
+o fix malloc error with --hideips
+o fixes for rate limited TCP with --trip-times
+o add support for TCL_NOTSENT_LOWAT with rate limited TCP
+o permit key now supports -P using listen() with a backlog, no longer single threaded limit
+o fixes for zero valued permit-key
+o fixes for multiple permit-key regressions
+o fix token bucket delay wiht TCP await write
+o fix isMulticast test for ipv4 - previous logic indicate true for 240.x.x.x which is not multicast
+o fix regression on jitter calc - starts on second transit time
+o add cmsg for loop with UDP rx timestamp, cmsg processing best to use loop w/test
+o use stdout and exit(0) for -h and -v (vs stderr and exit(1))
+o add python facetime scripts
+o Fix single thread compile breakage
+o fix windows cross compile
+o multiple spelling error fixes in comments and man page
+
+
 2.1.8 (as of August 5th, 2022)
 ------------------------------
 o Add support for --bounceback to perform a repsonsiveness test (see man page for other options)
