@@ -376,6 +376,7 @@ struct TransferInfo {
 struct SumReport {
     struct ReferenceMutex reference;
     int threads;
+    int threads_cntr_fsum;
     struct TransferInfo info;
     void (*transfer_protocol_sum_handler) (struct TransferInfo *stats, int final);
     struct BarrierMutex fullduplex_barrier;
