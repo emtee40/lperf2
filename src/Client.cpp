@@ -1118,7 +1118,7 @@ void Client::RunBounceBackTCP () {
 			peerclose = true;
 			n = 0;
 		    } else {
-			WARN(1, "bounceback read timeout");
+			WARN(1, "timeout: bounceback read");
 		    }
 		}
 	    } else if ((reportstruct->packetLen < 0 ) && NONFATALTCPWRITERR(errno)) {
