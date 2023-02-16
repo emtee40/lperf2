@@ -1112,10 +1112,14 @@ void Client::RunBounceBackTCP () {
 		    myReportPacket();
 		} else if (n == 0) {
 		    peerclose = true;
-		} else if ((n < 0) && (FATALTCPREADERR(errno))) {
-		    WARN_errno(1, "bounceback read");
-		    peerclose = true;
-		    n = 0;
+		} else if (n < 0) {
+		    if (FATALTCPREADERR(errno)) {
+			WARN_errno(1, "bounceback read");
+			peerclose = true;
+			n = 0;
+		    } else {
+			WARN(1, "bounceback read timeout");
+		    }
 		}
 	    } else if ((reportstruct->packetLen < 0 ) && NONFATALTCPWRITERR(errno)) {
 		reportstruct->packetLen = 0;
