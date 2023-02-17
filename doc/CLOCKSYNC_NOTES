@@ -1,6 +1,8 @@
 Many of iperf 2's latency features require the client's and server's clocks to be synchronized.
+
 This document will explain how to use Precision Time Protocol (PTP) found at https://sourceforge.net/projects/ptpd/
-Also, 'dnf install ptpd' will install on fedora systems
+Also, 'dnf install ptpd' will install on fedora systems. Other options for linux are linux-ptp or ptp4l.  We've also downloaded
+Eric Raymond's "Stratum-1-Microserver HOWTO" and placed a copy in doc/www.ntpsec.org/white-papers/stratum-1-microserver-howto/index.html
 
 First thing is find a PTP grandmaster. The configure it as master. Examples /etc/ptpd.conf below.
 

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="generator" content="AsciiDoc 10.2.0">
+<title>How NTPsec came to be</title>
+<link rel="stylesheet" href="./asciidoc.css" type="text/css">
+
+
+<script type="text/javascript" src="./asciidoc.js"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="article">
+<div id="header">
+<h1>How NTPsec came to be</h1>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph"><p>The prehistory of the NTPsec project goes back to 2013, when one of
+the team members offered to help migrate the NTP Classic history out
+of BitKeeper to git or hg - anything that might increase community
+access and participation.  Said member (ESR) was then, and still is,
+the open-source community&#8217;s go-to guy for large, messy repository
+conversions.  Harlan Stenn, the lead of NTP Classic, was determined to
+hold on to BitKeeper and refused the offer.</p></div>
+<div class="paragraph"><p>In late 2014 another founding member - Susan Sons - became aware
+that NTP Classic instances were routinely being used as amplifiers
+for DDoS attacks.  Investigating, she became concerned with what
+she learned about the state of NTP Classic.  When she communicated
+the results of her research to her superiors at the Center for Applied
+Cybersecurity Research, they contacted the National Science Foundation
+- which became so alarmed that it approved funding for a rescue
+intervention (something it had never done before) in <em>two days</em>.</p></div>
+<div class="paragraph"><p>Grant approval in hand, Susan needed a technical team.  She recruited
+ESR, who recruited Gary Miller and Hal Murray.  Some technical plans
+and the broad direction of the project began to take shape.  Amar
+Takhar, who had been a system administrator for the NTP Classic
+project, joined the conversation in mid-February.</p></div>
+<div class="paragraph"><p>In Hal and Amar, Susan&#8217;s team included two prominent members of NTP
+Classic&#8217;s user and developer community.  Gary and ESR, though not
+directly members themselves, had ties to that community through their
+time-service work on the GPSD project.  The ideal outcome for all of
+us and the NSF would have been to re-invigorate the NTP Classic
+codebase within the organizational framework of Harlan Stenn&#8217;s Network
+Time Foundation.  We negotiated with Harlan Stenn towards this end.</p></div>
+<div class="paragraph"><p>A meeting of minds should have been possible.  Stenn had been
+complaining for years that NTP development was held up by
+lack of skilled developer time and a support budget. The NSF&#8217;s
+rescue intervention offered both.</p></div>
+<div class="paragraph"><p>It was not to be.  Stenn insisted that development must remain on
+BitKeeper, a choice which the rescue team felt would continue to wall
+off the NTP Classic codebase from the wider open-source community and
+thus perpetuate its dangerously stagnant state.</p></div>
+<div class="paragraph"><p>Following the collapse of negotiations, Amar Takhar made the decision
+to initiate a project fork, and invited the rescue team members to
+help it happen.  ESR and Gary signed on immediately, Hal a few weeks
+later.  After considering other candidates to be the new project&#8217;s
+security officer, Amar asked Susan to join up in that role and she
+accepted.  Subsequently Amar recruited Chris Johns from the RTEMS
+project. Gary Miller assisted with the repository migration and
+some early cleanup work, but resigned from the team before launch.</p></div>
+<div class="paragraph"><p>Forking a project, especially a mature and well-established project
+like NTP, is never a decision to be made lightly.  The team regrets the
+necessity, but we felt that NTP is far too important a part of the
+Internet infrastructure to be allowed to fall further into decay.</p></div>
+<div class="paragraph"><p>The team began work to fulfill the NSF&#8217;s grant terms, migrating the
+history to git and showing measurable progress towards
+security-hardening the code. We also began to quietly prepare for a
+public project launch.  In June 2015 we gained funding from the Linux
+Foundation&#8217;s Core Infrastructure Initiative.  Around the same time
+Dr. Joel Sherrill, learning of our effort and its goals, resigned from
+the Network Time Foundation board and joined our team.</p></div>
+<div class="paragraph"><p>Through the late summer and fall of 2015 the team worked on the
+massive cleanup required to remove obsolete code, fix documentation,
+and live-test the results.  We removed over half the bulk of the
+NTP Classic codebase and significantly security-hardened what was
+left.  We changed build systems from autoconf to waf for a dramatic
+improvement in build times and repeatability.</p></div>
+<div class="paragraph"><p>In late September Mark Atwood stepped up to manage the project,
+freeing Amar to concentrate on his technical work.  Shortly after that
+we began active cooperation with three different security-research
+groups to find and fix NTP vulnerabilities, and Daniel Franke joined
+the team as our crypto expert.</p></div>
+<div class="paragraph"><p>In early October we began planning for an 0.90 beta release, which
+shipped on November 21st 2015.</p></div>
+<div class="paragraph"><p>Over the next two years, we released 9 more tagged versions.  Over
+that time, we had successes and failures, we drained many swamps of
+bad code, and we discovered many more.  Some team members dropped out
+for other pursuits, or were awarded emeritus status, and new talented
+team members have joined us.</p></div>
+<div class="paragraph"><p>Working with Software in the Public Interest, we were able to keep
+working due to generous grant support from multiple donors and companies.</p></div>
+<div class="paragraph"><p>Working with the Mozilla Foundation Secure Open Source project, we were
+subject to one of several security audits, and then we were supported
+with a grant to remediate the handful of problems that the audit found.</p></div>
+<div class="paragraph"><p>Working with the Internet Civil Engineering Institute, we were able to
+keep working due generous grant support from the Thiel Foundation, for
+which we are very grateful.</p></div>
+<div class="paragraph"><p>We wrote a step by step HOWTO on how to run NTPsec on a Raspberry Pi
+single board computer with a GPS receiver, allowing hackers and
+hobbyists to easily build and run their very own Stratum 1 NTP
+server.  Talented volunteers have stepped up to maintain that document
+as the Raspberry Pi platform has evolved.</p></div>
+<div class="paragraph"><p>We had two annual face to face meetings hosted at the Penguicon
+conference near the city of Detroit, Michigan, where the core team was
+able to meet, socialize, exchange GPG keys, and plan for more work.
+We plan on having the next face to face meeting in June 2018 at the South
+East Linux Fest conference in Charlotte North Carolina.</p></div>
+<div class="paragraph"><p>Finally, on October 10th 2017, as the team gathered and watched on IRC,
+we finally released version 1.0.0.</p></div>
+<div class="paragraph"><p>The rest of the story has yet to be written.</p></div>
+<div class="imageblock" style="text-align:center;">
+<div class="content">
+<img src="clocktower64.png" alt="clocktower64.png">
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2023-02-12 04:01:34 UTC
+</div>
+</div>
+</body>
+</html>

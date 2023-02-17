@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="generator" content="AsciiDoc 10.2.0">
+<title>Contribution policies, workflows, and conventions</title>
+<link rel="stylesheet" href="./asciidoc.css" type="text/css">
+
+
+<script type="text/javascript" src="./asciidoc.js"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="article">
+<div id="header">
+<h1>Contribution policies, workflows, and conventions</h1>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_gitlab_com_is_our_forge">GitLab.com is our forge</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>We use GitLab.com as our forge.</p></div>
+<div class="paragraph"><p>Our GitLab.com group is at <a href="https://gitlab.com/groups/NTPsec">https://gitlab.com/groups/NTPsec</a></p></div>
+<div class="paragraph"><p>Please use the issue tracker and the pull request process at that
+GitLab.com group.  The issue tracker makes helps us not drop
+anything, and the merge requests ensure your work is properly
+credited to you.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_github_com_is_a_mirror_not_our_forge">GitHub.com is a mirror, not our forge</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>We maintain a public mirror of the repo at <a href="https://github.com/ntpsec/ntpsec">https://github.com/ntpsec/ntpsec</a></p></div>
+<div class="paragraph"><p>Please do not use GitHub issues or GitHub pull requests.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_hacking_guide">Hacking guide</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Please read and obey the <a href="https://gitlab.com/NTPsec/ntpsec/blob/master/devel/hacking.adoc">devel/hacking.adoc</a> file.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_license_of_contributions">License of contributions</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Annoying but necessary legalese:</p></div>
+<div class="literalblock">
+<div class="content monospaced">
+<pre>By submitting patches to this project, you agree to allow them to be
+redistributed under the project's license according to the normal
+forms and usages of the open-source community.</pre>
+</div></div>
+<div class="paragraph"><p>The license of new code is to be BSD-2-clause. The license for new
+documentation is to be Creative Commons Attribution 4.0 International License.
+Contributions and patches with no license information will be assumed
+to be under these licenses.</p></div>
+<div class="paragraph"><p>Please do <strong>not</strong> submit code under GPL or other licenses which place
+conditions on derived works; we cannot accept such code.  Please avoid
+submitting code under any license other than BSD-2-clause, and avoid
+submitting docs under any license other than the Creative Commons
+Attribution 4.0 License.</p></div>
+<div class="paragraph"><p>It is your responsibility to make sure you have all the necessary
+rights to contribute to the project.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_development_practice">Development Practice</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Before starting significant work, please propose it and discuss it
+first in the <a href="mailto:devel@ntpsec.org">devel@ntpsec.org</a> mailing list.  Other people may
+have suggestions, will want to collaborate, and will wish to review
+your code.</p></div>
+<div class="paragraph"><p>Please work on one piece of conceptual work at a time.  Keep each
+narrative of work each in a different branch.</p></div>
+<div class="paragraph"><p>As much as possible, have each patch solve one problem.</p></div>
+<div class="paragraph"><p>A patch needs to comfortably fit in a reviewer&#8217;s head.</p></div>
+<div class="paragraph"><p>A patch must not leave the project in a non-functional state.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_optional_send_patches_by_email">Optional: Send patches by email</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>If you are unable to use GitLab.com pull requests, we welcome simple
+fix and "drive by" patches submitted by email.</p></div>
+<div class="paragraph"><p>Create the patch with git format-patch against the tip of master of
+the main public repo.</p></div>
+<div class="paragraph"><p>You can email your patch to <a href="mailto:devel@ntpsec.org">devel@ntpsec.org</a> if you are a
+member of that mailing list, or you can email your patch to
+<a href="mailto:contact@ntpsec.org">contact@ntpsec.org</a> if you are not.</p></div>
+<div class="paragraph"><p>When we merge in your patch we will use the git parameter ---author
+with the contents of the From header from your email and the git
+parameter --date with the contents of the Date header from your email.
+So make sure your From header is correct.</p></div>
+<div class="paragraph"><p>For complex contributions, please use GitLab.com.</p></div>
+<div class="imageblock" style="text-align:center;">
+<div class="content">
+<img src="clocktower64.png" alt="clocktower64.png">
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2023-02-12 04:01:34 UTC
+</div>
+</div>
+</body>
+</html>

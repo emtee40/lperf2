@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="generator" content="AsciiDoc 10.2.0">
+<title>What we plan to do</title>
+<link rel="stylesheet" href="./asciidoc.css" type="text/css">
+
+
+<script type="text/javascript" src="./asciidoc.js"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="article">
+<div id="header">
+<h1>What we plan to do</h1>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_hammer_the_bug_list_flat">Hammer the bug list flat</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The NTP Classic codebase had accumulated serious
+vulnerabilities. We&#8217;ve worked overtime to identify and plug the
+critical holes; more needs to be done on the lesser ones. Our goal is
+to reach the exceptionally low defect-per-thousand-hour rates of GPSD
+and RTEMS; we have the people and the skills to do it.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_throw_away_more_code">Throw away more code</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Antoine de Saint-Exup&eacute;ry famously said "Perfection is achieved,
+not when there is nothing more to add, but when there is nothing left
+to take away."  This is our project motto.  The more code we can throw
+away, the fewer potential vulnerabilities and complexity issues we
+will have.  There are many opportunities here; see our
+<a href="removal-plan.html">removal plans</a>, and holler if we&#8217;re removing
+something you need.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_move_code_that_doesn_8217_t_need_to_be_in_c_out_of_c">Move code that doesn&#8217;t need to be in C out of C</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>We&#8217;ve already made major gains in maintainability and code re-use by
+moving all our production scripting to Python.  One of our goals is to
+move all code that isn&#8217;t realtime-critical out of C to improve
+maintainability and decrease vulnerability to overrun bugs and other
+classic C snafus.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_broaden_community_participation">Broaden community participation</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The NTP Classic project slid into decline, developing serious
+vulnerabilities it was unable to effectively address, because it made
+choices that closed it off from the wider open-source community.
+NTPSec was forked in large part to reverse those choices. We want
+more community participation, more open-source code review, and we
+even welcome drive-by patches to address point problems.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_build_a_hardware_test_lab">Build a hardware test lab</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Precision clock sources are tricky things, and testing in a simulation
+environment has limits. We aim to build a lab where we can
+remote-control refclocks and a network of ntpd instances for
+live testing.  This will take money: see
+<a href="getting-involved.html">Getting Involved</a> for how you can help.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_get_it_all_ipv6_ready">Get it all IPv6-ready</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Network Time Protocol is unhealthily entangled with IPv4.  As address
+exhaustion forces the world towards IPv6, this needs to be fixed.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_long_term_out_of_c_entirely">Long-term: Out of C entirely?</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Languages which may seriously challenge C as the lingua franca of
+systems work are beginning to appear.  Their most important advantage
+is they they enforce code-correctness properties that eliminate large
+classes of the low-level bugs C is prone to.  The codebase we
+inherited was so large and grotty that moving to any of these would
+have been impractical, but the codebase we have now is a different
+story. It may be worth trying&#8230;</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_recruit_and_educate_a_new_generation">Recruit and educate a new generation</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>NTP Classic came altogether too close to becoming a black hole of
+unmaintainability because only one human being fully understood the
+Byzantine clock-synchronization algorithms at its core.  For
+sustainability, that knowledge needs to become more widely spread.</p></div>
+<div class="imageblock" style="text-align:center;">
+<div class="content">
+<img src="clocktower64.png" alt="clocktower64.png">
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2023-02-12 04:01:34 UTC
+</div>
+</div>
+</body>
+</html>

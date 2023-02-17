@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="generator" content="AsciiDoc 10.2.0">
+<title>What we&#8217;ve accomplished</title>
+<link rel="stylesheet" href="./asciidoc.css" type="text/css">
+
+
+<script type="text/javascript" src="./asciidoc.js"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="article">
+<div id="header">
+<h1>What we&#8217;ve accomplished</h1>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph"><p>For a more complete of list fixes and new features, see
+<a href="https://docs.ntpsec.org/latest/ntpsec.html">this summary</a>.
+This page partly overlaps with that, extracting some highlights.</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+We have extracted the NTP codebase from BitKeeper
+</dt>
+<dd>
+<p>
+This was not a trivial achievement.  One of our team members has
+more experience doing messy repository conversions than anyone else
+alive, including gnarly and venerable projects like groff and Emacs.
+Producing a really high-quality conversion took him <strong>ten weeks</strong> of
+concentrated effort.  You can read more about
+<a href="http://esr.ibiblio.org/?p=6792">how to spot a high-quality repository
+conversion</a>; our NTP history has all the traits of good ones.
+</p>
+</dd>
+<dt class="hdlist1">
+We have significantly hardened the code against buffer overruns
+</dt>
+<dd>
+<p>
+To prevent buffer overruns, we have replaced all unsafe string
+functions (strcpy/strcat/strtok/sprintf/vsprintf/gets) with safe
+versions that take a buffer bound.
+</p>
+</dd>
+<dt class="hdlist1">
+We have implemented Network Time Security
+</dt>
+<dd>
+<p>
+On 2020-09-30 the IETF released RFC8915 "Network Time Security for the
+Network Time Protocol".  We implemented NTS as of draft 17, and
+tracked changes to each draft to remain conformat.  We successfully
+interoperate with several test implementations.
+</p>
+</dd>
+<dt class="hdlist1">
+We have removed about a hundred seventy five thousand lines of obsolete code
+</dt>
+<dd>
+<p>
+Less code means less attack surface.  Here are some things we&#8217;ve found
+to remove:
+</p>
+<table class="tableblock frame-all grid-all"
+style="
+width:100%;
+">
+<col style="width:50%;">
+<col style="width:50%;">
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">45.0 KLOC (20%)</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">In-tree copy of libevent2</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">29.0 KLOC (13%)</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Undocumented, deprecated, obsolete, or broken refclocks</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">25.0 KLOC (12%)</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Unused ISC library code</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">13.0 KLOC (5%)</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">libopts/autogen removal</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">10.0 KLOC (4%)</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Removal of legacy Windows code</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">9.0 KLOC (4%)</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Code obsolete because we assume a POSIX.1-2001/C99 base</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">9.0 KLOC (4%)</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Removal of ntpdc</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">3.0 KLOC (1%)</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Move of sntp/ntpdig to Python</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">2.0 KLOC (2%)</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Replacement of ntpdate by a shell wrapper around ntpdig</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">4.0 KLOC (1%)</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Removal of Autokey.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">7.0 KLOC (3%)</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Replacement of C ntpq in Python</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">10.0 KLOC (4%)</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Miscellaneous cruft</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">2.0 KLOC (1%)</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Simplification of async-DNS lookup.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">173.0 KLOC (74%)</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock"><em>Total removed</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">55.0 KLOC (24%)</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock"><em>Total remaining</em></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">231.0 KLOC (100%)</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock"><em>Total at conversion time</em></p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph"><p>(Totals will not sum exactly due to rounding errors. Numbers generated using
+<a href="https://gitlab.com/esr/loccount">loccount</a>.)</p></div>
+<div class="paragraph"><p>These removals include most of the bulk of ntpd, the most
+security-critical code.  And the numbers understate the size of the
+removals slightly because the way we counted "remaining" code includes
+some test code and features added since the repository conversion,
+notably Network Time Security.</p></div>
+</dd>
+<dt class="hdlist1">
+We have improved the accuracy of time stepping with real hardware by x10
+</dt>
+<dd>
+<p>
+When NTP was originally written, computer clocks only delivered
+microsecond precision.  Now they deliver nanosecond precision (though
+not all of that precision is accurate).  By changing some internal
+representations we have made NTPsec able to use the full precision of
+modern clocks, which results in a factor 10 or more of accuracy
+improvement with real hardware such as GPSDOs and dedicated time
+radios.
+</p>
+</dd>
+<dt class="hdlist1">
+Our ntpd can run in a fully autonomous mode using local clocks only
+</dt>
+<dd>
+<p>
+Legacy versions of NTP required synchronization to network check peers
+before they could use local reference clocks.  Ours does not, provided
+the refclock driver returns 4-digit years.
+</p>
+</dd>
+<dt class="hdlist1">
+We have implemented a simpler refclock configuration syntax
+</dt>
+<dd>
+<p>
+The ntp.conf configuration syntax for declaring local reference
+clocks was notoriously odd and opaque. While we continue to support
+it for backward compatibility, we have implemented and documented
+a simpler and more comprehensible syntax. No more magic 127.127.t.u
+address or numeric driver types!
+</p>
+</dd>
+<dt class="hdlist1">
+We have added a statistics-file visualizer to help diagnose problems
+</dt>
+<dd>
+<p>
+Tuning the configuration of a time server is a subtle and sometimes
+tricky process. The causes of problems can range from misconfiguration
+through power outages to bad network weather and beyond.  NTP keeps
+logs of operating statistics that can be very helpful - if you know
+how to interpret them. NTPsec supplies a visualization tool that makes
+those numbers into graphs so you can (literally) see what&#8217;s going on.
+</p>
+</dd>
+<dt class="hdlist1">
+We have applied Coverity scanning and fixed bugs where they were revealed
+</dt>
+<dd>
+<p>
+NTP Classic had occasionally been Coverity-checked in the past, but
+those warnings were not systematically fixed.  We found 40 unresolved
+defect reports and dealt with them appropriately.
+</p>
+</dd>
+<dt class="hdlist1">
+We have fixed all compiler warnings
+</dt>
+<dd>
+<p>
+All compiler warnings have been either fixed or suppressed for
+principled reasons (like "that one is caused by a known GCC optimizer
+bug"). This may seem like a small thing, but it can have a significant
+effect on maintainability and downstream defect rates.  Noise warnings
+are a kind of undergrowth in which real warnings and the bugs that
+trigger them can lurk undetected.
+</p>
+</dd>
+<dt class="hdlist1">
+We have increased the visibility of potential defects to static analyzers
+</dt>
+<dd>
+<p>
+By well-defined transformations of the code, including improving its
+type discipline, we can give static analyzers and verification tools
+better traction to find defects and potential vulnerabilities.  We&#8217;ve
+got a good running start on this already, changing the code to use C99
+bools wherever possible and safe.
+</p>
+</dd>
+<dt class="hdlist1">
+We have moved the build to waf
+</dt>
+<dd>
+<p>
+The NTP Classic build system was 31,000 lines of impacted autotools
+cruft, a Lovecraftian nightmare of complexity that reached out from
+sunken R&#8217;lyeh to trouble the dreams of the living.  We switched to
+<a href="https://waf.io/">waf</a>, an alternative single-phase build system also
+used (among other places) by the Samba project.  Our builds got
+an order of magnitude faster, and the new build recipe is about
+1 KLOC!
+</p>
+</dd>
+<dt class="hdlist1">
+We have updated and reorganized the documentation
+</dt>
+<dd>
+<p>
+The NTP in-tree documentation was in terrible shape - incomplete where
+it was not actively misleading, with some parts of it that needed
+updating (such as the WHERE-TO-START file) actually unmodified
+since 1998.  It had a serious problem with different documents telling
+different stories.  We&#8217;ve fixed all that; every command-line switch
+and every configuration entity now has a single point of truth, also
+the manual pages and Web documentation are generated from the same
+master files.  Archaisms have been removed and much has been updated.
+</p>
+</dd>
+<dt class="hdlist1">
+We have reduced the set of languages used in the suite to C and Python
+</dt>
+<dd>
+<p>
+The code we inherited used way too many languages - there were scripts
+lurking in Perl, awk, and S.  By discarding or replacing this stuff we
+have increased its maintainability, leaving fewer dark corners for
+bugs to lurk in. All the scripting we install is now Python, creating
+opportunities for code reuse across programs that didn&#8217;t exist before.
+</p>
+</dd>
+<dt class="hdlist1">
+We have added an improved reporting tool for time service operators
+</dt>
+<dd>
+<p>
+We have collected on the gains from Pythonizing all our scripting by
+adding ntpmon, an administrator&#8217;s tool that can watch the status of
+a time server in near real time. It is especially useful for catching
+startup problems and traffic spikes that might indicate a DoS attempt.
+</p>
+</dd>
+<dt class="hdlist1">
+We have earned trust in the InfoSec research community
+</dt>
+<dd>
+<p>
+NTPSec was the first NTP implementation to respond to and develop a
+fix for CVE-2015-7704, the KoD off-path attack bug that achieved
+<a href="http://arstechnica.com/security/2015/10/new-attacks-on-network-time-protocol-can-defeat-https-and-create-chaos/">news
+coverage in <em>Ars Technica</em></a> and elsewhere in October 2015.  Even
+before we first shipped code we participated in the mitigation and
+disclosure process on over a dozen CVEs, and developed good working
+relationships with some key players in the security community.  They
+have already learned to trust us to respond rapidly and effectively to
+vulnerability reports.
+</p>
+</dd>
+<dt class="hdlist1">
+We have achieved measurable gains in security
+</dt>
+<dd>
+<p>
+Since early 2016 and our 0.1 release it has become routine that, in
+public disclosures of batches of CVEs against NTP Classic, around
+75% fail to affect NTPsec at all because we had pre-hardened the
+code or removed the relevant attack surface.
+</p>
+</dd>
+</dl></div>
+<div class="imageblock" style="text-align:center;">
+<div class="content">
+<img src="clocktower64.png" alt="clocktower64.png">
+</div>
+</div>
+<div class="paragraph"><p>You can read more <a href="https://docs.ntpsec.org/latest/ntpsec.html">details</a>
+about differences from NTP Classic.</p></div>
+<div class="paragraph"><p>You should probably read <a href="plans.html">What we plan to do</a> next.</p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2023-02-12 04:01:34 UTC
+</div>
+</div>
+</body>
+</html>

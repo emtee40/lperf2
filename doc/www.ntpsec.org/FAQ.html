@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="generator" content="AsciiDoc 10.2.0">
+<title>NTPsec Frequently Asked Questions</title>
+<link rel="stylesheet" href="./asciidoc.css" type="text/css">
+
+
+<script type="text/javascript" src="./asciidoc.js"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="article">
+<div id="header">
+<h1>NTPsec Frequently Asked Questions</h1>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph"><p>More FAQs will be added here as we discover that they are FAQs.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_why_ntpsec">Why NTPsec?</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>NTPsec was forked from NTP Classic 4.3.34 in mid-2015 after many
+installations of NTP Classic were repeatedly exploited as amplifiers
+in distributed denial-of-service attacks.</p></div>
+<div class="paragraph"><p>This failure didn&#8217;t happen at random. NTP Classic has long neglected
+open-source best practices, and stagnated as a result. The code needed
+to be fixed, and the development practice around it reformed.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_why_should_we_believe_your_security_reliability_claims">Why should we believe your security/reliability claims?</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The NTPsec team combines the expertise of senior developers from
+NTP Classic, the <a href="https://gpsd.gitlab.io/gpsd/index.html">GPSD project</a>,
+and the <a href="https://www.rtems.org/">RTEMS Project</a>.</p></div>
+<div class="paragraph"><p>GPSD has an exceptional record of reliability and security over a
+decade of literally billions of deployments in mobile and embedded
+systems ranging from smartphones through life-critical navigation
+systems to military and aerospace applications.  You rely on it every
+time you use Google Maps.</p></div>
+<div class="paragraph"><p>RTEMS is the real-time operating system used in deep-space missions.
+It is ultra-reliable because it has to be; there&#8217;s no on-site
+tech support a million miles from Earth.</p></div>
+<div class="paragraph"><p>Applying that GPSD and RTEMS experience to NTP combines the best in
+modern high-reliability software engineering with the proven
+excellence of the NTP Classic core algorithms.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_will_ntpsec_fully_interoperate_with_ntp_classic">Will NTPsec fully interoperate with NTP Classic?</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>NTPsec <em>already</em> fully interoperates with NTP Classic.  They use the same
+protocols and the same time adjustment algorithms.  User-visible
+differences are minor, and consist mostly of obsolete code being dropped
+and a few tools renamed to reduce NTPsec&#8217;s footprint in global namespace.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_why_do_these_web_pages_look_so_1990s">Why do these web pages look so 1990s?</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Because that simple look is good for people with visual impairments,
+and as a tribute to Dr. David Mills, the original architect of NTP
+who is himself visually impaired.  Dr. Mills has very particular
+ideas about Web visuals, and this site is carefully styled to
+resemble his NTP documentation pages.</p></div>
+<div class="imageblock" style="text-align:center;">
+<div class="content">
+<img src="clocktower64.png" alt="clocktower64.png">
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2023-02-12 04:01:34 UTC
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,225 @@
+#!/usr/bin/env python
+#
+# Query a microserver for its hardware configuration, including the
+# pin designated to receive 1PPS by the pps-gpio driver.  With the
+# -p option, set that pin.
+#
+# The evironment is assumed to be a Debian Linux variant.
+#
+# Note: There is some support for the ODroid C2 in here, but we found it
+# too fragile and unstable to be useful.  the code is left in as a model for
+# other SBCs but we recommend against trying to use it.
+#
+import getopt
+import os
+import re
+import sys
+
+# This code is in common with clockmaker.  Make sure they stay synced
+
+try:
+    my_input = raw_input
+except NameError:
+    my_input = input
+
+
+class RaspberryPi:
+    "Raspberry Pi capabilities"
+    bc = "/boot/config.txt"
+    dtoverlay = "dtoverlay=pps-gpio,gpiopin="
+    gpio_re = re.compile(dtoverlay + "([0-9]*)")
+
+    def __init__(self):
+        self.name = "Raspberry PI"
+        self.gpsdev = "mmcblk0"
+        self.default_login = "pi"
+        #   GPIO04      |      P1-7     | Adafruit
+        #   GPIO18      |      P1-12    | Uputronics
+        #   GPIO05      |      PI-29    | SKU 424254
+        self.gpiomap = (("Adafruit", 4), ("Uputronics", 18), ("SKU 42425", 5))
+        # Map hardware revision numbers to Raspberry Pi versions
+        self.revision_dict = {
+            "0002": "Model B Revision 1.0",
+            "0003": "Model B Revision 1.0",
+            "0004": "Model B Revision 2.0",
+            "0005": "Model B Revision 2.0",
+            "0006": "Model B Revision 2.0",
+            "0007": "Model A",
+            "0008": "Model A",
+            "0009": "Model A",
+            "000d": "Model B Revision 2.0",
+            "000e": "Model B Revision 2.0",
+            "000f": "Model B Revision 2.0",
+            "0010": "Model B+",
+            "0011": "Compute Module",
+            "0012": "Model A+",
+            "a01041": "Pi 2 Model B",
+            "a21041": "Pi 2 Model B",
+            "900092": "PiZero",
+            "a02082": "Pi 3 Model B",
+            "a22082": "Pi 3 Model B",
+            "900032": "Model B+",
+            "a020d3": "Pi 3 Model B+",
+            "a03111": "Pi 4 Model B 1GB",
+            "b03111": "Pi 4 Model B 2GB",
+            "b03112": "Pi 4 Model B Revision 1.2 2GB",
+            "c03111": "Pi 4 Model B 4GB",
+            "c03112": "Pi 4 Model B Revision 1.2 4GB",
+        }
+
+    @staticmethod
+    def identify_me():
+        return os.path.exists("/dev/ttyAMA0")
+
+    def get_pps_gpio(self):
+        with open(RaspberryPi.bc) as rp:
+            config_txt = rp.read()
+        m = RaspberryPi.gpio_re.search(config_txt)
+        if m:
+            return dict([(str(y), x) for (x, y) in self.gpiomap])[m.group(1)]
+        else:
+            return None
+
+    def set_pps_gpio(self, newpin):
+        with open(RaspberryPi.bc) as rp:
+            config_txt = rp.read()
+        new_config = re.sub(RaspberryPi.gpio_re,
+                            RaspberryPi.dtoverlay + str(newpin), config_txt)
+        if new_config == config_txt:
+            print("internal error - no substitution")
+            raise SystemExit(1)
+        with open(RaspberryPi.bc, "w") as wp:
+            wp.write(new_config)
+
+
+class OdroidC2:
+    "Odroid C2 capabilities"
+    # See: http://forum.odroid.com/viewtopic.php?f=136&t=21733&p=147199#p147199
+    mf = "/etc/modprobe.d/pps-gpio.conf"
+    options = "options pps-gpio gpio_pin="
+    gpio_re = re.compile(options + "([0-9]*)")
+
+    def __init__(self):
+        self.name = "Odroid C2"
+        self.gpsdev = "/dev/ttyS1"
+        self.default_login = "odroid"
+        self.gpiomap = (("Adafruit", 249), ("Uputronics", 238),
+                        ("SKU 42425", 228))
+        self.revision_dict = {}
+
+    @staticmethod
+    def identify_me():
+        return "ODROID-C2" in open("/proc/cpuinfo").read()
+
+    def get_pps_gpio(self):
+        if not os.path.exists(OdroidC2.mf):
+            return None
+        else:
+            with open(OdroidC2.mf) as rp:
+                config_txt = rp.read()
+            m = OdroidC2.gpio_re.search(config_txt)
+            if m:
+                return dict([(str(y), x)
+                             for (x, y) in self.gpiomap])[m.group(1)]
+            else:
+                return None
+
+    def set_pps_gpio(self, newpin):
+        with open("/etc/modules-load.d/pps-gpio.conf", "w") as wp:
+            wp.write("pps-gpio\n")
+        with open(OdroidC2.mf, "w") as wp:
+            wp.write(OdroidC2.options + str(newpin) + "\n")
+        os.system("modprobe")
+
+
+def whatami():
+    "Identify the SBC"
+    for sbctype in (RaspberryPi, OdroidC2):
+        if sbctype.identify_me():
+            return sbctype()
+            break
+    else:
+        print("Unknown SBC type.")
+        raise SystemExit(1)
+
+
+def pinprompt(pin_pairs):
+    print("Configuring GPIO pin....")
+    while True:
+        newpin = None
+        for k in pin_pairs:
+            print("%s = %s" % (k[0], k))
+        sel = my_input("Select a GPS daughterboard type: ").upper()
+        for k in pin_pairs:
+            if k.startswith(sel):
+                newpin = pin_pairs[k]
+        if newpin is not None:
+            print("Configuring for PPS via GPIO pin %s" % newpin)
+            break
+    return newpin
+
+# End common code
+
+
+if __name__ == "__main__":
+    try:
+        (options, arguments) = getopt.getopt(sys.argv[1:], "p")
+    except getopt.GetoptError as e:
+        print(e)
+        sys.exit(1)
+    pin = False
+
+    for (switch, val) in options:
+        if switch == '-p':
+            pin = True
+        elif switch == '-h':
+            print(__doc__)
+            raise SystemExit(0)
+
+    if pin and os.geteuid() != 0:
+        print("The config function must run as root.")
+        raise SystemExit(0)
+
+    hostname = open("/etc/hostname").read().strip()
+    sys.stdout.write(hostname + ": ")
+
+    # Identify the SBC
+    sbc = whatami()
+    sys.stdout.write(sbc.name + " ")
+
+    # Determine the hardware revision
+    revno = None
+    for line in open("/proc/cpuinfo"):
+        if line.startswith("Revision"):
+            revno = line.split()[2]
+    if hasattr(sbc, "revision_dict"):
+        if revno is None or revno not in sbc.revision_dict:
+            sys.stdout.write("can't identify SBC version.\n")
+            raise SystemExit(0)
+        else:
+            revno = sbc.revision_dict[revno]
+    sys.stdout.write("%s, " % (revno))
+
+    reboot_required = False
+
+    try:
+        ptype = sbc.get_pps_gpio()
+        if ptype:
+            sys.stdout.write("configured for the %s.\n" % ptype)
+        else:
+            print("GPIO not configured")
+            raise SystemExit(1)
+        if pin:
+            sbc.set_pps_gpio(pinprompt(dict(sbc.gpiomap)))
+            reboot_required = True
+    except ValueError:
+        print("Not working on %s yet" % sbc.name)
+        raise SystemExit(1)
+
+    if reboot_required:
+        print("")
+        print("A reboot is required for the GPIO change to take effect.")
+    elif pin:
+        print("No configuration changes - no reboot is required.")
+
+# end

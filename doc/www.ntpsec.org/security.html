@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="generator" content="AsciiDoc 10.2.0">
+<title>Security Researchers, Vulnerability Reports and Disclosure Policy</title>
+<link rel="stylesheet" href="./asciidoc.css" type="text/css">
+
+
+<script type="text/javascript" src="./asciidoc.js"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="article">
+<div id="header">
+<h1>Security Researchers, Vulnerability Reports and Disclosure Policy</h1>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_invitation_to_responsible_security_researchers">Invitation to Responsible Security Researchers</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>We specifically invite and welcome the scrutiny and participation of
+responsible security researchers.  Please, inspect the code, abuse the
+APIs, fuzz the sockets, and attack the network traffic.</p></div>
+<div class="paragraph"><p>If you are a security research organization, we invite you to contact
+us even before you have anything to report, so we can set up a working
+relationship, and exchange keys.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_reporting_vulnerabilities">Reporting Vulnerabilities</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Please report discovered vulnerabiltites to the <a href="mailto:security@ntpsec.org">
+NTPsec security team</a>.</p></div>
+<div class="paragraph"><p>This team email forwards to a very small cadre of the internal NTPsec
+staff.</p></div>
+<div class="paragraph"><p>You may GPG encrypt your report. Our GPG key can be found on the well
+known keyservers, and has the following id and fingerprint:</p></div>
+<div class="listingblock">
+<div class="content monospaced">
+<pre>pub   rsa4096 2020-10-06 [SC] [expires: 2025-10-05]
+      E57235D22764129FA4F2F4D17F52608ED0E49D76
+uid NTPsec Security Reporting &lt;security@ntpsec.org&gt;
+uid NTPsec Contact &lt;contact@ntpsec.org&gt;</pre>
+</div></div>
+<div class="paragraph"><p>The following key expired on 2022-06-07:</p></div>
+<div class="listingblock">
+<div class="content monospaced">
+<pre>pub   3072D/161C3978 2018-06-08 [expires: 2022-06-07]
+Key fingerprint = B482 3776 1A26 9022 2C99  5F44 5A22 E330 161C 3978
+uid NTPsec Contact &lt;contact@ntpsec.org&gt;
+uid NTPsec Security Reporting &lt;security@ntpsec.org&gt;</pre>
+</div></div>
+<div class="paragraph"><p>The following key was expired on 2019-04-14:</p></div>
+<div class="listingblock">
+<div class="content monospaced">
+<pre>pub   4096R/477C7528 2016-04-14 [expires: 2019-04-14]
+Key fingerprint = DA3F DF77 4CC7 0FA6 4729  EC45 05D9 B371 477C 7528
+uid NTPsec Security Reporting &lt;security@ntpsec.org&gt;</pre>
+</div></div>
+<div class="paragraph"><p>The following key was revoked on 2016-04-13:</p></div>
+<div class="listingblock">
+<div class="content monospaced">
+<pre>pub 4096R/CC282DBE 2015-09-29 [expires: 2018-09-13]
+Key fingerprint = B09A 8CAB E180 EC66 4CC5  11D8 2A7C 3E36 CC28 2DBE
+uid NTPsec Security Reporting &lt;security@ntpsec.org&gt;</pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_our_responsiveness_goals">Our Responsiveness Goals</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Our goal is to ack receipt within 24 hours; verify each potential
+vulnerability within 3 days; and if the vulnerability is a significant
+network risk, such as remote execution, denial of service, network
+amplification, or corruption of time reporting, develop a fix within 7
+days.</p></div>
+<div class="paragraph"><p>Our experience so far is that we are much faster than that.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_our_responsible_disclosure_policy">Our Responsible Disclosure Policy</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Our responsible disclosue policy is very closely modeled on the
+<a href="https://www.cert.org/vulnerability-analysis/vul-disclosure.cfm">CERT
+Vulnerability Disclosure Policy</a>:</p></div>
+<div class="paragraph"><p>Vulnerabilities reported to the <a href="mailto:security@ntpsec.org">NTPsec
+security team</a> will be disclosed to the public 45 days after the initial
+report, regardless of the existence or availability of patches or
+workarounds from affected vendors. Extenuating circumstances, such as
+active exploitation, threats of an especially serious (or trivial)
+nature, or situations that require changes to an established standard
+may result in earlier or later disclosure. Disclosures made by the
+NTPsec security team/CC will include credit to the reporter unless
+otherwise requested by the reporter. We will apprise any affected
+vendors of our publication plans and negotiate alternate publication
+schedules with the affected vendors when required.</p></div>
+<div class="paragraph"><p>It is the goal of this policy to balance the need of the public to be
+informed of security vulnerabilities with vendors' need for time to
+respond effectively. The final determination of a publication schedule
+will be based on the best interests of the community overall.</p></div>
+<div class="paragraph"><p>Vulnerabilities reported to us will be forwarded to the affected vendors
+as soon as practical after we receive the report. The name and contact
+information of the reporter will be forwarded to the affected vendors
+unless otherwise requested by the reporter. We will advise the reporter
+of significant changes in the status of any vulnerability he or she
+reported to the extent possible without revealing information provided
+to us in confidence.</p></div>
+<div class="imageblock" style="text-align:center;">
+<div class="content">
+<img src="clocktower64.png" alt="clocktower64.png">
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2023-02-12 04:01:34 UTC
+</div>
+</div>
+</body>
+</html>

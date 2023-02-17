@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="generator" content="AsciiDoc 10.2.0">
+<title>Feature removals</title>
+<link rel="stylesheet" href="./asciidoc.css" type="text/css">
+
+
+<script type="text/javascript" src="./asciidoc.js"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="article">
+<div id="header">
+<h1>Feature removals</h1>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph"><p>The aim of the NTPsec project is high security, availability, and assurance.
+The more code we can throw away, the fewer potential vulnerabilities
+and complexity issues we will have.</p></div>
+<div class="paragraph"><p>Accordingly, we have already removed many obsolete features, and have
+a schedule of more feature removals planned.  If something on this
+list is important to you, tell us.  If the complexity cost of keeping
+it is low, you win.  If the complexity cost is high, then we will need
+a donation of engineering time or money to support keeping it in the
+codebase.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_removals_already_complete">Removals already complete</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The Autokey public-key-based authentication system feature has been
+removed.  It has been reported to have been broken for some time, and
+added a significant amount of complexity.</p></div>
+<div class="paragraph"><p>Autokey-like functionality has been provided by implementing
+the RFC8915 "Network Time Security" protocol.</p></div>
+<div class="paragraph"><p>The ntpdc utility has been entirely removed.  (All its capabilities are
+available through ntpq with a similar user interface.)  Support for
+Mode 7 packets in ntpd has been removed along with it, significantly
+reducing total attack surface and code complexity.</p></div>
+<div class="paragraph"><p>The ntpsnmpd daemon, being half-complete and not fully conformant with
+RFC 5907, has been removed.  In a future release we would be open to
+replacing it with a conformant implementation.</p></div>
+<div class="paragraph"><p>The long-deprecated ntpdate program has been replaced with a shell
+wrapper around ntpdig.</p></div>
+<div class="paragraph"><p>We have removed the following refclock drivers, which were either
+broken and won&#8217;t compile on modern systems (12, 21), or irretrievably
+obsolete due to the WWVB modulation change (3, 19, 32, 34, 36), or had
+unfixable Y2K or GPS rollover issues (21, 37), or unfixable security
+issues (16, 39, 43, 45), or relied on hardware interfaces no longer
+found on modern systems (6, 7, 35, 41), or were deprecated in NTP
+Classic and had their documentation removed (13, 14, 17), or duplicate
+support in other drivers (38) or were EOLed more than 20 years ago
+without aftermarket activity or Web chatter in a decade (9), or we have
+been advised by their maintainers should go (27), or were obvious
+dorm-room stunts not corresponding to real hardware (33).</p></div>
+<table class="tableblock frame-all grid-all"
+style="
+width:100%;
+">
+<col style="width:100%;">
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 3: PSTI/Traconex 1020 WWV/WWVH Receiver (WWV_PST)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 6: IRIG Audio Decoder (IRIG_AUDIO)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 7: Radio CHU Audio Demodulator/Decoder (CHU)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 9: Magnavox MX4200 GPS Receiver (GPS_MX4200)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 10: Austron 2200A/2201A GPS Receivers (GPS_AS2201)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 12: KSI/Odetics TPRO/S IRIG Interface</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 13: Leitch CSD 5300 Master Clock Controller (ATOM_LEITCH)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 14: EES M201 MSF Receiver (REFCLOCK_MSF_EES)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 16: Bancomm GPS/IRIG Receiver (GPS_BANCOMM)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 17: Datum Precision Time System (GPS_DATUM)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 19: Heath WWV/WWVH Receiver (WWV_HEATH)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 21: TrueTime GPS-VME Interface (GPS_VME)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 27: Arcron MSF Receiver (MSF_ARCRON)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 31: Rockwell Jupiter GPS (GPS_JUPITER)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 32: Chrono-log K-series WWVB receiver (CHRONOLOG)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 33: Dumb Clock (DUMBCLOCK)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 34: Ultralink WWVB Receivers (ULINK)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 35: Conrad Parallel Port Radio Clock (PCF)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 36: Radio WWV/H Audio Demodulator/Decoder (WWV)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 37: Forum Graphic GPS Dating station (FG)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 38: hopf GPS/DCF77 6021/komp for Serial Line (HOPF_S)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 39: hopf GPS/DCF77 6039 for PCI-Bus (HOPF_P)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 41: TrueTime 560 IRIG-B Decoder (REFCLK_TT560)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 43: RIPE NCC interface for Trimble Palisade</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 45: Spectracom TSync PCI</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph"><p>In addition, support for WWVB (broken by the 2013 modulation change),
+OMEGA (shut down in 1997), and GOES (shut down in 2005) has been
+removed from the Type 5 (TrueTime) driver. Support for GPS has been
+retained.</p></div>
+<div class="paragraph"><p>You may be unable to build NTPsec on a sufficiently archaic big-iron
+Unix platform.  Support for the native APIs of any version that last
+shipped in the last century has been removed. The codebase assumes
+full POSIX.1-2001 and C99 conformance including ANSI pthreads; in some
+cases you may be able to meet this requirement by upgrading to a
+modern GCC- or clang-based toolchain.</p></div>
+<div class="paragraph"><p>Platform-dependent kernel-space code that raised potential security
+issues has been removed.  No programs access /dev/kmem directly any
+longer, and STREAMS support for the parse driver has been deleted.</p></div>
+<div class="paragraph"><p>Legacy Windows support has been removed; it cost 10KLOC and a lot of
+complications.  If we support Windows again, it will be via a POSIX/C99
+emulation layer such as Cygwin or Microsoft&#8217;s Windows 10 facility for
+executing Linux binaries.</p></div>
+<div class="paragraph"><p>Support for VMS has been removed, and is unlikely to be restored
+unless that platform has achieved effectively full standards
+conformance and someone interested throws engineering time and money
+at us.  Likewise for VxWorks.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_obsolete_refclocks">Obsolete refclocks</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>We consider a refclock driver obsolete if it fails any of the
+following tests:</p></div>
+<div class="olist arabic"><ol class="arabic">
+<li>
+<p>
+It has been discontinued for seven or more years and cannot be
+   found for sale on the Web. Types 5, 10, 26, 27, 35, 37, 41.
+</p>
+</li>
+<li>
+<p>
+Duplicates capabilities of GPSD, which specializes in GPSes.
+   Types 20, 29, 30.
+</p>
+</li>
+<li>
+<p>
+Accuracy an order of magnitude worse than a cheap 1PPS GPS. Type 33.
+</p>
+</li>
+</ol></div>
+<div class="paragraph"><p>Thus, we plan to remove the following refclock drivers:</p></div>
+<table class="tableblock frame-all grid-all"
+style="
+width:100%;
+">
+<col style="width:100%;">
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 5: TrueTime GPS/GOES Receivers (TRUETIME)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 20: Generic NMEA GPS Receiver (NMEA)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 29: Trimble Navigation Palisade GPS (GPS_PALISADE)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 30: Motorola UT Oncore GPS (GPS_ONCORE)</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph"><p>We also plan to remove the following modes in the Type 8 (PARSE) driver.
+These are for equipment that has not been available at least since
+2003, and probably earlier.</p></div>
+<table class="tableblock frame-all grid-all"
+style="
+width:100%;
+">
+<col style="width:100%;">
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Mode  3: ELV DCF7000</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Mode  4: Walter Schmid DCF receiver Kit</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Mode  9: Trimble SVeeSix GPS Receiver TAIP Protocol</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Mode 10: Trimble SVeeSix GPS Receiver</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph"><p>This will leave the following drivers in place:</p></div>
+<table class="tableblock frame-all grid-all"
+style="
+width:100%;
+">
+<col style="width:100%;">
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 1: Undisciplined Local Clock</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 4: Spectracom GPS Receivers (SPECTRACOM)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 8: Generic Reference Driver (PARSE)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 11: Arbiter 1088A/B GPS Receiver (GPS_ARBITER)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 18: NIST/USNO/PTB Modem Time Services (ACTS_MODEM)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 22: PPS Clock Discipline (PPS)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 26: Hewlett Packard 58503A GPS Receiver (GPS_HP)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 28: Shared Memory Driver (SHM)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 40: JJY Receivers (JJY)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 42: Zyfer GPStarplus Receiver</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 44: NeoClock4X - DCF77 / TDF serial line</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 46: GPSD NG client protocol</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph"><p>For details on the technical considerations, see our
+<a href="drivers.html">NTPD driver retention analysis</a>.</p></div>
+<div class="imageblock" style="text-align:center;">
+<div class="content">
+<img src="clocktower64.png" alt="clocktower64.png">
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2023-02-12 04:01:34 UTC
+</div>
+</div>
+</body>
+</html>

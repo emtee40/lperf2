@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="generator" content="AsciiDoc 10.2.0">
+<title>Platform support policy</title>
+<link rel="stylesheet" href="./asciidoc.css" type="text/css">
+
+
+<script type="text/javascript" src="./asciidoc.js"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="article">
+<div id="header">
+<h1>Platform support policy</h1>
+</div>
+<div id="content">
+<div class="sect1">
+<h2 id="_scope">Scope</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>We expect the NTPsec code to run with at most minor port changes on
+Unix-like operating systems conforming to POSIX.1-2001 and ISO/IEC
+9899:1999 (aka C99) and supporting both ntp_gettime(2)/ntp_adjtime(2)
+and the POSIX-1.2008 clock_gettime(2)/clock_settime(2) calls.  Either
+Python2.x:x &gt;=6 or Python 3.x:x &gt;= 3 are also required.  We will fully
+support these platforms.</p></div>
+<div class="paragraph"><p>(Note: in the future it is possible we may
+<a href="http://www.curiousefficiency.org/posts/2015/04/stop-supporting-python26.html">drop
+support for Python 2.6</a>, moving to a baseline of Python 2.7.2.)</p></div>
+<div class="paragraph"><p>Hardware with 32 or 64 bits and any endianness is supported.  However,
+we&#8217;re optimizing for performance on modern 64-bit hardware and will
+sacrifice performance on older systems to tune for newer ones.</p></div>
+<div class="paragraph"><p>NTP Classic kept legacy support for a lot of very ancient Unix big
+iron, and for other systems, such as VMS.  But increasing security
+requires reducing complexity and attack surface.  We have almost
+completely removed legacy Unix support, and our direction is towards
+dropping the remainder (along with unused or rarely-used features) in
+order to achieve secure simplicity.</p></div>
+<div class="paragraph"><p>The support for building under legacy Windows toolchains has been
+removed to reduce complexity. We may re-port to Windows using modern,
+more POSIX-conformant tools, but that is unlikely in early releases.
+Help with this would be welcome.</p></div>
+<div class="paragraph"><p>If you are a stranded legacy user with security and reliability
+requirements strong enough that only NTPsec will do, our team is open
+to working with active port maintainers who will take responsibility
+for specific target environments not fully conformant to the
+POSIX.1-2001/C99/Python-2.6 combination, or for exotic hardware.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_test_status">Test status</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Our primary development platforms are Linux and FreeBSD.</p></div>
+<div class="paragraph"><p>NTPsec builds cleanly on at least the following systems:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+Alpine latest, edge (x86_64)
+</p>
+</li>
+<li>
+<p>
+CentOS latest (x86_64)
+</p>
+</li>
+<li>
+<p>
+Debian oldstable, stable, testing, unstable (amd64)
+</p>
+</li>
+<li>
+<p>
+Debian stable (i386)
+</p>
+</li>
+<li>
+<p>
+Debian wheezy on BeagleBone Black ARM v7
+</p>
+</li>
+<li>
+<p>
+Fedora latest, Rawhide (x86_64)
+</p>
+</li>
+<li>
+<p>
+FreeBSD 11, 12 (amd64)
+</p>
+</li>
+<li>
+<p>
+Gentoo standard, hardened (x86_64)
+</p>
+</li>
+<li>
+<p>
+macOS latest (x86_64)
+</p>
+</li>
+<li>
+<p>
+NetBSD 7.0.1 on x86_64 and 7.0.1 on i386
+</p>
+</li>
+<li>
+<p>
+Raspbian jessie on ARM v6 and v7 (Pi, Pi 2, and Pi 3)
+</p>
+</li>
+<li>
+<p>
+Ubuntu latest, devel, rolling (x86_64)
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>Some of these systems have minor build quirks; see the INSTALL file
+in the distribution root directory for details</p></div>
+<div class="paragraph"><p>Normal time sync in client mode works correctly on all the listed
+systems.  Server mode has been well tested under Debian and Raspbian,
+less so on other variants and *BSD.</p></div>
+<div class="paragraph"><p>However, platform dependencies other than adjtime(2) and adjtimex(2)
+are minimal.  Experience with the codebase suggests it will run
+correctly anywhere it builds correctly.</p></div>
+<div class="paragraph"><p>The following refclocks are known to work under Linux:</p></div>
+<table class="tableblock frame-all grid-all"
+style="
+width:100%;
+">
+<col style="width:50%;">
+<col style="width:50%;">
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">20</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">NMEA GPS Receiver</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">22</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">PPS Clock Discipline</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">26</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Hewlett Packard 58503A GPS Receiver</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">28</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Shared Memory Driver</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">29</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Trimble Navigation Palisade GPS (with Thunderbolt)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">46</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">GPSD NG client protocol</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph"><p>The best-tested refclock on non-Linux systems is SHM,
+especially in combination with GPSD.</p></div>
+<div class="paragraph"><p>We have an actively maintained port to macOS
+<span class="footnote"><br>[Pre-10.12 versions of Mac OS X have a defective or
+nonexistent clock API; we are no longer attempting to support
+these.]<br></span>. Basic testing has been performed and we are looking for
+people with macOS skill and interest to help support this platform and
+perform detailed testing.</p></div>
+<div class="paragraph"><p>We regularly test not just on x86 but on the ARM processors in the Raspberry
+Pi 2 and 3. This gives us both a test for hidden platform-centric
+assumptions and useful pressure to stay friendly to small systems.</p></div>
+<div class="imageblock" style="text-align:center;">
+<div class="content">
+<img src="clocktower64.png" alt="clocktower64.png">
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2023-02-12 04:01:34 UTC
+</div>
+</div>
+</body>
+</html>

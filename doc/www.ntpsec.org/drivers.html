@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="generator" content="AsciiDoc 10.2.0">
+<title></title>
+<link rel="stylesheet" href="./asciidoc.css" type="text/css">
+
+
+<script type="text/javascript" src="./asciidoc.js"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="article">
+<div id="header">
+</div>
+<div id="content">
+<div class="paragraph"><p>=ci NTPD driver retention analysis =
+Eric S. Raymond &lt;<a href="mailto:esr@thyrsus.com">esr@thyrsus.com</a>&gt;
+Version 1.16, 2019-08-08</p></div>
+<div class="sect1">
+<h2 id="_summary">Summary</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>ntpd contains support for 42 driver types.  Of these: 2 are IPC drivers
+which must be retained; 12 are for hardware that might, under very
+generous assumptions, still be of use; and 28 can be discarded.</p></div>
+<div class="paragraph"><p>Out of that 12, the actual utility of some remains dubious, but the
+cultural/political context of the project probably requires that we
+retain them.  I discuss related issues in a concluding section.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_technological_context">Technological context</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>NTP&#8217;s driver inventory contains several different classes of precision
+time sources.  The software is now around 40 years old, and some of
+those classes are now obsolescent or semi-obsolescent.</p></div>
+<div class="paragraph"><p>See <a href="https://gpsd.gitlab.io/gpsd/gpsd-time-service-howto.html">"Introduction
+to Time Service"</a> for terminology, device classes, and accuracy.  The
+summary version is that inexpensive 1PPS-capable GPS devices have a
+nearly overwhelming cost-effectiveness advantage over older time source
+types, and the utility of supporting those older types is accordingly
+plummeting.</p></div>
+<div class="paragraph"><p>It is actually seriously questionable whether support for
+<strong>any</strong> of these legacy devices is worth maintaining.  No hardware
+drivers have been added since 2006, and possibly none since 2002.
+NIST&#8217;s modulation change at 2012-10-29T15:00:00Z laid waste to the
+U.S. time-radio industry. It may actually be the case that <strong>all</strong> the
+Stratum 1 sites running non-custom ntpd instances are using GPSes now.</p></div>
+<div class="paragraph"><p>However, political reality - especially for a federally-funded project
+with customers in a lot of .gov and .mil shops running very old iron -
+does not necessarily allow the best technical move, which would be to
+drop all the drivers, see who screams, and reinstate the fewest we
+can.  I will return to this issue.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_objectives_and_criteria">Objectives and criteria</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Two of our main objectives in the ntpd rescue are (1) to eliminate security
+vulnerabilities and (2) move the code to a maintainable state.  An
+effective way of accomplishing both would be to outright remove as
+much code as possible from ntpd.</p></div>
+<div class="paragraph"><p>ntpd includes no fewer than 46 device drivers for local clock sources.
+Some effective means of removing code would be to remove drivers which
+are obsolescent by the following criteria:</p></div>
+<div class="dlist"><dl>
+<dt class="hdlist1">
+INTRINSIC
+</dt>
+<dd>
+<p>
+        Remove hardware that can no longer work for intrinsic technical reasons.
+</p>
+</dd>
+<dt class="hdlist1">
+DEPRECATED
+</dt>
+<dd>
+<p>
+        Remove deprecated drivers - that is, drivers which the ntpd
+        documentation itself declares obsolete or no longer documents.
+</p>
+</dd>
+<dt class="hdlist1">
+DISCONTINUED
+</dt>
+<dd>
+<p>
+        Remove drivers for products that have been discontinued for
+        more than seven years. (In the first version of this report
+        the proposal was ten years.  Please see the final section
+        on policy and conclusions.)
+</p>
+</dd>
+<dt class="hdlist1">
+UNAVAILABLE
+</dt>
+<dd>
+<p>
+        Remove drivers for products which cannot be found for sale
+        with a web search. (I have noted when remaindered units are
+        available on eBay and second-hand sites.)
+</p>
+</dd>
+<dt class="hdlist1">
+REDUNDANT
+</dt>
+<dd>
+<p>
+        Remove drivers that duplicate capabilities better provided by
+        GPSD (or, in principle, other sensor managers).
+</p>
+</dd>
+<dt class="hdlist1">
+INACCURATE
+</dt>
+<dd>
+<p>
+        Remove GPS drivers and time radios for which the hardware offers no
+        better source accuracy than a timing GPS available for less than
+        $75 in 2015; that is, about 5ms.  (However, do not necessarily
+        remove poorer-performing GPS-conditioned <strong>clocks</strong>, as they continue
+        to supply time in holdover mode when the GPS cannot get satellite lock.)
+</p>
+</dd>
+<dt class="hdlist1">
+SECURITY
+</dt>
+<dd>
+<p>
+        As a policy choice, we do not support devices requiring
+        closed-source code to be linked to the OS kernel.
+</p>
+</dd>
+</dl></div>
+<div class="paragraph"><p>We should certainly keep drivers such as SHM and GPSD-NG that are IPC
+methods for peer time-source programs in ntpd itself.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_first_round_triage">First-round triage</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The following lists the drivers in ntpd, categorizes them, and
+recommends a disposition for each. It&#8217;s based on the master list
+from the NTP Classic documentation.</p></div>
+<div class="paragraph"><p>Types 15, 23, 24, and 25 are not listed because they are reserved and
+not in use.  In any case, we no longer use the old-style driver numbers
+The name symbols given in the following list do not necessarily match
+those in Classic; when a driver has a newer shortname string in NTPsec
+that is used instead.</p></div>
+<div class="sect2">
+<h3 id="_type_1_local_undisciplined_local_clock">Type 1 (LOCAL): Undisciplined Local Clock</h3>
+<div class="paragraph"><p>This driver type is described as deprecated.  It is in any case
+obsolete anywhere with a sky view, where a GPS will do a better job.</p></div>
+<div class="paragraph"><p>Disposition: Fails tests DEPRECATED and INACCURATE; Remove.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_2_gps_trak_trak_8820_gps_receiver">Type 2 (GPS_TRAK):  Trak 8820 GPS Receiver</h3>
+<div class="paragraph"><p>This driver still existed only as one mention in the ntpd
+documentation.  There is no refclock implementation for it.</p></div>
+<div class="paragraph"><p>Web searches reach one copy of the technical manual dating from 1994
+and preserved here:</p></div>
+<div class="paragraph"><p><a href="http://www.to-way.com/tf/trak8820a.pdf">http://www.to-way.com/tf/trak8820a.pdf</a></p></div>
+<div class="paragraph"><p>All other references are to copies of old ntpd documentation. I
+conclude that this hardware is extremely obsolete and
+discontinued well before before 2000.</p></div>
+<div class="paragraph"><p>Disposition: Fails tests DEPRECATED, DISCONTINUED, UNAVAILABLE;
+already removed.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_3_wwv_pst_psti_traconex_1020_wwv_wwvh_receiver">Type 3 (WWV_PST): PSTI/Traconex 1020 WWV/WWVH Receiver</h3>
+<div class="paragraph"><p>This device is described <a href="http://prc68.com/I/PST1020.shtml">here</a> with a
+2005 note that it is "not very reliable" having drifted by a full minute.</p></div>
+<div class="paragraph"><p>Investigating the vendor site at U.S. Traffic Corp (now Peek Traffic)
+reveals that this device was discontinued, probably before 2000.</p></div>
+<div class="paragraph"><p>According to this August 2001 post</p></div>
+<div class="paragraph"><p><a href="https://groups.google.com/forum/#!topic/comp.protocols.time.ntp/0jOItglBTLE">https://groups.google.com/forum/#!topic/comp.protocols.time.ntp/0jOItglBTLE</a></p></div>
+<div class="paragraph"><p>the device required manual intervention every year and was not
+designed for use after 2001.  Dave Mills replied to that one in a way
+that implies he still has two of these and there is a workaround to
+the problem described, but also says they have a service life of only
+a few years due to a failure-prone component.</p></div>
+<div class="paragraph"><p>I could not find any for sale on the Web.  This hardware
+would no longer work even if a specimen could be found, due to WWVB&#8217;s
+modulation change as described in the next entry.</p></div>
+<div class="paragraph"><p>Disposition: Fails tests INTRINSIC, DISCONTINUED, UNAVAILABLE, and
+INACCURATE; already removed.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_4_spectracom_spectracom_wwvb_gps_receivers">Type 4 (SPECTRACOM): Spectracom WWVB/GPS Receivers</h3>
+<div class="paragraph"><p>Since WWVB changed its modulation scheme at 2012-10-29T15:00:00Z
+Spectracom WWVB receivers from before that date no longer function.
+The models covered by this driver (Model 8170, Netclock/2 WWVB) are in
+this category.  Spectracom has not produced any new time-radio gear
+since the modulation change.</p></div>
+<div class="paragraph"><p>However, the Spectracom 9300 (still in production and support)
+is a GPS clock that can emit the type 0 and 2 formats recognized
+by this driver.</p></div>
+<div class="paragraph"><p>Disposition: Retain.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_5_truetime_truetime_gps_goes_omega_receivers">Type 5 (TRUETIME): TrueTime GPS/GOES/OMEGA Receivers</h3>
+<div class="paragraph"><p>True Time was a product line of timer sources. The most recent
+relevant document I can find is is a military test report dated 1997:</p></div>
+<div class="paragraph"><p>www.dtic.mil/cgi-bin/GetTRDoc?AD=ADA324042</p></div>
+<div class="paragraph"><p>This implies that the device was still in production in 1996, and
+also that it does not receive PPS.</p></div>
+<div class="paragraph"><p>The devices can be found for sale, but only on eBay and electronics
+remainder sites.  The vendor seems to be long gone.</p></div>
+<div class="paragraph"><p>Disposition: DISCONTINUED; Remove.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_6_irig_irig_audio_decoder">Type 6 (IRIG): IRIG Audio Decoder</h3>
+<div class="paragraph"><p>This driver is a very, very bad idea given flesh. It demodulates an
+<strong>audio signal</strong> emitted by several radio time sources, requiring custom
+wiring to connect to a microphone or line-in port.  All for
+accuracy two orders of magnitude worse (500&micro;s) than a cheap 1PPS GPS
+and no holdover capability.</p></div>
+<div class="paragraph"><p>We removed this one in July 2016 following a determination that
+the hardware required by audio-path drivers imposed serious
+precision limits and is now obsolete.</p></div>
+<div class="paragraph"><p>Disposition: INACCURATE; already removed.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_7_chu_radio_chu_audio_demodulator_decoder">Type 7 (CHU): Radio CHU Audio Demodulator/Decoder</h3>
+<div class="paragraph"><p>A very bad idea similarly wired to IRIG, using a Canadian analog
+of WWVB.  Cited as 1ms accuracy without GPS calibration.</p></div>
+<div class="paragraph"><p>We removed this one in July 2016 following a determination that
+the hardware required by audio-path drivers imposed serious
+precision limits and is now obsolete.</p></div>
+<div class="paragraph"><p>Disposition: INACCURATE; already removed.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_8_generic_generic_reference_driver">Type 8 (GENERIC): Generic Reference Driver</h3>
+<div class="paragraph"><p>This is a driver supporting a large variety of time radios, some of
+which (such as the Meinberg line) are still generally available.</p></div>
+<div class="paragraph"><p>Disposition: Move to refclockd.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_9_magnavox_magnavox_mx4200_gps_receiver">Type 9 (MAGNAVOX): Magnavox MX4200 GPS Receiver</h3>
+<div class="paragraph"><p>A line of GPSes produced by Magnavox, discontinued in 1994, with
+the surplus stock marketed by Leica Geosystems.  Leica no longer
+sells them.  They shipped 1PPS.  I could find only two units at
+dodgy surplus houses; even eBay doesn&#8217;t have them.</p></div>
+<div class="paragraph"><p>Disposition: DISCONTINUED, UNAVAILABLE; already removed.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_10_austron_austron_2200a_2201a_gps_receivers">Type 10 (AUSTRON): Austron 2200A/2201A GPS Receivers</h3>
+<div class="paragraph"><p>An obsolete line of 1PPS GPS receivers.  Austron was acquired some
+time before 1996 and the product line apparently discontinued then.
+A few units were still in hobbyist use in 2006, but there don&#8217;t
+seem to be more recent references even on the time-nuts list.
+I could find none available for sale.</p></div>
+<div class="paragraph"><p>Removed in July 2016 when our program manager decided it was too
+ancient to be worth keeping.</p></div>
+<div class="paragraph"><p>Disposition: Fails tests DISCONTINUED, UNAVAILABLE; already removed.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_11_arbiter_arbiter_1088a_b_gps_receiver">Type 11 (ARBITER): Arbiter 1088A/B GPS Receiver</h3>
+<div class="paragraph"><p>Arbiter systems is still alive at <a href="http://www.arbiter.com/">http://www.arbiter.com/</a></p></div>
+<div class="paragraph"><p>With 100ns worst-case accuracy relative to 1PPS this is still a viable
+time source.</p></div>
+<div class="paragraph"><p>Disposition: Retain.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_12_irig_tpro_ksi_odetics_tpro_s_irig_interface">Type 12 (IRIG_TPRO): KSI/Odetics TPRO/S IRIG Interface</h3>
+<div class="paragraph"><p>An obsolete clock source that connected directly to the SBus of a Sun
+workstation. SBus was replaced rapidly by PCI after 1997; no hardware
+based on SBus has been shipped for at least a decade and the last
+of these were probably shipped before the year 2000. I could find
+none of them for sale.</p></div>
+<div class="paragraph"><p>Disposition: DISCONTINUED, UNAVAILABLE; already removed.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_13_atom_leitch_leitch_csd_5300_master_clock_controller">Type 13 (ATOM_LEITCH): Leitch CSD 5300 Master Clock Controller</h3>
+<div class="paragraph"><p>Documentation has been removed from the ntpd4 webpages.</p></div>
+<div class="paragraph"><p>A clock source that synchronized with the U.S. national time authority
+via modem.  Leitch was acquired by Harris Broadcasting in 2005.</p></div>
+<div class="paragraph"><p>Propagation jitter in the POTS network dooms any chance this could
+even match the performance of a cheap serial GPS. Remnant units are
+available on eBay and electronics remainder sites.</p></div>
+<div class="paragraph"><p>Disposition: DEPRECATED, DISCONTINUED, and INACCURATE; already removed.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_14_msf_ees_ees_m201_msf_receiver">Type 14 (MSF_EES): EES M201 MSF Receiver</h3>
+<div class="paragraph"><p>Documentation for this driver has been removed from the ntpd4 webpages.</p></div>
+<div class="paragraph"><p>All the references to it I can find on the Web point back
+to old NTP documentation. I conclude that it is obsolete.</p></div>
+<div class="paragraph"><p>Disposition: Fails test DEPRECATED and DISCONTINUED; already removed.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_16_gps_bancomm_bancomm_gps_irig_receiver">Type 16 (GPS_BANCOMM): Bancomm GPS/IRIG Receiver</h3>
+<div class="paragraph"><p>A discontinued VME board for Sun 4 systems.  The last VME-based
+Sun 4 issued in 1989 to be replaced by SBus systems also now
+obsolete. Required a proprietary driver.</p></div>
+<div class="paragraph"><p>Disposition: DISCONTINUED. SECURITY; already removed.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_17_gps_datum_datum_precision_time_system">Type 17 (GPS_DATUM): Datum Precision Time System</h3>
+<div class="paragraph"><p>Documentation has been removed from the ntpd4 webpages.  There used to
+be a company called Datum that sold clock sources, but it has left no
+traces on the Web and I can find no evidence of surviving hardware.</p></div>
+<div class="paragraph"><p>Disposition: DEPRECATED, DISCONTINUED, UNAVAILABLE; already removed.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_18_acts_modem_nist_usno_ptb_modem_time_services">Type 18 (ACTS_MODEM): NIST/USNO/PTB Modem Time Services</h3>
+<div class="paragraph"><p>The USNO timer service still nominally exists, but requires a
+Hayes-compatible 1200bps modem, hardware now 20 years obsolete:</p></div>
+<div class="paragraph"><p><a href="http://tycho.usno.navy.mil/modem_time.html">http://tycho.usno.navy.mil/modem_time.html</a></p></div>
+<div class="paragraph"><p>It claims 4ms jitter (before propagation delays in the POTS network).
+Retain because it might be useful in holdover mode.</p></div>
+<div class="paragraph"><p>Disposition: Retain.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_19_wwv_heath_heath_wwv_wwvh_receiver">Type 19 (WWV_HEATH): Heath WWV/WWVH Receiver</h3>
+<div class="paragraph"><p>Pre-1992 time-radio receiver, cited as worse than 100ms accuracy.
+Undated web pages suggest that a few may survive in hobbyist use.</p></div>
+<div class="paragraph"><p>Disposition: DISCONTINUED, UNAVAILABLE, INACCURATE; already removed.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_20_nmea_generic_nmea_gps_receiver">Type 20 (NMEA): Generic NMEA GPS Receiver</h3>
+<div class="paragraph"><p>GPSD does this better.</p></div>
+<div class="paragraph"><p>Disposition: REDUNDANT; Remove</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_21_gps_vme_truetime_gps_vme_interface">Type 21 (GPS_VME): TrueTime GPS-VME Interface</h3>
+<div class="paragraph"><p>VME-bus time source for Sun workstations, long dead, documentation
+removed.</p></div>
+<div class="paragraph"><p>Disposition: INTRINSIC, DEPRECATED, DISCONTINUED; already removed.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_22_pps_pps_clock_discipline">Type 22 (PPS): PPS Clock Discipline</h3>
+<div class="paragraph"><p>I had this marked for retention in the 1.0 version of this document;
+it could still have been potentially useful in some very odd
+situations - the documentation mentions "the vicinity of Mars".</p></div>
+<div class="paragraph"><p>However, Hal Murray reports that the PPS support in ntpd is "kludgy"
+and needs to be fixed.  That says to me that this driver is too
+broken to be worth saving. Should be replaced with the GPSD PPS
+code, which is better tested.</p></div>
+<div class="paragraph"><p>Disposition: INTRINSIC; Remove</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_26_gps_hp_hewlett_packard_58503a_gps_receiver">Type 26 (GPS_HP): Hewlett Packard 58503A GPS Receiver</h3>
+<div class="paragraph"><p>Support for two discontinued HP time sources, not updated since 2005.
+Used units can be found on the Web.  Accuracy cited as better than 1&micro;s
+when GPS-locked, drift of better than 10ms in holdover mode. Some
+are available on eBay.</p></div>
+<div class="paragraph"><p>I had this marked for removal in the 1.0 version of this document,
+but Hal Murray - who is credible when he says such things - reports
+that (a) these were heavily used in cell towers before being
+discontinued, so surplus units are easy to find, and (b) they&#8217;re
+widely used in the time-hacker community.</p></div>
+<div class="paragraph"><p>Disposition: DISCONTINUED; move to refclockd.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_27_msf_arcron_arcron_msf_receiver">Type 27 (MSF_ARCRON): Arcron MSF Receiver</h3>
+<div class="paragraph"><p>Obsolete time source, noted in 2003 posting</p></div>
+<div class="paragraph"><p><a href="http://comp.protocols.time.ntp.narkive.com/0sT20Wjc/trimble-s-acutime-2000-compared-to-arcron-msf">http://comp.protocols.time.ntp.narkive.com/0sT20Wjc/trimble-s-acutime-2000-compared-to-arcron-msf</a></p></div>
+<div class="paragraph"><p>to be "not very good" and inferior to a common Trimble GPS.  The
+vendor is gone.  Web searches do not find units for sale.</p></div>
+<div class="paragraph"><p>We got advice from the last maintainer of this driver to remove it.</p></div>
+<div class="paragraph"><p>Disposition: DISCONTINUED, UNAVAILABLE, INACCURATE; already removed.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_28_shm_shared_memory_driver">Type 28 (SHM): Shared Memory Driver</h3>
+<div class="paragraph"><p>IPC driver, to be retained.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_29_palisade_trimble_navigation_palisade_gps">Type 29 (PALISADE): Trimble Navigation Palisade GPS</h3>
+<div class="paragraph"><p>GPSD does this better.</p></div>
+<div class="paragraph"><p>Disposition: REDUNDANT; Remove.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_30_oncore_motorola_ut_oncore_gps">Type 30 (ONCORE): Motorola UT Oncore GPS</h3>
+<div class="paragraph"><p>GPSD does this better.</p></div>
+<div class="paragraph"><p>Disposition: REDUNDANT; Remove.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_31_jupiter_rockwell_jupiter_gps">Type 31 (JUPITER): Rockwell Jupiter GPS</h3>
+<div class="paragraph"><p>GPSD does this better.  Anyway, the driver turned out to rely on the
+assumption that it was in Epoch 0 and cannot have worked since the
+Epoch 1 turnover in 1999.</p></div>
+<div class="paragraph"><p>Disposition: INTRINSIC, REDUNDANT; Removed.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_32_chronolog_chrono_log_k_series_wwvb_receiver">Type 32 (CHRONOLOG): Chrono-log K-series WWVB receiver</h3>
+<div class="paragraph"><p>Discontinued WWVB receiver described as "very old" in 2010.  Vendor
+still exists but is now making blood-platelet counters rather than
+clocks. Only 1 second accuracy.  Wouldn&#8217;t work following the WWVB
+modulation change, anyway.</p></div>
+<div class="paragraph"><p>Disposition: INTRINSIC, DISCONTINUED, UNAVAILABLE, INACCURATE; already
+removed.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_33_dumbclock_dumb_clock">Type 33 (DUMBCLOCK): Dumb Clock</h3>
+<div class="paragraph"><p>I can find no evidence that non-GPS ASCII clocks of this kind still
+exist. It is not clear to me that they <strong>ever</strong> existed except as custom
+hobbyist rigs!  Precision 2000 times worse than a cheap serial GPS.</p></div>
+<div class="paragraph"><p>Disposition: INACCURATE; Already removed.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_34_ulink_ultralink_wwvb_receivers">Type 34 (ULINK): Ultralink WWVB Receivers</h3>
+<div class="paragraph"><p>A discontinued time radio.  Most recent references on the
+Web are from 2008; still on sale in 2004.  This posting</p></div>
+<div class="paragraph"><p><a href="http://fixunix.com/ntp/337036-ultralink-325-wwvb-receiver.html">http://fixunix.com/ntp/337036-ultralink-325-wwvb-receiver.html</a></p></div>
+<div class="paragraph"><p>notes that accuracy is bad compared to a GPS.  Would no
+longer work due to the WWVB modulation change.</p></div>
+<div class="paragraph"><p>Disposition: INTRINSIC, DISCONTINUED and INACCURATE; already removed.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_35_pcf_conrad_parallel_port_radio_clock">Type 35 (PCF): Conrad Parallel Port Radio Clock</h3>
+<div class="paragraph"><p>Obsolete port type, obsolete clock.  The vendor is still in business
+but this product has been discontinued.  All web references I found,
+except one 404, are pointers to ntpd documentation from before 2010.
+Not portable; relies on a BSD-only driver, with a former Linux one
+having apparently disappeared. Can only report to 0.5s accuracy.</p></div>
+<div class="paragraph"><p>Disposition: DISCONTINUED, UNAVAILABLE, INACCURATE; already removed.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_36_wwv_radio_wwv_h_audio_demodulator_decoder">Type 36(WWV): Radio WWV/H Audio Demodulator/Decoder</h3>
+<div class="paragraph"><p>Yet another really bad idea based on audio signal demodulation. Only
+accurate to 1ms; a cheap GPS can do 200 times better.</p></div>
+<div class="paragraph"><p>Disposition: INACCURATE; already removed.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_37_fg_forum_graphic_gps_dating_station">Type 37 (FG): Forum Graphic GPS Dating station</h3>
+<div class="paragraph"><p>Product discontinued, vendor vanished, more than 15 years old and
+had a Y2K issue then.</p></div>
+<div class="paragraph"><p>Disposition: DISCONTINUED, INACCURATE; already removed.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_38_hopf_s_hopf_gps_dcf77_6021_komp_for_serial_line">Type 38 (HOPF_S): hopf GPS/DCF77 6021/komp for Serial Line</h3>
+<div class="paragraph"><p>This was originally slated for removal, but in late November 2015 we
+were informed that the "Hopf 6021 Standard" protocol this handles is
+still emitted by several Hopf models in production use in off-Internet
+applications.</p></div>
+<div class="paragraph"><p>In 2016 it was removed anyway because it duplicates support in the
+parse driver.</p></div>
+<div class="paragraph"><p>Disposition: already removed</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_39_hopf_p_hopf_gps_dcf77_6039_for_pci_bus">Type 39 (HOPF_P): hopf GPS/DCF77 6039 for PCI-Bus</h3>
+<div class="paragraph"><p>Still a live product - an industrial-grade timing receiver, or what
+passed for one in 2001 (date of manual). At a claimed jitter of 2ms it
+is 400 times less accurate than any common 1PPS device today and half
+the accuracy of a $30 USB timing GPS. However, as a clock rather than
+plain GPS the DCF77 variant evades the INACCURATE tag (just barely).</p></div>
+<div class="paragraph"><p>Disposition: SECURITY; already removed.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_40_jjy_jjy_receivers">Type 40 (JJY):  JJY Receivers</h3>
+<div class="paragraph"><p>The TriState and C-Dex devices this supports may still be live
+products, though little information seems to be available in English.</p></div>
+<div class="paragraph"><p>Disposition: Retain.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_41_refclk_tt560_truetime_560_irig_b_decoder">Type 41 (REFCLK_TT560): TrueTime 560 IRIG-B Decoder</h3>
+<div class="paragraph"><p>Documentation has been removed from the ntpd4 web pages, but from web
+searches and context this is another obsolete product in the
+audio-decoder class from a dead vendor.</p></div>
+<div class="paragraph"><p>Disposition: DEPRECATED and DISCONTINUED; already removed.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_42_zyfer_zyfer_gpstarplus_receiver">Type 42 (ZYFER): Zyfer GPStarplus Receiver</h3>
+<div class="paragraph"><p>Live product with a supporting vendor.  100ns accuracy.</p></div>
+<div class="paragraph"><p>Disposition: Retain.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_43_ripencc_ripe_ncc_interface_for_trimble_palisade">Type 43 (RIPENCC): RIPE NCC interface for Trimble Palisade</h3>
+<div class="paragraph"><p>Requires custom hardware no longer being made.</p></div>
+<div class="paragraph"><p>Disposition: INTRINSIC; already removed.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_44_neoclock4x_neoclock4x_dcf77_tdf_serial_line">Type 44 (NEOCLOCK4X): NeoClock4X - DCF77 / TDF serial line</h3>
+<div class="paragraph"><p>This is a radio clock synchronized to DCF77 and thus has 2ms jitter.
+In 2015, I found a source page at <a href="http://www.linux-funkuhr.de/">http://www.linux-funkuhr.de/</a> that suggests it
+was written by a small software company "Linum Software GmbH" for
+Linux hosts. In 2019, that site was gone.  The device ships only 2-digit
+years, suggesting a design predating the Y2K flap. Internal evidence in the
+NTP Classic revision history is that it has not had updates
+since 2004.</p></div>
+<div class="paragraph"><p>Disposition: DISCONTINUED (&lt;2004), UNAVAILABLE; Remove.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_45_tsyncpci_spectracom_tsync_pci">Type 45 (TSYNCPCI): Spectracom TSync PCI</h3>
+<div class="paragraph"><p>Spectracom is a product line of of time sources that is still
+available and supported by a vendor.  The TSync is a GPS clock
+with a specified accuracy of 100ns.  However, it required a
+proprietary driver and is therefore unacceptable as a matter
+of security policy.</p></div>
+<div class="paragraph"><p>Disposition: SECURITY; already removed.</p></div>
+</div>
+<div class="sect2">
+<h3 id="_type_46_gpsd_gpsd_ng_client_protocol">Type 46 (GPSD): GPSD NG client protocol</h3>
+<div class="paragraph"><p>IPC driver, to be retained.</p></div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_summary_2">Summary</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>For hardware marked "&lt;2000?" the date it was end-of-lifed cannot
+be determined cetainly but was almost certainly in the last century.</p></div>
+<table class="tableblock frame-all grid-all"
+style="
+width:100%;
+">
+<caption class="title">Table 1. Hardware status summary</caption>
+<col style="width:50%;">
+<col style="width:50%;">
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">1</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">DEPRECATED, INACCURATE</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">2</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">DEPRECATED, DISCONTINUED (&lt;2000?), UNAVAILABLE</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">3</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">INTRINSIC, DISCONTINUED (&lt;2000?), UNAVAILABLE, INACCURATE; REMOVED</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">4</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">-</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">5</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">DISCONTINUED (&lt;2000?)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">6</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">INACCURATE; REMOVED</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">7</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">INACCURATE; REMOVED</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">8</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">-</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">9</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">DISCONTINUED (1994), UNAVAILABLE</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">10</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">DISCONTINUED (1996), UNAVAILABLE; REMOVED</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">11</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">-</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">12</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">UNDOCUMENTED, DISCONTINUED (&lt;2000?), UNAVAILABLE; REMOVED</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">13</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">DISCONTINUED (&lt;2005), INACCURATE; REMOVED</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">14</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">DEPRECATED and DISCONTINUED (&lt;2000?); REMOVED</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">16</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">DISCONTINUED (&lt;2000?), SECURITY; REMOVED</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">17</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">UNDOCUMENTED, DEPRECATED, DISCONTINUED (&lt;2000?), UNAVAILABLE; REMOVED</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">19</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">DISCONTINUED (&lt;1992), UNAVAILABLE, INACCURATE; REMOVED</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">20</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">REDUNDANT</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">21</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">INTRINSIC, DEPRECATED, DISCONTINUED (&lt;2000?); REMOVED</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">26</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">DISCONTINUED (2005?)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">27</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">DISCONTINUED (&lt;2000?), UNAVAILABLE, INACCURATE; REMOVED</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">29</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">REDUNDANT</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">30</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">REDUNDANT</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">31</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">REDUNDANT</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">32</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">INTRINSIC, DISCONTINUED (&lt;2000?), UNAVAILABLE, INACCURATE; REMOVED</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">33</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">INACCURATE; REMOVED</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">34</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">INTRINSIC, DISCONTINUED (&gt;2004,&lt;2015) and INACCURATE; REMOVED</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">35</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">DISCONTINUED (&lt;2010), UNAVAILABLE; REMOVED</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">36</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">INACCURATE; REMOVED</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">37</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">DISCONTINUED (&lt;2000), INACCURATE; REMOVED</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">38</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">REMOVED</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">39</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">SECURITY; REMOVED</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">40</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">-</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">41</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">DEPRECATED, DISCONTINUED</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">42</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">-</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">43</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">INTRINSIC; REMOVED</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">44</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">DISCONTINUED (&lt;2004), UNAVAILABLE; Remove.</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">45</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">SECURITY; REMOVED</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_second_round_triage">Second-round triage</h2>
+<div class="sectionbody">
+<table class="tableblock frame-all grid-all"
+style="
+width:100%;
+">
+<caption class="title">Table 2. Potentially viable drivers</caption>
+<col style="width:33%;">
+<col style="width:33%;">
+<col style="width:33%;">
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 1</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">LOCAL</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Undisciplined Local Clock</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 4</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">SPECTRACOM</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Spectracom WWVB/GPS Receivers</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 8</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">GENERIC</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Generic Reference Driver</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 11</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">ARBITER</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Arbiter 1088A/B GPS Receiver</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 18</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">ACTS</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">NIST/USNO/PTB Modem Time Services</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 26</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">HPGPS</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Hewlett Packard 58503A GPS Receiver</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 28</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">SHM</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Shared Memory Driver</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 40</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">JJY</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">JJY Receivers</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 42</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">ZYFER</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Zyfer GPStarplus Receiver</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 44</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">NEOCLOCK</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">NeoClock4X - DCF77 / TDF serial line</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">Type 46</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">GPSD</p></td>
+<td class="tableblock halign-left valign-top" ><p class="tableblock">GPSD JSON client protocol</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph"><p>The Type 4 driver supports recent Spectracom GPS clocks, if I can
+believe their protocol documentation.  But Spectracom no longer
+makes WWVB receivers; this has been renamed "Spectracom Type 2
+protocol".</p></div>
+<div class="paragraph"><p>Types 28 and 46 are no-brainers to keep.  We will eventually want to
+deprecate the SHM driver in favor of the JSON one.  That needs to be
+described as a future direction in the documentation.</p></div>
+<div class="paragraph"><p>Kludgy PPS support in ntpd may compromise types 4, 8, and 45. This
+is an issue we need to keep an eye on.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_policy_consequences">Policy consequences</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>The 1.0 version of this document contained a technical policy proposal
+but no conclusions.  It was, essentially, to remove all drivers tagged
+INTRINSIC, DEPRECATED, OBSOLETE, REDUNDANT, and INACCURATE, but
+allow for reinstatement of merely OBSOLETE drivers on demonstration of
+a real-world use case.</p></div>
+<div class="paragraph"><p>At that time the proposed obsolescence timeout was ten years.  I noted
+that there is only one driver for hardware that has been discontinued,
+but possibly too recently - Type 35; the date it was end-of-lifed is
+unclear.  I have continued to designate it OBSOLETE, as its reliance
+on a parallel port means it is extremely likely to have been
+discontinued before 2008.</p></div>
+<div class="paragraph"><p>Susan Sons, acting as program manager, changed the timeout to seven
+years.  She endorsed the exception that obsolete drivers may be
+reinstated if and when specific users demonstrate a need for them.</p></div>
+<div class="paragraph"><p>To date, there have been two such reinstatements:</p></div>
+<div class="ulist"><ul>
+<li>
+<p>
+the Hewlett Packard 58503A (type 26), requested by Hal Murray.
+</p>
+</li>
+<li>
+<p>
+the Hopf 6021 Serial, requested by Martin Kotzan.
+</p>
+</li>
+</ul></div>
+<div class="paragraph"><p>The second one was later dropped again when it was discovered
+that a GENERIC mode supports this hardware.</p></div>
+<div class="paragraph"><p>Accordingly, the list under "Potentially viable drivers" is the list
+to be retained in the cleanup release of NTP.  This list may be
+revised as we receive new information.</p></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_appendix_test_equipment_available">Appendix: Test equipment available</h2>
+<div class="sectionbody">
+<div class="paragraph"><p>Harlan Stenn reports:</p></div>
+<div class="listingblock">
+<div class="content monospaced">
+<pre>Here at my lab I have:
+
+- Meinberg LANtime M600
+- SEL-2407
+- Sure GPS
+- ublox
+
+At ISC we have:
+
+- Meinberg GPS167BGT
+- - IRIG Audio
+- - Serial with no PPS
+- - Serial with PPS
+- - DCF77 output
+- Meinberg DCF77 receiver
+- Trimble Acutime 2000
+
+I think we have a Trimble Acutime Gold as well, but no cable for it.
+
+&gt; |==========================================================
+&gt; |Type 4: Spectracom WWVB/GPS Receivers (WWVB_SPEC)
+&gt; |Type 11: Arbiter 1088A/B GPS Receiver (GPS_ARBITER)
+
+Dave Mills might have these two, but I have no idea if they're up and
+running and there's no good way to access them at his place.  If they
+are up and running I might be able to get logs for you.
+
+&gt; |Type 42: Zyfer GPStarplus Receiver
+
+I had one of these back when I wrote the driver, but I haven't seen one
+since.  There is no maintainer for this refclock, so if a problem is
+found with it I'll ping the manufacturer and either they'll fix it or
+I'll deprecate the driver.  I wrote this driver because Zyfer had a
+customer (the NSA) who asked for it.  I haven't heard a word about this</pre>
+</div></div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_history">History</h2>
+<div class="sectionbody">
+<div class="dlist"><dl>
+<dt class="hdlist1">
+Version 1.0, 2015-03-03
+</dt>
+<dd>
+<p>
+        Initial version.
+</p>
+</dd>
+<dt class="hdlist1">
+Version 1.1, 2015-03-06
+</dt>
+<dd>
+<p>
+        Dropped type 22, reinstated type 26. Added hardware status summary.
+</p>
+</dd>
+<dt class="hdlist1">
+Version 1.2, 2015-03-10
+</dt>
+<dd>
+<p>
+        Added section on policy and conclusions. ACTS is still used
+        for backup at government Stratum 1 sites, so keep it.
+</p>
+</dd>
+<dt class="hdlist1">
+Version 1.3, 2015-06-16
+</dt>
+<dd>
+<p>
+        Minor typo fixes.
+</p>
+</dd>
+<dt class="hdlist1">
+Version 1.4, 2015-06-30
+</dt>
+<dd>
+<p>
+        Add DEPRECATED tags to three refclocks because they are
+        undocumented. Note that driver 2 was already gone and that
+        13, 14, 17, 21, and 41 have already been removed.
+</p>
+</dd>
+<dt class="hdlist1">
+Version 1.5, 2015-11-26
+</dt>
+<dd>
+<p>
+        Take Type 38 off the removal list in response to user feedback.
+</p>
+</dd>
+<dt class="hdlist1">
+Version 1.6, 2015-11-28
+</dt>
+<dd>
+<p>
+        Properly mark removed drivers.
+</p>
+</dd>
+<dt class="hdlist1">
+Version 1.7, 2015-12-09
+</dt>
+<dd>
+<p>
+        Correct the date of the WWVB modulation change.
+</p>
+</dd>
+<dt class="hdlist1">
+Version 1.8, 2015-06-12
+</dt>
+<dd>
+<p>
+        Remove Conrad Parallel Port radio (refclock 35).
+</p>
+</dd>
+<dt class="hdlist1">
+Version 1.9, 2016-06-16
+</dt>
+<dd>
+<p>
+        Remove Spectracom TSYNC PCI (refclock 45) and ARCRON MSF
+        (refclock 27). Add SECURITY tag.
+</p>
+</dd>
+<dt class="hdlist1">
+Version 1.10, 2016-07-23
+</dt>
+<dd>
+<p>
+        We don&#8217;t use magic numbers any more. Update accordingly.
+</p>
+</dd>
+<dt class="hdlist1">
+Version 1.11, 2016-08-22
+</dt>
+<dd>
+<p>
+        Minor typo fixes.
+</p>
+</dd>
+<dt class="hdlist1">
+Version 1.12, 2016-01-30
+</dt>
+<dd>
+<p>
+        Remove DUMBCLOCK (refclock 33).
+</p>
+</dd>
+<dt class="hdlist1">
+Version 1.13, 2017-05-13
+</dt>
+<dd>
+<p>
+        Remove JUPITER - can&#8217;t have worked since 1999.
+</p>
+</dd>
+<dt class="hdlist1">
+Version 1.14, 2017-09-17
+</dt>
+<dd>
+<p>
+        Remove MAGNAVOX; discontinued and unavailable.
+</p>
+</dd>
+<dt class="hdlist1">
+Version 1.15, 2019-02-05
+</dt>
+<dd>
+<p>
+        Millisecond-microsecond correction.
+</p>
+</dd>
+<dt class="hdlist1">
+Version 1.16. 2019-08-08
+</dt>
+<dd>
+<p>
+        The REFCLOCKD proposal has been abandoned.
+        The neoclock4x driver&#8217;s vendor is gone.
+</p>
+</dd>
+</dl></div>
+<div class="imageblock" style="text-align:center;">
+<div class="content">
+<img src="clocktower64.png" alt="clocktower64.png">
+</div>
+</div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2023-02-12 04:01:34 UTC
+</div>
+</div>
+</body>
+</html>

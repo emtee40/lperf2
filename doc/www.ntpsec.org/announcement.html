@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="generator" content="AsciiDoc 10.2.0">
+<title>Project announcement</title>
+<link rel="stylesheet" href="./asciidoc.css" type="text/css">
+
+
+<script type="text/javascript" src="./asciidoc.js"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+asciidoc.install();
+/*]]>*/
+</script>
+</head>
+<body class="article">
+<div id="header">
+<h1>Project announcement</h1>
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph"><p>The NTP Security Project effort addresses a pressing problem in the
+Internet infrastructure, and tests a new model for supporting and
+maintaining its vital parts.</p></div>
+<div class="paragraph"><p>It has been known for some time that the authentication and security
+mechanisms used in Network Time Protocol (NTP) were aging, partly
+broken, and vulnerable to attack. Recently this concern has become
+reality through a string of serious security incidents involving NTP
+servers, in many of which the servers were exploited as amplifiers for
+DDoS (distributed denial of service) attacks.</p></div>
+<div class="paragraph"><p>An accurate common timebase is vitally important for a wide range of
+uses, from financial services to autonomous vehicular navigation.
+Accordingly, some months ago the Center for Trustworthy Scientific
+Cyberinfrastructure (<a href="http://trustedci.org/">CTSC</a>) and Indiana
+University&#8217;s Center for Applied Cybersecurity Research
+(<a href="http://cacr.iu.edu/">CACR</a>) initiated rescue planning that included a
+range of individual experts on time service, senior NTP developers,
+and interested organizations such as the Network Time Foundation
+(<a href="http://www.networktimefoundation.org/">NTF</a>) the Internet Civil
+Engineering Institute (<a href="https://icei.org">ICEI</a>), and the National
+Science Foundation (<a href="http://www.nsf.gov/">NSF</a>). The NSF approved seed
+funding for this work.</p></div>
+<div class="paragraph"><p>The rescue planning bore fruit in a detailed roadmap, beginning with
+breaking the NTP code base out of the proprietary BitKeeper revision
+control system into a Git repository, where it can benefit from
+regular examination and contributions by the wider community (this
+was not previously possible due to BitKeeper&#8217;s licensing requirements
+and logistical overhead).</p></div>
+<div class="paragraph"><p>NTF, which maintains the current reference NTP implementation, has
+declined to participate in these efforts to secure the NTP software.
+Thus, members of the NTP community have chosen to create a fork of
+that code base that will take advantage of and further iterate upon
+the remediation work funded by the NSF, CTSC, and CACR. The ongoing
+work is now substantially funded by the Linux Foundation&#8217;s Core
+Infrastructure Initiative (<a href="https://www.coreinfrastructure.org/">CII</a>).</p></div>
+<div class="paragraph"><p>Thus, the NTP Security Project - familiarly, NTPsec. NTPsec will be
+a compatible upgrade from the NTF version, continuously evolved from
+that historical reference implementation.</p></div>
+<div class="paragraph"><p>As the project name indicates, NTPsec&#8217;s early focus will be on
+security improvements.  We will also apply best practices in use of
+static-analysis tools, continuous integration, and automated testing.
+Down the road we plan deeper refactoring for security and simplicity,
+and to fully adapt the network time protocol to IPV6.</p></div>
+<div class="paragraph"><p>NTPsec begins with a core team of experienced and expert developers.
+You can read more about them on the <a href="core-team.html">Core
+Team</a> page.</p></div>
+<div class="imageblock" style="text-align:center;">
+<div class="content">
+<img src="clocktower64.png" alt="clocktower64.png">
+</div>
+</div>
+<div class="paragraph"><p>Have questions? Email us at  <a href="mailto:contact@ntpsec.org">contact@ntpsec.org</a>,
+or via IRC at Libera Chat channel #ntpsec.</p></div>
+</div>
+</div>
+</div>
+<div id="footnotes"><hr></div>
+<div id="footer">
+<div id="footer-text">
+Last updated
+ 2023-02-12 04:01:34 UTC
+</div>
+</div>
+</body>
+</html>
