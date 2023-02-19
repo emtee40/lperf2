@@ -1585,10 +1585,14 @@ static void reporter_output_client_settings (struct ReportSettings *report) {
 	}
 #endif
 	if (isHistogram(report->common)) {
-	    fprintf(stdout, "Enabled write histograms bin-width=%0.3f ms, bins=%d\n", \
-		((1e3 * report->common->HistBinsize) / pow(10,report->common->HistUnits)), report->common->HistBins);
+	    if (!isBounceBack(report->common)) {
+		fprintf(stdout, "Enabled write histograms bin-width=%0.3f ms, bins=%d\n", \
+			((1e3 * report->common->HistBinsize) / pow(10,report->common->HistUnits)), report->common->HistBins);
+	    } else {
+		fprintf(stdout, "Set bounceback histograms to bin-width=%0.3f ms, bins=%d\n", \
+			((1e3 * report->common->HistBinsize) / pow(10,report->common->HistUnits)), report->common->HistBins);
+	    }
 	}
-
     }
     fflush(stdout);
 }

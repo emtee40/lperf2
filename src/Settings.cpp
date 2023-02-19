@@ -1798,7 +1798,7 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
     if (bail)
 	exit(1);
 
-    // UDP histogram optional settings
+    // Histogram optional settings
     if (isHistogram(mExtSettings)) {
 	if (!mExtSettings->mHistogramStr) {
 	    if (mExtSettings->mThreadMode == kMode_Server) {
