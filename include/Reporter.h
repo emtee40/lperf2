@@ -372,6 +372,7 @@ struct TransferInfo {
     double iBBrunning;
     double fBBrunning;
     double iInP;
+    double fInP;
 };
 
 struct SumReport {

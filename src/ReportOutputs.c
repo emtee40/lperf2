@@ -59,7 +59,8 @@
 static char outbuffer[SNBUFFERSIZE]; // Buffer for printing
 static char outbufferext[SNBUFFEREXTENDSIZE]; // Buffer for printing
 
-static char llaw_buf[100];
+#define LLAWBUFSIZE 100
+static char llaw_buf[LLAWBUFSIZE];
 static char netpower_buf[100];
 
 static int HEADING_FLAG(report_bw) = 0;
@@ -178,6 +179,18 @@ static inline void set_llawbuf_udp (int lambda, double meantransit, double varia
     llaw_buf[sizeof(llaw_buf) - 1] = '\0';
 }
 
+static inline void human_format_llawbuf(char *dststr, size_t len, double inP) {
+    if (inP < LLAW_LOWERBOUNDS) {
+	char oobstr[] = "OBL";
+	if (len > sizeof(oobstr))
+	    strcpy(dststr, oobstr);
+    } else {
+        //force to adpative bytes for human readable
+        byte_snprintf(dststr, len, inP, 'A');
+	dststr[len-1] = '\0';
+    }
+}
+
 #if 0
 static inline void set_llawbuf_frames (int lambda, double meantransit, double variance, intmax_t framecnt) {
     int Lvar = 0;
@@ -194,20 +207,20 @@ static inline void set_llawbuf_frames (int lambda, double meantransit, double va
 
 #define NETPWR_LOWERBOUNDS -1e7
 static inline void set_netpowerbuf(double meantransit, struct TransferInfo *stats) {
-  if (meantransit == 0.0) {
-      strcpy(netpower_buf, "NAN");
-  } else {
-      double netpwr = NETPOWERCONSTANT * (((double) stats->cntBytes) / (stats->ts.iEnd - stats->ts.iStart) / meantransit);
-      if (netpwr <  NETPWR_LOWERBOUNDS) {
-	  strcpy(netpower_buf, "OBL");
-      } else if (netpwr > 100)  {
-	  snprintf(netpower_buf, sizeof(netpower_buf), "%.0f", netpwr);
-      } else if (netpwr > 10)  {
-	  snprintf(netpower_buf, sizeof(netpower_buf), "%.2f", netpwr);
-      } else {
-	  snprintf(netpower_buf, sizeof(netpower_buf), "%.6f", netpwr);
-      }
-  }
+    if (meantransit == 0.0) {
+	strcpy(netpower_buf, "NAN");
+    } else {
+	double netpwr = NETPOWERCONSTANT * (((double) stats->cntBytes) / (stats->ts.iEnd - stats->ts.iStart) / meantransit);
+	if (netpwr <  NETPWR_LOWERBOUNDS) {
+	    strcpy(netpower_buf, "OBL");
+	} else if (netpwr > 100)  {
+	    snprintf(netpower_buf, sizeof(netpower_buf), "%.0f", netpwr);
+	} else if (netpwr > 10)  {
+	    snprintf(netpower_buf, sizeof(netpower_buf), "%.2f", netpwr);
+	} else {
+	    snprintf(netpower_buf, sizeof(netpower_buf), "%.6f", netpwr);
+	}
+    }
 }
 
 //TCP Output
@@ -259,12 +272,12 @@ void tcp_output_read_enhanced (struct TransferInfo *stats) {
 void tcp_output_read_triptime (struct TransferInfo *stats) {
     double meantransit;
     HEADING_PRINT_COND(report_bw_read_enhanced_netpwr);
-    double lambda = (stats->IPGsum > 0.0) ? ((double)stats->cntBytes / stats->IPGsum) : 0.0;
+    char llaw_bufstr[LLAWBUFSIZE];
+    human_format_llawbuf(llaw_bufstr, sizeof(llaw_bufstr), ((stats->final) ? stats->fInP : stats->iInP));
     _print_stats_common(stats);
     if (!stats->final) {
         meantransit = (stats->transit.current.cnt > 0) ? (stats->transit.current.sum / stats->transit.current.cnt) : 0;
 	set_netpowerbuf(meantransit, stats);
-	set_llawbuf(lambda, meantransit);
 	printf(report_bw_read_enhanced_netpwr_format,
 	       stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
 	       outbuffer, outbufferext,
@@ -274,7 +287,7 @@ void tcp_output_read_triptime (struct TransferInfo *stats) {
 	       (stats->transit.current.cnt < 2) ? 0 : 1e3 * (sqrt(stats->transit.current.m2 / (stats->transit.current.cnt - 1))),
 	       stats->transit.current.cnt,
 	       stats->transit.current.cnt ? (long) ((double)stats->cntBytes / (double) stats->transit.current.cnt) : 0,
-	       llaw_buf,
+	       llaw_bufstr,
 	       netpower_buf,
 	       stats->sock_callstats.read.cntRead,
 	       stats->sock_callstats.read.bins[0],
@@ -288,7 +301,6 @@ void tcp_output_read_triptime (struct TransferInfo *stats) {
     } else {
         meantransit = (stats->transit.total.cnt > 0) ? (stats->transit.total.sum / stats->transit.total.cnt) : 0;
 	set_netpowerbuf(meantransit, stats);
-	set_llawbuf(lambda, meantransit);
 	printf(report_bw_read_enhanced_netpwr_format,
 	       stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
 	       outbuffer, outbufferext,
@@ -298,7 +310,7 @@ void tcp_output_read_triptime (struct TransferInfo *stats) {
 	       (stats->transit.total.cnt < 2) ? 0 : 1e3 * (sqrt(stats->transit.total.m2 / (stats->transit.total.cnt - 1))),
 	       stats->transit.total.cnt,
 	       stats->transit.total.cnt ? (long) ((double)stats->cntBytes / (double) stats->transit.total.cnt) : 0,
-	       llaw_buf,
+	       llaw_bufstr,
 	       netpower_buf,
 	       stats->sock_callstats.read.cntRead,
 	       stats->sock_callstats.read.bins[0],
@@ -1075,12 +1087,12 @@ void tcp_output_sumcnt_read_enhanced (struct TransferInfo *stats) {
 void tcp_output_sumcnt_read_triptime (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_sumcnt_bw_read_triptime);
     _print_stats_common(stats);
-    byte_snprintf(llaw_buf, sizeof(llaw_buf), stats->iInP, 'A');
-    llaw_buf[sizeof(llaw_buf)-1] = '\0';
+    char llaw_bufstr[LLAWBUFSIZE];
+    human_format_llawbuf(llaw_bufstr, sizeof(llaw_bufstr), ((stats->final) ? stats->fInP : stats->iInP));
     printf(report_sumcnt_bw_read_triptime_format, stats->threadcnt,
 	   stats->ts.iStart, stats->ts.iEnd,
 	   outbuffer, outbufferext,
-	   llaw_buf,
+	   llaw_bufstr,
 	   stats->sock_callstats.read.cntRead,
 	   stats->sock_callstats.read.bins[0],
 	   stats->sock_callstats.read.bins[1],

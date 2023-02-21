@@ -1451,6 +1451,20 @@ void reporter_transfer_protocol_server_tcp (struct ReporterData *data, int final
     if (stats->framelatency_histogram) {
         stats->framelatency_histogram->final = 0;
     }
+    double thisInP;
+    if (!final) {
+	double bytecnt = (double) (stats->total.Bytes.current - stats->total.Bytes.prev);
+	double lambda = (stats->IPGsum > 0.0) ? (bytecnt / stats->IPGsum) : 0.0;
+	double meantransit = (double) ((stats->transit.current.cnt > 0) ? (stats->transit.current.sum / stats->transit.current.cnt) : 0.0);
+	thisInP  = lambda * meantransit;
+	stats->iInP = thisInP;
+    } else {
+	double bytecnt = (double) stats->cntBytes;
+	double lambda = (stats->IPGsum > 0.0) ? (bytecnt / stats->IPGsum) : 0.0;
+	double meantransit = (double) ((stats->transit.total.cnt > 0) ? (stats->transit.total.sum / stats->transit.total.cnt) : 0.0);
+	thisInP  = lambda * meantransit;
+	stats->fInP = thisInP;
+    }
     if (sumstats) {
 	sumstats->threadcnt++;
 	sumstats->total.Bytes.current += stats->cntBytes;
@@ -1461,11 +1475,9 @@ void reporter_transfer_protocol_server_tcp (struct ReporterData *data, int final
 	    sumstats->sock_callstats.read.totbins[ix] += stats->sock_callstats.read.bins[ix];
         }
 	if (!final) {
-	    double bytecnt = (double) (stats->total.Bytes.current - stats->total.Bytes.prev);
-	    double lambda = (stats->IPGsum > 0.0) ? (bytecnt / stats->IPGsum) : 0.0;
-	    double meantransit = (double) ((stats->transit.current.cnt > 0) ? (stats->transit.current.sum / stats->transit.current.cnt) : 0.0);
-	    double thisInP  = lambda * meantransit;
 	    sumstats->iInP += thisInP;
+	} else {
+	    sumstats->fInP += thisInP;
 	}
     }
     if (fullduplexstats) {
@@ -1492,13 +1504,6 @@ void reporter_transfer_protocol_server_tcp (struct ReporterData *data, int final
 	reporter_set_timestamps_time(stats, TOTAL);
         stats->cntBytes = stats->total.Bytes.current;
 	stats->IPGsum = stats->ts.iEnd;
-	if (sumstats) {
-	    double bytecnt = (double) stats->cntBytes;
-	    double lambda = (stats->IPGsum > 0.0) ? (bytecnt / stats->IPGsum) : 0.0;
-	    double meantransit = (double) ((stats->transit.total.cnt > 0) ? (stats->transit.total.sum / stats->transit.total.cnt) : 0.0);
-	    double thisInP  = lambda * meantransit;
-	    sumstats->iInP += thisInP;
-	}
         stats->sock_callstats.read.cntRead = stats->sock_callstats.read.totcntRead;
         for (ix = 0; ix < TCPREADBINCOUNT; ix++) {
 	    stats->sock_callstats.read.bins[ix] = stats->sock_callstats.read.totbins[ix];
