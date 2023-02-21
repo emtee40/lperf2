@@ -1460,6 +1460,13 @@ void reporter_transfer_protocol_server_tcp (struct ReporterData *data, int final
 	    sumstats->sock_callstats.read.bins[ix] += stats->sock_callstats.read.bins[ix];
 	    sumstats->sock_callstats.read.totbins[ix] += stats->sock_callstats.read.bins[ix];
         }
+	if (!final) {
+	    double bytecnt = (double) (stats->total.Bytes.current - stats->total.Bytes.prev);
+	    double lambda = (stats->IPGsum > 0.0) ? (bytecnt / stats->IPGsum) : 0.0;
+	    double meantransit = (double) ((stats->transit.current.cnt > 0) ? (stats->transit.current.sum / stats->transit.current.cnt) : 0.0);
+	    double thisInP  = lambda * meantransit;
+	    sumstats->iInP += thisInP;
+	}
     }
     if (fullduplexstats) {
 	fullduplexstats->total.Bytes.current += stats->cntBytes;
@@ -1485,6 +1492,13 @@ void reporter_transfer_protocol_server_tcp (struct ReporterData *data, int final
 	reporter_set_timestamps_time(stats, TOTAL);
         stats->cntBytes = stats->total.Bytes.current;
 	stats->IPGsum = stats->ts.iEnd;
+	if (sumstats) {
+	    double bytecnt = (double) stats->cntBytes;
+	    double lambda = (stats->IPGsum > 0.0) ? (bytecnt / stats->IPGsum) : 0.0;
+	    double meantransit = (double) ((stats->transit.total.cnt > 0) ? (stats->transit.total.sum / stats->transit.total.cnt) : 0.0);
+	    double thisInP  = lambda * meantransit;
+	    sumstats->iInP += thisInP;
+	}
         stats->sock_callstats.read.cntRead = stats->sock_callstats.read.totcntRead;
         for (ix = 0; ix < TCPREADBINCOUNT; ix++) {
 	    stats->sock_callstats.read.bins[ix] = stats->sock_callstats.read.totbins[ix];
@@ -1702,6 +1716,7 @@ void reporter_transfer_protocol_sum_server_tcp (struct TransferInfo *stats, int 
 	} else if ((stats->output_handler) && !(stats->isMaskOutput)) {
 	    (*stats->output_handler)(stats);
 	    stats->threadcnt = 0;
+	    stats->iInP = 0;
 	}
 	reporter_reset_transfer_stats_server_tcp(stats);
     }

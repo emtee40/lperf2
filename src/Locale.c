@@ -352,6 +352,12 @@ const char report_sumcnt_bw_read_enhanced_header[] =
 const char report_sumcnt_bw_read_enhanced_format[] =
 "[SUM-%d] " IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "=%d:%d:%d:%d:%d:%d:%d:%d\n";
 
+const char report_sumcnt_bw_read_triptime_header[] =
+"[SUM-cnt] Interval" IPERFTimeSpace "Transfer    Bandwidth  InP  Reads=Dist\n";
+
+const char report_sumcnt_bw_read_triptime_format[] =
+"[SUM-%d] " IPERFTimeFrmt " sec  %ss  %ss/sec %s  %" PRIdMAX "=%d:%d:%d:%d:%d:%d:%d:%d\n";
+
 const char report_bw_read_enhanced_netpwr_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth    Burst Latency avg/min/max/stdev (cnt/size) inP NetPwr  Reads=Dist\n";
 

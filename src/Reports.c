@@ -261,7 +261,9 @@ void SetSumHandlers (struct thread_Settings *inSettings, struct SumReport* sumre
 		else
 		    sumreport->info.output_handler = tcp_output_basic_csv;
 	    } else {
-		if (isSumOnly(inSettings)) {
+		if (isTripTime(inSettings)) {
+		    sumreport->info.output_handler = tcp_output_sumcnt_read_triptime;
+		} else if (isSumOnly(inSettings)) {
 		    sumreport->info.output_handler = (isEnhanced(inSettings) ? tcp_output_sumcnt_read_enhanced : tcp_output_sumcnt_read);
 		} else if (isFullDuplex(inSettings)) {
 		    sumreport->info.output_handler = tcp_output_sum_read;

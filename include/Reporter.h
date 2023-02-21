@@ -371,6 +371,7 @@ struct TransferInfo {
     struct histogram *write_histogram;
     double iBBrunning;
     double fBBrunning;
+    double iInP;
 };
 
 struct SumReport {
@@ -505,6 +506,7 @@ void tcp_output_sum_read(struct TransferInfo *stats);
 void tcp_output_sum_read_enhanced(struct TransferInfo *stats);
 void tcp_output_sumcnt_read(struct TransferInfo *stats);
 void tcp_output_sumcnt_read_enhanced (struct TransferInfo *stats);
+void tcp_output_sumcnt_read_triptime (struct TransferInfo *stats);
 void tcp_output_frame_read(struct TransferInfo *stats);
 void tcp_output_frame_read_triptime(struct TransferInfo *stats);
 void tcp_output_burst_read(struct TransferInfo *stats);
