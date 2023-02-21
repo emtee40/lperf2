@@ -83,6 +83,7 @@ static int HEADING_FLAG(report_udp_fullduplex) = 0;
 static int HEADING_FLAG(report_sumcnt_bw) = 0;
 static int HEADING_FLAG(report_sumcnt_udp_fullduplex) = 0;
 static int HEADING_FLAG(report_sumcnt_bw_read_enhanced) = 0;
+static int HEADING_FLAG(report_sumcnt_bw_read_triptime) = 0;
 static int HEADING_FLAG(report_sumcnt_bw_write_enhanced) = 0;
 static int HEADING_FLAG(report_sumcnt_bw_pps_enhanced) = 0;
 static int HEADING_FLAG(report_bw_jitter_loss_enhanced_triptime) = 0;
@@ -113,6 +114,7 @@ void reporter_default_heading_flags (int flag) {
     HEADING_FLAG(report_frame_tcp_enhanced) = flag;
     HEADING_FLAG(report_frame_read_tcp_enhanced_triptime) = flag;
     HEADING_FLAG(report_sumcnt_bw_read_enhanced) = flag;
+    HEADING_FLAG(report_sumcnt_bw_read_triptime) = flag;
     HEADING_FLAG(report_sumcnt_bw_write_enhanced) = flag;
     HEADING_FLAG(report_udp_fullduplex) = flag;
     HEADING_FLAG(report_sumcnt_bw_jitter_loss) = flag;
@@ -1059,6 +1061,26 @@ void tcp_output_sumcnt_read_enhanced (struct TransferInfo *stats) {
     printf(report_sumcnt_bw_read_enhanced_format, stats->threadcnt,
 	   stats->ts.iStart, stats->ts.iEnd,
 	   outbuffer, outbufferext,
+	   stats->sock_callstats.read.cntRead,
+	   stats->sock_callstats.read.bins[0],
+	   stats->sock_callstats.read.bins[1],
+	   stats->sock_callstats.read.bins[2],
+	   stats->sock_callstats.read.bins[3],
+	   stats->sock_callstats.read.bins[4],
+	   stats->sock_callstats.read.bins[5],
+	   stats->sock_callstats.read.bins[6],
+	   stats->sock_callstats.read.bins[7]);
+    fflush(stdout);
+}
+void tcp_output_sumcnt_read_triptime (struct TransferInfo *stats) {
+    HEADING_PRINT_COND(report_sumcnt_bw_read_triptime);
+    _print_stats_common(stats);
+    byte_snprintf(llaw_buf, sizeof(llaw_buf), stats->iInP, 'A');
+    llaw_buf[sizeof(llaw_buf)-1] = '\0';
+    printf(report_sumcnt_bw_read_triptime_format, stats->threadcnt,
+	   stats->ts.iStart, stats->ts.iEnd,
+	   outbuffer, outbufferext,
+	   llaw_buf,
 	   stats->sock_callstats.read.cntRead,
 	   stats->sock_callstats.read.bins[0],
 	   stats->sock_callstats.read.bins[1],

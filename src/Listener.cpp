@@ -313,6 +313,8 @@ void Listener::Run () {
 	if ((mSettings->mReportMode == kReport_CSV) && server->mSumReport && !server->mSumReport->sum_reverse_set) {
 	    format_ips_port_string(&server->mSumReport->info, 1);
 	    server->mSumReport->sum_reverse_set = true;
+	} else if (isTripTime(server) && server->mSumReport) {
+	    SetSumHandlers(server, server->mSumReport); // this needs to be done again after first read
 	}
 
 	// Read any more test settings and test values (not just the flags) and instantiate
