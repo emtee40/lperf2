@@ -93,6 +93,7 @@ static int HEADING_FLAG(report_sumcnt_bw_jitter_loss) = 0;
 static int HEADING_FLAG(report_burst_read_tcp) = 0;
 static int HEADING_FLAG(report_burst_write_tcp) = 0;
 static int HEADING_FLAG(report_bw_isoch_enhanced_netpwr) = 0;
+static int HEADING_FLAG(report_sumcnt_udp_enhanced) = 0;
 
 void reporter_default_heading_flags (int flag) {
     HEADING_FLAG(report_bw) = flag;
@@ -123,6 +124,7 @@ void reporter_default_heading_flags (int flag) {
     HEADING_FLAG(report_burst_read_tcp) = flag;
     HEADING_FLAG(report_burst_write_tcp) = flag;
     HEADING_FLAG(report_bw_isoch_enhanced_netpwr) = flag;
+    HEADING_FLAG(report_sumcnt_udp_enhanced) = flag;
 }
 static inline void _print_stats_common (struct TransferInfo *stats) {
     assert(stats!=NULL);
@@ -993,9 +995,9 @@ void udp_output_sumcnt_write (struct TransferInfo *stats) {
     fflush(stdout);
 }
 void udp_output_sum_read_enhanced (struct TransferInfo *stats) {
-    HEADING_PRINT_COND(report_bw_pps_enhanced);
+    HEADING_PRINT_COND(report_sumcnt_udp_enhanced);
     _print_stats_common(stats);
-    printf(report_sum_bw_pps_enhanced_format,
+    printf(report_sumcnt_udp_enhanced_format, stats->threadcnt,
 	    stats->ts.iStart, stats->ts.iEnd,
 	    outbuffer, outbufferext,
 	    stats->cntError, stats->cntDatagrams,

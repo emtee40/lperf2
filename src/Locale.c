@@ -460,6 +460,12 @@ const char report_sumcnt_bw_pps_enhanced_header[] =
 const char report_sumcnt_bw_pps_enhanced_format[] =
 "[SUM-%d] " IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %8.0f pps\n";
 
+const char report_sumcnt_udp_enhanced_header[] =
+"[SUM-cnt] Interval" IPERFTimeSpace "Transfer     Bandwidth      Lost/Total  PPS\n";
+
+const char report_sumcnt_udp_enhanced_format[] =
+"[SUM-%d] " IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %8.0f pps\n";
+
 const char report_bw_pps_enhanced_isoch_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer     Bandwidth      Write/Err  PPS  isoch:tx/miss/slip\n";
 
