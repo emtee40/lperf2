@@ -1198,6 +1198,8 @@ static inline void reporter_reset_transfer_stats_server_udp (struct TransferInfo
     stats->l2counts.unknown = 0;
     stats->l2counts.udpcsumerr = 0;
     stats->l2counts.lengtherr = 0;
+    stats->threadcnt = 0;
+    stats->iInP = 0;
     if (stats->cntDatagrams)
 	stats->IPGsum = 0;
 }
@@ -1221,6 +1223,7 @@ void reporter_transfer_protocol_server_udp (struct ReporterData *data, int final
 	stats->cntError = 0;
     stats->cntDatagrams = stats->PacketID - stats->total.Datagrams.prev;
     stats->cntIPG = stats->total.IPG.current - stats->total.IPG.prev;
+
     if (stats->latency_histogram) {
         stats->latency_histogram->final = final;
     }
@@ -1234,10 +1237,17 @@ void reporter_transfer_protocol_server_udp (struct ReporterData *data, int final
 	if (stats->framelatency_histogram) {
 	    stats->framelatency_histogram->final = final;
 	}
-
     }
     if (stats->total.Datagrams.current == 1)
 	stats->jitter = 0;
+    if (isTripTime(stats->common) && !final) {
+	double lambda =  ((stats->IPGsum > 0.0) ? (round (stats->cntIPG / stats->IPGsum)) : 0.0);
+	double meantransit = (double) ((stats->transit.current.cnt > 0) ? (stats->transit.current.sum / stats->transit.current.cnt) : 0.0);
+	double variance = (stats->transit.current.cnt < 2) ? 0 : \
+	    (sqrt(stats->transit.current.m2 / (stats->transit.current.cnt - 1)));
+	stats->iInP = (double) lambda * meantransit;
+	stats->iInPVar = (double) lambda * variance;
+    }
     if (sumstats) {
 	sumstats->total.OutofOrder.current += stats->total.OutofOrder.current - stats->total.OutofOrder.prev;
 	// assume most of the  time out-of-order packets are not
@@ -1249,6 +1259,7 @@ void reporter_transfer_protocol_server_udp (struct ReporterData *data, int final
 	if (sumstats->IPGsum < stats->IPGsum)
 	    sumstats->IPGsum = stats->IPGsum;
 	sumstats->threadcnt++;
+	sumstats->iInP += stats->iInP;
     }
     if (fullduplexstats) {
 	fullduplexstats->total.Bytes.current += stats->cntBytes;
@@ -1291,6 +1302,17 @@ void reporter_transfer_protocol_server_udp (struct ReporterData *data, int final
 	stats->l2counts.udpcsumerr = stats->l2counts.tot_udpcsumerr;
 	stats->l2counts.lengtherr = stats->l2counts.tot_lengtherr;
 	stats->transit.current = stats->transit.total;
+	if (isTripTime(stats->common)) {
+	    double lambda =  ((stats->IPGsum > 0.0) ? (round (stats->cntIPG / stats->IPGsum)) : 0.0);
+	    double meantransit = (double) ((stats->transit.total.cnt > 0) ? (stats->transit.total.sum / stats->transit.total.cnt) : 0.0);
+	    double variance = (stats->transit.total.cnt < 2) ? 0 :	\
+		(sqrt(stats->transit.total.m2 / (stats->transit.total.cnt - 1)));
+	    stats->fInP = (double) lambda * meantransit;
+	    stats->fInPVar = (double) lambda * variance;
+	    if (sumstats) {
+		sumstats->fInP += stats->fInP;
+	    }
+	}
 	if (isIsochronous(stats->common)) {
 	    stats->isochstats.cntFrames = stats->isochstats.framecnt.current;
 	    stats->isochstats.cntFramesMissed = stats->isochstats.framelostcnt.current;
@@ -1349,7 +1371,6 @@ void reporter_transfer_protocol_sum_server_udp (struct TransferInfo *stats, int 
     if ((stats->output_handler) && !(stats->isMaskOutput))
 	(*stats->output_handler)(stats);
     if (!final) {
-	stats->threadcnt = 0;
 	// there is no packet ID for sum server reports, set it to total cnt for calculation
 	stats->PacketID = stats->total.Datagrams.current;
 	reporter_reset_transfer_stats_server_udp(stats);
