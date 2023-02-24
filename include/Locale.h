@@ -324,6 +324,11 @@ extern const char report_bw_isoch_enhanced_netpwr_format[];
 extern const char report_sumcnt_udp_enhanced_header[];
 
 extern const char report_sumcnt_udp_enhanced_format[];
+
+extern const char report_sumcnt_udp_triptime_header[];
+
+extern const char report_sumcnt_udp_triptime_format[];
+
 /* -------------------------------------------------------------------
  * Misc reports
  * ------------------------------------------------------------------- */

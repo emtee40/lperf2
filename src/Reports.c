@@ -245,7 +245,9 @@ void SetSumHandlers (struct thread_Settings *inSettings, struct SumReport* sumre
 		else
 		    sumreport->info.output_handler = udp_output_basic_csv;
 	    } else {
-		if (isSumOnly(inSettings)) {
+		if (isTripTime(inSettings)) {
+		    sumreport->info.output_handler = udp_output_sumcnt_read_triptime;
+		} else if (isSumOnly(inSettings)) {
 		    sumreport->info.output_handler = udp_output_sumcnt_enhanced;
 		} else if (isFullDuplex(inSettings)) {
 		    sumreport->info.output_handler = udp_output_fullduplex_sum;
@@ -623,7 +625,7 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
 		    else
 			ireport->info.output_handler = udp_output_read_triptime;
 		} else if (isEnhanced(inSettings)) {
-		    ireport->info.output_handler = udp_output_read_triptime;
+		    ireport->info.output_handler = udp_output_read_enhanced;
 		} else if (isFullDuplex(inSettings)) {
 		    ireport->info.output_handler = udp_output_read;
 		} else {
