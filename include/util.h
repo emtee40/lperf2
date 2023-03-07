@@ -83,7 +83,7 @@ int recvn(int inSock, char *outBuf, int inLen, int flags);
 int writen(int inSock, const void *inBuf, int inLen, int *count);
 
 void disarm_itimer(void);
-int set_itimer(int);
+int set_itimer(uintmax_t);
 /* -------------------------------------------------------------------
  * signal handlers
  * signal.c

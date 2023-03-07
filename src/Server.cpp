@@ -626,7 +626,7 @@ bool Server::InitTrafficLoop (void) {
 	if (isServerReverse(mSettings) || isFullDuplex(mSettings) || isReverse(mSettings))
 	    mSettings->mAmount += (SLOPSECS * 100);  // add 2 sec for slop on reverse, units are 10 ms
 
-	int end_usecs  (mSettings->mAmount * 10000); //amount units is 10 ms
+	uintmax_t end_usecs  (mSettings->mAmount * 10000); //amount units is 10 ms
 	if (int err = set_itimer(end_usecs))
 	    FAIL_errno(err != 0, "setitimer", mSettings);
         mEndTime.setnow();

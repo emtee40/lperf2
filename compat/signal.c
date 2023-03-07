@@ -183,7 +183,7 @@ void disarm_itimer(void) {
 #endif
 }
 
-int set_itimer(int usecs) {
+int set_itimer(uintmax_t usecs) {
     int err = 0;
 #ifdef HAVE_SETITIMER
     if (usecs < 0) {

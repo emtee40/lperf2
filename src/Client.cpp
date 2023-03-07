@@ -1034,7 +1034,7 @@ void Client::RunBounceBackTCP () {
 	SetSocketOptionsSendTimeout(mSettings, sotimer);
     }
     if (isModeTime(mSettings)) {
-	int end_usecs = (mSettings->mAmount * 10000);
+	uintmax_t end_usecs = (mSettings->mAmount * 10000);
 	if (int err = set_itimer(end_usecs)) {
 	    FAIL_errno(err != 0, "setitimer", mSettings);
 	}
