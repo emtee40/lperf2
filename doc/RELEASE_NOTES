@@ -3,6 +3,7 @@ See doc/CLOCKSYNC_NOTES for some description around synchronizing the realtime c
 
 2.1.9 (as of February 13th, 2023)
 ------------------------------
+o fixed traffic setitimer to use uintmax_t vs int, supporting large values
 o --bounceback officially supported (including Windows) for repsonsiveness test scenarios
 o deprecated --bounceback-congest introduced in 2.1.8, replaced by --working-loads
 o --working-loads support generalized; works with --bounceback, --connect-only & --burst-period
