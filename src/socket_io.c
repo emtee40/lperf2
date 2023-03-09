@@ -211,6 +211,7 @@ int writen (int inSock, const void *inBuf, int inLen, int *count) {
 	case SOCKET_ERROR :
 	    if (!((errno == EINTR) || (errno == EAGAIN) || (errno == EWOULDBLOCK))) {
 		nwritten = inLen - nleft;
+		printf("**** writen errno = %d\n", errno);
 		WARN_errno(1, "writen fatal");
 		sInterupted = 1;
 		goto DONE;
