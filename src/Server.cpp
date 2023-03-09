@@ -205,7 +205,9 @@ void Server::RunTCP () {
 			burst_info.send_tt.write_tv_usec = (uint32_t)myReport->info.ts.startTime.tv_usec;
 			burst_info.burst_period_us = ntohl(burst_info.burst_period_us);
 		    } else {
-			fprintf(stderr, "Program error in server per burst");
+			now.setnow();
+			burst_info.send_tt.write_tv_sec = (uint32_t)now.getSecs();
+			burst_info.send_tt.write_tv_usec = (uint32_t)now.getUsecs();
 		    }
 		    reportstruct->sentTime.tv_sec = burst_info.send_tt.write_tv_sec;
 		    reportstruct->sentTime.tv_usec = burst_info.send_tt.write_tv_usec;
