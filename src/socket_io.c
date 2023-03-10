@@ -209,8 +209,10 @@ int writen (int inSock, const void *inBuf, int inLen, int *count) {
 	(*count)++;
 	switch (nwritten) {
 	case SOCKET_ERROR :
-	    if (!((errno == EINTR) || (errno == EAGAIN) || (errno == EWOULDBLOCK))) {
+	    // check for a fatal error vs an error that should retry
+	    if ((errno != EINTR) && (errno != EAGAIN) && (errno != EWOULDBLOCK)) {
 		nwritten = inLen - nleft;
+		fprintf(stdout, "FAIL: writen errno = %d\n", errno);
 		WARN_errno(1, "writen fatal");
 		sInterupted = 1;
 		goto DONE;
