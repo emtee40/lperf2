@@ -1901,7 +1901,7 @@ int reporter_condprint_burst_interval_report_server_tcp (struct ReporterData *da
     struct TransferInfo *stats = &data->info;
     int advance_jobq = 0;
     if (packet->transit_ready) {
-	stats->ts.prevpacketTime = packet->prevSentTime;
+	stats->ts.prevpacketTime = packet->sentTime;
 	stats->ts.packetTime = packet->packetTime;
 	reporter_set_timestamps_time(stats, INTERVALPARTIAL);
 	stats->cntBytes = stats->total.Bytes.current - stats->total.Bytes.prev;
