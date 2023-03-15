@@ -1549,9 +1549,20 @@ static void reporter_output_listener_settings (struct ReportSettings *report) {
 	outbufferext[(sizeof(outbufferext)-1)] = '\0';
 	printf("%s: %s (Dist bin width=%s)\n", server_read_size, outbuffer, outbufferext);
     }
-    if (isCongestionControl(report->common) && report->common->Congestion) {
-	fprintf(stdout, "TCP congestion control set to %s\n", report->common->Congestion);
+#ifdef TCP_CONGESTION
+    if (isCongestionControl(report->common) || isEnhanced(report->common)) {
+	char cca[40] = "";
+	Socklen_t len = sizeof(cca);
+	if (getsockopt(report->common->socket, IPPROTO_TCP, TCP_CONGESTION, &cca, &len) == 0) {
+	    cca[len]='\0';
+	}
+	if (report->common->Congestion)	{
+	    fprintf(stdout,"TCP congestion control default set to %s using %s\n", report->common->Congestion, cca);
+	} else if (strlen(cca)) {
+	    fprintf(stdout,"TCP congestion control default %s\n", cca);
+	}
     }
+#endif
     if (isOverrideTOS(report->common)) {
 	fprintf(stdout, "Reflected TOS will be set to 0x%x\n", report->common->RTOS);
     }
@@ -1663,10 +1674,20 @@ static void reporter_output_client_settings (struct ReportSettings *report) {
 	    printf(report_default_mss, report->sockmaxseg);
 	}
     }
-
-    if (isCongestionControl(report->common) && report->common->Congestion) {
-	fprintf(stdout, "TCP congestion control set to %s\n", report->common->Congestion);
+#ifdef TCP_CONGESTION
+    if (isCongestionControl(report->common) || isEnhanced(report->common)) {
+	char cca[40] = "";
+	Socklen_t len = sizeof(cca);
+	if (getsockopt(report->common->socket, IPPROTO_TCP, TCP_CONGESTION, &cca, &len) == 0) {
+	    cca[len]='\0';
+	}
+	if (report->common->Congestion)	{
+	    fprintf(stdout,"TCP congestion control set to %s using %s\n", report->common->Congestion, cca);
+	} else if (strlen(cca)) {
+	    fprintf(stdout,"TCP congestion control using %s\n", cca);
+	}
     }
+#endif
     if (isEnhanced(report->common)) {
         if (isNoDelay(report->common)) {
 	    fprintf(stdout, "TOS set to 0x%x and nodelay (Nagle off)\n", report->common->TOS);
