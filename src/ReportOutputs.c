@@ -1585,7 +1585,7 @@ static void reporter_output_listener_settings (struct ReportSettings *report) {
     } else if (isSingleClient(report->common)) {
 	fprintf(stdout, "Server set to single client traffic mode (serialize traffic tests)\n");
     }
-    if (isMulticast(report->common)) {
+    if (isMulticast(report->common) && (report->common->Port == report->common->PortLast)) {
 	fprintf(stdout, "Server set to single client traffic mode (per multicast receive)\n");
     }
     if (isHistogram(report->common)) {
