@@ -1987,10 +1987,7 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	}
 	if (SockAddr_isMulticast(&mExtSettings->peer)) {
 	    bail = false;
-	    if ((mExtSettings->mThreads > 1) && !isIncrDstIP(mExtSettings)) {
-		fprintf(stderr, "ERROR: client option of -P greater than 1 not supported with multicast address\n");
-		bail = true;
-	    } else if (isFullDuplex(mExtSettings) || isReverse(mExtSettings) || (mExtSettings->mMode != kTest_Normal)) {
+	    if (isFullDuplex(mExtSettings) || isReverse(mExtSettings) || (mExtSettings->mMode != kTest_Normal)) {
 		fprintf(stderr, "ERROR: options of --full-duplex, --reverse, -d and -r not supported with multicast addresses\n");
 		bail = true;
 	    }
