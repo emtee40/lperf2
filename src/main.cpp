@@ -103,6 +103,7 @@ extern "C" {
     struct AwaitMutex reporter_state;
     struct AwaitMutex threads_start;
     struct BarrierMutex transmits_start;
+    struct ReferenceMutex settings_count;
 }
 
 
@@ -156,6 +157,8 @@ int main(int argc, char **argv) {
     Mutex_Initialize(&thread_debug_mutex);
 #endif
     Mutex_Initialize(&transferid_mutex);
+    Mutex_Initialize(&settings_count.lock);
+    settings_count.count = 0;
 
     // Initialize reporter thread mutex
     reporter_state.ready = 0;
@@ -241,10 +244,12 @@ int main(int argc, char **argv) {
         // initialize client(s)
 	transmits_start.count = ext_gSettings->mThreads;
 	ext_gSettings->connects_done = &transmits_start;
+	ext_gSettings->settings_done = &settings_count;
         client_init(ext_gSettings);
 	ReporterThreadMode = kMode_ReporterClient;
 	break;
     case kMode_Listener :
+	ext_gSettings->settings_done = &settings_count;
 #ifdef WIN32
 	// Remove the Windows service if requested
 	if (isRemoveService(ext_gSettings)) {

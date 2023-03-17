@@ -455,12 +455,15 @@ void Listener::my_listen () {
     }
 
     // update the reporter thread
-    if (isReport(mSettings) && isSettingsReport(mSettings)) {
-        struct ReportHeader *report_settings = InitSettingsReport(mSettings);
-	assert(report_settings != NULL);
-	// disable future settings reports, listener should only do it once
-	unsetReport(mSettings);
-	PostReport(report_settings);
+    if (isSettingsReport(mSettings)) {
+	Mutex_Lock(&mSettings->settings_done->lock);
+	if (mSettings->settings_done->count < 1) {
+	    struct ReportHeader *tmp = InitSettingsReport(mSettings);
+	    assert(tmp!=NULL);
+	    PostReport(tmp);
+	    mSettings->settings_done->count++;
+	}
+	Mutex_Unlock(&mSettings->settings_done->lock);
     }
 
     // listen for connections (TCP only).

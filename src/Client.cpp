@@ -158,12 +158,6 @@ void Client::mySockInit (void) {
         WARN_errno(rc == SOCKET_ERROR, "bind");
     }
     mysock_init_done = true;
-    if (!isUDP(mSettings) && isReport(mSettings) && isSettingsReport(mSettings)) {
-	struct ReportHeader *tmp = InitSettingsReport(mSettings);
-	assert(tmp!=NULL);
-	PostReport(tmp);
-	setNoSettReport(mSettings);
-    }
 }
 /* -------------------------------------------------------------------
  * Setup a socket connected to a server.
@@ -230,18 +224,22 @@ bool Client::my_connect (bool close_on_fail) {
 	if (isUDP(mSettings) && !isIsochronous(mSettings) && !isIPG(mSettings)) {
 	    mSettings->mBurstIPG = get_delay_target() / 1e3; // this is being set for the settings report only
 	}
-	if (isReport(mSettings) && isSettingsReport(mSettings)) {
-	    struct ReportHeader *tmp = InitSettingsReport(mSettings);
-	    assert(tmp!=NULL);
-	    PostReport(tmp);
-	    setNoSettReport(mSettings);
-	}
     } else {
 	if (mySocket != INVALID_SOCKET) {
 	    int rc = close(mySocket);
 	    WARN_errno(rc == SOCKET_ERROR, "client connect close");
 	    mySocket = INVALID_SOCKET;
 	}
+    }
+    if (isSettingsReport(mSettings)) {
+	Mutex_Lock(&mSettings->settings_done->lock);
+	if (mSettings->settings_done->count < 1) {
+	    struct ReportHeader *tmp = InitSettingsReport(mSettings);
+	    assert(tmp!=NULL);
+	    PostReport(tmp);
+	    mSettings->settings_done->count++;
+	}
+	Mutex_Unlock(&mSettings->settings_done->lock);
     }
     // Post the connect report unless peer version exchange is set
     if (isConnectionReport(mSettings) && !isSumOnly(mSettings)) {
