@@ -378,19 +378,19 @@ const char report_triptime_enhanced_format[] =
 
 #if HAVE_TCP_STATS
 const char report_client_bb_bw_header[] =
-"[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth         BB cnt=avg/min/max/stdev         Rtry  Cwnd/RTT    RPS\n";
+"[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth         BB cnt=avg/min/max/stdev         Rtry  Cwnd/RTT    RPS(avg)\n";
 
 const char report_client_bb_bw_format[] =
 "%s" IPERFTimeFrmt " sec  %ss  %ss/sec    %" PRIdMAX "=%.3f/%.3f/%.3f/%.3f ms %4d %4dK/%u us    %s rps\n";
 #else
 const char report_client_bb_bw_header[] =
-"[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth         BB cnt=avg/min/max/stdev    RPS\n";
+"[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth         BB cnt=avg/min/max/stdev    RPS(avg)\n";
 
 const char report_client_bb_bw_format[] =
 "%s" IPERFTimeFrmt " sec  %ss  %ss/sec    %" PRIdMAX "=%.3f/%.3f/%.3f/%.3f ms    %s rps\n";
 #endif
 const char report_client_bb_bw_triptime_format[] =
-"%s" IPERFTimeFrmt " sec  OWD Delays (ms) Cnt=%" PRIdMAX " To=%.3f/%.3f/%.3f/%.3f From=%.3f/%.3f/%.3f/%.3f Asymmetry=%.3f/%.3f/%.3f/%.3f    %s rps\n";
+"%s" IPERFTimeFrmt " sec  OWD Delays (ms) Cnt=%" PRIdMAX " TX=%.3f/%.3f/%.3f/%.3f RX=%.3f/%.3f/%.3f/%.3f Asymmetry=%.3f/%.3f/%.3f/%.3f    %s rps\n";
 
 const char report_write_enhanced_write_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth       Write/Err  Rtry     Cwnd/RTT        NetPwr  write-times avg/min/max/stdev (cnt)\n";
@@ -629,13 +629,13 @@ const char report_mss[] =
 "MSS req size %d bytes (per TCP_MAXSEG)\n";
 
 const char report_datagrams[] =
-"[%3d] Sent %d datagrams\n";
+"[%3d] Sent %" PRIdMAX " datagrams\n";
 
 const char report_sumcnt_datagrams[] =
-"[SUM-%d] Sent %d datagrams\n";
+"[SUM-%d] Sent %" PRIdMAX " datagrams\n";
 
 const char report_sum_datagrams[] =
-"[SUM] Sent %d datagrams\n";
+"[SUM] Sent %" PRIdMAX " datagrams\n";
 
 const char server_reporting[] =
 "[%3d] Server Report:\n";
@@ -644,7 +644,9 @@ const char reportCSV_peer[] =
 "%s,%u,%s,%u";
 
 const char report_l2length_error[] =
-"%s" IPERFTimeFrmt " sec  %d datagrams received out-of-order\n";
+"%s" IPERFTimeFrmt " sec  %" PRIdMAX " datagrams received out-of-order\n";
+
+const char report_client_bb_triptime_clocksync_error[] ="%s" IPERFTimeFrmt " sec  Clock sync error count = %" PRIdMAX "\n";
 
 /*-------------------------------------------------------------------
  * CSV outputs

@@ -417,6 +417,12 @@ void FreeSumReport (struct SumReport *sumreport) {
     if (sumreport->info.bbrtt_histogram) {
 	histogram_delete(sumreport->info.bbrtt_histogram);
     }
+    if (sumreport->info.bbowdto_histogram) {
+	histogram_delete(sumreport->info.bbowdto_histogram);
+    }
+    if (sumreport->info.bbowdfro_histogram) {
+	histogram_delete(sumreport->info.bbowdfro_histogram);
+    }
     if (sumreport->info.jitter_histogram) {
 	histogram_delete(sumreport->info.jitter_histogram);
     }
@@ -452,6 +458,12 @@ static void Free_iReport (struct ReporterData *ireport) {
     }
     if (ireport->info.bbrtt_histogram) {
 	histogram_delete(ireport->info.bbrtt_histogram);
+    }
+    if (ireport->info.bbowdto_histogram) {
+	histogram_delete(ireport->info.bbowdto_histogram);
+    }
+    if (ireport->info.bbowdfro_histogram) {
+	histogram_delete(ireport->info.bbowdfro_histogram);
     }
     free_common_copy(ireport->info.common);
     free(ireport);
@@ -760,7 +772,7 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
 	}
     }
     if ((inSettings->mThreadMode == kMode_Client) && isBounceBack(inSettings)) {
-	char name[] = "BB8";
+	char name[] = " BB8";
 	if (!isHistogram(inSettings)) {
 	    inSettings->mHistBins = 100000; // 10 seconds wide
 	    inSettings->mHistBinsize = 100; // 100 usec bins
@@ -769,8 +781,16 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
 	    inSettings->mHistci_upper = 95;
 	}
 	ireport->info.bbrtt_histogram = histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0,	\
-							pow(10,inSettings->mHistUnits), \
-							inSettings->mHistci_lower, inSettings->mHistci_upper, ireport->info.common->transferID, name);
+						       pow(10,inSettings->mHistUnits), \
+						       inSettings->mHistci_lower, inSettings->mHistci_upper, ireport->info.common->transferID, name);
+	if (isTripTime(inSettings)) {
+	    ireport->info.bbowdto_histogram = histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0,	\
+							     pow(10,inSettings->mHistUnits), \
+							     inSettings->mHistci_lower, inSettings->mHistci_upper, ireport->info.common->transferID, " OWD-TX");
+	    ireport->info.bbowdfro_histogram = histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0,	\
+							     pow(10,inSettings->mHistUnits), \
+							     inSettings->mHistci_lower, inSettings->mHistci_upper, ireport->info.common->transferID, " OWD-RX");
+	}
     }
     return reporthdr;
 }

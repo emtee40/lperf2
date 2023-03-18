@@ -948,6 +948,9 @@ void reporter_handle_packet_bb_client (struct ReporterData *data, struct ReportS
 	double bbowdto = TimeDifference(packet->sentTimeRX, packet->sentTime);
 	double bbowdfro = TimeDifference(packet->packetTime, packet->sentTimeTX);
 	double asym = bbowdfro - bbowdto;
+	if (!((bbowdto > 0.00) && (bbowdfro > 0.00))) {
+	    stats->bb_clocksync_error++;
+	}
 	stats->ts.prevpacketTime = packet->packetTime;
 #if DEBUG_BB_TIMESTAMPS
 	fprintf(stderr, "BB Debug: ctx=%lx.%lx srx=%lx.%lx stx=%lx.%lx crx=%lx.%lx  (hex)\n", packet->sentTime.tv_sec, packet->sentTime.tv_usec, packet->sentTimeRX.tv_sec, packet->sentTimeRX.tv_usec, packet->sentTimeTX.tv_sec, packet->sentTimeTX.tv_usec, packet->packetTime.tv_sec, packet->packetTime.tv_usec);
@@ -963,6 +966,12 @@ void reporter_handle_packet_bb_client (struct ReporterData *data, struct ReportS
 	reporter_update_mmm(&stats->bbasym.total, fabs(asym));
 	if (stats->bbrtt_histogram) {
 	    histogram_insert(stats->bbrtt_histogram, bbrtt, NULL);
+	}
+	if (stats->bbowdto_histogram) {
+	    histogram_insert(stats->bbowdto_histogram, bbowdto, NULL);
+	}
+	if (stats->bbowdfro_histogram) {
+	    histogram_insert(stats->bbowdfro_histogram, bbowdfro, NULL);
 	}
     }
 }

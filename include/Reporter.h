@@ -354,10 +354,13 @@ struct TransferInfo {
     struct histogram *framelatency_histogram;
     struct RunningMMMStats frame; // isochronous frame or msg burst
     struct histogram *bbrtt_histogram;
+    struct histogram *bbowdto_histogram;
+    struct histogram *bbowdfro_histogram;
     struct RunningMMMStats bbrtt;
     struct RunningMMMStats bbowdto;
     struct RunningMMMStats bbowdfro;
     struct RunningMMMStats bbasym;
+    uintmax_t bb_clocksync_error;
     struct MeanMinMaxStats schedule_error;
     struct L2Stats l2counts;
     // Packet and frame state info

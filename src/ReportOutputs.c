@@ -210,8 +210,7 @@ void tcp_output_fullduplex (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_bw);
     _print_stats_common(stats);
     printf(report_bw_sum_fullduplex_format, stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd, outbuffer, outbufferext);
-    fflush(stdout);
-}
+    fflush(stdout);}
 
 void tcp_output_fullduplex_sum (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_bw);
@@ -488,9 +487,19 @@ void tcp_output_write_bb (struct TransferInfo *stats) {
 		   (stats->bbasym.total.cnt < 2) ? 0 : (stats->bbasym.total.max * 1e3),
 		   (stats->bbasym.total.cnt < 2) ? 0 : 1e3 * (sqrt(stats->bbasym.total.m2 / (stats->bbasym.total.cnt - 1))),
 		   rps_string);
+
+	}
+	if (stats->bbowdto_histogram) {
+	    histogram_print(stats->bbowdto_histogram, stats->ts.iStart, stats->ts.iEnd);
+	}
+	if (stats->bbowdfro_histogram) {
+	    histogram_print(stats->bbowdfro_histogram, stats->ts.iStart, stats->ts.iEnd);
 	}
 	if (stats->bbrtt_histogram) {
 	    histogram_print(stats->bbrtt_histogram, stats->ts.iStart, stats->ts.iEnd);
+	}
+	if (isTripTime(stats->common) && (stats->bb_clocksync_error > 0)) {
+	    printf(report_client_bb_triptime_clocksync_error, stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd, stats->bb_clocksync_error);
 	}
     } else {
 	double rps = ((stats->bbrtt.current.cnt > 0) && (stats->iBBrunning > 0)) ? ((double) stats->bbrtt.current.cnt / stats->iBBrunning) : 0;

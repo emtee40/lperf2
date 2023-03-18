@@ -431,6 +431,8 @@ extern const char error_starttime_exceeds[];
 
 extern const char error_delaytime_exceeds[];
 
+extern const char report_client_bb_triptime_clocksync_error[];
+
 #ifdef __cplusplus
 } /* end extern "C" */
 #endif
