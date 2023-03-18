@@ -948,7 +948,7 @@ void reporter_handle_packet_bb_client (struct ReporterData *data, struct ReportS
 	double bbowdto = TimeDifference(packet->sentTimeRX, packet->sentTime);
 	double bbowdfro = TimeDifference(packet->packetTime, packet->sentTimeTX);
 	double asym = bbowdfro - bbowdto;
-	if (!((bbowdto > 0.00) && (bbowdfro > 0.00))) {
+	if (fabs(bbowdfro - bbowdto) >  fabs(bbrtt)) {
 	    stats->bb_clocksync_error++;
 	}
 	stats->ts.prevpacketTime = packet->packetTime;
