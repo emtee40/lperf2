@@ -956,18 +956,16 @@ void reporter_handle_packet_bb_client (struct ReporterData *data, struct ReportS
 	    double bbowdto = TimeDifference(packet->sentTimeRX, packet->sentTime);
 	    double bbowdfro = TimeDifference(packet->packetTime, packet->sentTimeTX);
 	    double asym = bbowdfro - bbowdto;
+	    double bbturnaround = TimeDifference(packet->sentTimeTX, packet->sentTimeRX);
+	    double bbadj = TimeDifference(packet->packetTime, packet->sentTimeRX);
 	    // If you measure RTT, you can detect when clock are unsync.
 	    // If you have the sent-time, rcv-time and return-time, you can check that
 	    // sent-time < rcv-time < return-time. As sent-time and return-time use
 	    // the same clock, you can detect any drift bigger than RTT. JT
 	    //
 	    // Adjust this clock A write < clock B read < Clock A read - (clock B write - clock B read)
-	    if (bbowdto < 0) {
-		double bbturnaround = TimeDifference(packet->sentTimeTX, packet->sentTimeRX);
-		double bbadj = TimeDifference(packet->packetTime, packet->sentTimeRX);
-		if ((bbadj - bbturnaround) < 0) {
-		    stats->bb_clocksync_error++;
-		}
+	    if ((bbowdto < 0) || ((bbadj - bbturnaround) < 0)) {
+		stats->bb_clocksync_error++;
 	    }
 	    reporter_update_mmm(&stats->bbowdto.total, bbowdto);
 	    reporter_update_mmm(&stats->bbowdfro.total, bbowdfro);
