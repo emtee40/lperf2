@@ -177,7 +177,7 @@ set target bandwidth to \fIn\fR bits/sec (default 1 Mbit/sec) or
 \fIn\fR packets per sec. This may be used with TCP or UDP. Optionally, for variable loads, use format of  mean,standard deviation
 .TP
 .BR "    --bounceback[=" \fIn\fR "]"
-run a TCP bounceback or rps test with optional number writes in a burst per value of n. The default is ten writes every period and the default period is one second (Note: set size with -l or --len which defaults to 100 bytes)
+run a TCP bounceback or rps test with optional number writes in a burst per value of n. The default is ten writes every period and the default period is one second (Note: set size with -l or --len which defaults to 100 bytes). See NOTES on clock unsynchronized detections.
 .TP
 .BR "    --bounceback-hold " \fIn\fR
 request the server to insert a delay of n milliseconds between its read and write (default is no delay)
@@ -830,6 +830,7 @@ The --trip-times option indicates that the client's and server's clocks are sync
 Network Time Protocol (NTP) or Precision Time Protocol (PTP) are commonly used for
 this. The reference clock(s) error and the synchronization protocols will affect
 the accuracy of any end to end latency measurements.
+.B See bounceback NOTES section on clock unsynchronized detections
 .P
 .B Histograms and non-parametric statistics:
 The --histograms option provides the raw data where nothing is averaged. This is useful for non-parametric
@@ -937,6 +938,18 @@ The TCP_QUICKACK socket option will be enabled during bounceback tests when the 
 is set to a non-zero value. The socket option is applied after every read() on the server
 and before the hold delay call. It's also applied on the client. Use --bounceback-no-quickack
 to have TCP run in default mode per the socket (which is most likely TCP_QUICKACK being off.)
+.P
+.B Unsynchronized clock detections with --bounceback and --trip-times (as of March 19, 2023):
+Iperf 2 can detect when the clocks have synchronization errors larger than the bounceback RTT. This is done via the client's send timestamp (clock A),
+the server's recieve timestamp (clock B) and the client's final receive timestamp (clock A.) The check, done on each bounceback, is
+write(A) < read(B) < read(A). This is supported in bounceback tests  with
+a slight adjustment: clock write(A) < clock read(B) < clock read(A) - (clock write(B) - clock read(B)). All the
+timestamps are sampled on the initial write or read (not the completion of.)
+Error output looks as shown below and there is no output for a zero value.
+
+.br
+[  1] 0.00-10.00 sec  Clock sync error count = 100
+.br
 .P
 .B TCP Connect times:
 The TCP connect time (or three way handshake) can be seen on the iperf
