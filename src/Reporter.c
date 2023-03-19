@@ -945,10 +945,17 @@ void reporter_handle_packet_bb_client (struct ReporterData *data, struct ReportS
     if (!packet->emptyreport && (packet->packetLen > 0)) {
 	stats->total.Bytes.current += packet->packetLen;
 	double bbrtt = TimeDifference(packet->packetTime, packet->sentTime);
-	double bbowdto = TimeDifference(packet->sentTimeRX, packet->sentTime);
-	double bbowdfro = TimeDifference(packet->packetTime, packet->sentTimeTX);
-	double asym = bbowdfro - bbowdto;
+	stats->iBBrunning += bbrtt;
+	stats->fBBrunning += bbrtt;
+	reporter_update_mmm(&stats->bbrtt.current, bbrtt);
+	reporter_update_mmm(&stats->bbrtt.total, bbrtt);
+	if (stats->bbrtt_histogram) {
+	    histogram_insert(stats->bbrtt_histogram, bbrtt, NULL);
+	}
 	if (isTripTime(stats->common)) {
+	    double bbowdto = TimeDifference(packet->sentTimeRX, packet->sentTime);
+	    double bbowdfro = TimeDifference(packet->packetTime, packet->sentTimeTX);
+	    double asym = bbowdfro - bbowdto;
 	    // If you measure RTT, you can detect when clock are unsync.
 	    // If you have the sent-time, rcv-time and return-time, you can check that
 	    // sent-time < rcv-time < return-time. As sent-time and return-time use
@@ -962,6 +969,15 @@ void reporter_handle_packet_bb_client (struct ReporterData *data, struct ReportS
 		    stats->bb_clocksync_error++;
 		}
 	    }
+	    reporter_update_mmm(&stats->bbowdto.total, bbowdto);
+	    reporter_update_mmm(&stats->bbowdfro.total, bbowdfro);
+	    reporter_update_mmm(&stats->bbasym.total, fabs(asym));
+	    if (stats->bbowdto_histogram) {
+		histogram_insert(stats->bbowdto_histogram, bbowdto, NULL);
+	    }
+	    if (stats->bbowdfro_histogram) {
+		histogram_insert(stats->bbowdfro_histogram, bbowdfro, NULL);
+	    }
 	}
 	stats->ts.prevpacketTime = packet->packetTime;
 #if DEBUG_BB_TIMESTAMPS
@@ -969,22 +985,6 @@ void reporter_handle_packet_bb_client (struct ReporterData *data, struct ReportS
 	fprintf(stderr, "BB Debug: ctx=%ld.%ld srx=%ld.%ld stx=%ld.%ld crx=%ld.%ld\n", packet->sentTime.tv_sec, packet->sentTime.tv_usec, packet->sentTimeRX.tv_sec, packet->sentTimeRX.tv_usec, packet->sentTimeTX.tv_sec, packet->sentTimeTX.tv_usec, packet->packetTime.tv_sec, packet->packetTime.tv_usec);
 	fprintf(stderr, "BB RTT=%f OWDTo=%f OWDFro=%f Asym=%f\n", bbrtt, bbowdto, bbowdfro, asym);
 #endif
-	stats->iBBrunning += bbrtt;
-	stats->fBBrunning += bbrtt;
-	reporter_update_mmm(&stats->bbrtt.current, bbrtt);
-	reporter_update_mmm(&stats->bbrtt.total, bbrtt);
-	reporter_update_mmm(&stats->bbowdto.total, bbowdto);
-	reporter_update_mmm(&stats->bbowdfro.total, bbowdfro);
-	reporter_update_mmm(&stats->bbasym.total, fabs(asym));
-	if (stats->bbrtt_histogram) {
-	    histogram_insert(stats->bbrtt_histogram, bbrtt, NULL);
-	}
-	if (stats->bbowdto_histogram) {
-	    histogram_insert(stats->bbowdto_histogram, bbowdto, NULL);
-	}
-	if (stats->bbowdfro_histogram) {
-	    histogram_insert(stats->bbowdfro_histogram, bbowdfro, NULL);
-	}
     }
 }
 
