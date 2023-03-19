@@ -390,7 +390,7 @@ const char report_client_bb_bw_format[] =
 "%s" IPERFTimeFrmt " sec  %ss  %ss/sec    %" PRIdMAX "=%.3f/%.3f/%.3f/%.3f ms    %s rps\n";
 #endif
 const char report_client_bb_bw_triptime_format[] =
-"%s" IPERFTimeFrmt " sec  OWD Delays (ms) Cnt=%" PRIdMAX " TX=%.3f/%.3f/%.3f/%.3f RX=%.3f/%.3f/%.3f/%.3f Asymmetry=%.3f/%.3f/%.3f/%.3f    %s rps\n";
+"%s" IPERFTimeFrmt " sec  OWD (ms) Cnt=%" PRIdMAX " TX=%.3f/%.3f/%.3f/%.3f RX=%.3f/%.3f/%.3f/%.3f Asymmetry=%.3f/%.3f/%.3f/%.3f\n";
 
 const char report_write_enhanced_write_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth       Write/Err  Rtry     Cwnd/RTT        NetPwr  write-times avg/min/max/stdev (cnt)\n";

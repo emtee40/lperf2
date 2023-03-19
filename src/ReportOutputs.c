@@ -485,8 +485,7 @@ void tcp_output_write_bb (struct TransferInfo *stats) {
 		   (stats->bbasym.total.mean * 1e3),
 		   (stats->bbasym.total.cnt < 2) ? 0 : (stats->bbasym.total.min * 1e3),
 		   (stats->bbasym.total.cnt < 2) ? 0 : (stats->bbasym.total.max * 1e3),
-		   (stats->bbasym.total.cnt < 2) ? 0 : 1e3 * (sqrt(stats->bbasym.total.m2 / (stats->bbasym.total.cnt - 1))),
-		   rps_string);
+		   (stats->bbasym.total.cnt < 2) ? 0 : 1e3 * (sqrt(stats->bbasym.total.m2 / (stats->bbasym.total.cnt - 1))));
 
 	}
 	if (stats->bbowdto_histogram) {
