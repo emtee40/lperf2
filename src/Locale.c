@@ -73,6 +73,7 @@ Client/Server:\n\
   -e, --enhanced    use enhanced reporting giving more tcp/udp and traffic information\n\
   -f, --format    [kmgKMG]   format to report: Kbits, Mbits, KBytes, MBytes\n\
       --hide-ips           hide ip addresses and host names within outputs\n\
+      --histograms         enable histograms (see client or server for more)\n\
   -i, --interval  #        seconds between periodic bandwidth reports\n\
   -l, --len       #[kmKM]    length of buffer in bytes to read or write (Defaults: TCP=128K, v4 UDP=1470, v6 UDP=1450)\n\
   -m, --print_mss          print TCP maximum segment size\n\
@@ -127,6 +128,7 @@ Client specific:\n\
   -d, --dualtest           Do a bidirectional test simultaneously (multiple sockets)\n\
       --fq-rate #[kmgKMG]  bandwidth to socket pacing\n\
       --full-duplex        run full duplex test using same socket\n\
+      --histograms         enable histograms for --tcp-write-times\n\
       --ipg                set the the interpacket gap (milliseconds) for packets within an isochronous frame\n\
       --isochronous <frames-per-second>:<mean>,<stddev> send traffic in bursts (frames - emulate video traffic)\n\
       --incr-dstip         Increment the destination ip with parallel (-P) traffic threads\n\
