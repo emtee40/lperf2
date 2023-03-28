@@ -538,7 +538,7 @@ void Listener::my_multicast_join () {
 				 reinterpret_cast<char*>(&mreq), sizeof(mreq));
 	    WARN_errno(rc == SOCKET_ERROR, "multicast join");
 #if HAVE_DECL_IP_MULTICAST_ALL
-	    int mc_all = 0;
+	    int mc_all = 1;
 	    rc = setsockopt(ListenSocket, IPPROTO_IP, IP_MULTICAST_ALL, (void*) &mc_all, sizeof(mc_all));
 	    WARN_errno(rc == SOCKET_ERROR, "ip_multicast_all");
 #endif
@@ -561,12 +561,12 @@ void Listener::my_multicast_join () {
 	}
     } else {
 	int rc;
-#ifdef HAVE_SSM_MULTICAST
+#if HAVE_SSM_MULTICAST
 	// Here it's either an SSM S,G multicast join or a *,G with an interface specifier
 	// Use the newer socket options when these are specified
 	socklen_t socklen = sizeof(struct sockaddr_storage);
 	int iface=0;
-#ifdef HAVE_NET_IF_H
+#if HAVE_NET_IF_H
 	/* Set the interface or any */
 	if (mSettings->mIfrname) {
 	    iface = if_nametoindex(mSettings->mIfrname);
@@ -599,7 +599,7 @@ void Listener::my_multicast_join () {
 		rc=inet_pton(AF_INET6, mSettings->mSSMMulticastStr,&source->sin6_addr);
 		FAIL_errno(rc != 1, "mcast v6 join source group pton",mSettings);
 		source->sin6_port = 0;    /* Ignored */
-#ifdef HAVE_STRUCT_SOCKADDR_IN6_SIN6_LEN
+#if HAVE_STRUCT_SOCKADDR_IN6_SIN6_LEN
 		source->sin6_len = group->sin6_len;
 #endif
 		rc = -1;
@@ -638,11 +638,11 @@ void Listener::my_multicast_join () {
 
 		// Fill out both structures because we don't which one will succeed
 		// and both may need to be tried
-#ifdef HAVE_STRUCT_IP_MREQ_SOURCE
+#if HAVE_STRUCT_IP_MREQ_SOURCE
 		struct ip_mreq_source imr;
 		memset (&imr, 0, sizeof (imr));
 #endif
-#ifdef HAVE_STRUCT_GROUP_SOURCE_REQ
+#if HAVE_STRUCT_GROUP_SOURCE_REQ
 		struct group_source_req group_source_req;
 		memset(&group_source_req, 0, sizeof(struct group_source_req));
 		group_source_req.gsr_interface = iface;
@@ -664,7 +664,7 @@ void Listener::my_multicast_join () {
 		/* Set the source, apply the S,G */
 		rc=inet_pton(AF_INET,mSettings->mSSMMulticastStr,&source->sin_addr);
 		FAIL_errno(rc != 1, "mcast join source pton",mSettings);
-#ifdef HAVE_STRUCT_SOCKADDR_IN_SIN_LEN
+#if HAVE_STRUCT_SOCKADDR_IN_SIN_LEN
 		source->sin_len = group->sin_len;
 #endif
 		source->sin_port = 0;    /* Ignored */
@@ -676,11 +676,11 @@ void Listener::my_multicast_join () {
 #endif
 
 #if HAVE_DECL_IP_ADD_SOURCE_MEMBERSHIP
-#ifdef HAVE_STRUCT_IP_MREQ_SOURCE
+#if HAVE_STRUCT_IP_MREQ_SOURCE
 		// Some operating systems will have MCAST_JOIN_SOURCE_GROUP but still fail
 		// In those cases try the IP_ADD_SOURCE_MEMBERSHIP
 		if (rc < 0) {
-#ifdef HAVE_STRUCT_IP_MREQ_SOURCE_IMR_MULTIADDR_S_ADDR
+#if HAVE_STRUCT_IP_MREQ_SOURCE_IMR_MULTIADDR_S_ADDR
 		    imr.imr_multiaddr = ((const struct sockaddr_in *)group)->sin_addr;
 		    imr.imr_sourceaddr = ((const struct sockaddr_in *)source)->sin_addr;
 #else
