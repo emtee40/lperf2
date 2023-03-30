@@ -530,17 +530,45 @@ void Listener::my_multicast_join () {
     // code here will maintain compatiblity with previous iperf versions
     if (!isSSMMulticast(mSettings) && !mSettings->mIfrname) {
 	if (!SockAddr_isIPv6(&mSettings->local)) {
-	    struct ip_mreq mreq;
-	    memcpy(&mreq.imr_multiaddr, SockAddr_get_in_addr(&mSettings->local), \
-		    sizeof(mreq.imr_multiaddr));
-	    mreq.imr_interface.s_addr = htonl(INADDR_ANY);
-	    int rc = setsockopt(ListenSocket, IPPROTO_IP, IP_ADD_MEMBERSHIP,
-				 reinterpret_cast<char*>(&mreq), sizeof(mreq));
-	    WARN_errno(rc == SOCKET_ERROR, "multicast join");
+#if HAVE_DECL_MCAST_JOIN_GROUP
+	    {
+		int rc;
+		int iface=0;
+		socklen_t socklen = sizeof(struct sockaddr_storage);
+		struct group_req group_req;
+		struct sockaddr_in *group;
+
+		memset(&group_req, 0, sizeof(struct group_req));
+
+		group_req.gr_interface = iface;
+		group=reinterpret_cast<struct sockaddr_in*>(&group_req.gr_group);
+		group->sin_family = AF_INET;
+		/* Set the group */
+		rc=getsockname(ListenSocket,reinterpret_cast<struct sockaddr *>(group), &socklen);
+		FAIL_errno(rc == SOCKET_ERROR, "mcast join group getsockname",mSettings);
+		group->sin_port = 0;    /* Ignored */
+		rc = setsockopt(ListenSocket,IPPROTO_IP,MCAST_JOIN_GROUP, reinterpret_cast<const char *>(&group_req),
+				sizeof(group_source_req));
+
+		FAIL_errno(rc == SOCKET_ERROR, "mcast join group",mSettings);
 #if HAVE_DECL_IP_MULTICAST_ALL
-	    int mc_all = 1;
-	    rc = setsockopt(ListenSocket, IPPROTO_IP, IP_MULTICAST_ALL, (void*) &mc_all, sizeof(mc_all));
-	    WARN_errno(rc == SOCKET_ERROR, "ip_multicast_all");
+		int mc_all = 0;
+		rc = setsockopt(ListenSocket, IPPROTO_IP, IP_MULTICAST_ALL, (void*) &mc_all, sizeof(mc_all));
+		WARN_errno(rc == SOCKET_ERROR, "ip_multicast_all");
+#endif
+	    }
+#elif HAVE_DECL_IP_ADD_MEMBERSHIP
+	    {
+		struct ip_mreq mreq;
+		memcpy(&mreq.imr_multiaddr, SockAddr_get_in_addr(&mSettings->local), \
+		       sizeof(mreq.imr_multiaddr));
+		mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+		int rc = setsockopt(ListenSocket, IPPROTO_IP, IP_ADD_MEMBERSHIP,
+				    reinterpret_cast<char*>(&mreq), sizeof(mreq));
+		WARN_errno(rc == SOCKET_ERROR, "multicast join");
+	    }
+#else
+	    FAIL_errno(1, "mcast join group not supported",mSettings);
 #endif
 	} else {
 #if (HAVE_IPV6 && HAVE_IPV6_MULTICAST && (HAVE_DECL_IPV6_JOIN_GROUP || HAVE_DECL_IPV6_ADD_MEMBERSHIP))
@@ -694,24 +722,7 @@ void Listener::my_multicast_join () {
 #endif
 		FAIL_errno(rc == SOCKET_ERROR, "mcast join source group",mSettings);
 	    } else {
-		struct group_req group_req;
-		struct sockaddr_in *group;
-
-		memset(&group_req, 0, sizeof(struct group_req));
-
-		group_req.gr_interface = iface;
-		group=reinterpret_cast<struct sockaddr_in*>(&group_req.gr_group);
-		group->sin_family = AF_INET;
-		/* Set the group */
-		rc=getsockname(ListenSocket,reinterpret_cast<struct sockaddr *>(group), &socklen);
-		FAIL_errno(rc == SOCKET_ERROR, "mcast join group getsockname",mSettings);
-		group->sin_port = 0;    /* Ignored */
-		rc = -1;
-#if HAVE_DECL_MCAST_JOIN_GROUP
-		rc = setsockopt(ListenSocket,IPPROTO_IP,MCAST_JOIN_GROUP, reinterpret_cast<const char *>(&group_req),
-				sizeof(group_source_req));
-#endif
-		FAIL_errno(rc == SOCKET_ERROR, "mcast join group",mSettings);
+		FAIL_errno(1, "mcast join group ssm not supported",mSettings);
 	    }
 	}
 
@@ -939,6 +950,7 @@ int Listener::udp_accept (thread_Settings *server) {
 #endif
 	// Handle connection for UDP sockets
 	int gid = Iperf_push_host_port_conditional(server);
+
 #if HAVE_THREAD_DEBUG
 	if (gid < 0)
 	    thread_debug("rcvfrom peer: drop duplicate");
