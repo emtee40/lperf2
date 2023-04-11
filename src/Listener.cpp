@@ -528,12 +528,21 @@ void Listener::my_multicast_join () {
     // This is the older mulitcast join code.  Both SSM and binding the
     // an interface requires the newer socket options.  Using the older
     // code here will maintain compatiblity with previous iperf versions
-    if (!isSSMMulticast(mSettings) && !mSettings->mIfrname) {
+    int iface=0;
+    /* Set the interface or any */
+    if (mSettings->mIfrname) {
+#if HAVE_NET_IF_H
+	iface = if_nametoindex(mSettings->mIfrname);
+	FAIL_errno(!iface, "mcast if_nametoindex",mSettings);
+#else
+	fprintf(stderr, "multicast bind to device not supported on this platform\n");
+#endif
+    }
+    if (!isSSMMulticast(mSettings)) {
 	if (!SockAddr_isIPv6(&mSettings->local)) {
 #if HAVE_DECL_MCAST_JOIN_GROUP
 	    {
 		int rc;
-		int iface=0;
 		socklen_t socklen = sizeof(struct sockaddr_storage);
 		struct group_req group_req;
 		struct sockaddr_in *group;
@@ -594,16 +603,6 @@ void Listener::my_multicast_join () {
 	// Use the newer socket options when these are specified
 	socklen_t socklen = sizeof(struct sockaddr_storage);
 	int iface=0;
-#if HAVE_NET_IF_H
-	/* Set the interface or any */
-	if (mSettings->mIfrname) {
-	    iface = if_nametoindex(mSettings->mIfrname);
-	    FAIL_errno(!iface, "mcast if_nametoindex",mSettings);
-	} else {
-	    iface = 0;
-	}
-#endif
-
         if (isIPV6(mSettings)) {
 #if HAVE_IPV6_MULTICAST
 	    if (mSettings->mSSMMulticastStr) {
