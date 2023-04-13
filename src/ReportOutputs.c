@@ -732,12 +732,21 @@ void udp_output_fullduplex_sum (struct TransferInfo *stats) {
 void udp_output_read (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_bw_jitter_loss);
     _print_stats_common(stats);
-    printf(report_bw_jitter_loss_format, stats->common->transferIDStr,
-	    stats->ts.iStart, stats->ts.iEnd,
-	    outbuffer, outbufferext,
-	    (stats->final) ? ((stats->inline_jitter.total.sum / (double) stats->inline_jitter.total.cnt) * 1e3) : (stats->jitter * 1e3),  \
-	    stats->cntError, stats->cntDatagrams,
-	    (100.0 * stats->cntError) / stats->cntDatagrams);
+    if (!stats->cntIPG) {
+	printf(report_bw_jitter_loss_format, stats->common->transferIDStr,
+	       stats->ts.iStart, stats->ts.iEnd,
+	       outbuffer, outbufferext,
+	       0.0, stats->cntError,
+	       stats->cntDatagrams,
+	       0.0);
+    } else {
+	printf(report_bw_jitter_loss_format, stats->common->transferIDStr,
+	       stats->ts.iStart, stats->ts.iEnd,
+	       outbuffer, outbufferext,
+	       (stats->final) ? ((stats->inline_jitter.total.sum / (double) stats->inline_jitter.total.cnt) * 1e3) : (stats->jitter * 1e3),  \
+	       stats->cntError, stats->cntDatagrams,
+	       (100.0 * stats->cntError) / stats->cntDatagrams);
+    }
     _output_outoforder(stats);
     fflush(stdout);
 }
