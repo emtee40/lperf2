@@ -260,7 +260,7 @@ AC_CHECK_DECLS([AF_INET6, SO_TIMESTAMP, SO_SNDTIMEO, SO_REUSEPORT, SO_BINDTODEVI
 			  [],[],[$in_h])
 
 AC_CHECK_TYPES([struct sockaddr_storage, struct sockaddr_in6,
-		       struct group_source_req, struct ip_mreq,
+		       struct group_source_req, struct ip_mreq, struct ip_mreqn,
 		       struct ipv6_mreq, struct ip_mreq_source],,,[$in_h])
 
 AC_CHECK_MEMBERS([struct sockaddr_in6.sin6_len,
