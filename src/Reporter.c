@@ -1163,13 +1163,7 @@ static inline void reporter_reset_transfer_stats_client_tcp (struct TransferInfo
 	reporter_reset_mmm(&stats->bbasym.current);
     }
     if (isTcpWriteTimes(stats->common)) {
-	stats->write_mmm.current.cnt = 0;
-	stats->write_mmm.current.min = FLT_MAX;
-	stats->write_mmm.current.max = FLT_MIN;
-	stats->write_mmm.current.sum = 0;
-	stats->write_mmm.current.vd = 0;
-	stats->write_mmm.current.mean = 0;
-	stats->write_mmm.current.m2 = 0;
+	reporter_reset_mmm(&stats->write_mmm.current);
     }
 }
 
