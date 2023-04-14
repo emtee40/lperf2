@@ -353,6 +353,9 @@
 /* Define to 1 if the system has the type `struct ip_mreq'. */
 #undef HAVE_STRUCT_IP_MREQ
 
+/* Define to 1 if the system has the type `struct ip_mreqn'. */
+#undef HAVE_STRUCT_IP_MREQN
+
 /* Define to 1 if the system has the type `struct ip_mreq_source'. */
 #undef HAVE_STRUCT_IP_MREQ_SOURCE
 

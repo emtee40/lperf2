@@ -8386,6 +8386,16 @@ _ACEOF
 
 
 fi
+ac_fn_c_check_type "$LINENO" "struct ip_mreqn" "ac_cv_type_struct_ip_mreqn" "$in_h
+"
+if test "x$ac_cv_type_struct_ip_mreqn" = xyes; then :
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_STRUCT_IP_MREQN 1
+_ACEOF
+
+
+fi
 ac_fn_c_check_type "$LINENO" "struct ipv6_mreq" "ac_cv_type_struct_ipv6_mreq" "$in_h
 "
 if test "x$ac_cv_type_struct_ipv6_mreq" = xyes; then :
