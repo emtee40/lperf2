@@ -1026,7 +1026,7 @@ inline void reporter_handle_packet_server_udp (struct ReporterData *data, struct
 	// Hence, set the per interval min to infinity
 	// and the per interval max and sum to zero
 	reporter_reset_mmm(&stats->transit.current);
-    } else if (packet->packetID > 0) {
+    } else if (!packet->emptyreport && (packet->packetID > 0)) {
 	stats->total.Bytes.current += packet->packetLen;
 	// These are valid packets that need standard iperf accounting
 	// Do L2 accounting first (if needed)
