@@ -893,10 +893,11 @@ void Server::RunUDP () {
 	    // completely filled out.
 	    reportstruct->emptyreport=1;
 	    reportstruct->packetLen=0;
+	    reportstruct->packetID=0;
 	    // read the next packet with timestamp
 	    // will also set empty report or not
 	    rxlen=ReadWithRxTimestamp();
-	    if (!peerclose && (rxlen > 0)) {
+	    if (!peerclose && (rxlen >= sizeof(struct UDP_datagram))) {
 	        reportstruct->emptyreport = 0;
 	        reportstruct->packetLen = rxlen;
 	        if (isL2LengthCheck(mSettings)) {
