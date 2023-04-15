@@ -694,7 +694,7 @@ static void reporter_handle_packet_oneway_transit (struct TransferInfo *stats, s
     // Transit or latency updates done inline below
     double transit = TimeDifference(packet->packetTime, packet->sentTime);
     if (stats->latency_histogram) {
-        histogram_insert(stats->latency_histogram, transit, NULL);
+        histogram_insert(stats->latency_histogram, transit, &packet->packetTime);
     }
     double deltaTransit;
     deltaTransit = transit - stats->transit.current.last;
