@@ -64,7 +64,7 @@ struct ReportStruct {
     struct timeval prevPacketTime;
     struct timeval sentTime;
     struct timeval prevSentTime;
-    int errwrite;
+    int err_readwrite;
     int emptyreport;
     int l2errors;
     int l2len;

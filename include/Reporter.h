@@ -108,10 +108,24 @@ struct MeanMinMaxStats {
     intmax_t err;
 };
 
+struct ShiftIntCounter {
+    intmax_t current;
+    intmax_t prev;
+};
+
+struct ShiftUintCounter {
+    uintmax_t current;
+    uintmax_t prev;
+};
+
 #define TCPREADBINCOUNT 8
 struct ReadStats {
-    intmax_t cntRead;
-    intmax_t totcntRead;
+    uintmax_t cntRead;
+    uintmax_t cntReadTimeo;
+    uintmax_t cntReadErrLen;
+    struct ShiftUintCounter ReadCnt;
+    struct ShiftUintCounter ReadTimeoCnt;
+    struct ShiftUintCounter ReadErrLenCnt;
     int bins[TCPREADBINCOUNT];
     int totbins[TCPREADBINCOUNT];
     int binsize;
@@ -134,11 +148,19 @@ struct WriteStats {
 #define L2LENERR   0x02
 #define L2CSUMERR  0x04
 
-enum WriteErrType {
+enum WriteTypes {
     WriteNoErr  = 0,
     WriteErrAccount,
     WriteErrFatal,
     WriteErrNoAccount
+};
+
+enum ReadTypes {
+    ReadNoErr  = 0,
+    ReadTimeo,
+    ReadTimeoFatal,
+    ReadErrLen,
+    ReadNULL
 };
 
 struct L2Stats {
@@ -258,15 +280,6 @@ struct ConnectionInfo {
     struct iperf_tcpstats tcpinitstats;
 };
 
-struct ShiftIntCounter {
-    intmax_t current;
-    intmax_t prev;
-};
-
-struct ShiftUintCounter {
-    uintmax_t current;
-    uintmax_t prev;
-};
 
 struct ShiftCounters {
     struct ShiftUintCounter Bytes;

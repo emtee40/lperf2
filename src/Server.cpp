@@ -310,6 +310,7 @@ void Server::PostNullEvent () {
     reportstruct->packetTime.tv_sec = now.getSecs();
     reportstruct->packetTime.tv_usec = now.getUsecs();
     reportstruct->emptyreport=1;
+    reportstruct->err_readwrite = ReadNULL;
     ReportPacket(myReport, reportstruct);
 }
 
@@ -656,8 +657,10 @@ bool Server::InitTrafficLoop (void) {
 }
 
 inline int Server::ReadWithRxTimestamp () {
-    long currLen;
-    int tsdone = 0;
+    int currLen;
+    int tsdone = false;
+
+    reportstruct->err_readwrite = ReadNoErr;
 
 #if HAVE_DECL_SO_TIMESTAMP
     cmsg = reinterpret_cast<struct cmsghdr *>(&ctrl);
@@ -669,7 +672,10 @@ inline int Server::ReadWithRxTimestamp () {
 		cmsg->cmsg_type  == SCM_TIMESTAMP &&
 		cmsg->cmsg_len   == CMSG_LEN(sizeof(struct timeval))) {
 		memcpy(&(reportstruct->packetTime), CMSG_DATA(cmsg), sizeof(struct timeval));
-		tsdone = 1;
+		if (TimeZero(myReport->info.ts.prevpacketTime)) {
+		    myReport->info.ts.prevpacketTime = reportstruct->packetTime;
+		}
+		tsdone = true;
 	    }
 	}
     }
@@ -685,14 +691,24 @@ inline int Server::ReadWithRxTimestamp () {
 	    WARN_errno(1, "recvmsg");
 	    currLen = 0;
 	    peerclose = true;
+	} else {
+	    reportstruct->err_readwrite = ReadTimeo;
 	}
-    } else if (TimeZero(myReport->info.ts.prevpacketTime)) {
-	myReport->info.ts.prevpacketTime = reportstruct->packetTime;
-    }
-    if (!tsdone) {
-	now.setnow();
-	reportstruct->packetTime.tv_sec = now.getSecs();
-	reportstruct->packetTime.tv_usec = now.getUsecs();
+    } else {
+	if (!tsdone) {
+	    now.setnow();
+	    reportstruct->packetTime.tv_sec = now.getSecs();
+	    reportstruct->packetTime.tv_usec = now.getUsecs();
+	    if (TimeZero(myReport->info.ts.prevpacketTime)) {
+		myReport->info.ts.prevpacketTime = reportstruct->packetTime;
+	    }
+	}
+	if (currLen != mSettings->mBufLen) {
+	    reportstruct->err_readwrite = ReadErrLen;
+	    if (currLen < static_cast<int>(sizeof(struct UDP_datagram))) {
+		reportstruct->emptyreport=1; // set empty for too small reads
+	    }
+	}
     }
     return currLen;
 }
@@ -721,7 +737,7 @@ inline bool Server::ReadPacketID (int offset_adjust) {
 #endif
     }
     if (reportstruct->packetID < 0) {
-      reportstruct->packetID = - reportstruct->packetID;
+      reportstruct->packetID = -reportstruct->packetID;
       terminate = true;
     }
     // read the sent timestamp from the rx packet
@@ -893,11 +909,10 @@ void Server::RunUDP () {
 	    // completely filled out.
 	    reportstruct->emptyreport=1;
 	    reportstruct->packetLen=0;
-	    reportstruct->packetID=0;
 	    // read the next packet with timestamp
 	    // will also set empty report or not
 	    rxlen=ReadWithRxTimestamp();
-	    if (!peerclose && (rxlen >= sizeof(struct UDP_datagram))) {
+	    if (!peerclose && (rxlen > 0)) {
 	        reportstruct->emptyreport = 0;
 	        reportstruct->packetLen = rxlen;
 	        if (isL2LengthCheck(mSettings)) {

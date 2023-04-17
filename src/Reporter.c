@@ -222,6 +222,7 @@ int EndJob (struct ReportHeader *reporthdr, struct ReportStruct *finalpacket) {
     packet.packetID = -1;
     packet.packetLen = finalpacket->packetLen;
     packet.packetTime = finalpacket->packetTime;
+    packet.err_readwrite = ReadNULL; // this is not a real read event
     if (isSingleUDP(report->info.common)) {
 	packetring_enqueue(report->packetring, &packet);
 	reporter_process_transfer_report(report);
@@ -756,7 +757,6 @@ static void reporter_handle_packet_oneway_transit (struct TransferInfo *stats, s
     }
 }
 
-
 static void reporter_handle_isoch_oneway_transit_tcp (struct TransferInfo *stats, struct ReportStruct *packet) {
     // printf("fid=%lu bs=%lu remain=%lu\n", packet->frameID, packet->burstsize, packet->remaining);
     if (packet->frameID && packet->transit_ready) {
@@ -910,7 +910,7 @@ void reporter_handle_packet_client (struct ReporterData *data, struct ReportStru
     stats->ts.packetTime = packet->packetTime;
     if (!packet->emptyreport) {
 	stats->total.Bytes.current += packet->packetLen;
-        if (packet->errwrite && (packet->errwrite != WriteErrNoAccount)) {
+        if (packet->err_readwrite && (packet->err_readwrite != WriteErrNoAccount)) {
 	    stats->sock_callstats.write.WriteErr++;
 	    stats->sock_callstats.write.totWriteErr++;
 	}
@@ -1000,8 +1000,7 @@ inline void reporter_handle_packet_server_tcp (struct ReporterData *data, struct
 	int bin;
 	stats->total.Bytes.current += packet->packetLen;
 	// mean min max tests
-	stats->sock_callstats.read.cntRead++;
-	stats->sock_callstats.read.totcntRead++;
+	stats->sock_callstats.read.ReadCnt.current++;
 	bin = (int)floor((packet->packetLen -1)/stats->sock_callstats.read.binsize);
 	if (bin < TCPREADBINCOUNT) {
 	    stats->sock_callstats.read.bins[bin]++;
@@ -1027,7 +1026,20 @@ inline void reporter_handle_packet_server_udp (struct ReporterData *data, struct
 	// and the per interval max and sum to zero
 	reporter_reset_mmm(&stats->transit.current);
     } else if (!packet->emptyreport && (packet->packetID > 0)) {
-	stats->total.Bytes.current += packet->packetLen;
+	bool ooo_packet = false;
+	// packet loss occured if the datagram numbers aren't sequential
+	if (packet->packetID != stats->PacketID + 1) {
+	    if (packet->packetID < stats->PacketID + 1) {
+		stats->total.OutofOrder.current++;
+		ooo_packet = true;
+	    } else {
+		stats->total.Lost.current += packet->packetID - stats->PacketID - 1;
+	    }
+	}
+	// never decrease datagramID (e.g. if we get an out-of-order packet)
+	if (packet->packetID > stats->PacketID) {
+	    stats->PacketID = packet->packetID;
+	}
 	// These are valid packets that need standard iperf accounting
 	// Do L2 accounting first (if needed)
 	if (packet->l2errors && (stats->total.Datagrams.current > L2DROPFILTERCOUNTER)) {
@@ -1046,26 +1058,28 @@ inline void reporter_handle_packet_server_udp (struct ReporterData *data, struct
 		stats->l2counts.tot_udpcsumerr++;
 	    }
 	}
-	// packet loss occured if the datagram numbers aren't sequential
-	if (packet->packetID != stats->PacketID + 1) {
-	    if (packet->packetID < stats->PacketID + 1) {
-		stats->total.OutofOrder.current++;
-	    } else {
-		stats->total.Lost.current += packet->packetID - stats->PacketID - 1;
-	    }
+	if (packet->err_readwrite == ReadErrLen) {
+	    stats->sock_callstats.read.ReadErrLenCnt.current++;
 	}
-	// never decrease datagramID (e.g. if we get an out-of-order packet)
-	if (packet->packetID > stats->PacketID) {
-	    stats->PacketID = packet->packetID;
+	if (!ooo_packet && (packet->err_readwrite == ReadNoErr)) {
+	    reporter_handle_packet_oneway_transit(stats, packet);
 	}
+	stats->total.Bytes.current += packet->packetLen;
 	reporter_compute_packet_pps(stats, packet);
-	reporter_handle_packet_oneway_transit(stats, packet);
+
 	if (packet->transit_ready) {
 	    if (isIsochronous(stats->common)) {
 	        reporter_handle_isoch_oneway_transit_udp(stats, packet);
 	    } else if (isPeriodicBurst(stats->common)) {
 	        reporter_handle_txmsg_oneway_transit(stats, packet);
 	    }
+	}
+    }
+    if (packet->err_readwrite != ReadNULL) {
+	if (packet->emptyreport) {
+	    stats->sock_callstats.read.ReadTimeoCnt.current++;
+	} else {
+	    stats->sock_callstats.read.ReadCnt.current++;
 	}
     }
 }
@@ -1187,7 +1201,7 @@ static inline void reporter_reset_transfer_stats_client_udp (struct TransferInfo
 static inline void reporter_reset_transfer_stats_server_tcp (struct TransferInfo *stats) {
     int ix;
     stats->total.Bytes.prev = stats->total.Bytes.current;
-    stats->sock_callstats.read.cntRead = 0;
+    stats->sock_callstats.read.ReadCnt.prev = stats->sock_callstats.read.ReadCnt.current;
     for (ix = 0; ix < 8; ix++) {
 	stats->sock_callstats.read.bins[ix] = 0;
     }
@@ -1213,6 +1227,9 @@ static inline void reporter_reset_transfer_stats_server_udp (struct TransferInfo
     stats->l2counts.lengtherr = 0;
     stats->threadcnt = 0;
     stats->iInP = 0;
+    stats->sock_callstats.read.ReadCnt.prev = stats->sock_callstats.read.ReadCnt.current;
+    stats->sock_callstats.read.ReadTimeoCnt.prev = stats->sock_callstats.read.ReadTimeoCnt.current;
+    stats->sock_callstats.read.ReadErrLenCnt.prev = stats->sock_callstats.read.ReadErrLenCnt.current;
     if (stats->cntDatagrams)
 	stats->IPGsum = 0;
 }
@@ -1236,6 +1253,9 @@ void reporter_transfer_protocol_server_udp (struct ReporterData *data, int final
 	stats->cntError = 0;
     stats->cntDatagrams = stats->PacketID - stats->total.Datagrams.prev;
     stats->cntIPG = stats->total.IPG.current - stats->total.IPG.prev;
+    stats->sock_callstats.read.cntRead = stats->sock_callstats.read.ReadCnt.current - stats->sock_callstats.read.ReadCnt.prev;
+    stats->sock_callstats.read.cntReadTimeo = stats->sock_callstats.read.ReadTimeoCnt.current - stats->sock_callstats.read.ReadTimeoCnt.prev;
+    stats->sock_callstats.read.cntReadErrLen = stats->sock_callstats.read.ReadErrLenCnt.current - stats->sock_callstats.read.ReadErrLenCnt.prev;
 
     if (stats->latency_histogram) {
         stats->latency_histogram->final = final;
@@ -1273,6 +1293,9 @@ void reporter_transfer_protocol_server_udp (struct ReporterData *data, int final
 	    sumstats->IPGsum = stats->IPGsum;
 	sumstats->threadcnt++;
 	sumstats->iInP += stats->iInP;
+	sumstats->sock_callstats.read.cntRead += stats->sock_callstats.read.cntRead;
+	sumstats->sock_callstats.read.cntReadTimeo += stats->sock_callstats.read.cntReadTimeo;
+	sumstats->sock_callstats.read.cntReadErrLen += stats->sock_callstats.read.cntReadErrLen;
     }
     if (fullduplexstats) {
 	fullduplexstats->total.Bytes.current += stats->cntBytes;
@@ -1348,6 +1371,9 @@ void reporter_transfer_protocol_server_udp (struct ReporterData *data, int final
 	if (stats->framelatency_histogram) {
 	    stats->framelatency_histogram->final = 1;
 	}
+	stats->sock_callstats.read.cntRead = stats->sock_callstats.read.ReadCnt.current;
+	stats->sock_callstats.read.cntReadTimeo = stats->sock_callstats.read.ReadTimeoCnt.current;
+	stats->sock_callstats.read.cntReadErrLen = stats->sock_callstats.read.ReadErrLenCnt.current;
     }
     if ((stats->output_handler) && !(stats->isMaskOutput))
 	(*stats->output_handler)(stats);
@@ -1492,18 +1518,19 @@ void reporter_transfer_protocol_server_tcp (struct ReporterData *data, int final
 	double meantransit = (double) ((stats->transit.current.cnt > 0) ? (stats->transit.current.sum / stats->transit.current.cnt) : 0.0);
 	thisInP  = lambda * meantransit;
 	stats->iInP = thisInP;
+        stats->sock_callstats.read.cntRead = stats->sock_callstats.read.ReadCnt.current - stats->sock_callstats.read.ReadCnt.prev;
     } else {
 	double bytecnt = (double) stats->cntBytes;
 	double lambda = (stats->IPGsum > 0.0) ? (bytecnt / stats->IPGsum) : 0.0;
 	double meantransit = (double) ((stats->transit.total.cnt > 0) ? (stats->transit.total.sum / stats->transit.total.cnt) : 0.0);
 	thisInP  = lambda * meantransit;
 	stats->fInP = thisInP;
+        stats->sock_callstats.read.cntRead = stats->sock_callstats.read.ReadCnt.current;
     }
     if (sumstats) {
 	sumstats->threadcnt++;
 	sumstats->total.Bytes.current += stats->cntBytes;
-        sumstats->sock_callstats.read.cntRead += stats->sock_callstats.read.cntRead;
-        sumstats->sock_callstats.read.totcntRead += stats->sock_callstats.read.cntRead;
+        sumstats->sock_callstats.read.ReadCnt.current += stats->sock_callstats.read.cntRead;
         for (ix = 0; ix < TCPREADBINCOUNT; ix++) {
 	    sumstats->sock_callstats.read.bins[ix] += stats->sock_callstats.read.bins[ix];
 	    sumstats->sock_callstats.read.totbins[ix] += stats->sock_callstats.read.bins[ix];
@@ -1538,7 +1565,7 @@ void reporter_transfer_protocol_server_tcp (struct ReporterData *data, int final
 	reporter_set_timestamps_time(stats, TOTAL);
         stats->cntBytes = stats->total.Bytes.current;
 	stats->IPGsum = stats->ts.iEnd;
-        stats->sock_callstats.read.cntRead = stats->sock_callstats.read.totcntRead;
+        stats->sock_callstats.read.cntRead = stats->sock_callstats.read.ReadCnt.current;
         for (ix = 0; ix < TCPREADBINCOUNT; ix++) {
 	    stats->sock_callstats.read.bins[ix] = stats->sock_callstats.read.totbins[ix];
         }
@@ -1746,6 +1773,7 @@ void reporter_transfer_protocol_server_bb_tcp (struct ReporterData *data, int fi
 void reporter_transfer_protocol_sum_server_tcp (struct TransferInfo *stats, int final) {
     if (!final || (final && (stats->cntBytes > 0) && !TimeZero(stats->ts.intervalTime))) {
 	stats->cntBytes = stats->total.Bytes.current - stats->total.Bytes.prev;
+	stats->sock_callstats.read.cntRead = stats->sock_callstats.read.ReadCnt.current - stats->sock_callstats.read.ReadCnt.prev;
 	if (final) {
 	    if ((stats->output_handler) && !(stats->isMaskOutput)) {
 		reporter_set_timestamps_time(stats, FINALPARTIAL);
@@ -1762,7 +1790,7 @@ void reporter_transfer_protocol_sum_server_tcp (struct TransferInfo *stats, int 
     if (final) {
 	int ix;
 	stats->cntBytes = stats->total.Bytes.current;
-	stats->sock_callstats.read.cntRead = stats->sock_callstats.read.totcntRead;
+	stats->sock_callstats.read.cntRead = stats->sock_callstats.read.ReadCnt.current;
 	for (ix = 0; ix < TCPREADBINCOUNT; ix++) {
 	    stats->sock_callstats.read.bins[ix] = stats->sock_callstats.read.totbins[ix];
 	}

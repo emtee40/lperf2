@@ -510,7 +510,7 @@ void Client::InitTrafficLoop () {
     }
     readAt = mSettings->mBuf;
     lastPacketTime.set(myReport->info.ts.startTime.tv_sec, myReport->info.ts.startTime.tv_usec);
-    reportstruct->errwrite=WriteNoErr;
+    reportstruct->err_readwrite=WriteNoErr;
     reportstruct->emptyreport=0;
     reportstruct->packetLen = 0;
     // Finally, post this thread's "job report" which the reporter thread
@@ -676,20 +676,20 @@ void Client::RunTCP () {
 	    if (reportstruct->packetLen == 0) {
 		peerclose = true;
 	    } else if (NONFATALTCPWRITERR(errno)) {
-		reportstruct->errwrite=WriteErrAccount;
+		reportstruct->err_readwrite=WriteErrAccount;
 	    } else if (FATALTCPWRITERR(errno)) {
-		reportstruct->errwrite=WriteErrFatal;
+		reportstruct->err_readwrite=WriteErrFatal;
 		WARN_errno(1, "tcp write");
 		break;
 	    } else {
-		reportstruct->errwrite=WriteErrNoAccount;
+		reportstruct->err_readwrite=WriteErrNoAccount;
 	    }
 	    reportstruct->packetLen = 0;
 	    reportstruct->emptyreport = 1;
 	} else {
 	    reportstruct->emptyreport = 0;
 	    totLen += reportstruct->packetLen;
-	    reportstruct->errwrite=WriteNoErr;
+	    reportstruct->err_readwrite=WriteNoErr;
 	    if (isburst) {
 		burst_remaining -= reportstruct->packetLen;
 		if (burst_remaining > 0) {
@@ -762,20 +762,20 @@ void Client::RunNearCongestionTCP () {
 	reportstruct->transit_ready = 0;
 	if (reportstruct->packetLen < 0) {
 	    if (NONFATALTCPWRITERR(errno)) {
-		reportstruct->errwrite=WriteErrAccount;
+		reportstruct->err_readwrite=WriteErrAccount;
 	    } else if (FATALTCPWRITERR(errno)) {
-		reportstruct->errwrite=WriteErrFatal;
+		reportstruct->err_readwrite=WriteErrFatal;
 		WARN_errno(1, "tcp write");
 		break;
 	    } else {
-		reportstruct->errwrite=WriteErrNoAccount;
+		reportstruct->err_readwrite=WriteErrNoAccount;
 	    }
 	    reportstruct->packetLen = 0;
 	    reportstruct->emptyreport = 1;
 	} else {
 	    reportstruct->emptyreport = 0;
 	    totLen += reportstruct->packetLen;
-	    reportstruct->errwrite=WriteNoErr;
+	    reportstruct->err_readwrite=WriteNoErr;
 	    burst_remaining -= reportstruct->packetLen;
 	    if (burst_remaining <= 0) {
 		reportstruct->transit_ready = 1;
@@ -864,14 +864,14 @@ void Client::RunRateLimitedTCP () {
 		if (len < 0) {
 		    len = 0;
 		    if (NONFATALTCPWRITERR(errno)) {
-			reportstruct->errwrite=WriteErrAccount;
+			reportstruct->err_readwrite=WriteErrAccount;
 		    } else if (FATALTCPWRITERR(errno)) {
-			reportstruct->errwrite=WriteErrFatal;
+			reportstruct->err_readwrite=WriteErrFatal;
 			WARN_errno(1, "write");
 			fatalwrite_err = 1;
 			break;
 		    } else {
-			reportstruct->errwrite=WriteErrNoAccount;
+			reportstruct->err_readwrite=WriteErrNoAccount;
 		    }
 		} else {
 		    burst_remaining -= len;
@@ -887,20 +887,20 @@ void Client::RunRateLimitedTCP () {
 	    if (len2 < 0) {
 		len2 = 0;
 	        if (NONFATALTCPWRITERR(errno)) {
-		    reportstruct->errwrite=WriteErrAccount;
+		    reportstruct->err_readwrite=WriteErrAccount;
 		} else if (FATALTCPWRITERR(errno)) {
-		    reportstruct->errwrite=WriteErrFatal;
+		    reportstruct->err_readwrite=WriteErrFatal;
 		    WARN_errno(1, "write");
 		    fatalwrite_err = 1;
 		    break;
 		} else {
-		    reportstruct->errwrite=WriteErrNoAccount;
+		    reportstruct->err_readwrite=WriteErrNoAccount;
 	        }
 	    } else {
 		// Consume tokens per the transmit
 	        tokens -= (len + len2);
 	        totLen += (len + len2);;
-		reportstruct->errwrite=WriteNoErr;
+		reportstruct->err_readwrite=WriteNoErr;
 	    }
 	    time2.setnow();
 	    reportstruct->packetLen = len + len2;
@@ -1068,7 +1068,7 @@ void Client::RunBounceBackTCP () {
 	    reportstruct->packetLen = writen(mySocket, mSettings->mBuf, writelen, &reportstruct->writecnt);
 	    if (reportstruct->packetLen <= 0) {
 		if ((reportstruct->packetLen < 0) && FATALTCPWRITERR(errno)) {
-		    reportstruct->errwrite=WriteErrFatal;
+		    reportstruct->err_readwrite=WriteErrFatal;
 		    WARN_errno(1, "tcp bounceback write fatal error");
 		    peerclose = true;
 		} else if (reportstruct->packetLen == 0) {
@@ -1086,7 +1086,7 @@ void Client::RunBounceBackTCP () {
 	    if (reportstruct->packetLen == writelen) {
 		reportstruct->emptyreport = 0;
 		totLen += reportstruct->packetLen;
-		reportstruct->errwrite=WriteNoErr;
+		reportstruct->err_readwrite=WriteNoErr;
 #if HAVE_DECL_TCP_QUICKACK
 		if (isTcpQuickAck(mSettings)) {
 		    int opt = 1;
@@ -1122,10 +1122,10 @@ void Client::RunBounceBackTCP () {
 	    } else if ((reportstruct->packetLen < 0 ) && NONFATALTCPWRITERR(errno)) {
 		reportstruct->packetLen = 0;
 		reportstruct->emptyreport = 1;
-		reportstruct->errwrite=WriteErrNoAccount;
+		reportstruct->err_readwrite=WriteErrNoAccount;
 		myReportPacket();
 	    } else {
-		reportstruct->errwrite=WriteErrFatal;
+		reportstruct->err_readwrite=WriteErrFatal;
 		reportstruct->packetLen = -1;
 		FAIL_errno(1, "tcp bounce-back write", mSettings);
 	    }
@@ -1228,7 +1228,7 @@ void Client::RunUDP () {
 	    delay = delay_target;
 	}
 
-	reportstruct->errwrite = WriteNoErr;
+	reportstruct->err_readwrite = WriteNoErr;
 	reportstruct->emptyreport = 0;
 	// perform write
 	if (isModeAmount(mSettings)) {
@@ -1239,11 +1239,11 @@ void Client::RunUDP () {
 	if (currLen < 0) {
 	    reportstruct->packetID--;
 	    if (FATALUDPWRITERR(errno)) {
-	        reportstruct->errwrite = WriteErrFatal;
+	        reportstruct->err_readwrite = WriteErrFatal;
 	        WARN_errno(1, "write");
 		break;
 	    } else {
-	        reportstruct->errwrite = WriteErrAccount;
+	        reportstruct->err_readwrite = WriteErrAccount;
 	        currLen = 0;
 	    }
 	    reportstruct->emptyreport = 1;
@@ -1354,7 +1354,7 @@ void Client::RunUDPIsochronous () {
 	    //	  delay = delay_target;
 	    // }
 
-	    reportstruct->errwrite = WriteNoErr;
+	    reportstruct->err_readwrite = WriteNoErr;
 	    reportstruct->emptyreport = 0;
 	    reportstruct->writecnt = 1;
 
@@ -1374,11 +1374,11 @@ void Client::RunUDPIsochronous () {
 		reportstruct->emptyreport = 1;
 		currLen = 0;
 		if (FATALUDPWRITERR(errno)) {
-	            reportstruct->errwrite = WriteErrFatal;
+	            reportstruct->err_readwrite = WriteErrFatal;
 	            WARN_errno(1, "write");
 		    fatalwrite_err = 1;
 	        } else {
-		    reportstruct->errwrite = WriteErrAccount;
+		    reportstruct->err_readwrite = WriteErrAccount;
 		}
 	    } else {
 		bytecnt -= currLen;
