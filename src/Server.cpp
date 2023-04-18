@@ -660,7 +660,7 @@ inline int Server::ReadWithRxTimestamp () {
     int currLen;
     int tsdone = false;
 
-    reportstruct->err_readwrite = ReadNoErr;
+    reportstruct->err_readwrite = ReadSuccess;
 
 #if HAVE_DECL_SO_TIMESTAMP
     cmsg = reinterpret_cast<struct cmsghdr *>(&ctrl);

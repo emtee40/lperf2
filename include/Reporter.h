@@ -156,7 +156,7 @@ enum WriteTypes {
 };
 
 enum ReadTypes {
-    ReadNoErr  = 0,
+    ReadSuccess  = 0,
     ReadTimeo,
     ReadTimeoFatal,
     ReadErrLen,
