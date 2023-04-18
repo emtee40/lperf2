@@ -296,7 +296,6 @@ const long kDefault_UDPRate = 1024 * 1024; // -u  if set, 1 Mbit/sec
 const int kDefault_TCPBufLen = 128 * 1024; // TCP default read/write size
 const int kDefault_BBTCPBufLen = 100; // default bounce-back size in bytes
 
-
 /* -------------------------------------------------------------------
  * Initialize all settings to defaults.
  * ------------------------------------------------------------------- */
@@ -1559,15 +1558,17 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	    }
 	}
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
-	if (isTripTime(mExtSettings) && !isUDP(mExtSettings)) {
-	    if (isWritePrefetch(mExtSettings)) {
-		if (mExtSettings->mWritePrefetch <= 0) {
-		    unsetWritePrefetch(mExtSettings);
+	if (!isUDP(mExtSettings)) {
+	    if (isTcpWriteTimes(mExtSettings) || isTripTime(mExtSettings)) {
+		if (isWritePrefetch(mExtSettings)) {
+		    if (mExtSettings->mWritePrefetch <= 0) {
+			unsetWritePrefetch(mExtSettings);
+		    }
+		} else {
+		    mExtSettings->mWritePrefetch = SMALL_WRITE_PREFETCH;
+		    setWritePrefetch(mExtSettings);
+		    setEnhanced(mExtSettings);
 		}
-	    } else {
-		mExtSettings->mWritePrefetch = SMALL_WRITE_PREFETCH;
-		setWritePrefetch(mExtSettings);
-		setEnhanced(mExtSettings);
 	    }
 	}
 #endif
