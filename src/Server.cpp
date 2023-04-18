@@ -310,7 +310,7 @@ void Server::PostNullEvent () {
     reportstruct->packetTime.tv_sec = now.getSecs();
     reportstruct->packetTime.tv_usec = now.getUsecs();
     reportstruct->emptyreport=1;
-    reportstruct->err_readwrite = ReadNULL;
+    reportstruct->err_readwrite = ReadNoAccount;
     ReportPacket(myReport, reportstruct);
 }
 

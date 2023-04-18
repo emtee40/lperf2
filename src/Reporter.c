@@ -222,7 +222,7 @@ int EndJob (struct ReportHeader *reporthdr, struct ReportStruct *finalpacket) {
     packet.packetID = -1;
     packet.packetLen = finalpacket->packetLen;
     packet.packetTime = finalpacket->packetTime;
-    packet.err_readwrite = ReadNULL; // this is not a real read event
+    packet.err_readwrite = ReadNoAccount; // this is not a real read event
     if (isSingleUDP(report->info.common)) {
 	packetring_enqueue(report->packetring, &packet);
 	reporter_process_transfer_report(report);
@@ -1075,7 +1075,7 @@ inline void reporter_handle_packet_server_udp (struct ReporterData *data, struct
 	    }
 	}
     }
-    if (packet->err_readwrite != ReadNULL) {
+    if (packet->err_readwrite != ReadNoAccount) {
 	if (packet->emptyreport) {
 	    stats->sock_callstats.read.ReadTimeoCnt.current++;
 	} else {
