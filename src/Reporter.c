@@ -1061,7 +1061,9 @@ inline void reporter_handle_packet_server_udp (struct ReporterData *data, struct
 	if (packet->err_readwrite == ReadErrLen) {
 	    stats->sock_callstats.read.ReadErrLenCnt.current++;
 	}
-	if (!ooo_packet && (packet->err_readwrite == ReadSuccess)) {
+	if (!ooo_packet && \
+	    ((packet->err_readwrite == ReadSuccess) ||
+	     ((packet->err_readwrite == ReadErrLen) && (packet->packetLen >= sizeof(struct UDP_datagram))))) {
 	    reporter_handle_packet_oneway_transit(stats, packet);
 	}
 	stats->total.Bytes.current += packet->packetLen;
