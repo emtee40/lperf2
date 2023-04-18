@@ -510,7 +510,7 @@ void Client::InitTrafficLoop () {
     }
     readAt = mSettings->mBuf;
     lastPacketTime.set(myReport->info.ts.startTime.tv_sec, myReport->info.ts.startTime.tv_usec);
-    reportstruct->err_readwrite=WriteNoErr;
+    reportstruct->err_readwrite=WriteSuccess;
     reportstruct->emptyreport=0;
     reportstruct->packetLen = 0;
     // Finally, post this thread's "job report" which the reporter thread
@@ -689,7 +689,7 @@ void Client::RunTCP () {
 	} else {
 	    reportstruct->emptyreport = 0;
 	    totLen += reportstruct->packetLen;
-	    reportstruct->err_readwrite=WriteNoErr;
+	    reportstruct->err_readwrite=WriteSuccess;
 	    if (isburst) {
 		burst_remaining -= reportstruct->packetLen;
 		if (burst_remaining > 0) {
@@ -775,7 +775,7 @@ void Client::RunNearCongestionTCP () {
 	} else {
 	    reportstruct->emptyreport = 0;
 	    totLen += reportstruct->packetLen;
-	    reportstruct->err_readwrite=WriteNoErr;
+	    reportstruct->err_readwrite=WriteSuccess;
 	    burst_remaining -= reportstruct->packetLen;
 	    if (burst_remaining <= 0) {
 		reportstruct->transit_ready = 1;
@@ -900,7 +900,7 @@ void Client::RunRateLimitedTCP () {
 		// Consume tokens per the transmit
 	        tokens -= (len + len2);
 	        totLen += (len + len2);;
-		reportstruct->err_readwrite=WriteNoErr;
+		reportstruct->err_readwrite=WriteSuccess;
 	    }
 	    time2.setnow();
 	    reportstruct->packetLen = len + len2;
@@ -1086,7 +1086,7 @@ void Client::RunBounceBackTCP () {
 	    if (reportstruct->packetLen == writelen) {
 		reportstruct->emptyreport = 0;
 		totLen += reportstruct->packetLen;
-		reportstruct->err_readwrite=WriteNoErr;
+		reportstruct->err_readwrite=WriteSuccess;
 #if HAVE_DECL_TCP_QUICKACK
 		if (isTcpQuickAck(mSettings)) {
 		    int opt = 1;
@@ -1228,7 +1228,7 @@ void Client::RunUDP () {
 	    delay = delay_target;
 	}
 
-	reportstruct->err_readwrite = WriteNoErr;
+	reportstruct->err_readwrite = WriteSuccess;
 	reportstruct->emptyreport = 0;
 	// perform write
 	if (isModeAmount(mSettings)) {
@@ -1354,7 +1354,7 @@ void Client::RunUDPIsochronous () {
 	    //	  delay = delay_target;
 	    // }
 
-	    reportstruct->err_readwrite = WriteNoErr;
+	    reportstruct->err_readwrite = WriteSuccess;
 	    reportstruct->emptyreport = 0;
 	    reportstruct->writecnt = 1;
 

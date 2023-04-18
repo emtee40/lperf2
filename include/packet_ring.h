@@ -57,6 +57,18 @@ extern "C" {
 
 #define ACKRING_DEFAULTSIZE 100
 
+enum ReadWriteExtReturnVals {
+    ReadSuccess  = 0,
+    ReadTimeo,
+    ReadTimeoFatal,
+    ReadErrLen,
+    ReadNULL,
+    WriteSuccess,
+    WriteErrAccount,
+    WriteErrFatal,
+    WriteErrNoAccount
+};
+
 struct ReportStruct {
     intmax_t packetID;
     intmax_t packetLen;
@@ -64,7 +76,7 @@ struct ReportStruct {
     struct timeval prevPacketTime;
     struct timeval sentTime;
     struct timeval prevSentTime;
-    int err_readwrite;
+    enum ReadWriteExtReturnVals err_readwrite;
     int emptyreport;
     int l2errors;
     int l2len;
