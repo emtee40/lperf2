@@ -1802,15 +1802,15 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
     if (isHistogram(mExtSettings)) {
 	if (!mExtSettings->mHistogramStr) {
 	    if (mExtSettings->mThreadMode == kMode_Server) {
-		// set default rx histogram settings, milliseconds bins between 0 and 1 secs
-		mExtSettings->mHistBins = 1000;
+		// set default rx histogram settings, milliseconds bins between 0 and 10 secs
+		mExtSettings->mHistBins = 10000;
 		mExtSettings->mHistBinsize = 1;
 		mExtSettings->mHistUnits = 3;
 		mExtSettings->mHistci_lower = 5;
 		mExtSettings->mHistci_upper = 95;
 	    } else {
 		// set default tx histogram settings, microseconds with 100 us bins
-		mExtSettings->mHistBins = 10000;
+		mExtSettings->mHistBins = 100000;
 		mExtSettings->mHistBinsize = 100;
 		mExtSettings->mHistUnits = 6;
 		mExtSettings->mHistci_lower = 5;
