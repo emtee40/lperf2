@@ -910,7 +910,7 @@ void reporter_handle_packet_client (struct ReporterData *data, struct ReportStru
     stats->ts.packetTime = packet->packetTime;
     if (!packet->emptyreport) {
 	stats->total.Bytes.current += packet->packetLen;
-        if (packet->err_readwrite && (packet->err_readwrite != WriteErrNoAccount)) {
+        if ((packet->err_readwrite != WriteSuccess) && (packet->err_readwrite != WriteErrNoAccount)) {
 	    stats->sock_callstats.write.WriteErr++;
 	    stats->sock_callstats.write.totWriteErr++;
 	}
