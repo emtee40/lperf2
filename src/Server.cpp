@@ -700,15 +700,13 @@ inline int Server::ReadWithRxTimestamp () {
 	} else {
 	    reportstruct->err_readwrite = ReadTimeo;
 	}
-    } else {
-	if (!tsdone) {
-	    now.setnow();
-	    reportstruct->packetTime.tv_sec = now.getSecs();
-	    reportstruct->packetTime.tv_usec = now.getUsecs();
-	    if (TimeZero(myReport->info.ts.prevpacketTime)) {
-		myReport->info.ts.prevpacketTime = reportstruct->packetTime;
-	    }
-	}
+    } else if (TimeZero(myReport->info.ts.prevpacketTime)) {
+	myReport->info.ts.prevpacketTime = reportstruct->packetTime;
+    }
+    if (!tsdone) {
+	now.setnow();
+	reportstruct->packetTime.tv_sec = now.getSecs();
+	reportstruct->packetTime.tv_usec = now.getUsecs();
     }
     return currLen;
 }
