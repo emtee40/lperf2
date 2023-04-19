@@ -763,7 +763,7 @@ void udp_output_read_triptime (struct TransferInfo *stats) {
 	       stats->cntDatagrams,
 	       stats->sock_callstats.read.cntRead,
 	       stats->sock_callstats.read.cntReadTimeo,
-#ifdef MSG_TRUNC
+#ifdef HAVE_DECL_MSG_TRUNC
 	       stats->sock_callstats.read.cntReadErrLen,
 #endif
 	       0.0,0.0,0.0,0.0,0.0,0.0);
@@ -778,7 +778,7 @@ void udp_output_read_triptime (struct TransferInfo *stats) {
 		   (100.0 * stats->cntError) / stats->cntDatagrams,
 		   (stats->cntIPG / stats->IPGsum),
 		   stats->sock_callstats.read.cntRead,
-#ifdef MSG_TRUNC
+#ifdef HAVE_DECL_MSG_TRUNC
 		   stats->sock_callstats.read.cntReadTimeo,
 		   stats->sock_callstats.read.cntReadErrLen);
 #else
@@ -817,7 +817,7 @@ void udp_output_read_triptime (struct TransferInfo *stats) {
 		   llaw_bufstr,
 		   stats->sock_callstats.read.cntRead,
 		   stats->sock_callstats.read.cntReadTimeo,
-#ifdef MSG_TRUNC
+#ifdef HAVE_DECL_MSG_TRUNC
 		   stats->sock_callstats.read.cntReadErrLen,
 #endif
 		   netpower_buf);
@@ -843,7 +843,7 @@ void udp_output_read_enhanced (struct TransferInfo *stats) {
 	       stats->cntDatagrams,
 	       stats->sock_callstats.read.cntRead,
 	       stats->sock_callstats.read.cntReadTimeo,
-#ifdef MSG_TRUNC
+#ifdef HAVE_DECL_MSG_TRUNC
 	       stats->sock_callstats.read.cntReadErrLen,
 #endif
 	       0.0,0.0,0.0,0.0,0.0,0.0);
@@ -858,7 +858,7 @@ void udp_output_read_enhanced (struct TransferInfo *stats) {
 		   (100.0 * stats->cntError) / stats->cntDatagrams,
 		   (stats->cntIPG / stats->IPGsum),
 		   stats->sock_callstats.read.cntRead,
-#ifdef MSG_TRUNC
+#ifdef HAVE_DECL_MSG_TRUNC
 		   stats->sock_callstats.read.cntReadTimeo,
 		   stats->sock_callstats.read.cntReadErrLen);
 #else
@@ -890,7 +890,7 @@ void udp_output_read_enhanced (struct TransferInfo *stats) {
 		   (stats->cntIPG / stats->IPGsum),
 		   stats->sock_callstats.read.cntRead,
 		   stats->sock_callstats.read.cntReadTimeo,
-#ifdef MSG_TRUNC
+#ifdef HAVE_DECL_MSG_TRUNC
 		   stats->sock_callstats.read.cntReadErrLen,
 #endif
 		   netpower_buf);

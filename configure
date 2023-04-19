@@ -8102,6 +8102,17 @@ fi
 cat >>confdefs.h <<_ACEOF
 #define HAVE_DECL_MSG_DONTWAIT $ac_have_decl
 _ACEOF
+ac_fn_c_check_decl "$LINENO" "MSG_TRUNC" "ac_cv_have_decl_MSG_TRUNC" "$in_h
+"
+if test "x$ac_cv_have_decl_MSG_TRUNC" = xyes; then :
+  ac_have_decl=1
+else
+  ac_have_decl=0
+fi
+
+cat >>confdefs.h <<_ACEOF
+#define HAVE_DECL_MSG_TRUNC $ac_have_decl
+_ACEOF
 ac_fn_c_check_decl "$LINENO" "SO_MAX_PACING_RATE" "ac_cv_have_decl_SO_MAX_PACING_RATE" "$in_h
 "
 if test "x$ac_cv_have_decl_SO_MAX_PACING_RATE" = xyes; then :

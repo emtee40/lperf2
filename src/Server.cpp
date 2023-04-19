@@ -665,7 +665,7 @@ inline int Server::ReadWithRxTimestamp () {
     cmsg = reinterpret_cast<struct cmsghdr *>(&ctrl);
     currLen = recvmsg(mSettings->mSock, &message, mSettings->recvflags);
     if (currLen > 0) {
-#ifdef MSG_TRUNC
+#ifdef HAVE_DECL_MSG_TRUNC
 	if (message.msg_flags & MSG_TRUNC) {
 	    reportstruct->err_readwrite = ReadErrLen;
 	}
