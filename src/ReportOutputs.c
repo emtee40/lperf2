@@ -754,6 +754,7 @@ void udp_output_read (struct TransferInfo *stats) {
 void udp_output_read_triptime (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_bw_jitter_loss_enhanced_triptime);
     _print_stats_common(stats);
+
     if (!stats->cntIPG) {
 	printf(report_bw_jitter_loss_suppress_enhanced_format, stats->common->transferIDStr,
 	       stats->ts.iStart, stats->ts.iEnd,
@@ -762,7 +763,9 @@ void udp_output_read_triptime (struct TransferInfo *stats) {
 	       stats->cntDatagrams,
 	       stats->sock_callstats.read.cntRead,
 	       stats->sock_callstats.read.cntReadTimeo,
+#ifdef MSG_TRUNC
 	       stats->sock_callstats.read.cntReadErrLen,
+#endif
 	       0.0,0.0,0.0,0.0,0.0,0.0);
     } else {
 	if ((stats->transit.current.min > UNREALISTIC_LATENCYMINMAX) ||
@@ -775,8 +778,12 @@ void udp_output_read_triptime (struct TransferInfo *stats) {
 		   (100.0 * stats->cntError) / stats->cntDatagrams,
 		   (stats->cntIPG / stats->IPGsum),
 		   stats->sock_callstats.read.cntRead,
+#ifdef MSG_TRUNC
 		   stats->sock_callstats.read.cntReadTimeo,
 		   stats->sock_callstats.read.cntReadErrLen);
+#else
+	           stats->sock_callstats.read.cntReadTimeo);
+#endif
 	} else {
 	    double meantransit;
 	    double variance;
@@ -810,7 +817,9 @@ void udp_output_read_triptime (struct TransferInfo *stats) {
 		   llaw_bufstr,
 		   stats->sock_callstats.read.cntRead,
 		   stats->sock_callstats.read.cntReadTimeo,
+#ifdef MSG_TRUNC
 		   stats->sock_callstats.read.cntReadErrLen,
+#endif
 		   netpower_buf);
 	}
     }
@@ -834,7 +843,9 @@ void udp_output_read_enhanced (struct TransferInfo *stats) {
 	       stats->cntDatagrams,
 	       stats->sock_callstats.read.cntRead,
 	       stats->sock_callstats.read.cntReadTimeo,
+#ifdef MSG_TRUNC
 	       stats->sock_callstats.read.cntReadErrLen,
+#endif
 	       0.0,0.0,0.0,0.0,0.0,0.0);
     } else {
 	if ((stats->transit.current.min > UNREALISTIC_LATENCYMINMAX) ||
@@ -847,8 +858,12 @@ void udp_output_read_enhanced (struct TransferInfo *stats) {
 		   (100.0 * stats->cntError) / stats->cntDatagrams,
 		   (stats->cntIPG / stats->IPGsum),
 		   stats->sock_callstats.read.cntRead,
+#ifdef MSG_TRUNC
 		   stats->sock_callstats.read.cntReadTimeo,
 		   stats->sock_callstats.read.cntReadErrLen);
+#else
+	           stats->sock_callstats.read.cntReadTimeo);
+#endif
 	} else {
 	    double meantransit;
 	    double variance;
@@ -875,7 +890,9 @@ void udp_output_read_enhanced (struct TransferInfo *stats) {
 		   (stats->cntIPG / stats->IPGsum),
 		   stats->sock_callstats.read.cntRead,
 		   stats->sock_callstats.read.cntReadTimeo,
+#ifdef MSG_TRUNC
 		   stats->sock_callstats.read.cntReadErrLen,
+#endif
 		   netpower_buf);
 	}
     }

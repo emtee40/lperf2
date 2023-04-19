@@ -70,7 +70,6 @@
 #include "checksums.h"
 #endif
 
-
 /* -------------------------------------------------------------------
  * Stores connected socket and socket info.
  * ------------------------------------------------------------------- */
@@ -666,6 +665,11 @@ inline int Server::ReadWithRxTimestamp () {
     cmsg = reinterpret_cast<struct cmsghdr *>(&ctrl);
     currLen = recvmsg(mSettings->mSock, &message, mSettings->recvflags);
     if (currLen > 0) {
+#ifdef MSG_TRUNC
+	if (message.msg_flags & MSG_TRUNC) {
+	    reportstruct->err_readwrite = ReadErrLen;
+	}
+#endif
 	for (cmsg = CMSG_FIRSTHDR(&message); cmsg != NULL;
 	     cmsg = CMSG_NXTHDR(&message, cmsg)) {
 	    if (cmsg->cmsg_level == SOL_SOCKET &&
@@ -701,12 +705,6 @@ inline int Server::ReadWithRxTimestamp () {
 	    reportstruct->packetTime.tv_usec = now.getUsecs();
 	    if (TimeZero(myReport->info.ts.prevpacketTime)) {
 		myReport->info.ts.prevpacketTime = reportstruct->packetTime;
-	    }
-	}
-	if (currLen != mSettings->mBufLen) {
-	    reportstruct->err_readwrite = ReadErrLen;
-	    if (currLen < static_cast<int>(sizeof(struct UDP_datagram))) {
-		reportstruct->emptyreport=1; // set empty for too small reads
 	    }
 	}
     }
