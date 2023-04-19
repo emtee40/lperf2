@@ -661,25 +661,27 @@ inline int Server::ReadWithRxTimestamp () {
 
     reportstruct->err_readwrite = ReadSuccess;
 
-#if HAVE_DECL_SO_TIMESTAMP
+#if (HAVE_DECL_SO_TIMESTAMP) && (HAVE_DECL_MSG_CTRUNC)
     cmsg = reinterpret_cast<struct cmsghdr *>(&ctrl);
     currLen = recvmsg(mSettings->mSock, &message, mSettings->recvflags);
     if (currLen > 0) {
-#ifdef HAVE_DECL_MSG_TRUNC
+#if HAVE_DECL_MSG_TRUNC
 	if (message.msg_flags & MSG_TRUNC) {
 	    reportstruct->err_readwrite = ReadErrLen;
 	}
 #endif
-	for (cmsg = CMSG_FIRSTHDR(&message); cmsg != NULL;
-	     cmsg = CMSG_NXTHDR(&message, cmsg)) {
-	    if (cmsg->cmsg_level == SOL_SOCKET &&
-		cmsg->cmsg_type  == SCM_TIMESTAMP &&
-		cmsg->cmsg_len   == CMSG_LEN(sizeof(struct timeval))) {
-		memcpy(&(reportstruct->packetTime), CMSG_DATA(cmsg), sizeof(struct timeval));
-		if (TimeZero(myReport->info.ts.prevpacketTime)) {
-		    myReport->info.ts.prevpacketTime = reportstruct->packetTime;
+	if (!(message.msg_flags & MSG_CTRUNC)) {
+	    for (cmsg = CMSG_FIRSTHDR(&message); cmsg != NULL;
+		 cmsg = CMSG_NXTHDR(&message, cmsg)) {
+		if (cmsg->cmsg_level == SOL_SOCKET &&
+		    cmsg->cmsg_type  == SCM_TIMESTAMP &&
+		    cmsg->cmsg_len   == CMSG_LEN(sizeof(struct timeval))) {
+		    memcpy(&(reportstruct->packetTime), CMSG_DATA(cmsg), sizeof(struct timeval));
+		    if (TimeZero(myReport->info.ts.prevpacketTime)) {
+			myReport->info.ts.prevpacketTime = reportstruct->packetTime;
+		    }
+		    tsdone = true;
 		}
-		tsdone = true;
 	    }
 	}
     }

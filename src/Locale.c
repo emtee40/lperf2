@@ -489,7 +489,7 @@ const char report_bw_jitter_loss_pps_header[] =
 const char report_bw_jitter_loss_pps_format[] =
 "%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %6.3f ms %" PRIdMAX "/%" PRIdMAX " (%.2g%%) %8.0f pps\n";
 
-#ifdef HAVE_DECL_MSG_TRUNC
+#if HAVE_DECL_MSG_TRUNC
 const char report_bw_jitter_loss_enhanced_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer     Bandwidth        Jitter   Lost/Total \
  Latency avg/min/max/stdev PPS Read/Timeo/Trunc NetPwr\n";

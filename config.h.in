@@ -93,6 +93,10 @@
    to 0 if you don't. */
 #undef HAVE_DECL_MCAST_JOIN_SOURCE_GROUP
 
+/* Define to 1 if you have the declaration of `MSG_CTRUNC', and to 0 if you
+   don't. */
+#undef HAVE_DECL_MSG_CTRUNC
+
 /* Define to 1 if you have the declaration of `MSG_DONTWAIT', and to 0 if you
    don't. */
 #undef HAVE_DECL_MSG_DONTWAIT
