@@ -66,6 +66,7 @@ enum ReadWriteExtReturnVals {
     WriteSuccess,
     WriteErrAccount,
     WriteErrFatal,
+    WriteTimeo,
     WriteErrNoAccount
 };
 

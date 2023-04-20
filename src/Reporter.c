@@ -908,12 +908,9 @@ static void reporter_handle_frame_isoch_oneway_transit (struct TransferInfo *sta
 void reporter_handle_packet_client (struct ReporterData *data, struct ReportStruct *packet) {
     struct TransferInfo *stats = &data->info;
     stats->ts.packetTime = packet->packetTime;
-    if (!packet->emptyreport) {
+    switch (packet->err_readwrite) {
+    case WriteSuccess :
 	stats->total.Bytes.current += packet->packetLen;
-        if ((packet->err_readwrite != WriteSuccess) && (packet->err_readwrite != WriteErrNoAccount)) {
-	    stats->sock_callstats.write.WriteErr++;
-	    stats->sock_callstats.write.totWriteErr++;
-	}
 	// These are valid packets that need standard iperf accounting
 	stats->sock_callstats.write.WriteCnt += packet->writecnt;
 	stats->sock_callstats.write.totWriteCnt += packet->writecnt;
@@ -929,7 +926,18 @@ void reporter_handle_packet_client (struct ReporterData *data, struct ReportStru
 		histogram_insert(stats->write_histogram, (1e-6 * packet->write_time), NULL);
 	    }
 	}
+	break;
+    case WriteTimeo:
+	stats->sock_callstats.write.WriteTimeo++;
+	stats->sock_callstats.write.totWriteTimeo++;
+    case WriteErrAccount :
+	stats->sock_callstats.write.WriteErr++;
+	stats->sock_callstats.write.totWriteErr++;
+	break;
+    default :
+	fprintf(stderr, "Program error: invalid client packet->err_readwrite %d\n", packet->err_readwrite);
     }
+
     if (isUDP(stats->common)) {
 	stats->PacketID = packet->packetID;
 	reporter_compute_packet_pps(stats, packet);
@@ -1164,6 +1172,7 @@ static inline void reporter_reset_transfer_stats_client_tcp (struct TransferInfo
     stats->total.Bytes.prev = stats->total.Bytes.current;
     stats->sock_callstats.write.WriteCnt = 0;
     stats->sock_callstats.write.WriteErr = 0;
+    stats->sock_callstats.write.WriteTimeo = 0;
     stats->isochstats.framecnt.prev = stats->isochstats.framecnt.current;
     stats->isochstats.framelostcnt.prev = stats->isochstats.framelostcnt.current;
     stats->isochstats.slipcnt.prev = stats->isochstats.slipcnt.current;
@@ -1193,6 +1202,7 @@ static inline void reporter_reset_transfer_stats_client_udp (struct TransferInfo
     stats->total.IPG.prev = stats->total.IPG.current;
     stats->sock_callstats.write.WriteCnt = 0;
     stats->sock_callstats.write.WriteErr = 0;
+    stats->sock_callstats.write.WriteTimeo = 0;
     stats->isochstats.framecnt.prev = stats->isochstats.framecnt.current;
     stats->isochstats.framelostcnt.prev = stats->isochstats.framelostcnt.current;
     stats->isochstats.slipcnt.prev = stats->isochstats.slipcnt.current;
@@ -1459,8 +1469,10 @@ void reporter_transfer_protocol_client_udp (struct ReporterData *data, int final
 	sumstats->total.Bytes.current += stats->cntBytes;
 	sumstats->sock_callstats.write.WriteErr += stats->sock_callstats.write.WriteErr;
 	sumstats->sock_callstats.write.WriteCnt += stats->sock_callstats.write.WriteCnt;
+	sumstats->sock_callstats.write.WriteTimeo += stats->sock_callstats.write.WriteTimeo;
 	sumstats->sock_callstats.write.totWriteErr += stats->sock_callstats.write.WriteErr;
 	sumstats->sock_callstats.write.totWriteCnt += stats->sock_callstats.write.WriteCnt;
+	sumstats->sock_callstats.write.totWriteTimeo += stats->sock_callstats.write.WriteTimeo;
 	sumstats->total.Datagrams.current += stats->cntDatagrams;
 	if (sumstats->IPGsum < stats->IPGsum)
 	    sumstats->IPGsum = stats->IPGsum;
@@ -1479,6 +1491,7 @@ void reporter_transfer_protocol_client_udp (struct ReporterData *data, int final
 	stats->cntBytes = stats->total.Bytes.current;
 	stats->sock_callstats.write.WriteErr = stats->sock_callstats.write.totWriteErr;
 	stats->sock_callstats.write.WriteCnt = stats->sock_callstats.write.totWriteCnt;
+	stats->sock_callstats.write.WriteTimeo = stats->sock_callstats.write.totWriteTimeo;
 	stats->cntIPG = stats->total.IPG.current;
 	stats->cntDatagrams = stats->PacketID;
 	stats->IPGsum = TimeDifference(stats->ts.packetTime, stats->ts.startTime);

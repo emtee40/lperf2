@@ -985,6 +985,7 @@ void udp_output_write_enhanced (struct TransferInfo *stats) {
 	   stats->ts.iStart, stats->ts.iEnd,
 	   outbuffer, outbufferext,
 	   stats->sock_callstats.write.WriteCnt,
+	   stats->sock_callstats.write.WriteTimeo,
 	   stats->sock_callstats.write.WriteErr,
 	   (stats->cntIPG ? (stats->cntIPG / stats->IPGsum) : 0.0));
     fflush(stdout);

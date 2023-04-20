@@ -134,9 +134,10 @@ struct ReadStats {
 struct WriteStats {
     intmax_t WriteCnt;
     intmax_t WriteErr;
+    intmax_t WriteTimeo;
     intmax_t totWriteCnt;
     intmax_t totWriteErr;
-    intmax_t totWriteWarn;
+    intmax_t totWriteTimeo;
     struct iperf_tcpstats tcpstats;
 };
 

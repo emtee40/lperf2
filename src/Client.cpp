@@ -674,6 +674,7 @@ void Client::RunTCP () {
 	}
 	if (reportstruct->packetLen <= 0) {
 	    if (reportstruct->packetLen == 0) {
+		reportstruct->err_readwrite=WriteErrFatal;
 		peerclose = true;
 	    } else if (NONFATALTCPWRITERR(errno)) {
 		reportstruct->err_readwrite=WriteErrAccount;
@@ -1236,17 +1237,22 @@ void Client::RunUDP () {
 	} else {
 	    currLen = write(mySocket, mSettings->mBuf, mSettings->mBufLen);
 	}
-	if (currLen < 0) {
+	if (currLen <= 0) {
 	    reportstruct->packetID--;
 	    if (FATALUDPWRITERR(errno)) {
 	        reportstruct->err_readwrite = WriteErrFatal;
 	        WARN_errno(1, "write");
-		break;
-	    } else {
-	        reportstruct->err_readwrite = WriteErrAccount;
 	        currLen = 0;
+		break;
+	    } else if (currLen == 0) {
+	        reportstruct->err_readwrite = WriteTimeo;
+	    } else {
+	        currLen = 0;
+	        reportstruct->err_readwrite = WriteErrAccount;
 	    }
 	    reportstruct->emptyreport = 1;
+	} else {
+	    reportstruct->err_readwrite = WriteSuccess;
 	}
 
 	if (isModeAmount(mSettings)) {
@@ -1369,15 +1375,18 @@ void Client::RunUDPIsochronous () {
 	        currLen = write(mySocket, mSettings->mBuf, (bytecnt < mSettings->mBufLen) ? bytecnt : mSettings->mBufLen);
 	    }
 
-	    if (currLen < 0) {
+	    if (currLen <= 0) {
 	        reportstruct->packetID--;
 		reportstruct->emptyreport = 1;
-		currLen = 0;
 		if (FATALUDPWRITERR(errno)) {
 	            reportstruct->err_readwrite = WriteErrFatal;
 	            WARN_errno(1, "write");
 		    fatalwrite_err = 1;
-	        } else {
+		    currLen = 0;
+		} else if (currLen == 0) {
+		    reportstruct->err_readwrite = WriteTimeo;
+		} else {
+		    currLen = 0;
 		    reportstruct->err_readwrite = WriteErrAccount;
 		}
 	    } else {

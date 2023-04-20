@@ -451,10 +451,10 @@ const char report_sumcnt_bw_write_enhanced_format[] =
 "[SUM-%d] " IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX "\n";
 
 const char report_bw_pps_enhanced_header[] =
-"[ ID] Interval" IPERFTimeSpace "Transfer     Bandwidth      Write/Err  PPS\n";
+"[ ID] Interval" IPERFTimeSpace "Transfer     Bandwidth      Write/Err/Timeo  PPS\n";
 
 const char report_bw_pps_enhanced_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %8.0f pps\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "/%" PRIdMAX "%8.0f pps\n";
 
 const char report_sumcnt_bw_pps_enhanced_header[] =
 "[SUM-cnt] Interval" IPERFTimeSpace "Transfer     Bandwidth      Write/Err  PPS\n";
