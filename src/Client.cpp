@@ -494,7 +494,9 @@ void Client::InitTrafficLoop () {
     } else {
 	sosndtimer = static_cast<int>(mSettings->mAmount * 5e3);
     }
-    SetSocketOptionsSendTimeout(mSettings, sosndtimer);
+    if (!isUDP(mSettings)) {
+	SetSocketOptionsSendTimeout(mSettings, sosndtimer);
+    }
     // set the lower bounds delay based of the socket timeout timer
     // units needs to be in nanoseconds
     delay_lower_bounds = static_cast<double>(sosndtimer) * -1e3;
@@ -935,6 +937,37 @@ void Client::RunRateLimitedTCP () {
     FinishTrafficActions();
 }
 
+inline bool Client::AwaitWriteSelect (void) {
+    int rc;
+    struct timeval timeout;
+    fd_set writeset;
+    FD_ZERO(&writeset);
+    FD_SET(mySocket, &writeset);
+    if (isModeTime(mSettings)) {
+        Timestamp write_event_timeout(0,0);
+	if (mSettings->mInterval && (mSettings->mIntervalMode == kInterval_Time)) {
+	    write_event_timeout.add((double) mSettings->mInterval / 1e6 * 2.0);
+	} else {
+	    write_event_timeout.add((double) mSettings->mAmount / 1e2 * 4.0);
+	}
+	timeout.tv_sec = write_event_timeout.getSecs();
+        timeout.tv_usec = write_event_timeout.getUsecs();
+    } else {
+	timeout.tv_sec = 1; // longest is 1 seconds
+	timeout.tv_usec = 0;
+    }
+
+    if ((rc = select(mySocket + 1, NULL, &writeset, NULL, &timeout)) <= 0) {
+	WARN_errno((rc < 0), "select");
+#ifdef HAVE_THREAD_DEBUG
+	if (rc == 0)
+	    thread_debug("AwaitWrite timeout");
+#endif
+	return false;
+    }
+    return true;
+}
+
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
 inline bool Client::AwaitWriteSelectEventTCP (void) {
     int rc;
@@ -1236,17 +1269,22 @@ void Client::RunUDP () {
 	if (isModeAmount(mSettings)) {
 	    currLen = write(mySocket, mSettings->mBuf, (mSettings->mAmount < static_cast<unsigned>(mSettings->mBufLen)) ? mSettings->mAmount : mSettings->mBufLen);
 	} else {
-	    currLen = write(mySocket, mSettings->mBuf, mSettings->mBufLen);
+#if HAVE_DECL_MSG_DONTWAIT
+	    currLen = send(mySocket, mSettings->mBuf, mSettings->mBufLen, MSG_DONTWAIT);
+#else
+	    currLen = -1;
+	    if (AwaitWriteSelect()) {
+		currLen = write(mySocket, mSettings->mBuf, mSettings->mBufLen);
+	    }
+#endif
 	}
-	if (currLen <= 0) {
+	if (currLen < 0) {
 	    reportstruct->packetID--;
 	    if (FATALUDPWRITERR(errno)) {
 	        reportstruct->err_readwrite = WriteErrFatal;
 	        WARN_errno(1, "write");
 	        currLen = 0;
 		break;
-	    } else if (currLen == 0) {
-	        reportstruct->err_readwrite = WriteTimeo;
 	    } else {
 	        currLen = 0;
 	        reportstruct->err_readwrite = WriteErrAccount;
@@ -1376,7 +1414,7 @@ void Client::RunUDPIsochronous () {
 	        currLen = write(mySocket, mSettings->mBuf, (bytecnt < mSettings->mBufLen) ? bytecnt : mSettings->mBufLen);
 	    }
 
-	    if (currLen <= 0) {
+	    if (currLen < 0) {
 	        reportstruct->packetID--;
 		reportstruct->emptyreport = 1;
 		if (FATALUDPWRITERR(errno)) {
@@ -1384,8 +1422,6 @@ void Client::RunUDPIsochronous () {
 	            WARN_errno(1, "write");
 		    fatalwrite_err = 1;
 		    currLen = 0;
-		} else if (currLen == 0) {
-		    reportstruct->err_readwrite = WriteTimeo;
 		} else {
 		    currLen = 0;
 		    reportstruct->err_readwrite = WriteErrAccount;
