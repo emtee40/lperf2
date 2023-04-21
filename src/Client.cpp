@@ -1269,15 +1269,19 @@ void Client::RunUDP () {
 	if (isModeAmount(mSettings)) {
 	    currLen = write(mySocket, mSettings->mBuf, (mSettings->mAmount < static_cast<unsigned>(mSettings->mBufLen)) ? mSettings->mAmount : mSettings->mBufLen);
 	} else {
+	    currLen = -1;
 #if HAVE_DECL_MSG_DONTWAIT
 	    currLen = send(mySocket, mSettings->mBuf, mSettings->mBufLen, MSG_DONTWAIT);
-#else
-	    currLen = -1;
-	    if (AwaitWriteSelect()) {
-		currLen = write(mySocket, mSettings->mBuf, mSettings->mBufLen);
-	    }
 #endif
+	    if ((currLen < 0) && !FATALUDPWRITERR(errno)) {
+		if (AwaitWriteSelect()) {
+		    // WARN_errno(1, "write select");
+		    currLen = write(mySocket, mSettings->mBuf, mSettings->mBufLen);
+		    reportstruct->err_readwrite = WriteSelectRetry;
+		}
+	    }
 	}
+
 	if (currLen < 0) {
 	    reportstruct->packetID--;
 	    if (FATALUDPWRITERR(errno)) {
@@ -1286,12 +1290,11 @@ void Client::RunUDP () {
 	        currLen = 0;
 		break;
 	    } else {
+	      //WARN_errno(1, "write n");
 	        currLen = 0;
 	        reportstruct->err_readwrite = WriteErrAccount;
 	    }
 	    reportstruct->emptyreport = 1;
-	} else {
-	    reportstruct->err_readwrite = WriteSuccess;
 	}
 
 	if (isModeAmount(mSettings)) {

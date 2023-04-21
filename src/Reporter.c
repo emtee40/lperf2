@@ -909,6 +909,9 @@ void reporter_handle_packet_client (struct ReporterData *data, struct ReportStru
     struct TransferInfo *stats = &data->info;
     stats->ts.packetTime = packet->packetTime;
     switch (packet->err_readwrite) {
+    case WriteSelectRetry :
+	stats->sock_callstats.write.WriteErr++;
+	stats->sock_callstats.write.totWriteErr++;
     case WriteSuccess :
 	stats->total.Bytes.current += packet->packetLen;
 	// These are valid packets that need standard iperf accounting
