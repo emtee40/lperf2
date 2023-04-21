@@ -366,6 +366,7 @@ int Client::StartSynch () {
 #endif
 
     if (reportstruct->packetLen > 0) {
+	reportstruct->err_readwrite = WriteSuccess;
 	reportstruct->packetTime = myReport->info.ts.startTime;
 	reportstruct->sentTime = reportstruct->packetTime;
 	reportstruct->prevSentTime = reportstruct->packetTime;
@@ -683,7 +684,7 @@ void Client::RunTCP () {
 		WARN_errno(1, "tcp write");
 		break;
 	    } else {
-		reportstruct->err_readwrite=WriteErrNoAccount;
+		reportstruct->err_readwrite=WriteNoAccount;
 	    }
 	    reportstruct->packetLen = 0;
 	    reportstruct->emptyreport = 1;
@@ -769,7 +770,7 @@ void Client::RunNearCongestionTCP () {
 		WARN_errno(1, "tcp write");
 		break;
 	    } else {
-		reportstruct->err_readwrite=WriteErrNoAccount;
+		reportstruct->err_readwrite=WriteNoAccount;
 	    }
 	    reportstruct->packetLen = 0;
 	    reportstruct->emptyreport = 1;
@@ -872,7 +873,7 @@ void Client::RunRateLimitedTCP () {
 			fatalwrite_err = 1;
 			break;
 		    } else {
-			reportstruct->err_readwrite=WriteErrNoAccount;
+			reportstruct->err_readwrite=WriteNoAccount;
 		    }
 		} else {
 		    burst_remaining -= len;
@@ -895,7 +896,7 @@ void Client::RunRateLimitedTCP () {
 		    fatalwrite_err = 1;
 		    break;
 		} else {
-		    reportstruct->err_readwrite=WriteErrNoAccount;
+		    reportstruct->err_readwrite=WriteNoAccount;
 	        }
 	    } else {
 		// Consume tokens per the transmit
@@ -1123,7 +1124,7 @@ void Client::RunBounceBackTCP () {
 	    } else if ((reportstruct->packetLen < 0 ) && NONFATALTCPWRITERR(errno)) {
 		reportstruct->packetLen = 0;
 		reportstruct->emptyreport = 1;
-		reportstruct->err_readwrite=WriteErrNoAccount;
+		reportstruct->err_readwrite=WriteNoAccount;
 		myReportPacket();
 	    } else {
 		reportstruct->err_readwrite=WriteErrFatal;
@@ -1700,6 +1701,7 @@ void Client::PostNullEvent (void) {
     reportstruct->packetTime.tv_sec = now.getSecs();
     reportstruct->packetTime.tv_usec = now.getUsecs();
     reportstruct->emptyreport=1;
+    reportstruct->err_readwrite=NullEvent;
     myReportPacket();
 }
 
@@ -1714,6 +1716,7 @@ void Client::PostNullEvent (bool isFirst) {
     reportstruct->packetTime.tv_usec = now.getUsecs();
     reportstruct->emptyreport=1;
     reportstruct->scheduled = isFirst;
+    reportstruct->err_readwrite = WriteNoAccount;
     myReportPacket();
 }
 

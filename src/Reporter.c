@@ -222,7 +222,7 @@ int EndJob (struct ReportHeader *reporthdr, struct ReportStruct *finalpacket) {
     packet.packetID = -1;
     packet.packetLen = finalpacket->packetLen;
     packet.packetTime = finalpacket->packetTime;
-    packet.err_readwrite = ReadNoAccount; // this is not a real read event
+    packet.err_readwrite = NullEvent; // this is not a real event
     if (isSingleUDP(report->info.common)) {
 	packetring_enqueue(report->packetring, &packet);
 	reporter_process_transfer_report(report);
@@ -933,6 +933,8 @@ void reporter_handle_packet_client (struct ReporterData *data, struct ReportStru
     case WriteErrAccount :
 	stats->sock_callstats.write.WriteErr++;
 	stats->sock_callstats.write.totWriteErr++;
+    case WriteNoAccount:
+    case NullEvent:
 	break;
     default :
 	fprintf(stderr, "Program error: invalid client packet->err_readwrite %d\n", packet->err_readwrite);

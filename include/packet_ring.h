@@ -58,7 +58,7 @@ extern "C" {
 #define ACKRING_DEFAULTSIZE 100
 
 enum ReadWriteExtReturnVals {
-    ReadSuccess  = 0,
+    ReadSuccess  = 1,
     ReadTimeo,
     ReadTimeoFatal,
     ReadErrLen,
@@ -67,7 +67,8 @@ enum ReadWriteExtReturnVals {
     WriteErrAccount,
     WriteErrFatal,
     WriteTimeo,
-    WriteErrNoAccount
+    WriteNoAccount,
+    NullEvent
 };
 
 struct ReportStruct {
