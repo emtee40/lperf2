@@ -631,7 +631,7 @@ void Client::RunTCP () {
 		}
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
 		if (isWritePrefetch(mSettings)) {
-		    AwaitWriteSelectEventTCP();
+		    AwaitSelectWrite();
 		}
 #endif
 	    }
@@ -662,7 +662,7 @@ void Client::RunTCP () {
 	    }
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
 	    if (isWritePrefetch(mSettings)) {
-		AwaitWriteSelectEventTCP();
+		AwaitSelectWrite();
 	    }
 #endif
 	    reportstruct->packetLen = write(mySocket, mSettings->mBuf, writelen);
@@ -926,7 +926,7 @@ void Client::RunRateLimitedTCP () {
 	    // Use a 4 usec delay to fill tokens
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
 	    if (isWritePrefetch(mSettings)) {
-		AwaitWriteSelectEventTCP();
+		AwaitSelectWrite();
 	    } else
 #endif
 	    {
@@ -937,7 +937,7 @@ void Client::RunRateLimitedTCP () {
     FinishTrafficActions();
 }
 
-inline bool Client::AwaitWriteSelect (void) {
+inline bool Client::AwaitSelectWrite (void) {
     int rc;
     struct timeval timeout;
     fd_set writeset;
@@ -969,37 +969,6 @@ inline bool Client::AwaitWriteSelect (void) {
 }
 
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
-inline bool Client::AwaitWriteSelectEventTCP (void) {
-    int rc;
-    struct timeval timeout;
-    fd_set writeset;
-    FD_ZERO(&writeset);
-    FD_SET(mySocket, &writeset);
-    if (isModeTime(mSettings)) {
-        Timestamp write_event_timeout(0,0);
-	if (mSettings->mInterval && (mSettings->mIntervalMode == kInterval_Time)) {
-	    write_event_timeout.add((double) mSettings->mInterval / 1e6 * 2.0);
-	} else {
-	    write_event_timeout.add((double) mSettings->mAmount / 1e2 * 4.0);
-	}
-	timeout.tv_sec = write_event_timeout.getSecs();
-        timeout.tv_usec = write_event_timeout.getUsecs();
-    } else {
-	timeout.tv_sec = 10; // longest is 10 seconds
-	timeout.tv_usec = 0;
-    }
-
-    if ((rc = select(mySocket + 1, NULL, &writeset, NULL, &timeout)) <= 0) {
-	WARN_errno((rc < 0), "select");
-#ifdef HAVE_THREAD_DEBUG
-	if (rc == 0)
-	    thread_debug("AwaitWrite timeout");
-#endif
-	return false;
-    }
-    return true;
-}
-
 void Client::RunWriteEventsTCP () {
     int burst_id = 0;
     int writelen = mSettings->mBufLen;
@@ -1017,7 +986,7 @@ void Client::RunWriteEventsTCP () {
 	if (isTcpWriteTimes(mSettings)) {
 	    write_start = now;
 	}
-	bool rc = AwaitWriteSelectEventTCP();
+	bool rc = AwaitSelectWrite();
 	reportstruct->emptyreport = (rc == false) ? 1 : 0;
         if (rc) {
 	    now.setnow();
@@ -1274,10 +1243,12 @@ void Client::RunUDP () {
 	    currLen = send(mySocket, mSettings->mBuf, mSettings->mBufLen, MSG_DONTWAIT);
 #endif
 	    if ((currLen < 0) && !FATALUDPWRITERR(errno)) {
-		if (AwaitWriteSelect()) {
+		if (AwaitSelectWrite()) {
 		    // WARN_errno(1, "write select");
 		    currLen = write(mySocket, mSettings->mBuf, mSettings->mBufLen);
 		    reportstruct->err_readwrite = WriteSelectRetry;
+		} else {
+		    reportstruct->err_readwrite = WriteTimeo;
 		}
 	    }
 	}
