@@ -1596,11 +1596,18 @@ static void reporter_output_listener_settings (struct ReportSettings *report) {
 	printf(bind_address_iface_taptun, report->common->Ifrname);
     }
     if (isEnhanced(report->common)) {
-	byte_snprintf(outbuffer, sizeof(outbuffer), report->common->BufLen, toupper((int)report->common->Format));
-	byte_snprintf(outbufferext, sizeof(outbufferext), report->common->BufLen / 8, 'A');
-	outbuffer[(sizeof(outbuffer)-1)] = '\0';
-	outbufferext[(sizeof(outbufferext)-1)] = '\0';
-	printf("%s: %s (Dist bin width=%s)\n", server_read_size, outbuffer, outbufferext);
+	if (!(isUDP(report->common))) {
+	    byte_snprintf(outbuffer, sizeof(outbuffer), report->common->BufLen, toupper((int)report->common->Format));
+	    byte_snprintf(outbufferext, sizeof(outbufferext), report->common->BufLen / 8, 'A');
+	    outbuffer[(sizeof(outbuffer)-1)] = '\0';
+	    outbufferext[(sizeof(outbufferext)-1)] = '\0';
+	    printf("%s: %s (Dist bin width=%s)\n", server_read_size, outbuffer, outbufferext);
+	} else {
+	    byte_snprintf(outbuffer, sizeof(outbuffer), report->common->BufLen, 'B');
+	    outbuffer[(sizeof(outbuffer)-1)] = '\0';
+	    printf("%s: %s \n", server_read_size, outbuffer);
+	}
+
     }
 #ifdef TCP_CONGESTION
     if (isCongestionControl(report->common) || isEnhanced(report->common)) {
