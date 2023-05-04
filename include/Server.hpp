@@ -116,6 +116,7 @@ private:
     struct msghdr message;
     char ctrl[CMSG_SPACE(sizeof(struct timeval))];
     struct cmsghdr *cmsg;
+    bool ctrunc_warn_enable;
 #endif
 #if defined(HAVE_LINUX_FILTER_H) && defined(HAVE_AF_PACKET)
     struct ether_header *eth_hdr;

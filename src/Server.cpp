@@ -93,6 +93,11 @@ Server::Server (thread_Settings *inSettings) {
 	}
     }
 #endif
+#if HAVE_DECL_MSG_CTRUNC
+    ctrunc_warn_enable = true;
+#else
+    ctrunc_warn_enable = false;
+#endif
     // Enable kernel level timestamping if available
     InitKernelTimeStamping();
     int sorcvtimer = 0;
@@ -683,6 +688,9 @@ inline int Server::ReadWithRxTimestamp () {
 		    tsdone = true;
 		}
 	    }
+	} else if (ctrunc_warn_enable && mSettings->mTransferIDStr) {
+	    fprintf(stderr, "%sWARN: recvmsg MSG_CTRUNC occured\n", mSettings->mTransferIDStr);
+	    ctrunc_warn_enable = false;
 	}
     }
 #else
