@@ -58,6 +58,7 @@
 #include "Thread.h"
 #include "Settings.hpp"
 #include "Timestamp.hpp"
+#include "iperf_multicast_join.h"
 
 class Listener;
 
@@ -82,7 +83,6 @@ private:
     bool apply_client_settings_tcp(thread_Settings *server);
     bool apply_client_settings(thread_Settings *server);
     int client_test_ack(thread_Settings *server);
-    void my_multicast_join(void);
     void my_listen(void);
     int my_accept(thread_Settings *server);
     int udp_accept(thread_Settings *server);

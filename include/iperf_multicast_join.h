@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------
- * Copyright (c) 1999,2000,2001,2002,2003,2023
+ * Copyright (c) 2023
  * Broadcom Corporation
  * All Rights Reserved.
  *---------------------------------------------------------------
@@ -39,44 +39,25 @@
  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * ________________________________________________________________
  *
- * histogram.h
- * Suppport for isochonronous traffic testing
+ * multicast_join.h
+ * pull out multicast join code for maitainability
  *
  * by Robert J. McMahon (rjmcmahon@rjmcmahon.com, bob.mcmahon@broadcom.com)
  * -------------------------------------------------------------------
  */
-#ifndef HISTOGRAMC_H
-#define HISTOGRAMC_H
+#ifndef MULTICASTJOIN_H
+#define MULTICASTJOIN_H
 
-struct histogram {
-    unsigned int id;
-    unsigned int *mybins;
-    unsigned int bincount;
-    unsigned int binwidth;
-    unsigned int populationcnt;
-    int final;
-    int maxbin;
-    int fmaxbin;
-    double maxval;
-    double fmaxval;
-    struct timeval maxts;
-    struct timeval fmaxts;
-    float offset;
-    unsigned int cntloweroutofbounds;
-    unsigned int cntupperoutofbounds;
-    char *myname;
-    char *outbuf;
-    float units;
-    double ci_lower;
-    double ci_upper;
-    struct histogram *prev;
-};
+#include "headers.h"
 
-extern struct histogram *histogram_init(unsigned int bincount, unsigned int binwidth, float offset,\
-				   float units, double ci_lower, double ci_upper, unsigned int id, char *name);
-extern void histogram_delete(struct histogram *h);
-extern int histogram_insert(struct histogram *h, float value, struct timeval *ts);
-extern void histogram_clear(struct histogram *h);
-extern void histogram_add(struct histogram *to, struct histogram *from);
-extern void histogram_print(struct histogram *h, double, double);
-#endif // HISTOGRAMC_H
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int iperf_multicast_join (struct thread_Settings *inSettings);
+
+#ifdef __cplusplus
+} /* end extern "C" */
+#endif
+
+#endif // MULTICASTJOIN_H
