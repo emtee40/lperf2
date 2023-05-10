@@ -1239,6 +1239,7 @@ void Client::RunUDP () {
 	    currLen = write(mySocket, mSettings->mBuf, (mSettings->mAmount < static_cast<unsigned>(mSettings->mBufLen)) ? mSettings->mAmount : mSettings->mBufLen);
 	} else {
 	    currLen = -1;
+#if (HAVE_USE_WRITE_SELECT) && (HAVE_SELECT)	    
 #if HAVE_DECL_MSG_DONTWAIT
 	    currLen = send(mySocket, mSettings->mBuf, mSettings->mBufLen, MSG_DONTWAIT);
 	    if ((currLen < 0) && !FATALUDPWRITERR(errno)) {
@@ -1257,6 +1258,9 @@ void Client::RunUDP () {
 	    } else {
 		reportstruct->err_readwrite = WriteTimeo;
 	    }
+#endif
+#else
+	    currLen = write(mySocket, mSettings->mBuf, mSettings->mBufLen);
 #endif
 	}
 	if (currLen < 0) {
@@ -1688,8 +1692,9 @@ void Client::AwaitServerFinPacket () {
 		    continue;
 		}
 	    }
-
-	    WARN_errno(rc < 0, "read");
+	    // only warn when threads is small, too many warnings are too much outputs
+	    if (mSettings->mThreads <= 4)
+		WARN_errno(rc < 0, "read");
 	    if (rc > 0) {
 		ack_success = 1;
 #ifdef HAVE_THREAD_DEBUG

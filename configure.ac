@@ -42,6 +42,9 @@ AC_ARG_ENABLE(web100, AC_HELP_STRING([--disable-web100],
 AC_ARG_ENABLE(kalman, AC_HELP_STRING([--disable-kalman],
 	    [disable kalman delay tuning (default is enable)]))
 
+AC_ARG_ENABLE(write_select, AC_HELP_STRING([--disable-write-select],
+	    [disable use of select before writes (default is enable)]))
+
 AC_ARG_ENABLE(role_reversal_id, AC_HELP_STRING([--disable-role-reversal-id],
 	    [disable role reversal special characters (default is enable)]))
 
@@ -395,6 +398,10 @@ fi
 
 if test "$enable_kalman" != no; then
 AC_DEFINE([HAVE_KALMAN], 1, [Define if Kalman tuning is desired and available])
+fi
+
+if test "$enable_write_select" != no; then
+AC_DEFINE([HAVE_USE_WRITE_SELECT], 1, [Define if select based writes are desired])
 fi
 
 if test "$enable_role_reversal_id" != no; then
