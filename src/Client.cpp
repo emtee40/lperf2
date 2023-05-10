@@ -1241,7 +1241,6 @@ void Client::RunUDP () {
 	    currLen = -1;
 #if HAVE_DECL_MSG_DONTWAIT
 	    currLen = send(mySocket, mSettings->mBuf, mSettings->mBufLen, MSG_DONTWAIT);
-#endif
 	    if ((currLen < 0) && !FATALUDPWRITERR(errno)) {
 		if (AwaitSelectWrite()) {
 		    // WARN_errno(1, "write select");
@@ -1252,7 +1251,14 @@ void Client::RunUDP () {
 		}
 	    }
 	}
-
+#else
+	if (AwaitSelectWrite()) {
+	    // WARN_errno(1, "write select");
+	    currLen = write(mySocket, mSettings->mBuf, mSettings->mBufLen);
+	} else {
+	    reportstruct->err_readwrite = WriteTimeo;
+	}
+#endif
 	if (currLen < 0) {
 	    reportstruct->packetID--;
 	    if (FATALUDPWRITERR(errno)) {
