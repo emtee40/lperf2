@@ -1250,15 +1250,15 @@ void Client::RunUDP () {
 		    reportstruct->err_readwrite = WriteTimeo;
 		}
 	    }
-	}
-#else
-	if (AwaitSelectWrite()) {
-	    // WARN_errno(1, "write select");
-	    currLen = write(mySocket, mSettings->mBuf, mSettings->mBufLen);
-	} else {
-	    reportstruct->err_readwrite = WriteTimeo;
-	}
+#else	    
+	    if (AwaitSelectWrite()) {
+		// WARN_errno(1, "write select");
+		currLen = write(mySocket, mSettings->mBuf, mSettings->mBufLen);
+	    } else {
+		reportstruct->err_readwrite = WriteTimeo;
+	    }
 #endif
+	}
 	if (currLen < 0) {
 	    reportstruct->packetID--;
 	    if (FATALUDPWRITERR(errno)) {
