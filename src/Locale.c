@@ -120,8 +120,10 @@ const char usage_long2[] = "\
 Client specific:\n\
       --bounceback         request a bounceback test (use -l for size, defaults to 100 bytes)\n\
       --bounceback-hold    request the server to insert a delay of n milliseconds between its read and write\n\
-      --bounceback-period  request the client schedule a send every n milliseconds\n\
       --bounceback-no-quickack request the server not set the TCP_QUICKACK socket option (disabling TCP ACK delays) during a bounceback test\n\
+      --bounceback-period  request the client schedule a send every n milliseconds\n \
+      --bounceback-reply   set the bounceback reply message size (defaults to symmetric)\n \
+      --bounceback-txdelay  request the bounceback server delay n seconds between the request and the reply\n \
   -c, --client    <host>   run in client mode, connecting to <host>\n\
       --connect-only       run a connect only test\n\
       --connect-retries #  number of times to retry tcp connect\n\
@@ -279,10 +281,10 @@ const char client_burstperiodcount[] =
 "Bursting: %s writes %d times every %0.2f second(s)\n";
 
 const char client_bounceback[] =
-"Bounce-back test (size=%s) (server hold req=%d usecs & tcp_quickack)\n";
+"Bounce-back test (size=%s;%s) (server hold req=%d usecs & tcp_quickack)\n";
 
 const char client_bounceback_noqack[] =
-"Bounce-back test (size=%s) (server hold req=%d usecs)\n";
+"Bounce-back test (size=%s;%s) (server hold req=%d usecs)\n";
 
 const char server_burstperiod[] =
 "Burst wait timeout set to (2 * %0.2f) seconds (use --burst-period=<n secs> to change)\n";

@@ -242,6 +242,7 @@ struct ReportCommon {
     double ListenerTimeout;
     double FPS;
     int bbsize;
+    int bbreplysize;
     int bbhold;
     int bbcount;
     int jitter_binwidth;

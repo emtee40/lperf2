@@ -182,14 +182,17 @@ run a TCP bounceback or rps test with optional number writes in a burst per valu
 .BR "    --bounceback-hold " \fIn\fR
 request the server to insert a delay of n milliseconds between its read and write (default is no delay)
 .TP
-.BR "    --bounceback-period[=" \fIn\fR "]"
-request the client schedule its send(s) every n seconds (default is one second, use zero value for immediate or continuous back to back)
-.TP
 .BR "    --bounceback-no-quickack "
 request the server not set the TCP_QUICKACK socket option (disabling TCP ACK delays) during a bounceback test (see NOTES)
 .TP
+.BR "    --bounceback-period[=" \fIn\fR "]"
+request the client schedule its send(s) every n seconds (default is one second, use zero value for immediate or continuous back to back)
+.TP
 .BR "    --bounceback-txdelay " \fIn\fR
 request the client to delay n seconds between the start of the working load and the bounceback traffic (default is no delay)
+.TP
+.BR "    --bounceback-reply " \fIn\fR
+set the bounceback reply size in units bytes. This supports asymmetric message sizes between the request and the reply.
 .TP
 .BR "    --burst-period " \fIn\fR
 Set the burst period in seconds. Defaults to one second. (Note: assumed use case is low duty cycle traffic bursts)

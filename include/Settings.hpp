@@ -290,6 +290,7 @@ struct thread_Settings {
     int tuntapdev;
     int firstreadbytes;
     int mBounceBackBytes;
+    int mBounceBackReplyBytes;
     int mBounceBackBurst;
     int mWorkingLoadThreads; // number of congest threads
     uint32_t mBounceBackHold; // units of usecs

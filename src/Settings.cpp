@@ -113,6 +113,8 @@ static int hideips = 0;
 static int bounceback = 0;
 static int bouncebackhold = 0;
 static int bouncebackperiod = 0;
+static int bouncebackrequest = 0;
+static int bouncebackreply = 0;
 static int overridetos = 0;
 static int notcpbbquickack = 0;
 static int tcpquickack = 0;
@@ -173,6 +175,8 @@ const struct option long_options[] =
 {"bounceback-hold", required_argument, &bouncebackhold, 1},
 {"bounceback-no-quickack", no_argument, &notcpbbquickack, 1},
 {"bounceback-period", required_argument, &bouncebackperiod, 1},
+{"bounceback-request", required_argument, &bouncebackrequest, 1},
+{"bounceback-reply", required_argument, &bouncebackreply, 1},
 {"compatibility",    no_argument, NULL, 'C'},
 {"daemon",           no_argument, NULL, 'D'},
 {"file_input", required_argument, NULL, 'F'},
@@ -294,7 +298,7 @@ const char short_options[] = "146b:c:def:hi:l:mn:o:p:rst:uvw:x:y:zAB:CDF:H:IL:M:
 
 const long kDefault_UDPRate = 1024 * 1024; // -u  if set, 1 Mbit/sec
 const int kDefault_TCPBufLen = 128 * 1024; // TCP default read/write size
-const int kDefault_BBTCPBufLen = 100; // default bounce-back size in bytes
+const int kDefault_BBTCPReqLen = 100; // default bounce-back size in bytes
 
 /* -------------------------------------------------------------------
  * Initialize all settings to defaults.
@@ -1299,6 +1303,20 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 		}
 	    }
 	}
+	if (bouncebackrequest) {
+	    bouncebackrequest = 0;
+	    if (optarg)
+		mExtSettings->mBounceBackBytes = byte_atoi(optarg);
+	    else
+		mExtSettings->mBounceBackBytes = 0;
+	}
+	if (bouncebackreply) {
+	    bouncebackreply = 0;
+	    if (optarg)
+		mExtSettings->mBounceBackReplyBytes = byte_atoi(optarg);
+	    else
+		mExtSettings->mBounceBackReplyBytes = 0;
+	}
 	break;
     default: // ignore unknown
 	break;
@@ -1382,7 +1400,7 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	    }
 	} else {
 	    if (isBounceBack(mExtSettings))
-	        mExtSettings->mBufLen = kDefault_BBTCPBufLen;
+	        mExtSettings->mBufLen = kDefault_TCPBufLen;
 	    else
 	        mExtSettings->mBufLen = kDefault_TCPBufLen;
 	}
@@ -1530,7 +1548,11 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	    if (static_cast<int> (mExtSettings->mBurstSize) > 0) {
 		fprintf(stderr, "WARN: options of --burst-size for bounce-back ignored, use -l sets size\n");
 	    }
-	    mExtSettings->mBounceBackBytes = mExtSettings->mBufLen;
+	    if (mExtSettings->mBounceBackBytes <= 0) {
+		mExtSettings->mBounceBackBytes = kDefault_BBTCPReqLen;
+	    } else if (mExtSettings->mBounceBackReplyBytes > mExtSettings->mBufLen) {
+		mExtSettings->mBounceBackBytes = mExtSettings->mBufLen;
+	    }
 	    mExtSettings->mBurstSize = mExtSettings->mBufLen;
 #if HAVE_DECL_TCP_QUICKACK
 	    if (notcpbbquickack_cliset && isTcpQuickAck(mExtSettings)) {
@@ -1555,6 +1577,11 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	    }
 	    if (isPeriodicBurst(mExtSettings) && (mExtSettings->mBounceBackBurst == -1))  {
 		mExtSettings->mBounceBackBurst = 10;
+	    }
+	    if (mExtSettings->mBounceBackReplyBytes <= 0) {
+		mExtSettings->mBounceBackReplyBytes = mExtSettings->mBounceBackBytes;
+	    } else if (mExtSettings->mBounceBackReplyBytes > mExtSettings->mBufLen) {
+		mExtSettings->mBounceBackReplyBytes = mExtSettings->mBufLen;
 	    }
 	}
 #if HAVE_DECL_TCP_NOTSENT_LOWAT

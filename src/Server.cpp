@@ -403,7 +403,7 @@ void Server::RunBounceBackTCP () {
 	    if (mSettings->mTOS) {
 	        bbhdr->tos = htons((uint16_t)(mSettings->mTOS & 0xFF));
 	    }
-	    if ((n = writen(mySocket, mSettings->mBuf, mSettings->mBounceBackBytes, &reportstruct->writecnt)) == mSettings->mBounceBackBytes) {
+	    if ((n = writen(mySocket, mSettings->mBuf, mSettings->mBounceBackReplyBytes, &reportstruct->writecnt)) == mSettings->mBounceBackReplyBytes) {
 		reportstruct->emptyreport=0;
 		reportstruct->packetLen = n;
 		ReportPacket(myReport, reportstruct);

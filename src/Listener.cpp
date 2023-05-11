@@ -1005,6 +1005,8 @@ bool Listener::apply_client_settings_tcp (thread_Settings *server) {
 	    }
 	    readptr += nread;
 	    server->mBounceBackBytes = ntohl(bbhdr->bbsize);
+	    if (server->mBounceBackBytes > server->mBufLen)
+		server->mBounceBackBytes = server->mBufLen;
 	    server->mBounceBackHold = ntohl(bbhdr->bbhold);
 	    uint16_t bbflags = ntohs(bbhdr->bbflags);
 	    if (bbflags & HEADER_BBCLOCKSYNCED) {
@@ -1020,6 +1022,13 @@ bool Listener::apply_client_settings_tcp (thread_Settings *server) {
 		setTcpQuickAck(server);
 	    }
 #endif
+	    if (bbflags & HEADER_BBREPLYSIZE) {
+		server->mBounceBackReplyBytes = ntohl(bbhdr->bbreplysize);
+	    } else {
+		server->mBounceBackReplyBytes = server->mBounceBackBytes;
+	    }
+	    if (server->mBounceBackReplyBytes > server->mBufLen)
+		server->mBounceBackReplyBytes = server->mBufLen;
 	    int remaining =  server->mBounceBackBytes - (sizeof(struct bounceback_hdr) + sizeof(uint32_t));
 	    if (remaining < 0) {
 		WARN(1, "bounce back bytes too small");

@@ -1713,13 +1713,16 @@ static void reporter_output_client_settings (struct ReportSettings *report) {
 	}
     }
     if (isBounceBack(report->common)) {
-	char tmpbuf[40];
-	byte_snprintf(tmpbuf, sizeof(tmpbuf), report->common->bbsize, 'A');
-	tmpbuf[39]='\0';
+	char tmplbuf[40];
+	byte_snprintf(tmplbuf, sizeof(tmplbuf), report->common->bbsize, 'A');
+	tmplbuf[39]='\0';
+	char tmprbuf[40];
+	byte_snprintf(tmprbuf, sizeof(tmprbuf), report->common->bbreplysize, 'A');
+	tmprbuf[39]='\0';
 	if (isTcpQuickAck(report->common)) {
-	    printf(client_bounceback, tmpbuf, report->common->bbhold);
+	    printf(client_bounceback, tmplbuf, tmprbuf, report->common->bbhold);
 	} else {
-	    printf(client_bounceback_noqack, tmpbuf, report->common->bbhold);
+	    printf(client_bounceback_noqack, tmplbuf, tmprbuf, report->common->bbhold);
 	}
     }
     if (isFQPacing(report->common)) {

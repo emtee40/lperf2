@@ -93,6 +93,7 @@ extern "C" {
 #define HEADER_BBCLOCKSYNCED 0x4000 // used in the bb header only
 #define HEADER_BBTOS         0x2000
 #define HEADER_BBSTOP        0x1000
+#define HEADER_BBREPLYSIZE   0x0800
 
 // newer flags available per HEADER_EXTEND
 // Below flags are used to pass test settings in *every* UDP packet
@@ -230,6 +231,7 @@ struct bounceback_hdr {
     uint32_t bbhold; // up to here is mandatory
     uint32_t bbrtt;
     struct bb_ts bbread_ts;
+    uint32_t bbreplysize;
 };
 
 struct client_hdrext_isoch_settings {

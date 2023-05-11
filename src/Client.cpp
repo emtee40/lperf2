@@ -1024,7 +1024,7 @@ void Client::RunWriteEventsTCP () {
 #endif
 void Client::RunBounceBackTCP () {
     int burst_id = 0;
-    int writelen = mSettings->mBufLen;
+    int writelen = mSettings->mBounceBackBytes;
     memset(mSettings->mBuf, 0x5A, sizeof(struct bounceback_hdr));
     if (mSettings->mInterval && (mSettings->mIntervalMode == kInterval_Time)) {
 	int sotimer = static_cast<int>(round(mSettings->mInterval / 2.0));
@@ -1100,7 +1100,7 @@ void Client::RunBounceBackTCP () {
 		    WARN_errno(rc == SOCKET_ERROR, "setsockopt TCP_QUICKACK");
 		}
 #endif
-		if ((n = recvn(mySocket, mSettings->mBuf, mSettings->mBounceBackBytes, 0)) == mSettings->mBounceBackBytes) {
+		if ((n = recvn(mySocket, mSettings->mBuf, mSettings->mBounceBackReplyBytes, 0)) == mSettings->mBounceBackReplyBytes) {
 		    struct bounceback_hdr *bbhdr = reinterpret_cast<struct bounceback_hdr *>(mSettings->mBuf);
 		    now.setnow();
 		    reportstruct->sentTimeRX.tv_sec = ntohl(bbhdr->bbserverRx_ts.sec);
@@ -1532,8 +1532,11 @@ void Client::WriteTcpTxBBHdr (struct ReportStruct *reportstruct, uint32_t bbid, 
     if (final) {
 	bbflags |= HEADER_BBSTOP;
     }
+    if ((mSettings->mBounceBackReplyBytes > 0) && (mSettings->mBounceBackReplyBytes != mSettings->mBounceBackBytes)) {
+	bbflags |= HEADER_BBREPLYSIZE;
+    }
     mBuf_bb->bbflags = htons(bbflags);
-    mBuf_bb->bbsize = htonl(mSettings->mBufLen);
+    mBuf_bb->bbsize = htonl(mSettings->mBounceBackBytes);
     mBuf_bb->bbid = htonl(bbid);
     mBuf_bb->bbclientTx_ts.sec = htonl(reportstruct->packetTime.tv_sec);
     mBuf_bb->bbclientTx_ts.usec = htonl(reportstruct->packetTime.tv_usec);
@@ -1542,6 +1545,7 @@ void Client::WriteTcpTxBBHdr (struct ReportStruct *reportstruct, uint32_t bbid, 
     mBuf_bb->bbserverTx_ts.sec = -1;
     mBuf_bb->bbserverTx_ts.usec = -1;
     mBuf_bb->bbhold = htonl(mSettings->mBounceBackHold);
+    mBuf_bb->bbreplysize = htonl(mSettings->mBounceBackReplyBytes);
 }
 
 inline bool Client::InProgress (void) {
