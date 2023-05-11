@@ -1685,7 +1685,7 @@ static void reporter_output_client_settings (struct ReportSettings *report) {
 	       (isUDP(report->common) ? "UDP" : "TCP"), report->common->Port, report->pid, \
 	       report->common->Ifrnametx, (!report->common->threads ? 1 : report->common->threads));
     }
-    if ((isEnhanced(report->common) || isNearCongest(report->common)) && !isUDP(report->common)) {
+    if ((isEnhanced(report->common) || isNearCongest(report->common)) && !isUDP(report->common) && !isBounceBack(report->common)) {
 	byte_snprintf(outbuffer, sizeof(outbuffer), report->common->BufLen, 'B');
 	outbuffer[(sizeof(outbuffer)-1)] = '\0';
 	if (isTcpWriteTimes(report->common)) {
@@ -1702,16 +1702,6 @@ static void reporter_output_client_settings (struct ReportSettings *report) {
 	meanbuf[39]='\0'; variancebuf[39]='\0';
 	printf(client_isochronous, report->isochstats.mFPS, meanbuf, variancebuf, (report->isochstats.mBurstInterval/1000.0), (report->isochstats.mBurstIPG/1000.0));
     }
-    if (isPeriodicBurst(report->common)) {
-	char tmpbuf[40];
-	byte_snprintf(tmpbuf, sizeof(tmpbuf), report->common->BurstSize, 'A');
-	tmpbuf[39]='\0';
-	if (report->common->bbcount) {
-	    printf(client_burstperiodcount, tmpbuf, report->common->bbcount, (1.0 / report->common->FPS));
-	} else {
-	    printf(client_burstperiod, tmpbuf, (1.0 / report->common->FPS));
-	}
-    }
     if (isBounceBack(report->common)) {
 	char tmplbuf[40];
 	byte_snprintf(tmplbuf, sizeof(tmplbuf), report->common->bbsize, 'A');
@@ -1723,6 +1713,18 @@ static void reporter_output_client_settings (struct ReportSettings *report) {
 	    printf(client_bounceback, tmplbuf, tmprbuf, report->common->bbhold);
 	} else {
 	    printf(client_bounceback_noqack, tmplbuf, tmprbuf, report->common->bbhold);
+	}
+	printf(client_bbburstperiodcount, report->common->bbcount, (1.0 / report->common->FPS));
+    } else {
+	if (isPeriodicBurst(report->common)) {
+	    char tmpbuf[40];
+	    byte_snprintf(tmpbuf, sizeof(tmpbuf), report->common->BurstSize, 'A');
+	    tmpbuf[39]='\0';
+	    if (report->common->bbcount) {
+		printf(client_burstperiodcount, tmpbuf, report->common->bbcount, (1.0 / report->common->FPS));
+	    } else {
+		printf(client_burstperiod, tmpbuf, (1.0 / report->common->FPS));
+	    }
 	}
     }
     if (isFQPacing(report->common)) {
