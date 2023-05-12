@@ -1875,9 +1875,11 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
     }
     if (isBounceBack(report->common)) {
 	if (isTcpQuickAck(report->common)) {
-	    snprintf(b, SNBUFFERSIZE-strlen(b), " (bb w/quickack len/hold=%d/%d)", report->common->bbsize, report->common->bbhold);
+	    snprintf(b, SNBUFFERSIZE-strlen(b), " (bb w/quickack req/reply/hold=%d/%d/%d)", report->common->bbsize, \
+		     report->common->bbreplysize, report->common->bbhold);
 	} else {
-	    snprintf(b, SNBUFFERSIZE-strlen(b), " (bb len/hold=%d/%d)", report->common->bbsize, report->common->bbhold);
+	    snprintf(b, SNBUFFERSIZE-strlen(b), " (bb req/reply/hold=%d/%d/%d)", report->common->bbsize, \
+		     report->common->bbreplysize, report->common->bbhold);
 	}
 	b += strlen(b);
     }

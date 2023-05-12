@@ -461,6 +461,15 @@ void Settings_Copy (struct thread_Settings *from, struct thread_Settings **into,
     unsetReport((*into));
 }
 
+void Settings_Grow_mBuf (struct thread_Settings *mSettings, int newsize) {
+    char *tmp = new char[newsize];
+    memset(tmp, 0, newsize);
+    memcpy(tmp, mSettings->mBuf, mSettings->mBufLen);
+    DELETE_ARRAY(mSettings->mBuf);
+    mSettings->mBuf = tmp;
+    mSettings->mBufLen = newsize;
+}
+
 /* -------------------------------------------------------------------
  * Delete memory: Does not clean up open file pointers or ptr_parents
  * ------------------------------------------------------------------- */

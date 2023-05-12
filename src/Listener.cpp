@@ -1005,8 +1005,12 @@ bool Listener::apply_client_settings_tcp (thread_Settings *server) {
 	    }
 	    readptr += nread;
 	    server->mBounceBackBytes = ntohl(bbhdr->bbsize);
-	    if (server->mBounceBackBytes > server->mBufLen)
-		server->mBounceBackBytes = server->mBufLen;
+	    if (server->mBounceBackBytes > server->mBufLen) {
+		int read_offset = readptr - server->mBuf;
+		Settings_Grow_mBuf(server, server->mBounceBackBytes);
+		readptr = server->mBuf + read_offset;
+		bbhdr = reinterpret_cast<struct bounceback_hdr *>(server->mBuf);
+	    }
 	    server->mBounceBackHold = ntohl(bbhdr->bbhold);
 	    uint16_t bbflags = ntohs(bbhdr->bbflags);
 	    if (bbflags & HEADER_BBCLOCKSYNCED) {
@@ -1027,8 +1031,12 @@ bool Listener::apply_client_settings_tcp (thread_Settings *server) {
 	    } else {
 		server->mBounceBackReplyBytes = server->mBounceBackBytes;
 	    }
-	    if (server->mBounceBackReplyBytes > server->mBufLen)
-		server->mBounceBackReplyBytes = server->mBufLen;
+	    if (server->mBounceBackReplyBytes > server->mBufLen) {
+		int read_offset = readptr - server->mBuf;
+		Settings_Grow_mBuf(server, server->mBounceBackReplyBytes);
+		readptr = server->mBuf + read_offset;
+		bbhdr = reinterpret_cast<struct bounceback_hdr *>(server->mBuf);
+	    }
 	    int remaining =  server->mBounceBackBytes - (sizeof(struct bounceback_hdr) + sizeof(uint32_t));
 	    if (remaining < 0) {
 		WARN(1, "bounce back bytes too small");
