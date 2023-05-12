@@ -1550,8 +1550,17 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	    }
 	    if (mExtSettings->mBounceBackBytes <= 0) {
 		mExtSettings->mBounceBackBytes = kDefault_BBTCPReqLen;
-	    } else if (mExtSettings->mBounceBackReplyBytes > mExtSettings->mBufLen) {
-		mExtSettings->mBounceBackBytes = mExtSettings->mBufLen;
+	    }
+	    if (mExtSettings->mBounceBackReplyBytes <= 0) {
+		mExtSettings->mBounceBackBytes = kDefault_BBTCPReqLen;
+	    }
+	    if (mExtSettings->mBounceBackReplyBytes > mExtSettings->mBufLen) {
+		if (isBuflenSet(mExtSettings)) {
+		    mExtSettings->mBounceBackReplyBytes = mExtSettings->mBufLen;
+		    fprintf(stderr, "WARN: bounceback reply will use -l length and not --bounceback-reply value\n");
+		} else {
+		    mExtSettings->mBufLen = mExtSettings->mBounceBackReplyBytes;
+		}
 	    }
 	    mExtSettings->mBurstSize = mExtSettings->mBufLen;
 #if HAVE_DECL_TCP_QUICKACK
