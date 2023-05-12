@@ -1060,7 +1060,7 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	    permitkey = 0;
 	    if (optarg) {
 		strncpy(mExtSettings->mPermitKey, optarg, MAX_PERMITKEY_LEN);
-		mExtSettings->mPermitKey[MAX_PERMITKEY_LEN] = '\0';
+		mExtSettings->mPermitKey[MAX_PERMITKEY_LEN-1] = '\0';
 	    } else {
 		mExtSettings->mPermitKey[0] = '\0';
 	    }
