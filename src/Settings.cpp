@@ -1558,12 +1558,23 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 		fprintf(stderr, "WARN: options of --burst-size for bounce-back ignored, use -l sets size\n");
 	    }
 	    if (mExtSettings->mBounceBackBytes <= 0) {
-		mExtSettings->mBounceBackBytes = kDefault_BBTCPReqLen;
+		if (isBuflenSet(mExtSettings)) {
+		    // Backward compatibility with older versions
+		    mExtSettings->mBounceBackBytes = mExtSettings->mBufLen;
+		} else {
+		    mExtSettings->mBounceBackBytes = kDefault_BBTCPReqLen;
+		}
+	    } else if (mExtSettings->mBounceBackBytes > mExtSettings->mBufLen) {
+		if (isBuflenSet(mExtSettings)) {
+		    mExtSettings->mBounceBackBytes = mExtSettings->mBufLen;
+		    fprintf(stderr, "WARN: bounceback request will use -l length and not --bounceback-request value\n");
+		} else {
+		    mExtSettings->mBufLen = mExtSettings->mBounceBackBytes;
+		}
 	    }
 	    if (mExtSettings->mBounceBackReplyBytes <= 0) {
-		mExtSettings->mBounceBackBytes = kDefault_BBTCPReqLen;
-	    }
-	    if (mExtSettings->mBounceBackReplyBytes > mExtSettings->mBufLen) {
+		mExtSettings->mBounceBackReplyBytes = mExtSettings->mBounceBackBytes;
+	    } else if (mExtSettings->mBounceBackReplyBytes > mExtSettings->mBufLen) {
 		if (isBuflenSet(mExtSettings)) {
 		    mExtSettings->mBounceBackReplyBytes = mExtSettings->mBufLen;
 		    fprintf(stderr, "WARN: bounceback reply will use -l length and not --bounceback-reply value\n");
@@ -1595,11 +1606,6 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	    }
 	    if (isPeriodicBurst(mExtSettings) && (mExtSettings->mBounceBackBurst == -1))  {
 		mExtSettings->mBounceBackBurst = 10;
-	    }
-	    if (mExtSettings->mBounceBackReplyBytes <= 0) {
-		mExtSettings->mBounceBackReplyBytes = mExtSettings->mBounceBackBytes;
-	    } else if (mExtSettings->mBounceBackReplyBytes > mExtSettings->mBufLen) {
-		mExtSettings->mBounceBackReplyBytes = mExtSettings->mBufLen;
 	    }
 	}
 #if HAVE_DECL_TCP_NOTSENT_LOWAT

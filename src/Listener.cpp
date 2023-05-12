@@ -1006,10 +1006,14 @@ bool Listener::apply_client_settings_tcp (thread_Settings *server) {
 	    readptr += nread;
 	    server->mBounceBackBytes = ntohl(bbhdr->bbsize);
 	    if (server->mBounceBackBytes > server->mBufLen) {
-		int read_offset = readptr - server->mBuf;
-		Settings_Grow_mBuf(server, server->mBounceBackBytes);
-		readptr = server->mBuf + read_offset;
-		bbhdr = reinterpret_cast<struct bounceback_hdr *>(server->mBuf);
+		if (isBuflenSet(mExtSettings)) {
+		    WARN(1, "Buffer length (-l) too small for bounceback request. Increase -l size or don't set for auto-adjust.");
+		} else {
+		    int read_offset = readptr - server->mBuf;
+		    Settings_Grow_mBuf(server, server->mBounceBackBytes);
+		    readptr = server->mBuf + read_offset;
+		    bbhdr = reinterpret_cast<struct bounceback_hdr *>(server->mBuf);
+		}
 	    }
 	    server->mBounceBackHold = ntohl(bbhdr->bbhold);
 	    uint16_t bbflags = ntohs(bbhdr->bbflags);
@@ -1032,10 +1036,14 @@ bool Listener::apply_client_settings_tcp (thread_Settings *server) {
 		server->mBounceBackReplyBytes = server->mBounceBackBytes;
 	    }
 	    if (server->mBounceBackReplyBytes > server->mBufLen) {
-		int read_offset = readptr - server->mBuf;
-		Settings_Grow_mBuf(server, server->mBounceBackReplyBytes);
-		readptr = server->mBuf + read_offset;
-		bbhdr = reinterpret_cast<struct bounceback_hdr *>(server->mBuf);
+		if (isBuflenSet(mExtSettings)) {
+		    WARN(1, "Buffer length (-l) too small for bounceback reply. Increase -l size or don't set for auto-adjust.");
+		} else {
+		    int read_offset = readptr - server->mBuf;
+		    Settings_Grow_mBuf(server, server->mBounceBackReplyBytes);
+		    readptr = server->mBuf + read_offset;
+		    bbhdr = reinterpret_cast<struct bounceback_hdr *>(server->mBuf);
+		}
 	    }
 	    int remaining =  server->mBounceBackBytes - (sizeof(struct bounceback_hdr) + sizeof(uint32_t));
 	    if (remaining < 0) {
