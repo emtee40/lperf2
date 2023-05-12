@@ -1007,7 +1007,7 @@ bool Listener::apply_client_settings_tcp (thread_Settings *server) {
 	    server->mBounceBackBytes = ntohl(bbhdr->bbsize);
 	    if (server->mBounceBackBytes > server->mBufLen) {
 		if (isBuflenSet(server)) {
-		    WARN(1, "Buffer length (-l) too small for bounceback request. Increase -l size or don't set for auto-adjust.");
+		    WARN(1, "Buffer length (-l) too small for bounceback request. Increase -l size or don't set (for auto-adjust)");
 		} else {
 		    int read_offset = readptr - server->mBuf;
 		    Settings_Grow_mBuf(server, server->mBounceBackBytes);
@@ -1037,7 +1037,7 @@ bool Listener::apply_client_settings_tcp (thread_Settings *server) {
 	    }
 	    if (server->mBounceBackReplyBytes > server->mBufLen) {
 		if (isBuflenSet(server)) {
-		    WARN(1, "Buffer length (-l) too small for bounceback reply. Increase -l size or don't set for auto-adjust.");
+		    WARN(1, "Buffer length (-l) too small for bounceback reply. Increase -l size or don't set (for auto-adjust)");
 		} else {
 		    int read_offset = readptr - server->mBuf;
 		    Settings_Grow_mBuf(server, server->mBounceBackReplyBytes);
