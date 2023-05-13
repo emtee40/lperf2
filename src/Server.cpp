@@ -613,7 +613,16 @@ bool Server::InitTrafficLoop (void) {
 	ClientReverseFirstRead();
     }
     if (isTripTime(mSettings)) {
-	if ((abs(now.getSecs() - mSettings->sent_time.tv_sec)) > MAXDIFFTIMESTAMPSECS) {
+	int diff_tolerance;
+	if (mSettings->mInterval && (mSettings->mIntervalMode == kInterval_Time)) {
+	    diff_tolerance = ceil(mSettings->mInterval / 1000000);
+	} else {
+	    diff_tolerance = MAXDIFFTIMESTAMPSECS;
+	}
+	if (diff_tolerance < 2) {
+	    diff_tolerance = 2; // min is 2 seconds
+	}
+	if ((abs(now.getSecs() - mSettings->sent_time.tv_sec)) > diff_tolerance) {
 	    unsetTripTime(mSettings);
 	    fprintf(stdout,"WARN: ignore --trip-times because client didn't provide valid start timestamp within %d seconds of now\n", MAXDIFFTIMESTAMPSECS);
 	    mSettings->accept_time.tv_sec = now.getSecs();
