@@ -463,7 +463,7 @@ void Settings_Copy (struct thread_Settings *from, struct thread_Settings **into,
 
 void Settings_Grow_mBuf (struct thread_Settings *mSettings, int newsize) {
     char *tmp = new char[newsize];
-    memset(tmp, 0, newsize);
+    pattern(tmp, newsize);
     memcpy(tmp, mSettings->mBuf, mSettings->mBufLen);
     DELETE_ARRAY(mSettings->mBuf);
     mSettings->mBuf = tmp;
