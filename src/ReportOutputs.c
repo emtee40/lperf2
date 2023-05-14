@@ -94,6 +94,10 @@ static int HEADING_FLAG(report_burst_write_tcp) = 0;
 static int HEADING_FLAG(report_bw_isoch_enhanced_netpwr) = 0;
 static int HEADING_FLAG(report_sumcnt_udp_enhanced) = 0;
 static int HEADING_FLAG(report_sumcnt_udp_triptime) = 0;
+static int HEADING_FLAG(reportCSV_bw_read_enhanced) = 0;
+static int HEADING_FLAG(reportCSV_bw_write_enhanced) = 0;
+static int HEADING_FLAG(reportCSV_bw_jitter_loss_pps) = 0;
+static int HEADING_FLAG(reportCSV_client_bb_bw_tcp) = 0;
 
 void reporter_default_heading_flags (int flag) {
     HEADING_FLAG(report_bw) = flag;
@@ -126,6 +130,10 @@ void reporter_default_heading_flags (int flag) {
     HEADING_FLAG(report_bw_isoch_enhanced_netpwr) = flag;
     HEADING_FLAG(report_sumcnt_udp_enhanced) = flag;
     HEADING_FLAG(report_sumcnt_udp_triptime) = flag;
+    HEADING_FLAG(reportCSV_bw_read_enhanced) = 0;
+    HEADING_FLAG(reportCSV_bw_write_enhanced) = 0;
+    HEADING_FLAG(reportCSV_bw_jitter_loss_pps) = 0;
+    HEADING_FLAG(reportCSV_client_bb_bw_tcp) = 0;
 }
 static inline void _print_stats_common (struct TransferInfo *stats) {
     assert(stats!=NULL);
@@ -1366,12 +1374,28 @@ void format_ips_port_string (struct TransferInfo *stats, bool sum) {
 #endif
 }
 
+static inline void _print_stats_csv_timestr(struct TransferInfo *stats,
+					    char *timestr, int buflen)
+{
+    iperf_formattime(timestr,
+		     buflen,
+		     (!stats->final ? stats->ts.nextTime : stats->ts.packetTime),
+		     isEnhanced(stats->common),
+		     isUTC(stats->common),
+		     (isEnhanced(stats->common) ? CSVTZ : CSV));
+}
+
+static inline intmax_t _print_stats_csv_speed(struct TransferInfo *stats)
+{
+  return (intmax_t) (((stats->cntBytes > 0) && (stats->ts.iEnd -  stats->ts.iStart) > 0.0)
+		     ? (((double)stats->cntBytes * 8.0) / (stats->ts.iEnd -  stats->ts.iStart))
+		     : 0);
+}
+
 void udp_output_basic_csv (struct TransferInfo *stats) {
     char timestr[120];
-    iperf_formattime(timestr, sizeof(timestr), (!stats->final ? stats->ts.nextTime : stats->ts.packetTime), \
-		     isEnhanced(stats->common), isUTC(stats->common), (isEnhanced(stats->common) ? CSVTZ : CSV));
-    intmax_t speed = (intmax_t) (((stats->cntBytes > 0) && (stats->ts.iEnd -  stats->ts.iStart) > 0.0) ? \
-				 (((double)stats->cntBytes * 8.0) / (stats->ts.iEnd -  stats->ts.iStart)) : 0);
+    _print_stats_csv_timestr(stats, timestr, sizeof(timestr));
+    intmax_t speed = _print_stats_csv_speed(stats);
     printf(reportCSV_bw_jitter_loss_format,
 	    timestr,
 	    stats->csv_peer,
@@ -1387,12 +1411,10 @@ void udp_output_basic_csv (struct TransferInfo *stats) {
 }
 
 void udp_output_enhanced_csv (struct TransferInfo *stats) {
-    char timestr[80];
-    iperf_formattime(timestr, sizeof(timestr), (!stats->final ? stats->ts.nextTime : stats->ts.packetTime), \
-		     isEnhanced(stats->common), isUTC(stats->common),
-		     isEnhanced(stats->common) ? CSVTZ : CSV);
-    intmax_t speed = (intmax_t) (((stats->cntBytes > 0) && (stats->ts.iEnd -  stats->ts.iStart) > 0.0) ? \
-				 (((double)stats->cntBytes * 8.0) / (stats->ts.iEnd -  stats->ts.iStart)) : 0);
+    HEADING_PRINT_COND(reportCSV_bw_jitter_loss_pps);
+    char timestr[120];
+    _print_stats_csv_timestr(stats, timestr, sizeof(timestr));
+    intmax_t speed = _print_stats_csv_speed(stats);
     printf(reportCSV_bw_jitter_loss_pps_format,
 	   timestr,
 	   stats->csv_peer,
@@ -1412,11 +1434,9 @@ void udp_output_enhanced_csv (struct TransferInfo *stats) {
 }
 
 void tcp_output_basic_csv (struct TransferInfo *stats) {
-    char timestr[80];
-    iperf_formattime(timestr, sizeof(timestr), (!stats->final ? stats->ts.nextTime : stats->ts.packetTime), \
-		     isEnhanced(stats->common), isUTC(stats->common), (isEnhanced(stats->common) ? CSVTZ : CSV));
-    intmax_t speed = (intmax_t) (((stats->cntBytes > 0) && (stats->ts.iEnd -  stats->ts.iStart) > 0.0) ? \
-				 (((double)stats->cntBytes * 8.0) / (stats->ts.iEnd -  stats->ts.iStart)) : 0);
+    char timestr[120];
+    _print_stats_csv_timestr(stats, timestr, sizeof(timestr));
+    intmax_t speed = _print_stats_csv_speed(stats);
     printf(reportCSV_bw_format,
 	   timestr,
 	   stats->csv_peer,
@@ -1428,12 +1448,10 @@ void tcp_output_basic_csv (struct TransferInfo *stats) {
 }
 
 void tcp_output_read_enhanced_csv (struct TransferInfo *stats) {
+    HEADING_PRINT_COND(reportCSV_bw_read_enhanced);
     char timestr[80];
-    iperf_formattime(timestr, sizeof(timestr), (!stats->final ? stats->ts.nextTime : stats->ts.packetTime), \
-		     isEnhanced(stats->common), isUTC(stats->common),
-		     isEnhanced(stats->common) ? CSVTZ : CSV);
-    intmax_t speed = (intmax_t) (((stats->cntBytes > 0) && (stats->ts.iEnd -  stats->ts.iStart) > 0.0) ? \
-				 (((double)stats->cntBytes * 8.0) / (stats->ts.iEnd -  stats->ts.iStart)) : 0);
+    _print_stats_csv_timestr(stats, timestr, sizeof(timestr));
+    intmax_t speed = _print_stats_csv_speed(stats);
     printf(reportCSV_bw_read_enhanced_format,
 	   timestr,
 	   stats->csv_peer,
@@ -1454,12 +1472,10 @@ void tcp_output_read_enhanced_csv (struct TransferInfo *stats) {
 }
 
 void tcp_output_write_enhanced_csv (struct TransferInfo *stats) {
-    char timestr[80];
-    iperf_formattime(timestr, sizeof(timestr), (!stats->final ? stats->ts.nextTime : stats->ts.packetTime), \
-		     isEnhanced(stats->common), isUTC(stats->common),
-		     isEnhanced(stats->common) ? CSVTZ : CSV);
-    intmax_t speed = (intmax_t) (((stats->cntBytes > 0) && (stats->ts.iEnd -  stats->ts.iStart) > 0.0) ? \
-				 (((double)stats->cntBytes * 8.0) / (stats->ts.iEnd -  stats->ts.iStart)) : 0);
+    HEADING_PRINT_COND(reportCSV_bw_write_enhanced);
+    char timestr[120];
+    _print_stats_csv_timestr(stats, timestr, sizeof(timestr));
+    intmax_t speed = _print_stats_csv_speed(stats);
 #if !(HAVE_TCP_STATS)
     printf(reportCSV_bw_write_enhanced_format,
 	   timestr,
@@ -1524,6 +1540,95 @@ void tcp_output_write_enhanced_csv (struct TransferInfo *stats) {
 	       0);
     }
 #endif
+}
+
+void tcp_output_write_bb_csv (struct TransferInfo *stats) {
+    HEADING_PRINT_COND(reportCSV_client_bb_bw_tcp);
+    char timestr[120];
+    _print_stats_csv_timestr(stats, timestr, sizeof(timestr));
+    intmax_t speed = _print_stats_csv_speed(stats);
+    if (stats->final) {
+        double rps = ((stats->fBBrunning > 0) && (stats->bbrtt.total.cnt > 0)) ? ((double) stats->bbrtt.total.cnt / stats->fBBrunning) : 0;
+
+#if HAVE_TCP_STATS
+	printf(reportCSV_client_bb_bw_tcp_format,
+	       timestr,
+	       stats->csv_peer,
+	       stats->common->transferID,
+	       stats->ts.iStart,
+	       stats->ts.iEnd,
+	       stats->cntBytes,
+	       speed,
+	       stats->bbrtt.total.cnt,
+	       (stats->bbrtt.total.mean * 1e3),
+	       (stats->bbrtt.total.cnt < 2) ? 0 : (stats->bbrtt.total.min * 1e3),
+	       (stats->bbrtt.total.cnt < 2) ? 0 : (stats->bbrtt.total.max * 1e3),
+	       (stats->bbrtt.total.cnt < 2) ? 0 : 1e3 * (sqrt(stats->bbrtt.total.m2 / (stats->bbrtt.total.cnt - 1))),
+	       stats->sock_callstats.write.tcpstats.retry,
+	       stats->sock_callstats.write.tcpstats.cwnd,
+	       stats->sock_callstats.write.tcpstats.rtt,
+	       rps);
+#else
+	printf(reportCSV_client_bb_bw_tcp_format,
+	       timestr,
+	       stats->csv_peer,
+	       stats->common->transferID,
+	       stats->ts.iStart,
+	       stats->ts.iEnd,
+	       stats->cntBytes,
+	       speed,
+	       stats->bbrtt.total.cnt,
+	       (stats->bbrtt.total.mean * 1e3),
+	       (stats->bbrtt.total.cnt < 2) ? 0 : (stats->bbrtt.total.min * 1e3),
+	       (stats->bbrtt.total.cnt < 2) ? 0 : (stats->bbrtt.total.max * 1e3),
+	       (stats->bbrtt.total.cnt < 2) ? 0 : 1e3 * (sqrt(stats->bbrtt.total.m2 / (stats->bbrtt.total.cnt - 1))),
+	       -1,
+	       -1,
+	       -1,
+	       rps);
+#endif
+    } else {
+	double rps = ((stats->bbrtt.current.cnt > 0) && (stats->iBBrunning > 0)) ? ((double) stats->bbrtt.current.cnt / stats->iBBrunning) : 0;
+
+#if HAVE_TCP_STATS
+	printf(reportCSV_client_bb_bw_tcp_format,
+	       timestr,
+	       stats->csv_peer,
+	       stats->common->transferID,
+	       stats->ts.iStart,
+	       stats->ts.iEnd,
+	       stats->cntBytes,
+	       speed,
+	       stats->bbrtt.current.cnt,
+	       (stats->bbrtt.current.mean * 1e3),
+	       (stats->bbrtt.current.cnt < 2) ? 0 : (stats->bbrtt.current.min * 1e3),
+	       (stats->bbrtt.current.cnt < 2) ? 0 : (stats->bbrtt.current.max * 1e3),
+	       (stats->bbrtt.current.cnt < 2) ? 0 : 1e3 * (sqrt(stats->bbrtt.current.m2 / (stats->bbrtt.current.cnt - 1))),
+	       stats->sock_callstats.write.tcpstats.retry,
+	       stats->sock_callstats.write.tcpstats.cwnd,
+	       stats->sock_callstats.write.tcpstats.rtt,
+	       rps);
+#else
+	printf(reportCSV_client_bb_bw_tcp_format,
+	       timestr,
+	       stats->csv_peer,
+	       stats->common->transferID,
+	       stats->ts.iStart,
+	       stats->ts.iEnd,
+	       stats->cntBytes,
+	       speed,
+	       stats->bbrtt.current.cnt,
+	       (stats->bbrtt.current.mean * 1e3),
+	       (stats->bbrtt.current.cnt < 2) ? 0 : (stats->bbrtt.current.min * 1e3),
+	       (stats->bbrtt.current.cnt < 2) ? 0 : (stats->bbrtt.current.max * 1e3),
+	       (stats->bbrtt.current.cnt < 2) ? 0 : 1e3 * (sqrt(stats->bbrtt.current.m2 / (stats->bbrtt.current.cnt - 1))),
+	       -1,
+	       -1,
+	       -1,
+	       rps);
+#endif
+    }
+    fflush(stdout);
 }
 
 /*

@@ -676,17 +676,28 @@ const char report_client_bb_triptime_clocksync_error[] ="%s" IPERFTimeFrmt " sec
 const char reportCSV_bw_format[] =
 "%s,%s,%d,%.1f-%.1f,%" PRIdMAX ",%" PRIdMAX "\n";
 
+const char reportCSV_bw_read_enhanced_header[] =
+"time,srcaddress,srcport,dstaddr,dstport,transferid,istart,iend,bytes,speed,readcnt,bin0,bin1,bin2,bin3,bin4,bin5,bin6,bin7\n";
 const char reportCSV_bw_read_enhanced_format[] =
-"%s,%s,%d,%.1f-%.1f,%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%d,%d,%d,%d,%d,%d,%d,%d\n";
+"%s,%s,%d,%.1f,%.1f,%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%d,%d,%d,%d,%d,%d,%d,%d\n";
 
+const char reportCSV_bw_write_enhanced_header[] =
+"time,srcaddress,srcport,dstaddr,dstport,transferid,istart,iend,bytes,speed,writecnt,writeerr,tcpretry,tcpcwnd,tcprtt,tcprttvar\n";
 const char reportCSV_bw_write_enhanced_format[] =
-"%s,%s,%d,%.1f-%.1f,%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%d,%u,%u\n";
+"%s,%s,%d,%.1f,%.1f,%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%d,%u,%u\n";
 
 const char reportCSV_bw_jitter_loss_format[] =
 "%s,%s,%d,%.1f-%.1f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%" PRIdMAX "\n";
 
+const char reportCSV_bw_jitter_loss_pps_header[] =
+"time,srcaddress,srcport,dstaddr,dstport,transferid,istart,iend,bytes,speed,jitter,errors,datagrams,errpercent,outoforder,writecnt,writeerr,pps\n";
 const char reportCSV_bw_jitter_loss_pps_format[] =
-"%s,%s,%d,%.1f-%.1f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%f\n";
+"%s,%s,%d,%.1f,%.1f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%f\n";
+
+const char reportCSV_client_bb_bw_tcp_header[] =
+"time,srcaddress,srcport,dstaddr,dstport,transferid,istart,iend,bytes,speed,bbcnt,bbavg,bbmin,bbmax,bbstdev,tcpretry,tcpcwnd,tcprtt,rps\n";
+const char reportCSV_client_bb_bw_tcp_format[] =
+"%s,%s,%d,%.1f,%.1f,%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%.3f,%.3f,%.3f,%.3f,%d,%d,%u,%0.1f\n";
 
 /* -------------------------------------------------------------------
  * warnings

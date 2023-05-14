@@ -706,15 +706,18 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
 	    ireport->transfer_protocol_handler = reporter_transfer_protocol_client_tcp;
 	    if (isSumOnly(inSettings)) {
 		ireport->info.output_handler = NULL;
+	    } else if (isBounceBack(inSettings)) {
+		ireport->packet_handler_post_report = reporter_handle_packet_bb_client;
+		ireport->transfer_protocol_handler = reporter_transfer_protocol_client_bb_tcp;
+		if (inSettings->mReportMode == kReport_CSV)
+		    ireport->info.output_handler = tcp_output_write_bb_csv;
+		else
+		    ireport->info.output_handler = tcp_output_write_bb;
 	    } else if ((inSettings->mReportMode == kReport_CSV) && !isSumOnly(inSettings)) {
 		if (isEnhanced(inSettings))
 		    ireport->info.output_handler = tcp_output_write_enhanced_csv;
 		else
 		    ireport->info.output_handler = tcp_output_basic_csv;
-	    } else if (isBounceBack(inSettings)) {
-		ireport->packet_handler_post_report = reporter_handle_packet_bb_client;
-		ireport->transfer_protocol_handler = reporter_transfer_protocol_client_bb_tcp;
-		ireport->info.output_handler = tcp_output_write_bb;
 	    } else if (isIsochronous(inSettings)) {
 		ireport->info.output_handler = tcp_output_write_enhanced_isoch;
 	    } else if (isTcpWriteTimes(inSettings)) {
