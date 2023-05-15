@@ -101,6 +101,10 @@
    don't. */
 #undef HAVE_DECL_MSG_DONTWAIT
 
+/* Define to 1 if you have the declaration of `MSG_ERRQUEUE', and to 0 if you
+   don't. */
+#undef HAVE_DECL_MSG_ERRQUEUE
+
 /* Define to 1 if you have the declaration of `MSG_PEEK', and to 0 if you
    don't. */
 #undef HAVE_DECL_MSG_PEEK
@@ -112,6 +116,10 @@
 /* Define to 1 if you have the declaration of `MSG_WAITALL', and to 0 if you
    don't. */
 #undef HAVE_DECL_MSG_WAITALL
+
+/* Define to 1 if you have the declaration of `MSG_ZEROCOPY', and to 0 if you
+   don't. */
+#undef HAVE_DECL_MSG_ZEROCOPY
 
 /* Define to 1 if you have the declaration of `pthread_cancel', and to 0 if
    you don't. */
@@ -148,6 +156,10 @@
 /* Define to 1 if you have the declaration of `SO_TIMESTAMP', and to 0 if you
    don't. */
 #undef HAVE_DECL_SO_TIMESTAMP
+
+/* Define to 1 if you have the declaration of `SO_ZEROCOPY', and to 0 if you
+   don't. */
+#undef HAVE_DECL_SO_ZEROCOPY
 
 /* Define to 1 if you have the declaration of `TCP_CONNECTION_INFO', and to 0
    if you don't. */
