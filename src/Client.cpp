@@ -1069,23 +1069,38 @@ void Client::RunBounceBackTCP () {
 		reportstruct->sentTime.tv_usec = now.getUsecs();
 	    }
 	    WriteTcpTxBBHdr(reportstruct, burst_id, 0);
-	    reportstruct->packetLen = writen(mySocket, mSettings->mBuf, writelen, &reportstruct->writecnt);
+	    char *write_ptr = mSettings->mBuf;
+	    int write_offset = 0;
+	  RETRY_WRITE:
+	    reportstruct->packetLen = writen(mySocket, (write_ptr + write_offset), (writelen - write_offset), &reportstruct->writecnt);
 	    if (reportstruct->packetLen <= 0) {
-		if ((reportstruct->packetLen < 0) && FATALTCPWRITERR(errno)) {
-		    reportstruct->err_readwrite=WriteErrFatal;
-		    WARN_errno(1, "tcp bounceback write fatal error");
-		    peerclose = true;
-		} else if (reportstruct->packetLen == 0) {
-		    peerclose = true;
-		} else if (reportstruct->packetLen != writelen) {
-		    WARN_errno(1, "tcp bounceback writen incomplete");
-		    peerclose = true;
+		if (reportstruct->packetLen < 0) {
+		    if (FATALTCPWRITERR(errno)) {
+			reportstruct->err_readwrite=WriteErrFatal;
+			WARN_errno(1, "tcp bounceback write fatal error");
+			peerclose = true;
+			break;
+		    } else if (InProgress()) {
+			PostNullEvent();
+			goto RETRY_WRITE;
+		    } else {
+			reportstruct->packetLen	= 0;
+			break;
+		    }
 		} else {
-		    // retry the write
-		    bb_burst++;
-		    continue;
+		    peerclose = true;
+		    break;
 		}
-		break;
+	    } else {
+		if ((reportstruct->packetLen < writelen) && InProgress()) {
+		    WARN_errno(1, "tcp bounceback writen incomplete");
+		    write_offset += reportstruct->packetLen;
+		    PostNullEvent();
+		    goto RETRY_WRITE;
+		} else {
+		    peerclose = true;
+		    break;
+		}
 	    }
 	    if (reportstruct->packetLen == writelen) {
 		reportstruct->emptyreport = 0;
@@ -1123,19 +1138,11 @@ void Client::RunBounceBackTCP () {
 			WARN(1, "timeout: bounceback read");
 		    }
 		}
-	    } else if ((reportstruct->packetLen < 0 ) && NONFATALTCPWRITERR(errno)) {
-		reportstruct->packetLen = 0;
-		reportstruct->emptyreport = 1;
-		reportstruct->err_readwrite=WriteNoAccount;
-		myReportPacket();
-	    } else {
-		reportstruct->err_readwrite=WriteErrFatal;
-		reportstruct->packetLen = -1;
-		FAIL_errno(1, "tcp bounce-back write", mSettings);
 	    }
 	}
     }
-    WriteTcpTxBBHdr(reportstruct, 0x0, 1);
+    if (!peerclose)
+	WriteTcpTxBBHdr(reportstruct, 0x0, 1); // Signal end of BB test
     disarm_itimer();
     FinishTrafficActions();
 }
@@ -1239,7 +1246,7 @@ void Client::RunUDP () {
 	    currLen = write(mySocket, mSettings->mBuf, (mSettings->mAmount < static_cast<unsigned>(mSettings->mBufLen)) ? mSettings->mAmount : mSettings->mBufLen);
 	} else {
 	    currLen = -1;
-#if (HAVE_USE_WRITE_SELECT) && (HAVE_SELECT)	    
+#if (HAVE_USE_WRITE_SELECT) && (HAVE_SELECT)
 #if HAVE_DECL_MSG_DONTWAIT
 	    currLen = send(mySocket, mSettings->mBuf, mSettings->mBufLen, MSG_DONTWAIT);
 	    if ((currLen < 0) && !FATALUDPWRITERR(errno)) {
@@ -1251,7 +1258,7 @@ void Client::RunUDP () {
 		    reportstruct->err_readwrite = WriteTimeo;
 		}
 	    }
-#else	    
+#else
 	    if (AwaitSelectWrite()) {
 		// WARN_errno(1, "write select");
 		currLen = write(mySocket, mSettings->mBuf, mSettings->mBufLen);
