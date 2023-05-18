@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------
- * Copyright (c) 1999,2000,2001,2002,2003
+ * Copyrightot) 1999,2000,2001,2002,2003
  * The Board of Trustees of the University of Illinois
  * All Rights Reserved.
  *---------------------------------------------------------------
@@ -1069,42 +1069,29 @@ void Client::RunBounceBackTCP () {
 		reportstruct->sentTime.tv_usec = now.getUsecs();
 	    }
 	    WriteTcpTxBBHdr(reportstruct, burst_id, 0);
-	    char *write_ptr = mSettings->mBuf;
 	    int write_offset = 0;
 	  RETRY_WRITE:
-	    reportstruct->packetLen = writen(mySocket, (write_ptr + write_offset), (writelen - write_offset), &reportstruct->writecnt);
-	    if (reportstruct->packetLen <= 0) {
-		if (reportstruct->packetLen < 0) {
-		    if (FATALTCPWRITERR(errno)) {
-			reportstruct->err_readwrite=WriteErrFatal;
-			WARN_errno(1, "tcp bounceback write fatal error");
-			peerclose = true;
-			break;
-		    } else if (InProgress()) {
-			PostNullEvent();
-			goto RETRY_WRITE;
-		    } else {
-			reportstruct->packetLen	= 0;
-			break;
-		    }
-		} else {
+	    reportstruct->packetLen = writen(mySocket, (mSettings->mBuf + write_offset), (writelen - write_offset), &reportstruct->writecnt);
+	    if (reportstruct->packetLen < 0) {
+		if (FATALTCPWRITERR(errno)) {
+		    reportstruct->err_readwrite=WriteErrFatal;
+		    WARN_errno(1, "tcp bounceback write fatal error");
 		    peerclose = true;
 		    break;
-		}
-	    } else {
-		if ((reportstruct->packetLen < writelen) && InProgress()) {
-		    WARN_errno(1, "tcp bounceback writen incomplete");
-		    write_offset += reportstruct->packetLen;
+		} else if (InProgress()) {
 		    PostNullEvent();
 		    goto RETRY_WRITE;
-		} else {
-		    peerclose = true;
-		    break;
 		}
+	    }
+	    if ((reportstruct->packetLen < writelen) && InProgress()) {
+		WARN_errno(1, "tcp bounceback writen incomplete");
+		write_offset += reportstruct->packetLen;
+		PostNullEvent();
+		goto RETRY_WRITE;
 	    }
 	    if (reportstruct->packetLen == writelen) {
 		reportstruct->emptyreport = 0;
-		totLen += reportstruct->packetLen;
+		totLen += writelen;
 		reportstruct->err_readwrite=WriteSuccess;
 #if HAVE_DECL_TCP_QUICKACK
 		if (isTcpQuickAck(mSettings)) {
@@ -1115,27 +1102,40 @@ void Client::RunBounceBackTCP () {
 		    WARN_errno(rc == SOCKET_ERROR, "setsockopt TCP_QUICKACK");
 		}
 #endif
-		if ((n = recvn(mySocket, mSettings->mBuf, mSettings->mBounceBackReplyBytes, 0)) == mSettings->mBounceBackReplyBytes) {
-		    struct bounceback_hdr *bbhdr = reinterpret_cast<struct bounceback_hdr *>(mSettings->mBuf);
-		    now.setnow();
-		    reportstruct->sentTimeRX.tv_sec = ntohl(bbhdr->bbserverRx_ts.sec);
-		    reportstruct->sentTimeRX.tv_usec = ntohl(bbhdr->bbserverRx_ts.usec);
-		    reportstruct->sentTimeTX.tv_sec = ntohl(bbhdr->bbserverTx_ts.sec);
-		    reportstruct->sentTimeTX.tv_usec = ntohl(bbhdr->bbserverTx_ts.usec);
-		    reportstruct->packetTime.tv_sec = now.getSecs();
-		    reportstruct->packetTime.tv_usec = now.getUsecs();
-		    reportstruct->packetLen += n;
-		    reportstruct->emptyreport = 0;
-		    myReportPacket();
+		int read_offset = 0;
+	      RETRY_READ:
+		n = recvn(mySocket, (mSettings->mBuf + read_offset), (mSettings->mBounceBackReplyBytes - read_offset), 0);
+		if (n > 0) {
+		    read_offset += n;
+		    if (read_offset == mSettings->mBounceBackReplyBytes) {
+			struct bounceback_hdr *bbhdr = reinterpret_cast<struct bounceback_hdr *>(mSettings->mBuf);
+			now.setnow();
+			reportstruct->sentTimeRX.tv_sec = ntohl(bbhdr->bbserverRx_ts.sec);
+			reportstruct->sentTimeRX.tv_usec = ntohl(bbhdr->bbserverRx_ts.usec);
+			reportstruct->sentTimeTX.tv_sec = ntohl(bbhdr->bbserverTx_ts.sec);
+			reportstruct->sentTimeTX.tv_usec = ntohl(bbhdr->bbserverTx_ts.usec);
+			reportstruct->packetTime.tv_sec = now.getSecs();
+			reportstruct->packetTime.tv_usec = now.getUsecs();
+			reportstruct->packetLen += n;
+			reportstruct->emptyreport = 0;
+			myReportPacket();
+		    } else if (InProgress()) {
+			PostNullEvent();
+			goto RETRY_READ;
+		    } else {
+			break;
+		    }
 		} else if (n == 0) {
 		    peerclose = true;
-		} else if (n < 0) {
+		    break;
+		} else {
 		    if (FATALTCPREADERR(errno)) {
-			WARN_errno(1, "bounceback read");
-			peerclose = true;
-			n = 0;
+			WARN_errno(1, "fatal bounceback read");
+			break;
 		    } else {
 			WARN(1, "timeout: bounceback read");
+			PostNullEvent();
+			goto RETRY_READ;
 		    }
 		}
 	    }
