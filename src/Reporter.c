@@ -481,8 +481,9 @@ void reporter_spawn (struct thread_Settings *thread) {
 		// Report process report returns true
 		// when a report needs to be removed
 		// from the jobq.  Also, work item might
-		// be removed as part of processing
-		// Store a cached pointer for the linked list maitenance
+		// be free as part of its processing
+		// Store a cached pointer tmp
+		// for the next work item
 		struct ReportHeader *tmp = (*work_item)->next;
 	        if (reporter_process_report(*work_item)) {
 #ifdef HAVE_THREAD_DEBUG
