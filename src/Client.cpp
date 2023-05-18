@@ -1059,7 +1059,7 @@ void Client::RunBounceBackTCP () {
 	    isFirst = false;
 	}
 	int bb_burst = (mSettings->mBounceBackBurst > 0) ? mSettings->mBounceBackBurst : 1;
-	while (bb_burst > 0) {
+	while ((bb_burst > 0) && InProgress()) {
 	    bb_burst--;
 	    if (isFirst) {
 		isFirst = false;
