@@ -4,12 +4,49 @@ This document will explain how to use Precision Time Protocol (PTP) found at htt
 Also, 'dnf install ptpd' will install on fedora systems. Other options for linux are linux-ptp or ptp4l.  We've also downloaded
 Eric Raymond's "Stratum-1-Microserver HOWTO" and placed a copy in doc/www.ntpsec.org/white-papers/stratum-1-microserver-howto/index.html
 
-First thing is find a PTP grandmaster. The configure it as master. Examples /etc/ptpd.conf below.
 
-Then configure the PTP slaves.
+Use DNF or equivalent to get ptpd (google ptpd install for others)
 
-HYBRID MODE slave (PTP grandmaster at 10.19.85.175):
-===================================================
+o) dnf install ptpd
+o) configure /etc/ptpd.conf (as shown below), change domain to something not zero
+o) updated ptpd2.service file (as shown below)
+o) issue 'systemctl daemon-reload'
+o) disable ntpd and chronyd
+   - systemctl stop chronyd
+   - systemctl disable chronyd
+   - systemctl stop ntpd
+o) enable ptpd
+   - systemctl enable ptpd2
+   - systemctl start ptpd2
+o) verify with 'systemctl status ptpd2'
+o) reboot
+o) verify corrections (as shown below)
+
+First thing is to define a device to act as the PTP grandmaster for a domain. The configure it as grandmaster.
+
+MULTICAST MODE:
+===============
+
+Grandmaster device:
+
+; ==============================================================================
+; This is a recommended configuration for a PTPv2 grandmaster
+; For a full list of options run ptpd2 -H or see the documentation and man pages
+; ==============================================================================
+
+; interface has to be specified
+ptpengine:interface=enp2s0 //*** define the interface that PTP will advertise on
+
+; PTP domain
+ptpengine:domain=0 //*** Set a PTP domain. Preferrably not the default of zero.
+
+; available presets are slaveonly, masteronly and masterslave (full IEEE 1588 implementation)
+ptpengine:preset=masteronly
+
+; multicast for both sync and delay requests - use hybrid for unicast delay requests
+ptpengine:ip_mode=multicast
+
+PTP slaves.
 
 [root@localhost ~]# more /etc/ptpd2.conf
 ; ==============================================================================
@@ -18,40 +55,19 @@ HYBRID MODE slave (PTP grandmaster at 10.19.85.175):
 ; ==============================================================================
 
 ; interface has to be specified
-ptpengine:interface=enp2s0
-clock:step_startup_force=y
-clock:set_rtc_on_step=y
+ptpengine:interface=enp2s0 // *** Set this value to the interface used or PTP
 
 ; PTP domain
-ptpengine:domain=0
+ptpengine:domain=0 // *** Set a domain value here (preferrably not 0) to set it's scope
 
 ; available presets are slaveonly, masteronly and masterslave (full IEEE 1588 implementation)
 ptpengine:preset=slaveonly
 
 ; multicast for both sync and delay requests - use hybrid for unicast delay requests
-ptpengine:ip_mode=hybrid
-ptpengine:log_delayreq_interval=-1
-ptpengine:unicast_destinations=10.19.85.175
+ptpengine:ip_mode=multicast
 
 ; when enabled, sniffing is used instead of sockets to send and receive packets
 ptpengine:use_libpcap=n
-
-; go into panic mode for 10 minutes instead of resetting the clock
-ptpengine:panic_mode=y
-ptpengine:panic_mode_duration=10
-
-; uncomment this to enable outlier filters
-ptpengine:sync_outlier_filter_enable=y
-ptpengine:delay_outlier_filter_enable=y
-
-; RJM add for better accuracy
-ptpengine:sync_stat_filter_enable=y
-ptpengine:sync_stat_filter_type=median
-ptpengine:sync_stat_filter_window=8
-
-; store observed drift in a file
-clock:drift_handling=file
-clock:drift_file=/var/log/ptpd2_kernelclock.drift
 
 ; update online statistics every 5 seconds
 global:statistics_update_interval=5
@@ -84,13 +100,72 @@ ptpengine:ip_dscp=46
 
 ; always keep a new line in the end
 
+
+
+[root@localhost fdt]# more /usr/lib/systemd/system/ptpd2.service
+[Unit]
+Description=ptpd time precision daemon
+Wants=network-online.target
+After=network.target network-online.target
+
+
+[Service]
+Type=forking
+EnvironmentFile=-/etc/sysconfig/ptpd2
+ExecStart=/usr/bin/ptpd2 -c $PTPD_CONFIG_FILE $PTPD_EXTRA_OPTIONS
+ExecStartPost=/usr/bin/sleep 10
+ExecStartPost=/usr/bin/pkill ptpd --signal SIGUSR1
+
+
+[Install]
+WantedBy=multi-user.target
+
+
+Check the error corrections
+
+The error corrections can be found in the /var/log/ptpd.stats file.  Tail this file to read them. The units are nanoseconds.  Here is an example. I removed some columns, using ellipses, in the first two lines for readability. The highlighted columns show that the clock is being corrected by -1201 nanoseconds or -1.2 microseconds.  It’s suggested that these corrections should be sub 25 microseconds for WiFi latency testing.
+
+[root@localhost fdt]# tail -n 20 /var/log/ptpd2.stats
+2020-12-10 07:52:05.078368, slv, 141877fffe2b5446(unknown)/1,  0.000094584, -0.000001201,  …,  0.000090683,  0.000094390
+2020-12-10 07:52:05.328450, slv, 141877fffe2b5446(unknown)/1,  0.000094584, -0.000001201,  …, 0.000092167,  0.000094390
+
+2020-12-10 07:52:05.578442, slv, 141877fffe2b5446(unknown)/1,  0.000094584, -0.000001201,  0.000095768,  0.000092929, 294.638250000, S, 0.000094557, 16, 0.000000178, 1145, 296, 1,  0.000090683,  0.000094390
+2020-12-10 07:52:05.590040, slv, 141877fffe2b5446(unknown)/1,  0.000094584, -0.000001201,  0.000095768,  0.000092929, 294.638250000, D, 0.000094557, 16, 0.000000178, 1145, 296, 1,  0.000090683,  0.000095715
+2020-12-10 07:52:05.876909, slv, 141877fffe2b5446(unknown)/1,  0.000094584, -0.000001201,  0.000095768,  0.000092929, 294.638250000, S, 0.000094557, 16, 0.000000178, 1145, 296, 1,  0.000090683,  0.000095715
+2020-12-10 07:52:06.078439, slv, 141877fffe2b5446(unknown)/1,  0.000094584, -0.000001201,  0.000095768,  0.000092929, 294.638250000, S, 0.000094557, 16, 0.000000178, 1145, 296, 1,  0.000090533,  0.000095715
+2020-12-10 07:52:06.328409, slv, 141877fffe2b5446(unknown)/1,  0.000094584, -0.000001201,  0.000095768,  0.000092929, 294.638250000, S, 0.000094557, 16, 0.000000178, 1145, 296, 1,  0.000090095,  0.000095715
+2020-12-10 07:52:06.425850, slv, 141877fffe2b5446(unknown)/1,  0.000094584, -0.000001201,  0.000095768,  0.000092929, 294.638250000, D, 0.000094557, 16, 0.000000178, 1145, 296, 1,  0.000090095,  0.000095265
+2020-12-10 07:52:06.578374, slv, 141877fffe2b5446(unknown)/1,  0.000094584, -0.000001201,  0.000095768,  0.000092929, 294.638250000, S, 0.000094557, 16, 0.000000178, 1145, 296, 1,  0.000086198,  0.000095265
+2020-12-10 07:52:06.828399, slv, 141877fffe2b5446(unknown)/1,  0.000094584, -0.000001201,  0.000095768,  0.000092929, 294.638250000, S, 0.000094557, 16, 0.000000178, 1145, 296, 1,  0.000086198,  0.000095265
+2020-12-10 07:52:07.078434, slv, 141877fffe2b5446(unknown)/1,  0.000094584, -0.000001201,  0.000095768,  0.000092929, 294.638250000, S, 0.000094557, 16, 0.000000178, 1145, 296, 1,  0.000089226,  0.000095265
+2020-12-10 07:52:07.158394, slv, 141877fffe2b5446(unknown)/1,  0.000094584, -0.000001201,  0.000095768,  0.000092929, 294.638250000, D, 0.000094557, 16, 0.000000178, 1145, 296, 1,  0.000089226,  0.000093841
+2020-12-10 07:52:07.328398, slv, 141877fffe2b5446(unknown)/1,  0.000094584, -0.000001201,  0.000095768,  0.000092929, 294.638250000, S, 0.000094557, 16, 0.000000178, 1145, 296, 1,  0.000086198,  0.000093841
+2020-12-10 07:52:07.578358, slv, 141877fffe2b5446(unknown)/1,  0.000094584, -0.000001201,  0.000095768,  0.000092929, 294.638250000, S, 0.000094557, 16, 0.000000178, 1145, 296, 1,  0.000082906,  0.000093841
+2020-12-10 07:52:07.719444, slv, 141877fffe2b5446(unknown)/1,  0.000094584, -0.000001201,  0.000095768,  0.000092929, 294.638250000, D, 0.000094557, 16, 0.000000178, 1145, 296, 1,  0.000082906,  0.000094916
+2020-12-10 07:52:07.797430, slv, 141877fffe2b5446(unknown)/1,  0.000094581, -0.000001201,  0.000095889,  0.000092929, 294.638250000, D, 0.000094557, 16, 0.000000178, 1145, 296, 1,  0.000082906,  0.000095889
+2020-12-10 07:52:07.828386, slv, 141877fffe2b5446(unknown)/1,  0.000094581, -0.000001201,  0.000095889,  0.000092929, 294.638250000, S, 0.000094557, 16, 0.000000178, 1145, 296, 1,  0.000082906,  0.000095889
+2020-12-10 07:52:08.078403, slv, 141877fffe2b5446(unknown)/1,  0.000094581, -0.000001201,  0.000095889,  0.000092929, 294.638250000, S, 0.000094563, 18, -0.000001072, 300, 296, 1,  0.000082817,  0.000095889
+2020-12-10 07:52:08.328402, slv, 141877fffe2b5446(unknown)/1,  0.000094581, -0.000001201,  0.000095889,  0.000092929, 294.638250000, S, 0.000094563, 18, -0.000001072, 300, 296, 1,  0.000081650,  0.000095889
+
+
+Plot the errors using gnuplot (credit Tim A.)
+
+
+You might find useful a simple way to plot the ptp error corrections from the stats file.  It reports the last 8 hours (or whatever history you have configured). Start gnuplot (dnf gnuplot if not installed) then:
+
+gnuplot> set xlabel "hours"
+gnuplot> set ylabel "ms fast"
+gnuplot> set datafile separator ","
+gnuplot> plot "< cat /var/log/ptpd2.stats{.5,.4,.3,.2,.1,}" using ($0/5/60/60):(1000*$5) with l title "ptp"
+
+
+
 UNICAST MODE:
 =============
 
 PTP Unicast Mode
 
 This document describes how to configure PTP in unicast mode and a bit on how to check the corrections
-
 
 Grandmaster setup (unicast mode)
 * add DUT ip address to ptpengine:unicast_destinations=
@@ -195,26 +270,6 @@ root     31452 26633  0 08:03 pts/0    00:00:00 grep --color=auto ptpd
 
 
 
-
-MULTICAST:
-==========
-
-; ==============================================================================
-; This is a recommended configuration for a PTPv2 slave
-; For a full list of options run ptpd2 -H or see the documentation and man pages
-; ==============================================================================
-
-; interface has to be specified
-ptpengine:interface=enp2s0
-
-; PTP domain
-ptpengine:domain=0
-
-; available presets are slaveonly, masteronly and masterslave (full IEEE 1588 implementation)
-ptpengine:preset=masteronly
-
-; multicast for both sync and delay requests - use hybrid for unicast delay requests
-ptpengine:ip_mode=multicast
 
 
 Then on the slaves:
