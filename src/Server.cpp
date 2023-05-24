@@ -340,6 +340,8 @@ inline bool Server::ReadBBWithRXTimestamp () {
 		ReportPacket(myReport, reportstruct);
 		if (!(bbflags & HEADER_BBSTOP)) {
 		    rc = true;
+		} else {
+		   // last BB write received from client, false return code stops this side
 		}
 		break;
 	    }
