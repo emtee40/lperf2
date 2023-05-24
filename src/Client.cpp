@@ -275,6 +275,10 @@ inline void Client::myReportPacket (void) {
     reportstruct->packetLen = 0;
 }
 
+inline void Client::myReportPacket (struct ReportStruct *reportptr) {
+    ReportPacket(myReport, reportptr);
+}
+
 
 // There are multiple startup synchronizations, this code
 // handles them all. The caller decides to apply them
@@ -626,7 +630,7 @@ void Client::RunTCP () {
 		    } else {
 			//time interval crossings may have occurred during the wait
 			//post a null event to cause the report to flush the packet ring
-			PostNullEvent();
+			PostNullEvent(false);
 		    }
 		}
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
@@ -1050,7 +1054,7 @@ void Client::RunBounceBackTCP () {
 	bool isFirst;
 	if (framecounter) {
 	    burst_id = framecounter->wait_tick(&reportstruct->sched_err);
-	    PostNullEvent(true); // this will set the now timestamp
+	    PostNullEvent(true); // now is set in this call
 	    reportstruct->sentTime.tv_sec = now.getSecs();
 	    reportstruct->sentTime.tv_usec = now.getUsecs();
 	    isFirst = true;
@@ -1079,14 +1083,14 @@ void Client::RunBounceBackTCP () {
 		    peerclose = true;
 		    break;
 		} else if (InProgress()) {
-		    PostNullEvent();
+		    PostNullEvent(false);
 		    goto RETRY_WRITE;
 		}
 	    }
 	    if ((reportstruct->packetLen < writelen) && InProgress()) {
 		WARN_errno(1, "tcp bounceback writen incomplete");
 		write_offset += reportstruct->packetLen;
-		PostNullEvent();
+		PostNullEvent(false);
 		goto RETRY_WRITE;
 	    }
 	    if (reportstruct->packetLen == writelen) {
@@ -1120,7 +1124,7 @@ void Client::RunBounceBackTCP () {
 			reportstruct->emptyreport = 0;
 			myReportPacket();
 		    } else if (InProgress()) {
-			PostNullEvent();
+			PostNullEvent(false);
 			goto RETRY_READ;
 		    } else {
 			break;
@@ -1134,7 +1138,7 @@ void Client::RunBounceBackTCP () {
 			break;
 		    } else {
 			WARN(1, "timeout: bounceback read");
-			PostNullEvent();
+			PostNullEvent(false);
 			goto RETRY_READ;
 		    }
 		}
@@ -1722,34 +1726,21 @@ void Client::AwaitServerFinPacket () {
 	fprintf(stderr, warn_no_ack, mySocket, (isModeTime(mSettings) ? 10 : 1));
 }
 
-
-void Client::PostNullEvent (void) {
-    assert(myReport!=NULL);
-    // push a nonevent into the packet ring
-    // this will cause the reporter to process
-    // up to this event
-    memset(reportstruct, 0, sizeof(struct ReportStruct));
-    now.setnow();
-    reportstruct->packetTime.tv_sec = now.getSecs();
-    reportstruct->packetTime.tv_usec = now.getUsecs();
-    reportstruct->emptyreport=1;
-    reportstruct->err_readwrite=NullEvent;
-    myReportPacket();
-}
-
+// isFirst indicates first event occurred per wait_tick
 void Client::PostNullEvent (bool isFirst) {
     assert(myReport!=NULL);
     // push a nonevent into the packet ring
     // this will cause the reporter to process
     // up to this event
-    memset(reportstruct, 0, sizeof(struct ReportStruct));
+    struct ReportStruct report_nopacket;
+    memset(&report_nopacket, 0, sizeof(struct ReportStruct));
     now.setnow();
-    reportstruct->packetTime.tv_sec = now.getSecs();
-    reportstruct->packetTime.tv_usec = now.getUsecs();
-    reportstruct->emptyreport=1;
-    reportstruct->scheduled = isFirst;
-    reportstruct->err_readwrite = WriteNoAccount;
-    myReportPacket();
+    report_nopacket.packetTime.tv_sec = now.getSecs();
+    report_nopacket.packetTime.tv_usec = now.getUsecs();
+    report_nopacket.emptyreport=1;
+    report_nopacket.scheduled = isFirst;
+    report_nopacket.err_readwrite = WriteNoAccount;
+    myReportPacket(&report_nopacket);
 }
 
 // The client end timer is based upon the final fin, fin-ack w/the server
@@ -1759,7 +1750,7 @@ void Client::PostNullEvent (bool isFirst) {
 #define MINAWAITCLOSEUSECS 2000000
 void Client::AwaitServerCloseEvent () {
     // the await detection can take awhile so post a non event ahead of it
-    PostNullEvent();
+    PostNullEvent(false);
     unsigned int amount_usec = \
 	(isModeTime(mSettings) ? static_cast<int>(mSettings->mAmount * 10000) : MINAWAITCLOSEUSECS);
     if (amount_usec < MINAWAITCLOSEUSECS)

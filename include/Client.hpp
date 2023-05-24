@@ -97,7 +97,6 @@ private:
     void FinishTrafficActions(void);
     void AwaitServerFinPacket(void);
     bool InProgress(void);
-    void PostNullEvent(void);
     void PostNullEvent(bool isFirst);
     void AwaitServerCloseEvent(void);
     inline void tcp_shutdown(void);
@@ -110,6 +109,7 @@ private:
     bool apply_first_udppkt_delay;
     int udp_payload_minimum;
     void myReportPacket(void);
+    void myReportPacket(struct ReportStruct *);
     // TCP plain
     void RunTCP(void);
     // TCP version which supports rate limiting per -b
