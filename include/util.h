@@ -270,9 +270,7 @@ void redirect(const char *inOutputFileName);
 				 && (errno != ECONNREFUSED) && (errno != ENOBUFS))
 #endif
 
-#ifdef WIN32
-#else
-#endif
+#define IPERF_SOCKET_ERROR_NONFATAL   -2
 
 #ifdef __cplusplus
 } /* end extern "C" */

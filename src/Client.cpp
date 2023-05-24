@@ -1074,6 +1074,7 @@ void Client::RunBounceBackTCP () {
 	    }
 	    WriteTcpTxBBHdr(reportstruct, burst_id, 0);
 	    int write_offset = 0;
+	    reportstruct->writecnt = 0;
 	  RETRY_WRITE:
 	    reportstruct->packetLen = writen(mySocket, (mSettings->mBuf + write_offset), (writelen - write_offset), &reportstruct->writecnt);
 	    if (reportstruct->packetLen < 0) {
@@ -1134,7 +1135,8 @@ void Client::RunBounceBackTCP () {
 		    break;
 		} else {
 		    if (FATALTCPREADERR(errno)) {
-			WARN_errno(1, "fatal bounceback read");
+			FAIL_errno(1, "fatal bounceback read", mSettings);
+			peerclose = true;
 			break;
 		    } else {
 			WARN(1, "timeout: bounceback read");

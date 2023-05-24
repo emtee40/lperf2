@@ -307,23 +307,28 @@ void Server::PostNullEvent () {
     // push a nonevent into the packet ring
     // this will cause the reporter to process
     // up to this event
-    memset(reportstruct, 0, sizeof(struct ReportStruct));
+    struct ReportStruct report_nopacket;
+    memset(&report_nopacket, 0, sizeof(struct ReportStruct));
     now.setnow();
-    reportstruct->packetTime.tv_sec = now.getSecs();
-    reportstruct->packetTime.tv_usec = now.getUsecs();
-    reportstruct->emptyreport=1;
-    reportstruct->err_readwrite = ReadNoAccount;
-    ReportPacket(myReport, reportstruct);
+    report_nopacket.packetTime.tv_sec = now.getSecs();
+    report_nopacket.packetTime.tv_usec = now.getUsecs();
+    report_nopacket.emptyreport=1;
+    report_nopacket.err_readwrite = WriteNoAccount;
+    ReportPacket(myReport, &report_nopacket);
 }
 
 inline bool Server::ReadBBWithRXTimestamp () {
     bool rc = false;
     int n;
-    while (1) {
-	if ((n = recvn(mySocket, mSettings->mBuf, mSettings->mBounceBackBytes, 0)) == mSettings->mBounceBackBytes) {
-	    struct bounceback_hdr *bbhdr = reinterpret_cast<struct bounceback_hdr *>(mSettings->mBuf);
-	    uint16_t bbflags = ntohs(bbhdr->bbflags);
-	    if (!(bbflags & HEADER_BBSTOP)) {
+    while (InProgress()) {
+	int read_offset = 0;
+      RETRY_READ :
+	n = recvn(mySocket, (mSettings->mBuf + read_offset), (mSettings->mBounceBackBytes - read_offset), 0);
+	if (n > 0) {
+	    read_offset += n;
+	    if (read_offset == mSettings->mBounceBackBytes) {
+		struct bounceback_hdr *bbhdr = reinterpret_cast<struct bounceback_hdr *>(mSettings->mBuf);
+		uint16_t bbflags = ntohs(bbhdr->bbflags);
 		now.setnow();
 		reportstruct->packetTime.tv_sec = now.getSecs();
 		reportstruct->packetTime.tv_usec = now.getUsecs();
@@ -333,19 +338,67 @@ inline bool Server::ReadBBWithRXTimestamp () {
 		bbhdr->bbserverRx_ts.sec = htonl(reportstruct->packetTime.tv_sec);
 		bbhdr->bbserverRx_ts.usec = htonl(reportstruct->packetTime.tv_usec);
 		ReportPacket(myReport, reportstruct);
-		rc = true;
-	    } else {
-		peerclose = true;
+		if (!(bbflags & HEADER_BBSTOP)) {
+		    rc = true;
+		}
+		break;
 	    }
-	    break;
-	} else if (n==0) {
-	    peerclose = true;
-	    break;
-	} else if (n == -2){
+	} else if (n == 0) {
+		peerclose = true;
+	} else if (n == IPERF_SOCKET_ERROR_NONFATAL) {
 	    PostNullEvent();
+	    goto RETRY_READ;
 	} else {
-	    break;
+	    if (FATALTCPREADERR(errno)) {
+		WARN_errno(1, "fatal bounceback read");
+		peerclose = true;
+		break;
+	    } else {
+		WARN(1, "timeout: bounceback read");
+		PostNullEvent();
+		goto RETRY_READ;
+	    }
 	}
+    }
+    return rc;
+}
+
+inline bool Server::WriteBB () {
+    int n;
+    bool rc = false;
+    struct bounceback_hdr *bbhdr = reinterpret_cast<struct bounceback_hdr *>(mSettings->mBuf);
+    now.setnow();
+    bbhdr->bbserverTx_ts.sec = htonl(now.getSecs());
+    bbhdr->bbserverTx_ts.usec = htonl(now.getUsecs());
+    if (mSettings->mTOS) {
+	bbhdr->tos = htons((uint16_t)(mSettings->mTOS & 0xFF));
+    }
+    int write_offset = 0;
+    reportstruct->writecnt = 0;
+    int writelen = mSettings->mBounceBackReplyBytes;
+    while (InProgress()) {
+	n = writen(mySocket, (mSettings->mBuf + write_offset), (writelen - write_offset), &reportstruct->writecnt);
+	if (n < 0) {
+	    if (FATALTCPWRITERR(errno)) {
+		reportstruct->err_readwrite=WriteErrFatal;
+		FAIL_errno(1, "tcp bounceback writen", mSettings);
+		peerclose = true;
+		break;
+	    } else {
+		PostNullEvent();
+		continue;
+	    }
+	}
+	write_offset += n;
+	if (write_offset < writelen) {
+	    WARN_errno(1, "tcp bounceback writen incomplete");
+	    PostNullEvent();
+	    continue;
+	}
+	reportstruct->emptyreport = 0;
+	reportstruct->err_readwrite=WriteSuccess;
+	reportstruct->packetLen = writelen;
+	return true;
     }
     return rc;
 }
@@ -380,37 +433,18 @@ void Server::RunBounceBackTCP () {
     reportstruct->emptyreport=0;
     ReportPacket(myReport, reportstruct);
 
-    while (InProgress()) {
-	int n;
-	reportstruct->emptyreport=1;
-	do {
-	    struct bounceback_hdr *bbhdr = reinterpret_cast<struct bounceback_hdr *>(mSettings->mBuf);
-	    if (mSettings->mBounceBackHold) {
-#if HAVE_DECL_TCP_QUICKACK
-		if (isTcpQuickAck(mSettings)) {
-		    int opt = 1;
-		    Socklen_t len = sizeof(opt);
-		    int rc = setsockopt(mySocket, IPPROTO_TCP, TCP_QUICKACK,
-					reinterpret_cast<char*>(&opt), len);
-		    WARN_errno(rc == SOCKET_ERROR, "setsockopt TCP_QUICKACK");
-		}
-#endif
-		delay_loop(mSettings->mBounceBackHold);
-	    }
-	    now.setnow();
-	    bbhdr->bbserverTx_ts.sec = htonl(now.getSecs());
-	    bbhdr->bbserverTx_ts.usec = htonl(now.getUsecs());
-	    if (mSettings->mTOS) {
-	        bbhdr->tos = htons((uint16_t)(mSettings->mTOS & 0xFF));
-	    }
-	    if ((n = writen(mySocket, mSettings->mBuf, mSettings->mBounceBackReplyBytes, &reportstruct->writecnt)) == mSettings->mBounceBackReplyBytes) {
-		reportstruct->emptyreport=0;
-		reportstruct->packetLen = n;
-		ReportPacket(myReport, reportstruct);
-	    } else {
+    int rc;
+    while (InProgress() && (rc = WriteBB())) {
+	if (rc) {
+	    ReportPacket(myReport, reportstruct);
+	    if (ReadBBWithRXTimestamp())
+		continue;
+	    else {
 		break;
 	    }
-	} while (ReadBBWithRXTimestamp());
+	} else {
+	    break;
+	}
     }
     disarm_itimer();
     // stop timing

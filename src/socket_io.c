@@ -82,7 +82,7 @@ ssize_t readn (int inSock, void *outBuf, size_t inLen) {
             if (errno == EINTR)
                 nread = 0;  /* interupted, call read again */
             else
-                return -1;  /* error */
+                return SOCKET_ERROR;  /* error */
         } else if (nread == 0)
             break;        /* EOF */
 
@@ -119,7 +119,7 @@ int recvn (int inSock, char *outBuf, int inLen, int flags) {
 		// Note: use TCP fatal error codes even for UDP
 		if (FATALTCPREADERR(errno)) {
 		    WARN_errno(1, "recvn peek");
-		    nread = -1;
+		    nread = SOCKET_ERROR;
 		    sInterupted = 1;
 		    goto DONE;
 		}
@@ -151,11 +151,11 @@ int recvn (int inSock, char *outBuf, int inLen, int flags) {
 		// Note: use TCP fatal error codes even for UDP
 		if (FATALTCPREADERR(errno)) {
 		    WARN_errno(1, "recvn");
-		    nread = -1;
+		    nread = SOCKET_ERROR;
 		    sInterupted = 1;
 		    goto DONE;
 		} else {
-		    nread = -2;
+		    nread = IPERF_SOCKET_ERROR_NONFATAL;
 		    goto DONE;
 		}
 #ifdef HAVE_THREAD_DEBUG
@@ -179,7 +179,7 @@ int recvn (int inSock, char *outBuf, int inLen, int flags) {
     }
   DONE:
     return(nread);
-} /* end readn */
+} /* end recvn */
 
 /* -------------------------------------------------------------------
  * Attempts to write  n bytes to a socket.
@@ -202,7 +202,6 @@ int writen (int inSock, const void *inBuf, int inLen, int *count) {
     ptr   = (char*) inBuf;
     nleft = inLen;
     nwritten = 0;
-    *count = 0;
 
     while ((nleft > 0) && !sInterupted) {
         nwritten = write(inSock, ptr, nleft);
