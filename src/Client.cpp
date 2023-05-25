@@ -1076,8 +1076,8 @@ void Client::RunBounceBackTCP () {
 	    int write_offset = 0;
 	    reportstruct->writecnt = 0;
 	  RETRY_WRITE:
-	    reportstruct->packetLen = writen(mySocket, (mSettings->mBuf + write_offset), (writelen - write_offset), &reportstruct->writecnt);
-	    if (reportstruct->packetLen < 0) {
+	    n = writen(mySocket, (mSettings->mBuf + write_offset), (writelen - write_offset), &reportstruct->writecnt);
+	    if (n < 0) {
 		if (FATALTCPWRITERR(errno)) {
 		    reportstruct->err_readwrite=WriteErrFatal;
 		    WARN_errno(1, "tcp bounceback write fatal error");
@@ -1088,13 +1088,13 @@ void Client::RunBounceBackTCP () {
 		    goto RETRY_WRITE;
 		}
 	    }
-	    if ((reportstruct->packetLen < writelen) && InProgress()) {
+	    write_offset += n;
+	    if ((write_offset < writelen) && InProgress()) {
 		WARN_errno(1, "tcp bounceback writen incomplete");
-		write_offset += reportstruct->packetLen;
 		PostNullEvent(false);
 		goto RETRY_WRITE;
 	    }
-	    if (reportstruct->packetLen == writelen) {
+	    if (write_offset == writelen) {
 		reportstruct->emptyreport = 0;
 		totLen += writelen;
 		reportstruct->err_readwrite=WriteSuccess;
