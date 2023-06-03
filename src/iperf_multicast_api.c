@@ -81,7 +81,7 @@
  * ------------------------------------------------------------------- */
 #include "headers.h"
 #include "Settings.hpp"
-#include "iperf_multicast_join.h"
+#include "iperf_multicast_api.h"
 #include "SocketAddr.h"
 #include "util.h"
 

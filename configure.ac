@@ -4,9 +4,9 @@ dnl Process this file with autogen.sh to produce configure files
 dnl ===================================================================
 
 
-AC_PREREQ(2.59)
-AC_INIT(Iperf,2.1.n)
-AC_CONFIG_HEADER([config.h])
+AC_PREREQ([2.71])
+AC_INIT([Iperf],[2.1.n])
+AC_CONFIG_HEADERS([config.h])
 AM_INIT_AUTOMAKE()
 
 dnl The end user may not have autotools
@@ -16,62 +16,46 @@ m4_include([m4/ax_create_stdint_h.m4])
 m4_include([m4/dast.m4])
 m4_include([m4/ax_pthread.m4])
 
-AC_ARG_ENABLE(ipv6, AC_HELP_STRING([--disable-ipv6],
-	    [disable ipv6 support (default is autodetect)]),
+AC_ARG_ENABLE(ipv6, AS_HELP_STRING([--disable-ipv6],[disable ipv6 support (default is autodetect)]),
 	ac_cv_have_ipv6=$enable_ipv6)
 
-AC_ARG_ENABLE(multicast, AC_HELP_STRING([--disable-multicast],
-	    [disable multicast support (default is autodetect)]),
+AC_ARG_ENABLE(multicast, AS_HELP_STRING([--disable-multicast],[disable multicast support (default is autodetect)]),
 	ac_cv_multicast=$enable_multicast)
 
-AC_ARG_ENABLE(tcpstats, AC_HELP_STRING([--disable-tcpstats],
-	    [disable tcpstats support (default is autodetect)]),
+AC_ARG_ENABLE(tcpstats, AS_HELP_STRING([--disable-tcpstats],[disable tcpstats support (default is autodetect)]),
 	ac_cv_tcpstats=$enable_tcpstats)
 
-AC_ARG_ENABLE(threads, AC_HELP_STRING([--disable-threads],
-	    [disable thread support (default is autodetect)]))
+AC_ARG_ENABLE(threads, AS_HELP_STRING([--disable-threads],[disable thread support (default is autodetect)]))
 
-AC_ARG_ENABLE(debuginfo, AC_HELP_STRING([--enable-debuginfo],
-	    [enable asserts and debugging info for sockets (default is no)]),
+AC_ARG_ENABLE(debuginfo, AS_HELP_STRING([--enable-debuginfo],[enable asserts and debugging info for sockets (default is no)]),
 	enable_debuginfo=$enableval,
 	enable_debuginfo=no)
 
-AC_ARG_ENABLE(web100, AC_HELP_STRING([--disable-web100],
-	    [disable web100 support (default is autodetect)]))
+AC_ARG_ENABLE(web100, AS_HELP_STRING([--disable-web100],[disable web100 support (default is autodetect)]))
 
-AC_ARG_ENABLE(kalman, AC_HELP_STRING([--disable-kalman],
-	    [disable kalman delay tuning (default is enable)]))
+AC_ARG_ENABLE(kalman, AS_HELP_STRING([--disable-kalman],[disable kalman delay tuning (default is enable)]))
 
-AC_ARG_ENABLE(write_select, AC_HELP_STRING([--disable-write-select],
-	    [disable use of select before writes (default is enable)]))
+AC_ARG_ENABLE(write_select, AS_HELP_STRING([--disable-write-select],[disable use of select before writes (default is enable)]))
 
-AC_ARG_ENABLE(role_reversal_id, AC_HELP_STRING([--disable-role-reversal-id],
-	    [disable role reversal special characters (default is enable)]))
+AC_ARG_ENABLE(role_reversal_id, AS_HELP_STRING([--disable-role-reversal-id],[disable role reversal special characters (default is enable)]))
 
-AC_ARG_ENABLE(default_localonly, AC_HELP_STRING([--enable-default-localonly],
-	    [enforce limiting test traffic to local-only network (via socket SO_DONTROUTE) as the default mode]))
+AC_ARG_ENABLE(default_localonly, AS_HELP_STRING([--enable-default-localonly],[enforce limiting test traffic to local-only network (via socket SO_DONTROUTE) as the default mode]))
 
-AC_ARG_ENABLE(seqno64b, AC_HELP_STRING([--disable-seqno64b],
-	    [disable 64 bit sequence numer support (default is enable)]))
+AC_ARG_ENABLE(seqno64b, AS_HELP_STRING([--disable-seqno64b],[disable 64 bit sequence numer support (default is enable)]))
 
-AC_ARG_ENABLE(fastsampling, AC_HELP_STRING([--enable-fastsampling],
-	    [enable support for 100 microsecond report intervals (default is disable)]))
+AC_ARG_ENABLE(fastsampling, AS_HELP_STRING([--enable-fastsampling],[enable support for 100 microsecond report intervals (default is disable)]))
 AM_CONDITIONAL([FASTSAMPLING], [test "x$enable_fastsampling" = "xyes"])
 
-AC_ARG_ENABLE(discover_defaultlen, AC_HELP_STRING([--enable-discover-defaultlen],
-	    [enable support to set the default payload size after device MTU discovery  (default is disable)]))
+AC_ARG_ENABLE(discover_defaultlen, AS_HELP_STRING([--enable-discover-defaultlen],[enable support to set the default payload size after device MTU discovery  (default is disable)]))
 AM_CONDITIONAL([DISCOVER_DEFAULTLEN], [test "x$enable_discover_defaultlen" = "xyes"])
 
-AC_ARG_ENABLE(thread_debug, AC_HELP_STRING([--enable-thread-debug],
-	    [enable support for thread debugging (default is disable)]))
+AC_ARG_ENABLE(thread_debug, AS_HELP_STRING([--enable-thread-debug],[enable support for thread debugging (default is disable)]))
 AM_CONDITIONAL([THREAD_DEBUG], [test "x$enable_thread_debug" = "xyes"])
 
-AC_ARG_ENABLE(packet_debug, AC_HELP_STRING([--enable-packet-debug],
-	    [enable support for packet level debugging (default is disable)]))
+AC_ARG_ENABLE(packet_debug, AS_HELP_STRING([--enable-packet-debug],[enable support for packet level debugging (default is disable)]))
 AM_CONDITIONAL([PACKET_DEBUG], [test "x$enable_packet_debug" = "xyes"])
 
-AC_ARG_ENABLE(checkprograms, AC_HELP_STRING([--enable-checkprograms],
-	    [enable support for building support programs such as checkdelay, checkpdfs, etc. (default is disable)]))
+AC_ARG_ENABLE(checkprograms, AS_HELP_STRING([--enable-checkprograms],[enable support for building support programs such as checkdelay, checkpdfs, etc. (default is disable)]))
 AM_CONDITIONAL([CHECKPROGRAMS], [test "x$enable_checkprograms" = "xyes"])
 
 AC_ARG_ENABLE([static-bin],
@@ -141,7 +125,7 @@ AC_PROG_CXX
 CXXFLAGS=`echo " $CXXFLAGS " | sed -e "s/ -g / /"` # do not want it implicitly
 AC_PROG_CC
 CFLAGS=`echo " $CFLAGS " | sed -e "s/ -g / /"` # do not want it implicitly
-AC_ISC_POSIX
+AC_SEARCH_LIBS([strerror],[cposix])
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AC_PROG_RANLIB
@@ -177,7 +161,15 @@ AC_SEARCH_LIBS([socket], [socket], [],
   [#include <windows.h>])])
 
 dnl Checks for header files.
-AC_HEADER_STDC
+m4_warn([obsolete],
+[The preprocessor macro `STDC_HEADERS' is obsolete.
+  Except in unusual embedded environments, you can safely include all
+  ISO C90 headers unconditionally.])dnl
+# Autoupdate added the next two lines to ensure that your configure
+# script's behavior did not change.  They are probably safe to remove.
+AC_CHECK_INCLUDES_DEFAULT
+AC_PROG_EGREP
+
 AC_CHECK_HEADERS([arpa/inet.h libintl.h net/ethernet.h net/if.h sys/ioctl.h sys/sockio.h linux/sockios.h linux/ip.h linux/udp.h linux/if_packet.h linux/filter.h linux/if_tun.h netdb.h netinet/in.h netinet/tcp.h stdlib.h string.h strings.h sys/socket.h sys/time.h syslog.h unistd.h signal.h ifaddrs.h])
 
 dnl ===================================================================
@@ -187,7 +179,20 @@ dnl ===================================================================
 AC_C_CONST
 AC_TYPE_SIZE_T
 AC_CHECK_TYPES(ssize_t,,AC_DEFINE_UNQUOTED(ssize_t, int))
-AC_HEADER_TIME
+m4_warn([obsolete],
+[Update your code to rely only on HAVE_SYS_TIME_H,
+then remove this warning and the obsolete code below it.
+All current systems provide time.h; it need not be checked for.
+Not all systems provide sys/time.h, but those that do, all allow
+you to include it and time.h simultaneously.])dnl
+AC_CHECK_HEADERS_ONCE([sys/time.h])
+# Obsolete code to be removed.
+if test $ac_cv_header_sys_time_h = yes; then
+  AC_DEFINE([TIME_WITH_SYS_TIME],[1],[Define to 1 if you can safely include both <sys/time.h>
+	     and <time.h>.  This macro is obsolete.])
+fi
+# End of obsolete code.
+
 AC_STRUCT_TM
 
 AC_CHECK_TYPES(int64_t)
@@ -218,7 +223,19 @@ AC_DEFINE_UNQUOTED([Socklen_t], $ac_cv_accept_arg, [Define 3rd arg of accept])
 dnl Checks for library functions.
 AC_FUNC_MEMCMP
 AC_FUNC_SELECT_ARGTYPES
-AC_TYPE_SIGNAL
+m4_warn([obsolete],
+[your code may safely assume C89 semantics that RETSIGTYPE is void.
+Remove this warning and the `AC_CACHE_CHECK' when you adjust the code.])dnl
+AC_CACHE_CHECK([return type of signal handlers],[ac_cv_type_signal],[AC_COMPILE_IFELSE(
+[AC_LANG_PROGRAM([#include <sys/types.h>
+#include <signal.h>
+],
+		 [return *(signal (0, 0)) (0) == 1;])],
+		   [ac_cv_type_signal=int],
+		   [ac_cv_type_signal=void])])
+AC_DEFINE_UNQUOTED([RETSIGTYPE],[$ac_cv_type_signal],[Define as the return type of signal handlers
+		    (`int' or `void').])
+
 AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([atexit memset select strchr strerror strtol strtoll strtod usleep clock_gettime sched_setscheduler sched_yield mlockall setitimer nanosleep clock_nanosleep freopen])
@@ -290,9 +307,9 @@ AC_C_BIGENDIAN
 dnl ===================================================================
 dnl Check for system services
 AC_MSG_CHECKING([for gettid syscall])
-AC_TRY_LINK([#include <unistd.h>
+AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <unistd.h>
 #include <sys/syscall.h>
-], [syscall(SYS_gettid);], [ok=yes], [ok=no])
+]], [[syscall(SYS_gettid);]])],[ok=yes],[ok=no])
 if test "$ok" = "yes"; then
 	AC_DEFINE(HAVE_GETTID_SYSCALL,1,[Define if syscall(SYS_gettid) available.])
 fi

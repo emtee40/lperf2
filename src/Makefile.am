@@ -50,7 +50,7 @@ iperf_SOURCES = \
 		pdfs.c \
 		dscp.c \
 		iperf_formattime.c \
-		iperf_multicast_join.c
+		iperf_multicast_api.c
 iperf_LDADD = $(LIBCOMPAT_LDADDS)
 
 

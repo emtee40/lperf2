@@ -58,7 +58,7 @@
 #include "Thread.h"
 #include "Settings.hpp"
 #include "Timestamp.hpp"
-#include "iperf_multicast_join.h"
+#include "iperf_multicast_api.h"
 
 class Listener;
 
