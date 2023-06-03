@@ -83,7 +83,7 @@ private:
     bool apply_client_settings_tcp(thread_Settings *server);
     bool apply_client_settings(thread_Settings *server);
     int client_test_ack(thread_Settings *server);
-    void my_listen(void);
+    bool my_listen(void);
     int my_accept(thread_Settings *server);
     int udp_accept(thread_Settings *server);
     int tuntap_accept(thread_Settings *server);

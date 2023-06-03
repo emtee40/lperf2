@@ -139,7 +139,8 @@ void Listener::Run () {
     }
     if (!isUDP(mSettings)) {
 	// TCP needs just one listen
-	my_listen(); // This will set ListenSocket to a new sock fd
+	if (!my_listen()) // This will set ListenSocket to a new sock fd
+	    return;
     }
     bool mMode_Time = isServerModeTime(mSettings) && !isDaemon(mSettings);
     if (mMode_Time) {
@@ -178,9 +179,11 @@ void Listener::Run () {
 #endif
 	    continue;
 	}
+        // This will set ListenSocket to a new sock fd
 	if (isUDP(mSettings)) {
 	    // UDP needs a new listen per every new socket
-	    my_listen(); // This will set ListenSocket to a new sock fd
+	    if (!my_listen())
+		break;
 	}
 	// Use a select() with a timeout if -t is set or if this is a v1 -r or -d test
 	fd_set set;
@@ -393,7 +396,7 @@ void Listener::Run () {
  * wildcard server address, specifying what incoming interface to
  * accept connections on.
  * ------------------------------------------------------------------- */
-void Listener::my_listen () {
+bool Listener::my_listen () {
     int rc;
     int type;
     int domain;
@@ -480,13 +483,16 @@ void Listener::my_listen () {
 	// if UDP and multicast, join the group
 	if (SockAddr_isMulticast(&mSettings->local)) {
 #ifdef HAVE_MULTICAST
-	    iperf_multicast_join(mSettings);
+	    if (iperf_multicast_join(mSettings) != IPERF_MULTICAST_JOIN_SUCCESS) {
+		return false;
+	    }
 #else
 	    fprintf(stderr, "Multicast not supported");
 #endif // HAVE_MULTICAST
 	}
 #endif
     }
+    return true;
 } // end my_listen()
 
 
