@@ -318,29 +318,25 @@ static int iperf_multicast_ssm_join_v6 (struct thread_Settings *inSettings) {
 
 int iperf_multicast_join (struct thread_Settings *inSettings) {
     int rc = IPERF_MULTICAST_JOIN_FAIL;
-    if (isIPV6(inSettings) && !SockAddr_isIPv6(&inSettings->local)) {
-	WARN(1,"-V for v6 set but -B multicast address not v6");
-    } else {
-	if (!isSSMMulticast(inSettings)) {
-	    // *.G join
-	    if (!SockAddr_isIPv6(&inSettings->local)) {
-		rc = iperf_multicast_join_v4_legacy(inSettings);
-		if (rc != IPERF_MULTICAST_JOIN_SUCCESS) {
-		    rc = iperf_multicast_join_v4_pi(inSettings);
-		}
-	    } else {
-		rc = iperf_multicast_join_v6_pi(inSettings);
-		if (rc != IPERF_MULTICAST_JOIN_SUCCESS) {
-		    rc = iperf_multicast_join_v6(inSettings);
-		}
+    if (!isSSMMulticast(inSettings)) {
+	// *.G join
+	if (!SockAddr_isIPv6(&inSettings->local)) {
+	    rc = iperf_multicast_join_v4_legacy(inSettings);
+	    if (rc != IPERF_MULTICAST_JOIN_SUCCESS) {
+		rc = iperf_multicast_join_v4_pi(inSettings);
 	    }
 	} else {
-	    // SSM or S,G join
-	    if (!isIPV6(inSettings)) {
-		rc = iperf_multicast_ssm_join_v4(inSettings);
-	    } else {
-		rc = iperf_multicast_ssm_join_v6(inSettings);
+	    rc = iperf_multicast_join_v6_pi(inSettings);
+	    if (rc != IPERF_MULTICAST_JOIN_SUCCESS) {
+		rc = iperf_multicast_join_v6(inSettings);
 	    }
+	}
+    } else {
+	// SSM or S,G join
+	if (!isIPV6(inSettings)) {
+	    rc = iperf_multicast_ssm_join_v4(inSettings);
+	} else {
+	    rc = iperf_multicast_ssm_join_v6(inSettings);
 	}
     }
     return rc;

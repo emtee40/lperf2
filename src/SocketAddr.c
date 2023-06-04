@@ -104,7 +104,6 @@ void SockAddr_localAddr (struct thread_Settings *inSettings) {
 			     isIPV6(inSettings));
 	if (inSettings->incrsrcip)
 	    SockAddr_incrAddress(&inSettings->local, inSettings->incrsrcip);
-
     } else {
 #if HAVE_IPV6
         if (isIPV6(inSettings)) {
@@ -271,7 +270,11 @@ void SockAddr_setHostname (const char* inHostname, iperf_sockaddr *inSockAddr, i
 	}
     }
     if (!found) {
-	fprintf(stderr, "ERROR: failed to find an ip address for host '%s'\n", inHostname);
+	if (!isIPv6) {
+	    fprintf(stderr, "ERROR: failed to find an ip address for host '%s'\n", inHostname);
+	} else {
+	    fprintf(stderr, "ERROR: failed to find an ipv6 address for host '%s'\n", inHostname);
+	}
 	exit(1);
     }
 }
