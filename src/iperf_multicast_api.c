@@ -327,7 +327,7 @@ int iperf_multicast_join (struct thread_Settings *inSettings) {
 	    if (rc != IPERF_MULTICAST_JOIN_SUCCESS) {
 		rc = iperf_multicast_join_v4_pi(inSettings);
 	    } else {
-		disable_multicast_all = false; // legacy us didn't disable
+		disable_multicast_all = false; // legacy usage didn't disable
 	    }
 	} else {
 	    rc = iperf_multicast_join_v6_pi(inSettings);
