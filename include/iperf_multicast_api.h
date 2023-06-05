@@ -55,9 +55,14 @@ extern "C" {
 #endif
 
 #define IPERF_MULTICAST_JOIN_SUCCESS 1
+#define IPERF_MULTICAST_SENDIF_SUCCESS 1
 #define IPERF_MULTICAST_JOIN_FAIL -2
 #define IPERF_MULTICAST_JOIN_UNSUPPORTED -3
+#define IPERF_MULTICAST_SENDIF_FAIL -4
+
 int iperf_multicast_join (struct thread_Settings *inSettings);
+int iperf_multicast_sendif_v4 (struct thread_Settings *inSettings);
+int iperf_multicast_sendif_v6 (struct thread_Settings *inSettings);
 
 #ifdef __cplusplus
 } /* end extern "C" */

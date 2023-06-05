@@ -1989,14 +1989,16 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	// Check for multicast per the -B
 	SockAddr_setHostname(mExtSettings->mLocalhost, &tmp,
 			     (isIPV6(mExtSettings) ? 1 : 0));
-	if ((mExtSettings->mThreadMode != kMode_Client) && SockAddr_isMulticast(&tmp)) {
-	    setMulticast(mExtSettings);
-	} else if (SockAddr_isMulticast(&tmp)) {
-	    if (mExtSettings->mIfrname) {
-		free(mExtSettings->mIfrname);
-		mExtSettings->mIfrname = NULL;
+	if (mExtSettings->mThreadMode != kMode_Client) {
+	    if (SockAddr_isMulticast(&tmp)) {
+		setMulticast(mExtSettings);
 	    }
-	    fprintf(stderr, "WARNING: Client src addr (per -B) must be ip unicast\n");
+	} else {
+	    // client checks
+	    if (SockAddr_isMulticast(&tmp)) {
+		fprintf(stderr, "WARNING: Client src addr (per -B) must be ip unicast\n");
+		exit(1);
+	    }
 	}
     }
     // Parse client (-c) addresses for multicast, link-local and bind to device, port incr

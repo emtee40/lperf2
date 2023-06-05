@@ -8407,6 +8407,8 @@ fi
 fi
 
 
+# Autoupdate added the next two lines to ensure that your configure
+# script's behavior did not change.  They are probably safe to remove.
 ac_header= ac_cache=
 for ac_item in $ac_header_c_list
 do
@@ -8436,9 +8438,6 @@ then :
 printf "%s\n" "#define STDC_HEADERS 1" >>confdefs.h
 
 fi
-# Autoupdate added the next two lines to ensure that your configure
-# script's behavior did not change.  They are probably safe to remove.
-
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for egrep" >&5
 printf %s "checking for egrep... " >&6; }
 if test ${ac_cv_path_EGREP+y}
@@ -9773,6 +9772,24 @@ else $as_nop
   ac_have_decl=0
 fi
 printf "%s\n" "#define HAVE_DECL_MSG_ERRQUEUE $ac_have_decl" >>confdefs.h
+ac_fn_check_decl "$LINENO" "IP_MULTICAST_IF" "ac_cv_have_decl_IP_MULTICAST_IF" "$in_h
+" "$ac_c_undeclared_builtin_options" "CFLAGS"
+if test "x$ac_cv_have_decl_IP_MULTICAST_IF" = xyes
+then :
+  ac_have_decl=1
+else $as_nop
+  ac_have_decl=0
+fi
+printf "%s\n" "#define HAVE_DECL_IP_MULTICAST_IF $ac_have_decl" >>confdefs.h
+ac_fn_check_decl "$LINENO" "IPV6_MULTICAST_IF" "ac_cv_have_decl_IPV6_MULTICAST_IF" "$in_h
+" "$ac_c_undeclared_builtin_options" "CFLAGS"
+if test "x$ac_cv_have_decl_IPV6_MULTICAST_IF" = xyes
+then :
+  ac_have_decl=1
+else $as_nop
+  ac_have_decl=0
+fi
+printf "%s\n" "#define HAVE_DECL_IPV6_MULTICAST_IF $ac_have_decl" >>confdefs.h
 ac_fn_check_decl "$LINENO" "TCP_NOTSENT_LOWAT" "ac_cv_have_decl_TCP_NOTSENT_LOWAT" "$in_h
 " "$ac_c_undeclared_builtin_options" "CFLAGS"
 if test "x$ac_cv_have_decl_TCP_NOTSENT_LOWAT" = xyes

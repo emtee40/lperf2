@@ -151,11 +151,38 @@ void Client::mySockInit (void) {
     SetSocketOptions(mSettings);
     SockAddr_localAddr(mSettings);
     SockAddr_remoteAddr(mSettings);
+
     if (mSettings->mLocalhost != NULL) {
-        // bind socket to local address
-        int rc = bind(mySocket, reinterpret_cast<sockaddr*>(&mSettings->local),
-		  SockAddr_get_sizeof_sockaddr(&mSettings->local));
-        WARN_errno(rc == SOCKET_ERROR, "bind");
+	bool try_bind = true;
+	if (isMulticast(mSettings)) {
+	    // Multicast can bind to a send device & ip addr in two ways,
+	    // 1) Use SO_BINDTODEVICE and a bind call
+	    // 2) Use the socket option of IP_MULTICAST_IF or IPV6_MULTICAST_IF
+	    // Number one typically requires root and takes priority
+	    // Check to see if a device is bound to determine which tecnique to use
+	    int rc = -1;
+	    char ifname[IFNAMSIZ];
+	    ifname[0] = '\0';
+#if HAVE_DECL_SO_BINDTODEVICE
+	    socklen_t optlen = IFNAMSIZ;
+	    rc = getsockopt(mSettings->mSock, SOL_SOCKET, SO_BINDTODEVICE, (void *)&ifname, &optlen);
+#endif
+	    if ((rc != 0) || (strlen(ifname) == 0)) {
+		if (!isIPV6(mSettings)) {
+		    if (iperf_multicast_sendif_v4(mSettings) == IPERF_MULTICAST_SENDIF_SUCCESS)
+			try_bind = false;
+		} else {
+		    if (iperf_multicast_sendif_v6(mSettings) == IPERF_MULTICAST_SENDIF_SUCCESS)
+			try_bind = false;
+		}
+	    }
+	}
+	if (try_bind) {
+	    // bind socket to local address
+	    int rc = bind(mySocket, reinterpret_cast<sockaddr*>(&mSettings->local),
+			  SockAddr_get_sizeof_sockaddr(&mSettings->local));
+	    WARN_errno(rc == SOCKET_ERROR, "bind");
+	}
     }
     mysock_init_done = true;
 }

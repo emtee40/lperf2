@@ -90,7 +90,7 @@
 #endif
 
 static int mcast_iface (struct thread_Settings *inSettings) {
-    int iface=0;
+    unsigned int iface=0;
     /* Set the interface or any */
     if (inSettings->mIfrname) {
 #if HAVE_NET_IF_H
@@ -103,16 +103,22 @@ static int mcast_iface (struct thread_Settings *inSettings) {
     return iface;
 }
 
-#if 0 // uncomment this if IP_MULTICAST_ALL is ever needed
+
+// IP_MULTICAST_ALL is on be default, disable it here.
+// If set to 1, the socket will receive messages from all the groups that have been joined
+// globally on the whole system.  Otherwise, it will deliver messages only from the
+// groups that have been explicitly joined (for example via the IP_ADD_MEMBERSHIP option)
+// on this particular socket.
+static int iperf_multicast_all_disable (struct thread_Settings *inSettings) {
+    int rc = 0;
 #if HAVE_DECL_IP_MULTICAST_ALL
-static int iperf_multicast_all (struct thread_Settings *inSettings) {
     int mc_all = 0;
-    int rc = setsockopt(inSettings->mSock, IPPROTO_IP, IP_MULTICAST_ALL, (void*) &mc_all, sizeof(mc_all));
-    FAIL_errno(rc == SOCKET_ERROR, "ip_multicast_all",inSettings);
+    rc = setsockopt(inSettings->mSock, IPPROTO_IP, IP_MULTICAST_ALL, (void*) &mc_all, sizeof(mc_all));
+    FAIL_errno(rc == SOCKET_ERROR, "ip_multicast_all", inSettings);
+#endif
     return rc;
 }
-#endif
-#endif
+
 
 // This is the older mulitcast join code. Both SSM and binding the
 // an interface requires the newer socket options.  Using the older
@@ -250,8 +256,7 @@ static int iperf_multicast_ssm_join_v4 (struct thread_Settings *inSettings) {
 		    sizeof(struct group_source_req));
 #endif
 
-#if HAVE_DECL_IP_ADD_SOURCE_MEMBERSHIP
-#if HAVE_STRUCT_IP_MREQ_SOURCE
+#if (HAVE_DECL_IP_ADD_SOURCE_MEMBERSHIP && HAVE_STRUCT_IP_MREQ_SOURCE)
     // Some operating systems will have MCAST_JOIN_SOURCE_GROUP but still fail
     // In those cases try the IP_ADD_SOURCE_MEMBERSHIP
     if (rc < 0) {
@@ -266,7 +271,6 @@ static int iperf_multicast_ssm_join_v4 (struct thread_Settings *inSettings) {
 	rc = setsockopt (inSettings->mSock, IPPROTO_IP, IP_ADD_SOURCE_MEMBERSHIP, (char*)(&imr), sizeof (imr));
     }
 #endif
-#endif
     FAIL_errno(rc == SOCKET_ERROR, "mcast v4 join ssm", inSettings);
     return ((rc == 0) ? IPERF_MULTICAST_JOIN_SUCCESS : IPERF_MULTICAST_JOIN_FAIL);
 #else
@@ -275,7 +279,7 @@ static int iperf_multicast_ssm_join_v4 (struct thread_Settings *inSettings) {
 }
 
 static int iperf_multicast_ssm_join_v6 (struct thread_Settings *inSettings) {
-#if (HAVE_IPV6_MULTICAST && HAVE_SSM_MULTICAST)
+#if (HAVE_IPV6_MULTICAST && HAVE_SSM_MULTICAST && HAVE_DECL_MCAST_JOIN_SOURCE_GROUP)
     int rc;
 
     // Here it's either an SSM S,G multicast join or a *,G with an interface specifier
@@ -304,11 +308,8 @@ static int iperf_multicast_ssm_join_v6 (struct thread_Settings *inSettings) {
 #if HAVE_STRUCT_SOCKADDR_IN6_SIN6_LEN
     source->sin6_len = group->sin6_len;
 #endif
-    rc = -1;
-#if HAVE_DECL_MCAST_JOIN_SOURCE_GROUP
     rc = setsockopt(inSettings->mSock,IPPROTO_IPV6,MCAST_JOIN_SOURCE_GROUP, (const char *)(&group_source_req),
 		    sizeof(struct group_source_req));
-#endif
     FAIL_errno(rc == SOCKET_ERROR, "mcast v6 join source group", inSettings);
     return ((rc == 0) ? IPERF_MULTICAST_JOIN_SUCCESS : IPERF_MULTICAST_JOIN_FAIL);
 #else
@@ -318,12 +319,15 @@ static int iperf_multicast_ssm_join_v6 (struct thread_Settings *inSettings) {
 
 int iperf_multicast_join (struct thread_Settings *inSettings) {
     int rc = IPERF_MULTICAST_JOIN_FAIL;
+    bool disable_multicast_all = true;
     if (!isSSMMulticast(inSettings)) {
 	// *.G join
 	if (!SockAddr_isIPv6(&inSettings->local)) {
 	    rc = iperf_multicast_join_v4_legacy(inSettings);
 	    if (rc != IPERF_MULTICAST_JOIN_SUCCESS) {
 		rc = iperf_multicast_join_v4_pi(inSettings);
+	    } else {
+		disable_multicast_all = false; // legacy us didn't disable
 	    }
 	} else {
 	    rc = iperf_multicast_join_v6_pi(inSettings);
@@ -333,11 +337,44 @@ int iperf_multicast_join (struct thread_Settings *inSettings) {
 	}
     } else {
 	// SSM or S,G join
-	if (!isIPV6(inSettings)) {
+	if (!SockAddr_isIPv6(&inSettings->local)) {
 	    rc = iperf_multicast_ssm_join_v4(inSettings);
 	} else {
 	    rc = iperf_multicast_ssm_join_v6(inSettings);
 	}
     }
+    if ((rc == IPERF_MULTICAST_JOIN_SUCCESS) && disable_multicast_all) {
+	iperf_multicast_all_disable(inSettings);
+    }
+    return rc;
+}
+
+
+int iperf_multicast_sendif_v4 (struct thread_Settings *inSettings) {
+    int rc = IPERF_MULTICAST_SENDIF_FAIL;
+#if HAVE_DECL_IP_MULTICAST_IF
+    struct in_addr interface_addr;
+    memcpy(&interface_addr, SockAddr_get_in_addr(&inSettings->local), sizeof(interface_addr));
+    rc = setsockopt(inSettings->mSock, IPPROTO_IP, IP_MULTICAST_IF,
+			(char*)(&interface_addr), sizeof(interface_addr));
+    FAIL_errno(rc == SOCKET_ERROR, "v4 multicast if", inSettings);
+    return ((rc == 0) ? IPERF_MULTICAST_SENDIF_SUCCESS : IPERF_MULTICAST_SENDIF_FAIL);
+#endif
+    return rc;
+}
+
+int iperf_multicast_sendif_v6 (struct thread_Settings *inSettings) {
+    int rc = IPERF_MULTICAST_SENDIF_FAIL;
+#if HAVE_DECL_IPV6_MULTICAST_IF
+    if (inSettings->mIfrnametx) {
+	unsigned int ifindex = if_nametoindex(inSettings->mIfrnametx);
+	if (ifindex) {
+	    rc = setsockopt(inSettings->mSock, IPPROTO_IPV6, IPV6_MULTICAST_IF, &ifindex, sizeof(ifindex));
+	    if (rc == 0) {
+		rc = IPERF_MULTICAST_SENDIF_SUCCESS;
+	    }
+	}
+    }
+#endif
     return rc;
 }

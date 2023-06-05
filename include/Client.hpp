@@ -57,6 +57,7 @@
 #include "Settings.hpp"
 #include "Timestamp.hpp"
 #include "isochronous.hpp"
+#include "iperf_multicast_api.h"
 #include "Mutex.h"
 
 /* ------------------------------------------------------------------- */
