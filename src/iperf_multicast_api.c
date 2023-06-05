@@ -89,7 +89,7 @@
 #include <ifaddrs.h>
 #endif
 
-static int mcast_iface (struct thread_Settings *inSettings) {
+static unsigned int mcast_iface (struct thread_Settings *inSettings) {
     unsigned int iface=0;
     /* Set the interface or any */
     if (inSettings->mIfrname) {
