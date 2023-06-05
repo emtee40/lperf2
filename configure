@@ -800,6 +800,7 @@ enable_threads
 enable_debuginfo
 enable_web100
 enable_kalman
+enable_multicast_all
 enable_write_select
 enable_role_reversal_id
 enable_default_localonly
@@ -1468,6 +1469,8 @@ Optional Features:
                           (default is no)
   --disable-web100        disable web100 support (default is autodetect)
   --disable-kalman        disable kalman delay tuning (default is enable)
+  --enable-multicast-all  enable the use of IP_MULITICAST_ALL (default is
+                          disable)
   --disable-write-select  disable use of select before writes (default is
                           enable)
   --disable-role-reversal-id
@@ -3888,6 +3891,13 @@ fi
 if test ${enable_kalman+y}
 then :
   enableval=$enable_kalman;
+fi
+
+
+# Check whether --enable-multicast_all was given.
+if test ${enable_multicast_all+y}
+then :
+  enableval=$enable_multicast_all;
 fi
 
 
@@ -10576,6 +10586,12 @@ fi
 if test "$enable_kalman" != no; then
 
 printf "%s\n" "#define HAVE_KALMAN 1" >>confdefs.h
+
+fi
+
+if test "$enable_multicast_all" = yes; then
+
+printf "%s\n" "#define SUPPORT_MULTICAST_ALL 1" >>confdefs.h
 
 fi
 

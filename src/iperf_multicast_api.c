@@ -109,6 +109,7 @@ static unsigned int mcast_iface (struct thread_Settings *inSettings) {
 // globally on the whole system.  Otherwise, it will deliver messages only from the
 // groups that have been explicitly joined (for example via the IP_ADD_MEMBERSHIP option)
 // on this particular socket.
+#if SUPPORT_MULTICAST_ALL
 static int iperf_multicast_all_disable (struct thread_Settings *inSettings) {
     int rc = 0;
 #if HAVE_DECL_IP_MULTICAST_ALL
@@ -118,7 +119,7 @@ static int iperf_multicast_all_disable (struct thread_Settings *inSettings) {
 #endif
     return rc;
 }
-
+#endif
 
 // This is the older mulitcast join code. Both SSM and binding the
 // an interface requires the newer socket options.  Using the older
@@ -131,6 +132,9 @@ static int iperf_multicast_join_v4_legacy (struct thread_Settings *inSettings) {
     int rc = setsockopt(inSettings->mSock, IPPROTO_IP, IP_ADD_MEMBERSHIP,
 			(char*)(&mreq), sizeof(mreq));
     FAIL_errno(rc == SOCKET_ERROR, "multicast join", inSettings);
+#if SUPPORT_MULTICAST_ALL
+    iperf_multicast_all_disable(inSettings);
+#endif
     return ((rc == 0) ? IPERF_MULTICAST_JOIN_SUCCESS : IPERF_MULTICAST_JOIN_FAIL);
 #else
     return IPERF_MULTICAST_JOIN_UNSUPPORTED;
@@ -319,15 +323,12 @@ static int iperf_multicast_ssm_join_v6 (struct thread_Settings *inSettings) {
 
 int iperf_multicast_join (struct thread_Settings *inSettings) {
     int rc = IPERF_MULTICAST_JOIN_FAIL;
-    bool disable_multicast_all = true;
     if (!isSSMMulticast(inSettings)) {
 	// *.G join
 	if (!SockAddr_isIPv6(&inSettings->local)) {
 	    rc = iperf_multicast_join_v4_legacy(inSettings);
 	    if (rc != IPERF_MULTICAST_JOIN_SUCCESS) {
 		rc = iperf_multicast_join_v4_pi(inSettings);
-	    } else {
-		disable_multicast_all = false; // legacy usage didn't disable
 	    }
 	} else {
 	    rc = iperf_multicast_join_v6_pi(inSettings);
@@ -342,9 +343,6 @@ int iperf_multicast_join (struct thread_Settings *inSettings) {
 	} else {
 	    rc = iperf_multicast_ssm_join_v6(inSettings);
 	}
-    }
-    if ((rc == IPERF_MULTICAST_JOIN_SUCCESS) && disable_multicast_all) {
-	iperf_multicast_all_disable(inSettings);
     }
     return rc;
 }

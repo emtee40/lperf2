@@ -508,6 +508,9 @@
    backward compatibility; new code need not use it. */
 #undef STDC_HEADERS
 
+/* Define if use of IP_MULTICAST_ALL is desired and available */
+#undef SUPPORT_MULTICAST_ALL
+
 /* Define 3rd arg of accept */
 #undef Socklen_t
 
