@@ -109,7 +109,7 @@ static unsigned int mcast_iface (struct thread_Settings *inSettings) {
 // globally on the whole system.  Otherwise, it will deliver messages only from the
 // groups that have been explicitly joined (for example via the IP_ADD_MEMBERSHIP option)
 // on this particular socket.
-#if SUPPORT_MULTICAST_ALL
+#if HAVE_MULTICAST_ALL_DISABLE
 static int iperf_multicast_all_disable (struct thread_Settings *inSettings) {
     int rc = 0;
 #if HAVE_DECL_IP_MULTICAST_ALL
@@ -132,7 +132,7 @@ static int iperf_multicast_join_v4_legacy (struct thread_Settings *inSettings) {
     int rc = setsockopt(inSettings->mSock, IPPROTO_IP, IP_ADD_MEMBERSHIP,
 			(char*)(&mreq), sizeof(mreq));
     FAIL_errno(rc == SOCKET_ERROR, "multicast join", inSettings);
-#if SUPPORT_MULTICAST_ALL
+#if HAVE_MULTICAST_ALL_DISABLE
     iperf_multicast_all_disable(inSettings);
 #endif
     return ((rc == 0) ? IPERF_MULTICAST_JOIN_SUCCESS : IPERF_MULTICAST_JOIN_FAIL);

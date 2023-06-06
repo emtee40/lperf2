@@ -35,7 +35,7 @@ AC_ARG_ENABLE(web100, AS_HELP_STRING([--disable-web100],[disable web100 support 
 
 AC_ARG_ENABLE(kalman, AS_HELP_STRING([--disable-kalman],[disable kalman delay tuning (default is enable)]))
 
-AC_ARG_ENABLE(multicast_all, AS_HELP_STRING([--enable-multicast-all],[enable the use of IP_MULITICAST_ALL (default is disable)]))
+AC_ARG_ENABLE(multicast_all, AS_HELP_STRING([--disable-multicast-all],[enable the use of IP_MULITICAST_ALL (default is disable)]))
 
 AC_ARG_ENABLE(write_select, AS_HELP_STRING([--disable-write-select],[disable use of select before writes (default is enable)]))
 
@@ -420,8 +420,8 @@ if test "$enable_kalman" != no; then
 AC_DEFINE([HAVE_KALMAN], 1, [Define if Kalman tuning is desired and available])
 fi
 
-if test "$enable_multicast_all" = yes; then
-AC_DEFINE([SUPPORT_MULTICAST_ALL], 1, [Define if use of IP_MULTICAST_ALL is desired and available])
+if test "$enable_multicast_all" = no; then
+AC_DEFINE([HAVE_MULTICAST_ALL_DISABLE], 1, [Define if use of IP_MULTICAST_ALL is desired and available])
 fi
 
 if test "$enable_write_select" != no; then
