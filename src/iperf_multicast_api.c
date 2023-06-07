@@ -164,7 +164,6 @@ static int iperf_multicast_join_v4_pi (struct thread_Settings *inSettings) {
 #else
     return IPERF_MULTICAST_JOIN_UNSUPPORTED;
 #endif
-    return rc;
 }
 
 
