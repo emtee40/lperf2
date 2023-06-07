@@ -152,6 +152,7 @@ void Client::mySockInit (void) {
     SockAddr_localAddr(mSettings);
     SockAddr_remoteAddr(mSettings);
 
+#ifndef WIN32
     // Multicast can bind to a send device & ip addr in two ways,
     // 1) Use SO_BINDTODEVICE and a bind call
     // 2) Use the socket option of IP_MULTICAST_IF or IPV6_MULTICAST_IF
@@ -182,6 +183,7 @@ void Client::mySockInit (void) {
 	    WARN_errno(rc == SOCKET_ERROR, "bind");
 	}
     }
+#endif
     mysock_init_done = true;
 }
 /* -------------------------------------------------------------------
