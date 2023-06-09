@@ -430,7 +430,6 @@ bool Listener::my_listen () {
 	    // Multicast on Win32 requires special handling
 	    ListenSocket = WSASocket(domain, type, 0, 0, 0, WSA_FLAG_MULTIPOINT_C_LEAF | WSA_FLAG_MULTIPOINT_D_LEAF);
 	    WARN_errno(ListenSocket == INVALID_SOCKET, "socket");
-
 	} else
 #endif
 	    {
@@ -443,20 +442,34 @@ bool Listener::my_listen () {
 	int boolean = 1;
 	Socklen_t len = sizeof(boolean);
 	rc = setsockopt(ListenSocket, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&boolean), len);
-	// bind socket to server address
+	WARN_errno(rc == SOCKET_ERROR, "SO_REUSEADDR");
+	rc = SOCKET_ERROR;
+	if (isUDP(mSettings) && SockAddr_isMulticast(&mSettings->local)) {
+#if HAVE_MULTICAST
 #ifdef WIN32
-	if (SockAddr_isMulticast(&mSettings->local)) {
 	    // Multicast on Win32 requires special handling
 	    rc = WSAJoinLeaf(ListenSocket, (sockaddr*) &mSettings->local, mSettings->size_local,0,0,0,0,JL_BOTH);
 	    WARN_errno(rc == SOCKET_ERROR, "WSAJoinLeaf (aka bind)");
-	} else
-#endif
-	    {
-		rc = bind(ListenSocket, reinterpret_cast<sockaddr*>(&mSettings->local), mSettings->size_local);
-		FAIL_errno(rc == SOCKET_ERROR, "listener bind", mSettings);
+#else
+	    iperf_sockaddr tmp;
+	    memcpy(&tmp, &mSettings->local, sizeof(tmp));
+	    SockAddr_setAddressAny(&tmp); // the multicast join will take care of this
+	    rc = bind(ListenSocket, reinterpret_cast<sockaddr*>(&tmp), mSettings->size_local);
+	    FAIL_errno(rc == SOCKET_ERROR, "listener bind", mSettings);
+	    // if UDP and multicast, join the group
+	    if (iperf_multicast_join(mSettings) != IPERF_MULTICAST_JOIN_SUCCESS) {
+		rc = SOCKET_ERROR;
 	    }
+#endif
+#else
+	    fprintf(stderr, "Multicast not supported");
+#endif // HAVE_MULTICAST
+	} else {
+	    // bind socket for unicast
+	    rc = bind(ListenSocket, reinterpret_cast<sockaddr*>(&mSettings->local), mSettings->size_local);
+	}
+	FAIL_errno(rc == SOCKET_ERROR, "listener bind", mSettings);
     }
-
     // update the reporter thread
     if (isSettingsReport(mSettings)) {
 	Mutex_Lock(&mSettings->settings_done->lock);
@@ -478,19 +491,6 @@ bool Listener::my_listen () {
 	    rc = listen(ListenSocket, INT_MAX);
 	}
 	WARN_errno(rc == SOCKET_ERROR, "listen");
-    } else {
-#ifndef WIN32
-	// if UDP and multicast, join the group
-	if (SockAddr_isMulticast(&mSettings->local)) {
-#ifdef HAVE_MULTICAST
-	    if (iperf_multicast_join(mSettings) != IPERF_MULTICAST_JOIN_SUCCESS) {
-		return false;
-	    }
-#else
-	    fprintf(stderr, "Multicast not supported");
-#endif // HAVE_MULTICAST
-	}
-#endif
     }
     return true;
 } // end my_listen()

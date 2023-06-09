@@ -126,19 +126,33 @@ static int iperf_multicast_all_disable (struct thread_Settings *inSettings) {
 // code here will maintain compatiblity with previous iperf versions
 static int iperf_multicast_join_v4_legacy (struct thread_Settings *inSettings) {
 #if HAVE_DECL_IP_ADD_MEMBERSHIP
+#if (HAVE_STRUCT_IP_MREQ) || (HAVE_STRUCT_IP_MREQN)
+#if HAVE_STRUCT_IP_MREQ
     struct ip_mreq mreq;
-    memcpy(&mreq.imr_multiaddr, SockAddr_get_in_addr(&inSettings->local), sizeof(mreq.imr_multiaddr));
     mreq.imr_interface.s_addr = htonl(INADDR_ANY);
+    size_t len = sizeof(struct ip_mreq);
+#elif HAVE_STRUCT_IP_MREQN
+    //    struct ip_mreqn {
+    //      struct in_addr imr_multiaddr; /* IP multicast address of group */
+    //      struct in_addr imr_interface; /* local IP address of interface */
+    //      int            imr_ifindex;   /* interface index */
+    //    }
+    struct ip_mreqn mreq;
+    size_t len = sizeof(struct ip_mreqn);
+    mreq.imr_address.s_addr = htonl(INADDR_ANY);
+    mreq.imr_ifindex = mcast_iface(inSettings);
+#endif
+    memcpy(&mreq.imr_multiaddr, SockAddr_get_in_addr(&inSettings->local), sizeof(mreq.imr_multiaddr));
     int rc = setsockopt(inSettings->mSock, IPPROTO_IP, IP_ADD_MEMBERSHIP,
-			(char*)(&mreq), sizeof(mreq));
+			(char*)(&mreq), len);
     FAIL_errno(rc == SOCKET_ERROR, "multicast join", inSettings);
 #if HAVE_MULTICAST_ALL_DISABLE
     iperf_multicast_all_disable(inSettings);
 #endif
     return ((rc == 0) ? IPERF_MULTICAST_JOIN_SUCCESS : IPERF_MULTICAST_JOIN_FAIL);
-#else
-    return IPERF_MULTICAST_JOIN_UNSUPPORTED;
 #endif
+#endif
+    return IPERF_MULTICAST_JOIN_UNSUPPORTED;
 }
 
 static int iperf_multicast_join_v4_pi (struct thread_Settings *inSettings) {
@@ -170,6 +184,7 @@ static int iperf_multicast_join_v4_pi (struct thread_Settings *inSettings) {
 
 static int iperf_multicast_join_v6 (struct thread_Settings *inSettings) {
 #if (HAVE_DECL_IPV6_JOIN_GROUP || HAVE_DECL_IPV6_ADD_MEMBERSHIP)
+#if HAVE_STRUCT_IPV6_MREQ
     struct ipv6_mreq mreq;
     memcpy(&mreq.ipv6mr_multiaddr, SockAddr_get_in6_addr(&inSettings->local), sizeof(mreq.ipv6mr_multiaddr));
     mreq.ipv6mr_interface = mcast_iface(inSettings);
@@ -182,9 +197,10 @@ static int iperf_multicast_join_v6 (struct thread_Settings *inSettings) {
 #endif
     FAIL_errno(rc == SOCKET_ERROR, "multicast v6 join", inSettings);
     return ((rc == 0) ? IPERF_MULTICAST_JOIN_SUCCESS : IPERF_MULTICAST_JOIN_FAIL);
-#else
-    return IPERF_MULTICAST_JOIN_UNSUPPORTED;
 #endif
+#endif
+    return IPERF_MULTICAST_JOIN_UNSUPPORTED;
+
 }
 
 static int iperf_multicast_join_v6_pi (struct thread_Settings *inSettings) {
@@ -208,9 +224,8 @@ static int iperf_multicast_join_v6_pi (struct thread_Settings *inSettings) {
 		    sizeof(struct group_source_req));
     FAIL_errno(rc == SOCKET_ERROR, "mcast v6 join group", inSettings);
     return ((rc == 0) ? IPERF_MULTICAST_JOIN_SUCCESS : IPERF_MULTICAST_JOIN_FAIL);
-#else
-    return IPERF_MULTICAST_JOIN_UNSUPPORTED;
 #endif
+    return IPERF_MULTICAST_JOIN_UNSUPPORTED;
 }
 
 
@@ -277,9 +292,8 @@ static int iperf_multicast_ssm_join_v4 (struct thread_Settings *inSettings) {
 #endif
     FAIL_errno(rc == SOCKET_ERROR, "mcast v4 join ssm", inSettings);
     return ((rc == 0) ? IPERF_MULTICAST_JOIN_SUCCESS : IPERF_MULTICAST_JOIN_FAIL);
-#else
-    return IPERF_MULTICAST_JOIN_UNSUPPORTED;
 #endif
+    return IPERF_MULTICAST_JOIN_UNSUPPORTED;
 }
 
 static int iperf_multicast_ssm_join_v6 (struct thread_Settings *inSettings) {
@@ -316,9 +330,8 @@ static int iperf_multicast_ssm_join_v6 (struct thread_Settings *inSettings) {
 		    sizeof(struct group_source_req));
     FAIL_errno(rc == SOCKET_ERROR, "mcast v6 join source group", inSettings);
     return ((rc == 0) ? IPERF_MULTICAST_JOIN_SUCCESS : IPERF_MULTICAST_JOIN_FAIL);
-#else
-    return IPERF_MULTICAST_JOIN_UNSUPPORTED;
 #endif
+    return IPERF_MULTICAST_JOIN_UNSUPPORTED;
 }
 
 int iperf_multicast_join (struct thread_Settings *inSettings) {
