@@ -93,7 +93,7 @@ static unsigned int mcast_iface (struct thread_Settings *inSettings) {
     unsigned int iface=0;
     /* Set the interface or any */
     if (inSettings->mIfrname) {
-#if HAVE_NET_IF_H
+#if HAVE_NET_IF_H && !WIN32
 	iface = if_nametoindex(inSettings->mIfrname);
 	FAIL_errno(!iface, "mcast if_nametoindex", inSettings);
 #else
@@ -178,7 +178,6 @@ static int iperf_multicast_join_v4_pi (struct thread_Settings *inSettings) {
 #else
     return IPERF_MULTICAST_JOIN_UNSUPPORTED;
 #endif
-    return rc;
 }
 
 
@@ -376,7 +375,7 @@ int iperf_multicast_sendif_v4 (struct thread_Settings *inSettings) {
 
 int iperf_multicast_sendif_v6 (struct thread_Settings *inSettings) {
     int rc = IPERF_MULTICAST_SENDIF_FAIL;
-#if HAVE_DECL_IPV6_MULTICAST_IF
+#if HAVE_DECL_IPV6_MULTICAST_IF && HAVE_NET_IF_H && !WIN32
     if (inSettings->mIfrnametx) {
 	unsigned int ifindex = if_nametoindex(inSettings->mIfrnametx);
 	if (ifindex) {
