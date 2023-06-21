@@ -1794,7 +1794,7 @@ static void reporter_output_client_settings (struct ReportSettings *report) {
 	byte_snprintf(outbuffer, sizeof(outbuffer), report->common->BufLen, 'B');
 	outbuffer[(sizeof(outbuffer)-1)] = '\0';
 	if (isTcpWriteTimes(report->common)) {
-	    printf("%s: %s (writetimer-enabled)\n", client_write_size, outbuffer);
+	    printf("%s: %s (write timer enabled)\n", client_write_size, outbuffer);
 	} else {
 	    printf("%s: %s\n", client_write_size, outbuffer);
 	}
