@@ -1704,6 +1704,7 @@ void Client::AwaitServerFinPacket () {
     struct timeval timeout;
     int ack_success = 0;
     int count = RETRYCOUNT;
+    static int read_warn_rate_limiter = 3; // rate limit read warn msgs
     while (--count >= 0) {
         // wait until the socket is readable, or our timeout expires
         FD_ZERO(&readSet);
@@ -1737,8 +1738,15 @@ void Client::AwaitServerFinPacket () {
 		}
 	    }
 	    // only warn when threads is small, too many warnings are too much outputs
-	    if (mSettings->mThreads <= 4)
-		WARN_errno(rc < 0, "read");
+	    if (rc < 0 && (--read_warn_rate_limiter > 0)) {
+		int len = snprintf(NULL, 0, "%sRead UDP fin", mSettings->mTransferIDStr);
+		char *tmpbuf = (char *)calloc(1, len + 2);
+		if (tmpbuf) {
+		    len = snprintf(tmpbuf, len + 1, "%sRead UDP fin", mSettings->mTransferIDStr);
+		    WARN_errno(1, tmpbuf);
+		    free(tmpbuf);
+		}
+	    }
 	    if (rc > 0) {
 		ack_success = 1;
 #ifdef HAVE_THREAD_DEBUG
