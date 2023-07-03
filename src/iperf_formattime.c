@@ -50,51 +50,53 @@
 #include "iperf_formattime.h"
 
 inline void iperf_formattime (char *timestr, int buflen, struct timeval timestamp, bool prec_ms, bool utc_time, enum TimeFormatType ftype) {
-    struct tm ts ;
-    ts = (utc_time ? *gmtime(&timestamp.tv_sec) : *localtime(&timestamp.tv_sec));
-    switch (ftype) {
-    case YearThruSec:
-	strftime(timestr, buflen, "%Y-%m-%d %H:%M:%S", &ts);
-	if (prec_ms) {
+    if (buflen > 0) {
+	struct tm ts ;
+	ts = (utc_time ? *gmtime(&timestamp.tv_sec) : *localtime(&timestamp.tv_sec));
+	switch (ftype) {
+	case YearThruSec:
+	    strftime(timestr, buflen, "%Y-%m-%d %H:%M:%S", &ts);
+	    if (prec_ms) {
+		int currlen = strlen(timestr);
+		if (currlen > 5) {
+		    snprintf((timestr + currlen), 5, ".%.3d", (int) (timestamp.tv_usec/1000));
+		}
+	    }
+	    break;
+	case YearThruSecTZ:
+	    strftime(timestr, buflen, "%Y-%m-%d %H:%M:%S", &ts);
 	    int currlen = strlen(timestr);
-	    if (currlen > 5) {
-		snprintf((timestr + currlen), 5, ".%.3d", (int) (timestamp.tv_usec/1000));
+	    if (prec_ms) {
+		if (currlen > 5) {
+		    snprintf((timestr + currlen), 5, ".%.3d", (int) (timestamp.tv_usec/1000));
+		    currlen = strlen(timestr);
+		}
 	    }
-	}
-	break;
-    case YearThruSecTZ:
-	strftime(timestr, buflen, "%Y-%m-%d %H:%M:%S", &ts);
-        int currlen = strlen(timestr);
-	if (prec_ms) {
-	    if (currlen > 5) {
-		snprintf((timestr + currlen), 5, ".%.3d", (int) (timestamp.tv_usec/1000));
-		currlen = strlen(timestr);
+	    if ((buflen - currlen) > 5) {
+		strftime((timestr + currlen), (buflen - currlen), " (%Z)", &ts);
 	    }
-	}
-	if ((buflen - currlen) > 5) {
-	    strftime((timestr + currlen), (buflen - currlen), " (%Z)", &ts);
-	}
-	break;
-    case CSV:
-	strftime(timestr, buflen, "%Y%m%d%H%M%S", &ts);
-	if (prec_ms) {
-	    int currlen = strlen(timestr);
-	    if (currlen > 5) {
-		snprintf((timestr + currlen), 5, ".%.3d", (int) (timestamp.tv_usec/1000));
+	    break;
+	case CSV:
+	    strftime(timestr, buflen, "%Y%m%d%H%M%S", &ts);
+	    if (prec_ms) {
+		int currlen = strlen(timestr);
+		if (currlen > 5) {
+		    snprintf((timestr + currlen), 5, ".%.3d", (int) (timestamp.tv_usec/1000));
+		}
 	    }
-	}
-	break;
-    case CSVTZ:
-	strftime(timestr, buflen, "%z:%Y%m%d%H%M%S", &ts);
-	if (prec_ms) {
-	    int currlen = strlen(timestr);
-	    if (currlen > 5) {
-		snprintf((timestr + currlen), 5, ".%.3d", (int) (timestamp.tv_usec/1000));
+	    break;
+	case CSVTZ:
+	    strftime(timestr, buflen, "%z:%Y%m%d%H%M%S", &ts);
+	    if (prec_ms) {
+		int currlen = strlen(timestr);
+		if (currlen > 5) {
+		    snprintf((timestr + currlen), 5, ".%.3d", (int) (timestamp.tv_usec/1000));
+		}
 	    }
+	    break;
+	default:
+	    FAIL_exit(1, "iperf_formattime program error");
 	}
-	break;
-    default:
-	FAIL_exit(1, "iperf_formattime program error");
+	timestr[buflen - 1] = '\0'; // make sure string is null terminated
     }
-    timestr[buflen - 1] = '\0'; // make sure string is null terminated
 }
