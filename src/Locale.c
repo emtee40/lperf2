@@ -779,10 +779,10 @@ const char warn_compat_and_peer_exchange[] =
 "WARNING: Options of '-C' '--compatibility' AND '-X' '--peerdetect' are mutually exclusive, --peerdetect ignored\n";
 
 const char warn_start_before_now[] =
-"[%3d] WARNING: --txstart-time (%" PRIdMAX ".%" PRIdMAX ") %s is before now %s\n";
+"[%3d] WARNING: --txstart-time (%ld.%06ld) %s is before now %s\n";
 
 const char error_starttime_exceeds[] =
-"ERROR: --txstart-time (%" PRIdMAX ".%" PRIdMAX ") %s exceeds max scheduled delay of %d secs\n";
+"ERROR: --txstart-time (%ld.%06ld) %s exceeds max scheduled delay of %d secs\n";
 
 const char error_delaytime_exceeds[] =
 "ERROR: --txdelay-time of %d seconds is more than the supported delay of %d seconds\n";
