@@ -157,23 +157,16 @@ static int iperf_multicast_join_v4_legacy (struct thread_Settings *inSettings) {
 
 static int iperf_multicast_join_v4_pi (struct thread_Settings *inSettings) {
 #if HAVE_DECL_MCAST_JOIN_GROUP
-    int rc;
-    socklen_t socklen = sizeof(struct sockaddr_storage);
+    int rc = -1;
     struct group_req group_req;
-    struct sockaddr_in *group;
 
     memset(&group_req, 0, sizeof(struct group_req));
-
+    memcpy(&group_req.gr_group, (struct sockaddr_in *)(&inSettings->local), sizeof(struct sockaddr_in));
     group_req.gr_interface = mcast_iface(inSettings);
-    group=(struct sockaddr_in *)(&group_req.gr_group);
-    group->sin_family = AF_INET;
-    /* Set the group */
-    rc=getsockname(inSettings->mSock,(struct sockaddr *)(group), &socklen);
-    FAIL_errno(rc == SOCKET_ERROR, "mcast join group getsockname", inSettings);
-    group->sin_port = 0;    /* Ignored */
-    rc = setsockopt(inSettings->mSock, IPPROTO_IP, MCAST_JOIN_GROUP, \
-		    (const char *)(&group_req), sizeof(struct group_source_req));
-    FAIL_errno(rc == SOCKET_ERROR, "mcast join group", inSettings);
+    group_req.gr_group.ss_family = AF_INET;
+    rc = setsockopt(inSettings->mSock, IPPROTO_IP, MCAST_JOIN_GROUP, (const char *)(&group_req),
+		    (socklen_t) sizeof(struct group_source_req));
+    FAIL_errno(rc == SOCKET_ERROR, "mcast v4 join group pi", inSettings);
     return ((rc == 0) ? IPERF_MULTICAST_JOIN_SUCCESS : IPERF_MULTICAST_JOIN_FAIL);
 #else
     return IPERF_MULTICAST_JOIN_UNSUPPORTED;
@@ -204,23 +197,15 @@ static int iperf_multicast_join_v6 (struct thread_Settings *inSettings) {
 
 static int iperf_multicast_join_v6_pi (struct thread_Settings *inSettings) {
 #if HAVE_DECL_MCAST_JOIN_GROUP
-    int rc;
-    socklen_t socklen = sizeof(struct sockaddr_storage);
+    int rc = -1;
     struct group_req group_req;
-    struct sockaddr_in6 *group;
 
     memset(&group_req, 0, sizeof(struct group_req));
-
+    memcpy(&group_req.gr_group, (struct sockaddr_in6 *)(&inSettings->local), sizeof(struct sockaddr_in6));
     group_req.gr_interface = mcast_iface(inSettings);
-    group=(struct sockaddr_in6*)(&group_req.gr_group);
-    group->sin6_family = AF_INET6;
-    /* Set the group */
-    rc=getsockname(inSettings->mSock,(struct sockaddr *)(group), &socklen);
-    FAIL_errno(rc == SOCKET_ERROR, "mcast v6 join group getsockname", inSettings);
-    group->sin6_port = 0;    /* Ignored */
-    rc = -1;
+    group_req.gr_group.ss_family = AF_INET6;
     rc = setsockopt(inSettings->mSock, IPPROTO_IPV6, MCAST_JOIN_GROUP, (const char *)(&group_req),
-		    sizeof(struct group_source_req));
+		    (socklen_t) sizeof(struct group_source_req));
     FAIL_errno(rc == SOCKET_ERROR, "mcast v6 join group", inSettings);
     return ((rc == 0) ? IPERF_MULTICAST_JOIN_SUCCESS : IPERF_MULTICAST_JOIN_FAIL);
 #endif
@@ -338,14 +323,16 @@ int iperf_multicast_join (struct thread_Settings *inSettings) {
     if (!isSSMMulticast(inSettings)) {
 	// *.G join
 	if (!SockAddr_isIPv6(&inSettings->local)) {
-	    rc = iperf_multicast_join_v4_legacy(inSettings);
+	    if (!mcast_iface(inSettings)) {
+		rc = iperf_multicast_join_v4_legacy(inSettings);
+	    }
 	    if (rc != IPERF_MULTICAST_JOIN_SUCCESS) {
 		rc = iperf_multicast_join_v4_pi(inSettings);
 	    }
 	} else {
-	    rc = iperf_multicast_join_v6_pi(inSettings);
+	    rc = iperf_multicast_join_v6(inSettings);
 	    if (rc != IPERF_MULTICAST_JOIN_SUCCESS) {
-		rc = iperf_multicast_join_v6(inSettings);
+		rc = iperf_multicast_join_v6_pi(inSettings);
 	    }
 	}
     } else {
