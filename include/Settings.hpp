@@ -246,6 +246,8 @@ struct thread_Settings {
     Socklen_t size_peer;
     iperf_sockaddr local;
     Socklen_t size_local;
+    iperf_sockaddr multicast;
+    Socklen_t size_multicast;
     nthread_t mTID;
     int incrdstip;
     int incrsrcip;

@@ -1938,7 +1938,6 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
     outbuffer[0]='\0';
     outbufferext[0]='\0';
     char *b = &outbuffer[0];
-
 #if HAVE_DECL_TCP_WINDOW_CLAMP
     if (!isUDP(report->common) && isRxClamp(report->common)) {
 	snprintf(b, SNBUFFERSIZE-strlen(b), " (%s%d)", "clamp=", report->common->ClampSize);

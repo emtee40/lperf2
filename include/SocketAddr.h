@@ -65,6 +65,7 @@ void SockAddr_remoteAddr(struct thread_Settings *inSettings);
 
 void SockAddr_setHostname(const char* inHostname,
                            iperf_sockaddr *inSockAddr,
+                           Socklen_t *addr_size,
                            int isIPv6);  // DNS lookup
 void SockAddr_getHostname(iperf_sockaddr *inSockAddr,
                            char* outHostname,

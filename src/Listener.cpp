@@ -164,8 +164,8 @@ void Listener::Run () {
 	    break;
 	}
 	// Serialize in the event the -1 option or --singleclient is set
-	int tc;
-	if ((isSingleClient(mSettings) || isMulticast(mSettings)) && \
+	int tc = 0;
+	if ((isSingleClient(mSettings) || (isUDP(mSettings) && isMulticast(mSettings))) && \
 	    mCount && (tc = (thread_numtrafficthreads()) > 0)) {
 	    // Start with a delay in the event some traffic
 	    // threads are pending to be scheduled and haven't
@@ -426,7 +426,7 @@ bool Listener::my_listen () {
 		  : AF_INET);
 
 #ifdef WIN32
-	if (SockAddr_isMulticast(&mSettings->local)) {
+	if (SockAddr_isMulticast(&mSettings->multicast)) {
 	    // Multicast on Win32 requires special handling
 	    ListenSocket = WSASocket(domain, type, 0, 0, 0, WSA_FLAG_MULTIPOINT_C_LEAF | WSA_FLAG_MULTIPOINT_D_LEAF);
 	    WARN_errno(ListenSocket == INVALID_SOCKET, "socket");
@@ -444,7 +444,7 @@ bool Listener::my_listen () {
 	rc = setsockopt(ListenSocket, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&boolean), len);
 	WARN_errno(rc == SOCKET_ERROR, "SO_REUSEADDR");
 	rc = SOCKET_ERROR;
-	if (isUDP(mSettings) && SockAddr_isMulticast(&mSettings->local)) {
+	if (isUDP(mSettings) && SockAddr_isMulticast(&mSettings->multicast)) {
 #if HAVE_MULTICAST
 #ifdef WIN32
 	    // Multicast on Win32 requires special handling
@@ -730,11 +730,17 @@ int Listener::udp_accept (thread_Settings *server) {
 	    // This connect() routing is only supported with AF_INET or AF_INET6 sockets,
 	    // e.g. AF_PACKET sockets can't do this.  We'll handle packet sockets later
 	    // All UDP accepts here will use AF_INET.  This is intentional and needed
-	    rc = connect(server->mSock, reinterpret_cast<struct sockaddr*>(&server->peer), server->size_peer);
-	    FAIL_errno(rc == SOCKET_ERROR, "connect UDP", mSettings);
-	    server->size_local = sizeof(iperf_sockaddr);
-	    getsockname(server->mSock, reinterpret_cast<sockaddr*>(&server->local), &server->size_local);
-	    SockAddr_Ifrname(server);
+	    if (!isMulticast(server)) {
+		rc = connect(server->mSock, reinterpret_cast<struct sockaddr*>(&server->peer), server->size_peer);
+		FAIL_errno(rc == SOCKET_ERROR, "connect UDP", mSettings);
+		server->size_local = sizeof(iperf_sockaddr);
+		getsockname(server->mSock, reinterpret_cast<sockaddr*>(&server->local), &server->size_local);
+		SockAddr_Ifrname(server);
+	    } else {
+		server->size_multicast = sizeof(iperf_sockaddr);
+		getsockname(server->mSock, reinterpret_cast<sockaddr*>(&server->multicast), &server->size_multicast);
+		// RJM - use a cmesg to read the interface name
+	    }
 	    server->firstreadbytes = nread;
 	}
     }

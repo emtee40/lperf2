@@ -228,6 +228,8 @@ struct ReportCommon {
     Socklen_t size_peer;
     iperf_sockaddr local;
     Socklen_t size_local;
+    iperf_sockaddr multicast;
+    Socklen_t size_multicast;
     char* Host;                   // -c
     char* HideHost;
     char* Localhost;              // -B

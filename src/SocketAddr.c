@@ -70,7 +70,7 @@ extern "C" {
 void SockAddr_remoteAddr (struct thread_Settings *inSettings) {
     if (SockAddr_isZeroAddress(&inSettings->peer) == 0) {
 	if (inSettings->mHost != NULL) {
-	    SockAddr_setHostname(inSettings->mHost, &inSettings->peer, isIPV6(inSettings));
+	    SockAddr_setHostname(inSettings->mHost, &inSettings->peer, &inSettings->size_peer, isIPV6(inSettings));
 	    if (inSettings->incrdstip)
 		SockAddr_incrAddress(&inSettings->peer, inSettings->incrdstip);
 	} else {
@@ -100,7 +100,7 @@ void SockAddr_localAddr (struct thread_Settings *inSettings) {
     SockAddr_zeroAddress(&inSettings->local);
 
     if (inSettings->mLocalhost != NULL) {
-        SockAddr_setHostname(inSettings->mLocalhost, &inSettings->local,
+        SockAddr_setHostname(inSettings->mLocalhost, &inSettings->local, &inSettings->size_local,
 			     isIPV6(inSettings));
 	if (inSettings->incrsrcip)
 	    SockAddr_incrAddress(&inSettings->local, inSettings->incrsrcip);
@@ -183,7 +183,7 @@ void SockAddr_localAddr (struct thread_Settings *inSettings) {
 /* -------------------------------------------------------------------
  * Resolve the hostname address and fill it in.
  * ------------------------------------------------------------------- */
-void SockAddr_setHostname (const char* inHostname, iperf_sockaddr *inSockAddr, int isIPv6) {
+void SockAddr_setHostname (const char* inHostname, iperf_sockaddr *inSockAddr, Socklen_t *addr_size, int isIPv6) {
     // ..I think this works for both ipv6 & ipv4... we'll see
     bool found = false;
     int ret_ga;
@@ -200,6 +200,7 @@ void SockAddr_setHostname (const char* inHostname, iperf_sockaddr *inSockAddr, i
 		while (itr != NULL) {
 		    if (itr->ai_family == AF_INET) {
 			memcpy(inSockAddr, (itr->ai_addr), (itr->ai_addrlen));
+			*addr_size = (Socklen_t) sizeof(struct sockaddr_in);
 			freeaddrinfo(res);
 			found = true;
 			break;
@@ -222,6 +223,7 @@ void SockAddr_setHostname (const char* inHostname, iperf_sockaddr *inSockAddr, i
 		    if (itr->ai_family == AF_INET6) {
 			memcpy(inSockAddr, (itr->ai_addr), (itr->ai_addrlen));
 			freeaddrinfo(res);
+			*addr_size = (Socklen_t) sizeof(struct sockaddr_in6);
 			found = true;
 			break;
 		    } else {

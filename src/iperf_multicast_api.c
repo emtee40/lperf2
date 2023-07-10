@@ -142,7 +142,7 @@ static int iperf_multicast_join_v4_legacy (struct thread_Settings *inSettings) {
     mreq.imr_address.s_addr = htonl(INADDR_ANY);
     mreq.imr_ifindex = mcast_iface(inSettings);
 #endif
-    memcpy(&mreq.imr_multiaddr, SockAddr_get_in_addr(&inSettings->local), sizeof(mreq.imr_multiaddr));
+    memcpy(&mreq.imr_multiaddr, SockAddr_get_in_addr(&inSettings->multicast), sizeof(mreq.imr_multiaddr));
     int rc = setsockopt(inSettings->mSock, IPPROTO_IP, IP_ADD_MEMBERSHIP,
 			(char*)(&mreq), len);
     FAIL_errno(rc == SOCKET_ERROR, "multicast join", inSettings);
@@ -161,7 +161,7 @@ static int iperf_multicast_join_v4_pi (struct thread_Settings *inSettings) {
     struct group_req group_req;
 
     memset(&group_req, 0, sizeof(struct group_req));
-    memcpy(&group_req.gr_group, (struct sockaddr_in *)(&inSettings->local), sizeof(struct sockaddr_in));
+    memcpy(&group_req.gr_group, (struct sockaddr_in *)(&inSettings->multicast), sizeof(struct sockaddr_in));
     group_req.gr_interface = mcast_iface(inSettings);
     group_req.gr_group.ss_family = AF_INET;
     rc = setsockopt(inSettings->mSock, IPPROTO_IP, MCAST_JOIN_GROUP, (const char *)(&group_req),
@@ -178,7 +178,7 @@ static int iperf_multicast_join_v6 (struct thread_Settings *inSettings) {
 #if (HAVE_DECL_IPV6_JOIN_GROUP || HAVE_DECL_IPV6_ADD_MEMBERSHIP)
 #if HAVE_STRUCT_IPV6_MREQ
     struct ipv6_mreq mreq;
-    memcpy(&mreq.ipv6mr_multiaddr, SockAddr_get_in6_addr(&inSettings->local), sizeof(mreq.ipv6mr_multiaddr));
+    memcpy(&mreq.ipv6mr_multiaddr, SockAddr_get_in6_addr(&inSettings->multicast), sizeof(mreq.ipv6mr_multiaddr));
     mreq.ipv6mr_interface = mcast_iface(inSettings);
 #if HAVE_DECL_IPV6_JOIN_GROUP
     int rc = setsockopt(inSettings->mSock, IPPROTO_IPV6, IPV6_JOIN_GROUP, \
@@ -201,7 +201,7 @@ static int iperf_multicast_join_v6_pi (struct thread_Settings *inSettings) {
     struct group_req group_req;
 
     memset(&group_req, 0, sizeof(struct group_req));
-    memcpy(&group_req.gr_group, (struct sockaddr_in6 *)(&inSettings->local), sizeof(struct sockaddr_in6));
+    memcpy(&group_req.gr_group, (struct sockaddr_in6 *)(&inSettings->multicast), sizeof(struct sockaddr_in6));
     group_req.gr_interface = mcast_iface(inSettings);
     group_req.gr_group.ss_family = AF_INET6;
     rc = setsockopt(inSettings->mSock, IPPROTO_IPV6, MCAST_JOIN_GROUP, (const char *)(&group_req),
@@ -322,7 +322,7 @@ int iperf_multicast_join (struct thread_Settings *inSettings) {
     int rc = IPERF_MULTICAST_JOIN_FAIL;
     if (!isSSMMulticast(inSettings)) {
 	// *.G join
-	if (!SockAddr_isIPv6(&inSettings->local)) {
+	if (!SockAddr_isIPv6(&inSettings->multicast)) {
 	    if (!mcast_iface(inSettings)) {
 		rc = iperf_multicast_join_v4_legacy(inSettings);
 	    }
@@ -337,7 +337,7 @@ int iperf_multicast_join (struct thread_Settings *inSettings) {
 	}
     } else {
 	// SSM or S,G join
-	if (!SockAddr_isIPv6(&inSettings->local)) {
+	if (!SockAddr_isIPv6(&inSettings->multicast)) {
 	    rc = iperf_multicast_ssm_join_v4(inSettings);
 	} else {
 	    rc = iperf_multicast_ssm_join_v6(inSettings);

@@ -66,6 +66,7 @@
  */
 struct Iperf_ListEntry {
     iperf_sockaddr host;
+    iperf_sockaddr multicast;
     struct SumReport *sum_report;
     int thread_count;
 #if WIN32

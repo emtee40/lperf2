@@ -59,6 +59,8 @@
 #include "Locale.h"
 #include "active_hosts.h"
 #include "payloads.h"
+
+#include "SocketAddr.h"
 static int transferid_counter = 0;
 
 static inline int my_str_copy(char **dst, char *src) {
@@ -126,6 +128,8 @@ static void common_copy (struct ReportCommon **common, struct thread_Settings *i
     (*common)->jitter_binwidth = inSettings->jitter_binwidth;
     (*common)->local = inSettings->local;
     (*common)->size_local = inSettings->size_local;
+    (*common)->multicast = inSettings->multicast;
+    (*common)->size_multicast = inSettings->size_multicast;
     (*common)->HistBins =inSettings->mHistBins;
     (*common)->HistBinsize =inSettings->mHistBinsize;
     (*common)->HistUnits =inSettings->mHistUnits;

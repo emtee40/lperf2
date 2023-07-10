@@ -1962,7 +1962,6 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 
     // Check for further mLocalhost (-B) and <dev> requests
     // full addresses look like 192.168.1.1:6001%eth0 or [2001:e30:1401:2:d46e:b891:3082:b939]:6001%eth0
-    iperf_sockaddr tmp;
     // Parse -B addresses
     if (mExtSettings->mLocalhost) {
 	if (((results = strtok(mExtSettings->mLocalhost, "%")) != NULL) && ((results = strtok(NULL, "%")) != NULL)) {
@@ -1987,18 +1986,17 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	    }
 	}
 	// Check for multicast per the -B
-	SockAddr_setHostname(mExtSettings->mLocalhost, &tmp,
+	SockAddr_setHostname(mExtSettings->mLocalhost, &mExtSettings->multicast, &mExtSettings->size_multicast,
 			     (isIPV6(mExtSettings) ? 1 : 0));
-	if (mExtSettings->mThreadMode != kMode_Client) {
-	    if (SockAddr_isMulticast(&tmp)) {
+	if (SockAddr_isMulticast(&mExtSettings->multicast)) {
+	    if (mExtSettings->mThreadMode == kMode_Client) {
+		fprintf(stderr, "WARNING: Client src addr (per -B) must be ip unicast\n");
+		exit(1);
+	    } else {
 		setMulticast(mExtSettings);
 	    }
 	} else {
-	    // client checks
-	    if (SockAddr_isMulticast(&tmp)) {
-		fprintf(stderr, "WARNING: Client src addr (per -B) must be ip unicast\n");
-		exit(1);
-	    }
+	    SockAddr_zeroAddress(&mExtSettings->multicast); // Zero out multicast sockaddr
 	}
     }
     // Parse client (-c) addresses for multicast, link-local and bind to device, port incr
