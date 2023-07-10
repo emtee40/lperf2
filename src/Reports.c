@@ -60,7 +60,6 @@
 #include "active_hosts.h"
 #include "payloads.h"
 
-#include "SocketAddr.h"
 static int transferid_counter = 0;
 
 static inline int my_str_copy(char **dst, char *src) {
