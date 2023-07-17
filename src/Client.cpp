@@ -525,6 +525,9 @@ void Client::InitTrafficLoop () {
     } else {
 	sosndtimer = static_cast<int>(mSettings->mAmount * 5e3);
     }
+    if (sosndtimer < 0) {
+	sosndtimer = 1000000; // set to 1 second for wraps
+    }
     if (!isUDP(mSettings)) {
 	SetSocketOptionsSendTimeout(mSettings, sosndtimer);
     }
