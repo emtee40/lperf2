@@ -525,8 +525,9 @@ void Client::InitTrafficLoop () {
     } else {
 	sosndtimer = static_cast<int>(mSettings->mAmount * 5e3);
     }
-    if (sosndtimer < 0) {
-	sosndtimer = 1000000; // set to 1 second for wraps
+    // set to 1 second for wraps or too large
+    if ((sosndtimer < 0) || (sosndtimer > 1000000)) {
+	sosndtimer = 1000000;
     }
     if (!isUDP(mSettings)) {
 	SetSocketOptionsSendTimeout(mSettings, sosndtimer);
@@ -962,7 +963,7 @@ void Client::RunRateLimitedTCP () {
 	    } else {
 		// Consume tokens per the transmit
 	        tokens -= (len + len2);
-	        totLen += (len + len2);;
+	        totLen += (len + len2);
 		reportstruct->err_readwrite=WriteSuccess;
 	    }
 	    time2.setnow();
