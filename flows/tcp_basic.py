@@ -86,14 +86,19 @@ loop = asyncio.get_event_loop()
 loop.set_debug(False)
 
 ssh_node.open_consoles(silent_mode=True)
+srcport = 6000
+dstport = 6000
 
 try:
     for congestion in args.cca :
-        thisflow = iperf_flow(name='TCP-Flow-{}'.format(congestion), user='root', server=dut1, client=dut2, dstip=dut1.devip, proto='TCP', interval=1, debug=False, srcip=dut2.devip, srcport='6001', dstport='6001', tos='ac_vi', cca=congestion)
+        srcport += 1
+        dstport += 1
+        thisflow = iperf_flow(name='TCP-Flow-{}'.format(congestion), user='root', server=dut1, client=dut2, dstip=dut1.devip, proto='TCP', interval=1, debug=False, srcip=dut2.devip, srcport=str(srcport), dstport=str(dstport), tos='ac_vi', cca=congestion)
         gc.disable()
         iperf_flow.run(time=args.time, flows=[thisflow], epoch_sync=True)
         gc.enable()
         del thisflow
+        iperf_flow.sleep(time=3, text="wait for next run", stoptext="wait done")
         try :
             gc.collect()
         except:
