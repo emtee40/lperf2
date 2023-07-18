@@ -1017,6 +1017,7 @@ void Client::RunWriteEventsTCP () {
 	}
 	now.setnow();
 	reportstruct->write_time = 0;
+	reportstruct->writecnt = 0;
 	if (isTcpWriteTimes(mSettings)) {
 	    write_start = now;
 	}
