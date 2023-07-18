@@ -25,12 +25,58 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # Author Robert J. McMahon, Broadcom LTD
-# Date March 2017
+# Date July 2023
 import shutil
 import logging
 import flows
+import argparse
+import time, datetime
+import os,sys
+import ssh_nodes
+import gc
 
 from flows import *
+from ssh_nodes import *
+
+parser = argparse.ArgumentParser(description='Run a bufferbloat test')
+parser.add_argument('--host_a', type=str, default="192.168.1.40", required=False, help='STA host to run iperf')
+parser.add_argument('--host_b', type=str, default="192.168.1.141", required=False, help='STA host to run iperf')
+parser.add_argument('-i','--interval', type=int, required=False, default=1, help='iperf report interval')
+parser.add_argument('-n','--runcount', type=int, required=False, default=2, help='number of runs')
+parser.add_argument('-t','--time', type=float, default=10, required=False, help='time or duration to run traffic')
+parser.add_argument('-o','--output_directory', type=str, required=False, default='./pyflow_log', help='output directory')
+parser.add_argument('--test_name', type=str, default='tcp_cca', required=False)
+parser.add_argument('--loglevel', type=str, required=False, default='INFO', help='python logging level, e.g. INFO or DEBUG')
+parser.add_argument('-c','--cca', nargs="+", default=["cubic", "reno", "bbr", "bbr2", "prague"], required=False, help='set the TCP CCA list to be tested')
+
+# Parse command line arguments
+args = parser.parse_args()
+
+# Set up logging below
+logfilename='test.log'
+testselect_dir = args.test_name
+args.output_directory = os.path.join(args.output_directory, testselect_dir)
+if not os.path.exists(args.output_directory):
+    print('Making log directory {}'.format(args.output_directory))
+    os.makedirs(args.output_directory)
+
+fqlogfilename = os.path.join(args.output_directory, logfilename)
+numeric_level = getattr(logging, args.loglevel.upper(), None)
+if not isinstance(numeric_level, int):
+    raise ValueError('Invalid log level: %s' % args.loglevel)
+logging.basicConfig(filename=fqlogfilename, level=numeric_level, format='%(asctime)s %(name)s %(module)s %(levelname)-8s %(message)s')
+logging.info("log file setup for {}".format(fqlogfilename), exc_info=True)
+print('Writing log to {}'.format(fqlogfilename))
+
+#configure asyncio logging
+logging.getLogger('asyncio').setLevel(logging.INFO)
+logger = logging.getLogger(__name__)
+#loop = asyncio.get_event_loop()
+#loop.set_debug(False)
+
+#instantiate DUT host and NIC devices
+dut1 = ssh_node(name='HOST_A', ipaddr=args.host_a, device='eth0', devip='192.168.1.40')
+dut2 = ssh_node(name='HOST_B', ipaddr=args.host_b, device='eth0', devip='192.168.1.141')
 
 logging.basicConfig(filename='test.log', level=logging.INFO, format='%(asctime)s %(name)s %(module)s %(levelname)-8s %(message)s')
 
@@ -39,8 +85,21 @@ root = logging.getLogger(__name__)
 loop = asyncio.get_event_loop()
 loop.set_debug(False)
 
-count = 8
-time = 4
+ssh_node.open_consoles(silent_mode=True)
 
-flows = [iperf_flow(name="TCP{}".format(str(i)), user='root', server='10.19.87.10', client='10.19.87.9', dstip='192.168.1.4', proto='TCP', interval=1, triptimes=True, flowtime=time) for i in range(count)]
-iperf_flow.run(time=time, flows='all', preclean=False)
+try:
+    for congestion in args.cca :
+        thisflow = iperf_flow(name='TCP-Flow-{}'.format(congestion), user='root', server=dut1, client=dut2, dstip=dut1.devip, proto='TCP', interval=1, debug=False, srcip=dut2.devip, srcport='6001', dstport='6001', tos='ac_vi', cca=congestion)
+        gc.disable()
+        iperf_flow.run(time=args.time, flows=[thisflow], epoch_sync=True)
+        gc.enable()
+        del thisflow
+        try :
+            gc.collect()
+        except:
+            pass
+
+finally :
+    ssh_node.close_consoles()
+    iperf_flow.close_loop()
+    logging.shutdown()

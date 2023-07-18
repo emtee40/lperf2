@@ -299,7 +299,7 @@ class iperf_flow(object):
         }
         return switcher.get(txt.upper(), None)
 
-    def __init__(self, name='iperf', server='localhost', client='localhost', user=None, proto='TCP', dstip='127.0.0.1', interval=1, format='b', offered_load=None, tos='BE', window='4M', src=None, srcip=None, srcport=None, dstport=None,  debug=False, length=None, ipg=0.0, amount=None, trip_times=True, prefetch=None, latency=True, bb=False, working_load=False, bb_period=None, bb_hold=None, txstart_delay_sec=None, burst_size=None, burst_period=None, fullduplex=False):
+    def __init__(self, name='iperf', server='localhost', client='localhost', user=None, proto='TCP', dstip='127.0.0.1', interval=1, format='b', offered_load=None, tos='BE', window='4M', src=None, srcip=None, srcport=None, dstport=None,  debug=False, length=None, ipg=0.0, amount=None, trip_times=True, prefetch=None, latency=False, bb=False, working_load=False, bb_period=None, bb_hold=None, txstart_delay_sec=None, burst_size=None, burst_period=None, fullduplex=False, cca=None):
         iperf_flow.instances.add(self)
         self.name = name
         self.latency = latency
@@ -342,6 +342,9 @@ class iperf_flow(object):
 
         if txstart_delay_sec:
             self.txstart_delay_sec = txstart_delay_sec
+
+        if cca:
+            self.cca = cca
 
         self.interval = round(interval,3)
         self.format = format
@@ -968,6 +971,8 @@ class iperf_client(object):
             else :
                 self.sshcmd.extend(['-B {}'.format(self.srcip)])
 
+        if self.cca :
+            self.sshcmd.extend(['-Z ', self.cca])
         if self.interval >= 0.005 :
             self.sshcmd.extend(['-i ', str(self.interval)])
 
