@@ -892,12 +892,25 @@ void Client::RunRateLimitedTCP () {
 		reportstruct->sentTime = reportstruct->packetTime;
 		WriteTcpTxHdr(reportstruct, burst_size, burst_id++);
 		// perform write
+		// perform write, full header must succeed
+		if (isTcpWriteTimes(mSettings)) {
+		    write_start.setnow();
+		}
+#if HAVE_DECL_TCP_NOTSENT_LOWAT
+		if (isWritePrefetch(mSettings)) {
+		    AwaitSelectWrite();
+		}
+#endif
 		if (isTripTime(mSettings)) {
 		    len = writen(mySocket, mSettings->mBuf, mSettings->mBufLen, &reportstruct->writecnt);
 		    WARN(len != mSettings->mBufLen, "burst write failed");
 		} else {
 		    len = writen(mySocket, mSettings->mBuf, sizeof(struct TCP_burst_payload), &reportstruct->writecnt);
 		    WARN(len != sizeof(struct TCP_burst_payload), "burst hdr write failed");
+		}
+		if (isTcpWriteTimes(mSettings)) {
+		    now.setnow();
+		    reportstruct->write_time = now.subUsec(write_start);
 		}
 		if (len < 0) {
 		    len = 0;
@@ -919,7 +932,19 @@ void Client::RunRateLimitedTCP () {
 		reportstruct->packetLen = burst_remaining;
 	    }
 	    if (burst_remaining > 0) {
+		if (isTcpWriteTimes(mSettings)) {
+		    write_start.setnow();
+		}
+#if HAVE_DECL_TCP_NOTSENT_LOWAT
+		if (isWritePrefetch(mSettings)) {
+		    AwaitSelectWrite();
+		}
+#endif
 		len2 = write(mySocket, mSettings->mBuf, reportstruct->packetLen);
+		if (isTcpWriteTimes(mSettings)) {
+		    now.setnow();
+		    reportstruct->write_time = now.subUsec(write_start);
+		}
 		reportstruct->writecnt++;
 	    }
 	    if (len2 < 0) {
