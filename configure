@@ -5485,6 +5485,8 @@ else $as_nop
   enable_tuntap_tap="no"
 fi
 
+fi
+
     if test "x${enable_tuntap_tap}" = "xyes"; then
   TUNTAP_TAP_TRUE=
   TUNTAP_TAP_FALSE='#'
@@ -5493,8 +5495,6 @@ else
   TUNTAP_TAP_FALSE=
 fi
 
-
-fi
 
 
 
