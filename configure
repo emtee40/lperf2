@@ -5402,6 +5402,9 @@ printf "%s\n" "#define HAVE_AF_PACKET 1" >>confdefs.h
 else $as_nop
   enable_af_packet="no"
 fi
+
+fi
+
     if test "x${enable_af_packet}" = "xyes"; then
   AF_PACKET_TRUE=
   AF_PACKET_FALSE='#'
@@ -5410,8 +5413,6 @@ else
   AF_PACKET_FALSE=
 fi
 
-
-fi
 
 # Check whether --enable-tuntap-tun was given.
 if test ${enable_tuntap_tun+y}
@@ -5443,6 +5444,8 @@ else $as_nop
   enable_tuntap_tun="no"
 fi
 
+fi
+
     if test "x${enable_tuntap_tun}" = "xyes"; then
   TUNTAP_TUN_TRUE=
   TUNTAP_TUN_FALSE='#'
@@ -5451,8 +5454,6 @@ else
   TUNTAP_TUN_FALSE=
 fi
 
-
-fi
 
 # Check whether --enable-tuntap-tap was given.
 if test ${enable_tuntap_tap+y}
