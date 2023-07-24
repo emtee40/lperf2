@@ -1967,6 +1967,7 @@ int reporter_condprint_burst_interval_report_server_tcp (struct ReporterData *da
 	stats->ts.packetTime = packet->packetTime;
 	reporter_set_timestamps_time(stats, INTERVALPARTIAL);
 	stats->cntBytes = stats->total.Bytes.current - stats->total.Bytes.prev;
+	stats->sock_callstats.read.cntRead = stats->sock_callstats.read.ReadCnt.current - stats->sock_callstats.read.ReadCnt.prev;
 	if ((stats->output_handler) && !(stats->isMaskOutput))
 	    (*stats->output_handler)(stats);
 	reporter_reset_transfer_stats_server_tcp(stats);
