@@ -164,7 +164,8 @@ Client specific:\n\
 #endif
 "  -S, --tos                IP DSCP or tos settings\n\
   -T, --ttl       #        time-to-live, for multicast (default 1)\n\
-      --working-load request a concurrent TCP stream\n\
+      --working-load request working load(s)\n\
+      --working-load-cca set working load CCA\n\
   -V, --ipv6_domain        Set the domain to IPv6 (send packets over IPv6)\n\
   -X, --peer-detect        perform server version detection and version exchange\n\
 \n\
@@ -221,10 +222,10 @@ const char server_pid_portrange[] =
 "Server listening on %s ports %d-%d with pid %d\n";
 
 const char client_pid_port[] =
-"Client connecting to %s, %s port %d with pid %d (%d flows)\n";
+"Client connecting to %s, %s port %d with pid %d (%d/%d flows/load)\n";
 
 const char client_pid_port_dev[] =
-"Client connecting to %s, %s port %d with pid %d via %s (%d flows)\n";
+"Client connecting to %s, %s port %d with pid %d via %s (%d/%d flows/load)\n";
 
 const char bind_address[] =
 "Binding to local address %s\n";

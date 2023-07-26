@@ -86,7 +86,18 @@ void SetSocketOptions (struct thread_Settings *inSettings) {
     setsock_tcp_windowsize(inSettings->mSock, inSettings->mTCPWin,
                             (inSettings->mThreadMode == kMode_Client ? 1 : 0));
 
-    if (isCongestionControl(inSettings)) {
+    if ((isWorkingLoadUp(inSettings) || isWorkingLoadDown(inSettings)) && isLoadCCA(inSettings)) {
+#ifdef TCP_CONGESTION
+	Socklen_t len = strlen(inSettings->mLoadCCA) + 1;
+	int rc = setsockopt(inSettings->mSock, IPPROTO_TCP, TCP_CONGESTION,
+			     inSettings->mLoadCCA, len);
+	if (rc == SOCKET_ERROR) {
+	    fprintf(stderr, "Attempt to set '%s' congestion control failed: %s\n",
+		    inSettings->mLoadCCA, strerror(errno));
+	    unsetLoadCCA(inSettings);
+	}
+#endif
+    } else if (isCongestionControl(inSettings)) {
 #ifdef TCP_CONGESTION
 	Socklen_t len = strlen(inSettings->mCongestion) + 1;
 	int rc = setsockopt(inSettings->mSock, IPPROTO_TCP, TCP_CONGESTION,
@@ -96,11 +107,8 @@ void SetSocketOptions (struct thread_Settings *inSettings) {
 		    inSettings->mCongestion, strerror(errno));
 	    unsetCongestionControl(inSettings);
 	}
-#else
-	fprintf(stderr, "The -Z option is not available on this operating system\n");
 #endif
     }
-
 
 #if ((HAVE_TUNTAP_TAP) && (HAVE_TUNTAP_TUN))
     if (isTunDev(inSettings) || isTapDev(inSettings)) {

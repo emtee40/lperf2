@@ -113,7 +113,7 @@ exclude C(connection) D(data) M(multicast) S(settings) V(server) reports
 if set to C or c report results as CSV (comma separated values)
 .TP
 .BR -Z ", " --tcp-congestion " "
-Set the default congestion-control algorithm to be used for new connections. Platforms must support setsockopt's TCP_CONGESTION. (Notes: See sysctl and tcp_allowed_congestion_control for available options. May require root privileges.)
+Set the default congestion control algorithm to be used for new connections. Platforms must support setsockopt's TCP_CONGESTION. (Notes: See sysctl and tcp_allowed_congestion_control for available options. May require root privileges.)
 .SH "SERVER SPECIFIC OPTIONS"
 .TP
 .BR -1 ", " --singleclient " "
@@ -268,6 +268,9 @@ Set a key value that must match the server's value (also set with --permit-key) 
 Do a bidirectional test individually - client-to-server, followed by
 a reversed test, server-to-client
 .TP
+.BR "    --tcp-cca "
+Set the congestion control algorithm to be used for TCP connections. (same as --tcp-congestion)
+.TP
 .BR "    --tcp-quickack "
 Set TCP_QUICKACK on the socket
 .TP
@@ -315,6 +318,9 @@ time-to-live, for multicast (default 1)
 .TP
 .BR "    --working-load[="\fBup|down|bidir][\fR,\fIn\fR\fB]\fR
 request a concurrent working load, currently TCP stream(s), defaults to full duplex (or bidir) unless the \fBup\fR or \fBdown\fR option is provided. The number of TCP streams defaults to 1 and can be changed via the n value, e.g. \fB--working-load=down,4\fR will use four TCP streams from server to the client as the working load. The IP ToS will be BE (0x0) for working load traffic.
+.TP
+.BR "    --working-load-cca "
+Set the congestion control algorithm to be used for TCP working loads
 .TP
 .BR -V ", " --ipv6_domain " "
 Set the domain to IPv6 (send packets over IPv6)

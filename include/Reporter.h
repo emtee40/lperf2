@@ -58,6 +58,7 @@
 #include "histogram.h"
 #include "packet_ring.h"
 #include "gettcpinfo.h"
+#include "payloads.h"
 
 // forward declarations found in Settings.hpp
 struct thread_Settings;
@@ -198,6 +199,7 @@ struct ReportCommon {
     int flags_extend;
     int flags_extend2;
     int threads;
+    int working_load_threads;
     unsigned short Port;
     unsigned short PortLast;
     unsigned short BindPort;
@@ -237,6 +239,7 @@ struct ReportCommon {
     char* Ifrnametx;
     char* SSMMulticastStr;
     char* Congestion;
+    char* LoadCCA;
     char* transferIDStr;
     char* PermitKey;
     int transferID;
@@ -267,6 +270,7 @@ struct ConnectionInfo {
     char peerversion[PEERVERBUFSIZE];
     struct MeanMinMaxStats connect_times;
     struct iperf_tcpstats tcpinitstats;
+    char connected_cca[MAX_CCA_LEN];
 };
 
 

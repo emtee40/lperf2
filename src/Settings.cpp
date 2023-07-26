@@ -123,6 +123,8 @@ static int workingload = 0;
 static int utctimes = 0;
 static int bouncebackdelaystart = 0;
 static int tcpwritetimes = 0;
+static int primarycca = 0;
+static int loadcca = 0;
 
 void Settings_Interpret(char option, const char *optarg, struct thread_Settings *mExtSettings);
 // apply compound settings after the command line has been fully parsed
@@ -234,6 +236,8 @@ const struct option long_options[] =
 {"tap-dev", optional_argument, &tapif, 1},
 {"tun-dev", optional_argument, &tunif, 1},
 {"working-load", optional_argument, &workingload, 1},
+{"working-load-cca", required_argument, &loadcca, 1},
+{"tcp-cca", required_argument, &primarycca, 1},
 {"utc", no_argument, &utctimes, 1},
 {"NUM_REPORT_STRUCTS", required_argument, &numreportstructs, 1},
 #ifdef WIN32
@@ -417,6 +421,10 @@ void Settings_Copy (struct thread_Settings *from, struct thread_Settings **into,
 	    (*into)->mCongestion = new char[strlen(from->mCongestion) + 1];
 	    strcpy((*into)->mCongestion, from->mCongestion);
 	}
+	if (from->mLoadCCA != NULL) {
+	    (*into)->mLoadCCA = new char[strlen(from->mLoadCCA) + 1];
+	    strcpy((*into)->mLoadCCA, from->mLoadCCA);
+	}
     } else {
 	(*into)->mHost = NULL;
 	(*into)->mOutputFileName = NULL;
@@ -489,6 +497,7 @@ void Settings_Destroy (struct thread_Settings *mSettings) {
     DELETE_ARRAY(mSettings->mHistogramStr);
     DELETE_ARRAY(mSettings->mSSMMulticastStr);
     DELETE_ARRAY(mSettings->mCongestion);
+    DELETE_ARRAY(mSettings->mLoadCCA);
     FREE_ARRAY(mSettings->mIfrname);
     FREE_ARRAY(mSettings->mIfrnametx);
     FREE_ARRAY(mSettings->mTransferIDStr);
@@ -936,9 +945,13 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 
     case 'Z':
 #ifdef TCP_CONGESTION
-	setCongestionControl(mExtSettings);
-	mExtSettings->mCongestion = new char[strlen(optarg)+1];
-	strcpy(mExtSettings->mCongestion, optarg);
+	if (isCongestionControl(mExtSettings)) {
+	    fprintf(stderr, "Option --tcp-congestion or -Z ignored because --tcp-cca set\n");
+	} else {
+	    setCongestionControl(mExtSettings);
+	    mExtSettings->mCongestion = new char[strlen(optarg)+1];
+	    strcpy(mExtSettings->mCongestion, optarg);
+	}
 #else
 	fprintf(stderr, "The -Z option is not available on this operating system\n");
 #endif
@@ -1167,6 +1180,30 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	}
 	if (utctimes) {
 	    setUTC(mExtSettings);
+	}
+	if (loadcca) {
+	    loadcca = 0;
+#ifdef TCP_CONGESTION
+	    setLoadCCA(mExtSettings);
+	    mExtSettings->mLoadCCA = new char[strlen(optarg)+1];
+	    strcpy(mExtSettings->mLoadCCA, optarg);
+#else
+	    fprintf(stderr, "The --working-load-cca option is not available on this operating system\n");
+#endif
+	}
+	if (primarycca) {
+	    primarycca = 0;
+#ifdef TCP_CONGESTION
+	    if (isCongestionControl(mExtSettings)) {
+		fprintf(stderr, "Option --tcp-cca ignored because --tcp-congestion or -Z set\n");
+	    } else {
+		setCongestionControl(mExtSettings);
+		mExtSettings->mCongestion = new char[strlen(optarg)+1];
+		strcpy(mExtSettings->mCongestion, optarg);
+	    }
+#else
+	    fprintf(stderr, "The --tcp-cca option is not available on this operating system\n");
+#endif
 	}
 	if (workingload) {
 	    workingload = 0;
@@ -2530,7 +2567,7 @@ int Settings_GenerateClientHdr (struct thread_Settings *client, void *testhdr, s
 	    if (isPeerVerDetect(client)) {
 		flags |= (HEADER_V2PEERDETECT | HEADER_VERSION2);
 	    }
-	    if (isTripTime(client) || isFQPacing(client) || isIsochronous(client) || isTxStartTime(client)) {
+	    if (isTripTime(client) || isFQPacing(client) || isIsochronous(client) || isTxStartTime(client) || isLoadCCA(client) || isCongestionControl(client)) {
 		hdr->start_fq.start_tv_sec = htonl(startTime.tv_sec);
 		hdr->start_fq.start_tv_usec = htonl(startTime.tv_usec);
 		hdr->start_fq.fqratel = htonl((uint32_t) client->mFQPacingRate);
@@ -2577,6 +2614,26 @@ int Settings_GenerateClientHdr (struct thread_Settings *client, void *testhdr, s
 			hdr->isoch_settings.Meanl = htonl((long)(client->mBurstSize));
 		    }
 		    len += sizeof(struct client_hdrext_isoch_settings);
+		}
+	    } else if (isLoadCCA(client) || isCongestionControl(client)) {
+		// just jump the enclave hdr
+		len += sizeof(struct client_hdrext_isoch_settings);
+	    }
+	    if (isLoadCCA(client) && (isWorkingLoadUp(client) || isWorkingLoadDown(client))) {
+		uint16_t lenfield = ((client->mLoadCCA != NULL) ? (strlen(client->mLoadCCA)) : 0);
+		if (lenfield > 0) {
+		    hdr->cca.cca_length = htons(lenfield);
+		    lowerflags |= HEADER_CCA;
+		    memcpy(hdr->cca.value, client->mLoadCCA, lenfield);
+		    len += sizeof(uint16_t) + lenfield;
+		}
+	    } else if (isCongestionControl(client)) {
+		uint16_t lenfield = ((client->mCongestion != NULL) ? (strlen(client->mCongestion)) : 0);
+		if (lenfield > 0) {
+		    hdr->cca.cca_length = htons(lenfield);
+		    lowerflags |= HEADER_CCA;
+		    memcpy(hdr->cca.value, client->mCongestion, lenfield);
+		    len += sizeof(uint16_t) + lenfield;
 		}
 	    }
 	    if (isReverse(client) || isFullDuplex(client)) {

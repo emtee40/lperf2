@@ -1784,11 +1784,13 @@ static void reporter_output_client_settings (struct ReportSettings *report) {
     if (!report->common->Ifrnametx) {
 	printf(isEnhanced(report->common) ? client_pid_port : client_port, hoststr,
 	       (isUDP(report->common) ? "UDP" : "TCP"), report->common->Port, report->pid, \
-	       (!report->common->threads ? 1 : report->common->threads));
+	       (!report->common->threads ? 1 : report->common->threads),
+	       (!report->common->threads ? 1 : report->common->working_load_threads));
     } else {
 	printf(client_pid_port_dev, hoststr,
 	       (isUDP(report->common) ? "UDP" : "TCP"), report->common->Port, report->pid, \
-	       report->common->Ifrnametx, (!report->common->threads ? 1 : report->common->threads));
+	       report->common->Ifrnametx, (!report->common->threads ? 1 : report->common->threads),
+	       (!report->common->threads ? 1 : report->common->working_load_threads));
     }
     if ((isEnhanced(report->common) || isNearCongest(report->common)) && !isUDP(report->common) && !isBounceBack(report->common)) {
 	byte_snprintf(outbuffer, sizeof(outbuffer), report->common->BufLen, 'B');
@@ -1856,6 +1858,9 @@ static void reporter_output_client_settings (struct ReportSettings *report) {
 	} else if (strlen(cca)) {
 	    fprintf(stdout,"TCP congestion control using %s\n", cca);
 	}
+    }
+    if ((isWorkingLoadUp(report->common) || isWorkingLoadDown(report->common)) && isLoadCCA(report->common)) {
+	fprintf(stdout,"TCP working load congestion control set to %s\n", report->common->LoadCCA);
     }
 #endif
     if (isEnhanced(report->common)) {

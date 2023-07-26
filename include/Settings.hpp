@@ -254,6 +254,7 @@ struct thread_Settings {
     int incrsrcport;
     int connectonly_count;
     char* mCongestion;
+    char* mLoadCCA;
     int mHistBins;
     int mHistBinsize;
     int mHistUnits;
@@ -402,6 +403,7 @@ struct thread_Settings {
 #define FLAG_DOMAINV4          0x00008000
 #define FLAG_JITTER_HISTOGRAM  0x00010000
 #define FLAG_UTC            0x00020000
+#define FLAG_LOAD_CCA    0x00040000
 
 #define isBuflenSet(settings)      ((settings->flags & FLAG_BUFLENSET) != 0)
 #define isCompat(settings)         ((settings->flags & FLAG_COMPAT) != 0)
@@ -480,6 +482,7 @@ struct thread_Settings {
 #define isWorkingLoadDown(settings)  ((settings->flags_extend2 & FLAG_WORKING_LOAD_DOWN) != 0)
 #define isJitterHistogram(settings)  ((settings->flags_extend2 & FLAG_JITTER_HISTOGRAM) != 0)
 #define isUTC(settings)            ((settings->flags_extend2 & FLAG_UTC) != 0)
+#define isLoadCCA(settings) ((settings->flags_extend2 & FLAG_LOAD_CCA) != 0)
 
 #define setBuflenSet(settings)     settings->flags |= FLAG_BUFLENSET
 #define setCompat(settings)        settings->flags |= FLAG_COMPAT
@@ -555,6 +558,7 @@ struct thread_Settings {
 #define setWorkingLoadDown(settings) settings->flags_extend2 |= FLAG_WORKING_LOAD_DOWN
 #define setJitterHistogram(settings) settings->flags_extend2 |= FLAG_JITTER_HISTOGRAM
 #define setUTC(settings)           settings->flags_extend2 |= FLAG_UTC
+#define setLoadCCA(settings)    settings->flags_extend2 |= FLAG_LOAD_CCA
 
 #define unsetBuflenSet(settings)   settings->flags &= ~FLAG_BUFLENSET
 #define unsetCompat(settings)      settings->flags &= ~FLAG_COMPAT
@@ -629,6 +633,7 @@ struct thread_Settings {
 #define unsetWorkingLoadDown(settings) settings->flags_extend2 &= ~FLAG_WORKING_LOAD_DOWN
 #define unsetJitterHistogram(settings) settings->flags_extend2 &= ~FLAG_JITTER_HISTOGRAM
 #define unsetUTC(settings)           settings->flags_extend2 &= ~FLAG_UTC
+#define unsetLoadCCA(settings)           settings->flags_extend2 &= ~FLAG_LOAD_CCA
 
 // set to defaults
 void Settings_Initialize(struct thread_Settings* main);

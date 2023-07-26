@@ -91,6 +91,7 @@ static void common_copy (struct ReportCommon **common, struct thread_Settings *i
     my_str_copy(&(*common)->Ifrnametx, inSettings->mIfrnametx);
     my_str_copy(&(*common)->SSMMulticastStr, inSettings->mSSMMulticastStr);
     my_str_copy(&(*common)->Congestion, inSettings->mCongestion);
+    my_str_copy(&(*common)->LoadCCA, inSettings->mLoadCCA);
     my_str_copy(&(*common)->transferIDStr, inSettings->mTransferIDStr);
     my_str_copy(&(*common)->PermitKey, inSettings->mPermitKey);
 
@@ -118,6 +119,7 @@ static void common_copy (struct ReportCommon **common, struct thread_Settings *i
     (*common)->socket = inSettings->mSock;
     (*common)->transferID = inSettings->mTransferID;
     (*common)->threads = inSettings->mThreads;
+    (*common)->working_load_threads = inSettings->mWorkingLoadThreads;
     (*common)->winsize_requested = inSettings->mTCPWin;
 #if defined(HAVE_LINUX_FILTER_H) && defined(HAVE_AF_PACKET)
     (*common)->socketdrop = inSettings->mSockDrop;
@@ -173,6 +175,8 @@ static void free_common_copy (struct ReportCommon *common) {
 	free(common->SSMMulticastStr);
     if (common->Congestion)
 	free(common->Congestion);
+    if (common->LoadCCA)
+	free(common->LoadCCA);
     if (common->transferIDStr)
 	free(common->transferIDStr);
     if (common->PermitKey)
@@ -867,6 +871,12 @@ struct ReportHeader* InitConnectionReport (struct thread_Settings *inSettings) {
     if (isPeriodicBurst(inSettings)) {
 	creport->common->FPS = inSettings->mFPS;
     }
+    if (isLoadCCA(inSettings) && (isWorkingLoadUp(inSettings) || isWorkingLoadDown(inSettings))) {
+	strncpy(creport->connected_cca, inSettings->mLoadCCA, MAX_CCA_LEN);
+    } else if (isCongestionControl(inSettings)) {
+	strncpy(creport->connected_cca, inSettings->mCongestion, MAX_CCA_LEN);
+    }
+    creport->connected_cca[MAX_CCA_LEN - 1] = '\0';
 #ifdef HAVE_THREAD_DEBUG
     char rs[REPORTTXTMAX];
     reporttype_text(reporthdr, &rs[0]);

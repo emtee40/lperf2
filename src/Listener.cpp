@@ -1079,6 +1079,7 @@ bool Listener::apply_client_settings_tcp (thread_Settings *server) {
 	    bbhdr->bbserverRx_ts.usec = htonl(now.getUsecs());
 	} else {
 	    uint16_t upperflags = 0;
+	    uint16_t lowerflags = 0;
 	    int readlen;
 	    // figure out the length of the test header
 	    if ((readlen = Settings_ClientTestHdrLen(flags, server)) > 0) {
@@ -1105,6 +1106,7 @@ bool Listener::apply_client_settings_tcp (thread_Settings *server) {
 		}
 		if (flags & HEADER_EXTEND) {
 		    upperflags = htons(hdr->extend.upperflags);
+		    lowerflags = htons(hdr->extend.lowerflags);
 		    server->mTOS = ntohs(hdr->extend.tos);
 		    server->peer_version_u = ntohl(hdr->extend.version_u);
 		    server->peer_version_l = ntohl(hdr->extend.version_l);
@@ -1146,6 +1148,25 @@ bool Listener::apply_client_settings_tcp (thread_Settings *server) {
 			if (!server->mFPS) {
 			    server->mFPS = 1.0;
 			}
+		    }
+		    if ((lowerflags & HEADER_CCA) && !isCongestionControl(server)) {
+#ifdef TCP_CONGESTION
+			int ccalen = ntohs(hdr->cca.cca_length);
+			setCongestionControl(server);
+			server->mCongestion = new char[ccalen+1];
+			strncpy(server->mCongestion, hdr->cca.value, ccalen);
+			server->mCongestion[ccalen] = '\0';
+			Socklen_t len = strlen(server->mCongestion) + 1;
+			int rc = setsockopt(server->mSock, IPPROTO_TCP, TCP_CONGESTION,
+					    server->mCongestion, len);
+			if (rc == SOCKET_ERROR) {
+			    fprintf(stderr, "Attempt to set '%s' congestion control failed: %s\n",
+				    server->mCongestion, strerror(errno));
+			    unsetCongestionControl(server);
+			} else {
+			    printf("**** set congestion control to %s\n", server->mCongestion);
+			}
+#endif
 		    }
 		    if (flags & HEADER_VERSION2) {
 			if (upperflags & HEADER_FULLDUPLEX) {
