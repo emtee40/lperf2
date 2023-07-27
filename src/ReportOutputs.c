@@ -2015,8 +2015,23 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
 	b += strlen(b);
     }
     if (isEnhanced(report->common)) {
-	snprintf(b, SNBUFFERSIZE-strlen(b), " (sock=%d)", report->common->socket);;
-	b += strlen(b);
+        if (isCongestionControl(report->common)) {
+#ifdef TCP_CONGESTION
+	    char cca[40] = "";
+	    Socklen_t len = sizeof(cca);
+	    int rc;
+	    if ((rc = getsockopt(report->common->socket, IPPROTO_TCP, TCP_CONGESTION, &cca, &len)) == 0) {
+	        cca[len]='\0';
+	    }
+	    if (rc != SOCKET_ERROR) {
+	        snprintf(b, SNBUFFERSIZE-strlen(b), " (sock=%d/%s)", report->common->socket, cca);
+	        b += strlen(b);
+	    }
+#endif
+	} else {
+	    snprintf(b, SNBUFFERSIZE-strlen(b), " (sock=%d)", report->common->socket);
+	    b += strlen(b);
+	}
     }
     if (isOverrideTOS(report->common)) {
 	if (isFullDuplex(report->common)) {
@@ -2054,7 +2069,6 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
 	b += strlen(b);
     }
 #endif
-
     if ((isFullDuplex(report->common) || !isServerReverse(report->common)) \
 	&& (isEnhanced(report->common) || isConnectOnly(report->common))) {
 	if (report->connect_timestamp.tv_sec > 0) {

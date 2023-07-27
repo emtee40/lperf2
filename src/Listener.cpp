@@ -1163,8 +1163,6 @@ bool Listener::apply_client_settings_tcp (thread_Settings *server) {
 			    fprintf(stderr, "Attempt to set '%s' congestion control failed: %s\n",
 				    server->mCongestion, strerror(errno));
 			    unsetCongestionControl(server);
-			} else {
-			    printf("**** set congestion control to %s\n", server->mCongestion);
 			}
 #endif
 		    }
