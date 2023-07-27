@@ -1793,10 +1793,20 @@ static void reporter_output_client_settings (struct ReportSettings *report) {
     if ((isEnhanced(report->common) || isNearCongest(report->common)) && !isUDP(report->common) && !isBounceBack(report->common)) {
 	byte_snprintf(outbuffer, sizeof(outbuffer), report->common->BufLen, 'B');
 	outbuffer[(sizeof(outbuffer)-1)] = '\0';
-	if (isTcpWriteTimes(report->common)) {
-	    printf("%s: %s (write timer enabled)\n", client_write_size, outbuffer);
+	if (!isBurstSize(report->common)) {
+	    if (isTcpWriteTimes(report->common)) {
+		printf("%s: %s (write timer enabled)\n", client_write_size, outbuffer);
+	    } else {
+		printf("%s: %s\n", client_write_size, outbuffer);
+	    }
 	} else {
-	    printf("%s: %s\n", client_write_size, outbuffer);
+	    byte_snprintf(outbufferext, sizeof(outbufferext), report->common->BurstSize, 'B');
+	    outbufferext[(sizeof(outbufferext)-1)] = '\0';
+	    if (isTcpWriteTimes(report->common)) {
+		printf("%s: %s  Burst size: %s (write timer enabled)\n", client_write_size, outbuffer, outbufferext);
+	    } else {
+		printf("%s: %s  Burst size: %s\n", client_write_size, outbuffer, outbufferext);
+	    }
 	}
     }
     if (isIsochronous(report->common)) {

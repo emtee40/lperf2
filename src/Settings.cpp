@@ -1236,7 +1236,7 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	}
 	if (burstsize) {
 	    burstsize = 0;
-	    setPeriodicBurst(mExtSettings);
+	    setBurstSize(mExtSettings);
 	    if (optarg) {
 		mExtSettings->mBurstSize = byte_atoi(optarg);
 	    }
@@ -1637,10 +1637,6 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 		fprintf(stderr, "ERROR: option of --burst-size %d must be equal or larger to write length (-l) %d\n", mExtSettings->mBurstSize, mExtSettings->mBufLen);
 		bail = true;
 	    }
-	} else if (!isBounceBack(mExtSettings) && (static_cast<int> (mExtSettings->mBurstSize) > 0)) {
-	    setPeriodicBurst(mExtSettings);
-	    mExtSettings->mFPS = 1.0;
-	    fprintf(stderr, "WARN: option of --burst-size without --burst-period defaults --burst-period to 1 second\n");
 	}
 	if (isUDP(mExtSettings)) {
 	    if (isPeerVerDetect(mExtSettings)) {
