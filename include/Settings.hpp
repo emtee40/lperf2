@@ -403,7 +403,9 @@ struct thread_Settings {
 #define FLAG_DOMAINV4          0x00008000
 #define FLAG_JITTER_HISTOGRAM  0x00010000
 #define FLAG_UTC            0x00020000
-#define FLAG_LOAD_CCA    0x00040000
+#define FLAG_LOAD_CCA       0x00040000
+#define FLAG_BURSTSIZE      0x00080000
+
 
 #define isBuflenSet(settings)      ((settings->flags & FLAG_BUFLENSET) != 0)
 #define isCompat(settings)         ((settings->flags & FLAG_COMPAT) != 0)
@@ -483,6 +485,7 @@ struct thread_Settings {
 #define isJitterHistogram(settings)  ((settings->flags_extend2 & FLAG_JITTER_HISTOGRAM) != 0)
 #define isUTC(settings)            ((settings->flags_extend2 & FLAG_UTC) != 0)
 #define isLoadCCA(settings) ((settings->flags_extend2 & FLAG_LOAD_CCA) != 0)
+#define isBurstSize(settings)      ((settings->flags_extend2 & FLAG_BURSTSIZE) != 0)
 
 #define setBuflenSet(settings)     settings->flags |= FLAG_BUFLENSET
 #define setCompat(settings)        settings->flags |= FLAG_COMPAT
@@ -559,6 +562,7 @@ struct thread_Settings {
 #define setJitterHistogram(settings) settings->flags_extend2 |= FLAG_JITTER_HISTOGRAM
 #define setUTC(settings)           settings->flags_extend2 |= FLAG_UTC
 #define setLoadCCA(settings)    settings->flags_extend2 |= FLAG_LOAD_CCA
+#define setBurstSize(settings)     settings->flags_extend2 |= FLAG_BURSTSIZE
 
 #define unsetBuflenSet(settings)   settings->flags &= ~FLAG_BUFLENSET
 #define unsetCompat(settings)      settings->flags &= ~FLAG_COMPAT
@@ -634,6 +638,7 @@ struct thread_Settings {
 #define unsetJitterHistogram(settings) settings->flags_extend2 &= ~FLAG_JITTER_HISTOGRAM
 #define unsetUTC(settings)           settings->flags_extend2 &= ~FLAG_UTC
 #define unsetLoadCCA(settings)           settings->flags_extend2 &= ~FLAG_LOAD_CCA
+#define unsetBurstSize(settings)     settings->flags_extend2 &= ~FLAG_BURSTSIZE
 
 // set to defaults
 void Settings_Initialize(struct thread_Settings* main);

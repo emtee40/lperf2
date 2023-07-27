@@ -634,7 +634,7 @@ void Client::RunTCP () {
 	    if (isIsochronous(mSettings)) {
 		assert(mSettings->mMean);
 		burst_remaining = static_cast<int>(lognormal(mSettings->mMean,mSettings->mVariance)) / (mSettings->mFPS * 8);
-	    } else if (isPeriodicBurst(mSettings)){
+	    } else if (isBurstSize(mSettings)){
 		assert(mSettings->mBurstSize);
 		burst_remaining = mSettings->mBurstSize;
 	    } else {

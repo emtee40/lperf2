@@ -3498,10 +3498,13 @@ config.status:1034: creating include/Makefile
 config.status:1034: creating src/Makefile
 config.status:1034: creating man/Makefile
 config.status:1034: creating config.h
+config.status:1215: config.h is unchanged
 config.status:1263: executing depfiles commands
 config.status:1340: cd compat       && sed -e '/# am--include-marker/d' Makefile         | make -f - am--depfiles
+make: Nothing to be done for 'am--depfiles'.
 config.status:1345: $? = 0
 config.status:1340: cd src       && sed -e '/# am--include-marker/d' Makefile         | make -f - am--depfiles
+make: Nothing to be done for 'am--depfiles'.
 config.status:1345: $? = 0
 
 ## ---------------- ##
@@ -3696,7 +3699,7 @@ ax_cv_PTHREAD_SPECIAL_FLAGS=no
 ## Output variables. ##
 ## ----------------- ##
 
-ACLOCAL='${SHELL} '\''/home/rjmcmahon/Code/readcnt/iperf2-code/missing'\'' aclocal-1.16'
+ACLOCAL='${SHELL} '\''/home/rjmcmahon/Code/prague/iperf2-code/missing'\'' aclocal-1.16'
 AF_PACKET_FALSE='#'
 AF_PACKET_TRUE=''
 AMDEPBACKSLASH='\'
@@ -3707,9 +3710,9 @@ AM_BACKSLASH='\'
 AM_DEFAULT_V='$(AM_DEFAULT_VERBOSITY)'
 AM_DEFAULT_VERBOSITY='1'
 AM_V='$(V)'
-AUTOCONF='${SHELL} '\''/home/rjmcmahon/Code/readcnt/iperf2-code/missing'\'' autoconf'
-AUTOHEADER='${SHELL} '\''/home/rjmcmahon/Code/readcnt/iperf2-code/missing'\'' autoheader'
-AUTOMAKE='${SHELL} '\''/home/rjmcmahon/Code/readcnt/iperf2-code/missing'\'' automake-1.16'
+AUTOCONF='${SHELL} '\''/home/rjmcmahon/Code/prague/iperf2-code/missing'\'' autoconf'
+AUTOHEADER='${SHELL} '\''/home/rjmcmahon/Code/prague/iperf2-code/missing'\'' autoheader'
+AUTOMAKE='${SHELL} '\''/home/rjmcmahon/Code/prague/iperf2-code/missing'\'' automake-1.16'
 AWK='gawk'
 CC='gcc'
 CCDEPMODE='depmode=gcc3'
@@ -3752,7 +3755,7 @@ LTLIBOBJS=''
 MAINT='#'
 MAINTAINER_MODE_FALSE=''
 MAINTAINER_MODE_TRUE='#'
-MAKEINFO='${SHELL} '\''/home/rjmcmahon/Code/readcnt/iperf2-code/missing'\'' makeinfo'
+MAKEINFO='${SHELL} '\''/home/rjmcmahon/Code/prague/iperf2-code/missing'\'' makeinfo'
 MKDIR_P='/usr/bin/mkdir -p'
 OBJEXT='o'
 PACKAGE='iperf'
@@ -3821,7 +3824,7 @@ host_vendor='pc'
 htmldir='${docdir}'
 includedir='${prefix}/include'
 infodir='${datarootdir}/info'
-install_sh='${SHELL} /home/rjmcmahon/Code/readcnt/iperf2-code/install-sh'
+install_sh='${SHELL} /home/rjmcmahon/Code/prague/iperf2-code/install-sh'
 libdir='${exec_prefix}/lib'
 libexecdir='${exec_prefix}/libexec'
 localedir='${datarootdir}/locale'
