@@ -85,20 +85,8 @@ void SetSocketOptions (struct thread_Settings *inSettings) {
     // must occur before call to accept() for large window sizes
     setsock_tcp_windowsize(inSettings->mSock, inSettings->mTCPWin,
                             (inSettings->mThreadMode == kMode_Client ? 1 : 0));
-
-    if ((isWorkingLoadUp(inSettings) || isWorkingLoadDown(inSettings)) && isLoadCCA(inSettings)) {
 #ifdef TCP_CONGESTION
-	Socklen_t len = strlen(inSettings->mLoadCCA) + 1;
-	int rc = setsockopt(inSettings->mSock, IPPROTO_TCP, TCP_CONGESTION,
-			     inSettings->mLoadCCA, len);
-	if (rc == SOCKET_ERROR) {
-	    fprintf(stderr, "Attempt to set '%s' congestion control failed: %s\n",
-		    inSettings->mLoadCCA, strerror(errno));
-	    unsetLoadCCA(inSettings);
-	}
-#endif
-    } else if (isCongestionControl(inSettings)) {
-#ifdef TCP_CONGESTION
+    if (isCongestionControl(inSettings)) {
 	Socklen_t len = strlen(inSettings->mCongestion) + 1;
 	int rc = setsockopt(inSettings->mSock, IPPROTO_TCP, TCP_CONGESTION,
 			     inSettings->mCongestion, len);
@@ -107,8 +95,17 @@ void SetSocketOptions (struct thread_Settings *inSettings) {
 		    inSettings->mCongestion, strerror(errno));
 	    unsetCongestionControl(inSettings);
 	}
-#endif
+    } else if (isLoadCCA(inSettings)) {
+	Socklen_t len = strlen(inSettings->mLoadCCA) + 1;
+	int rc = setsockopt(inSettings->mSock, IPPROTO_TCP, TCP_CONGESTION,
+			     inSettings->mLoadCCA, len);
+	if (rc == SOCKET_ERROR) {
+	    fprintf(stderr, "Attempt to set '%s' congestion control failed: %s\n",
+		    inSettings->mLoadCCA, strerror(errno));
+	    unsetLoadCCA(inSettings);
+	}
     }
+#endif
 
 #if ((HAVE_TUNTAP_TAP) && (HAVE_TUNTAP_TUN))
     if (isTunDev(inSettings) || isTapDev(inSettings)) {

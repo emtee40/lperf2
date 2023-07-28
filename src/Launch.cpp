@@ -423,6 +423,9 @@ void client_init(struct thread_Settings *clients) {
 	int working_load_threads = (clients->mWorkingLoadThreads == 0) ? 1 : clients->mWorkingLoadThreads;
 	while (working_load_threads--) {
 	    Settings_Copy(clients, &next, DEEP_COPY);
+	    if (isLoadCCA(next)) {
+		unsetCongestionControl(next);
+	    }
 	    if (next != NULL) {
 		unsetBounceBack(next);
 		unsetConnectOnly(next);
@@ -446,6 +449,17 @@ void client_init(struct thread_Settings *clients) {
 		    // mAmount units are 10 ms
 		    next->mAmount += (next->txholdback_timer.tv_sec * 100);
 		    next->mAmount += (next->txholdback_timer.tv_usec / 10000);
+		}
+		if (isLoadCCA(next)) {
+		    char *tmp = new char[strlen(next->mLoadCCA) + 1];
+		    if (tmp) {
+			if (next->mCongestion)
+			    DELETE_ARRAY(next->mCongestion);
+			setCongestionControl(next);
+			strcpy(tmp, next->mLoadCCA);
+			tmp[strlen(next->mLoadCCA)] = '\0';
+			next->mCongestion = tmp;
+		    }
 		}
 		itr->runNow = next;
 		itr = next;

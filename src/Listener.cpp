@@ -1155,15 +1155,18 @@ bool Listener::apply_client_settings_tcp (thread_Settings *server) {
 			setCongestionControl(server);
 			setEnhanced(server);
 			server->mCongestion = new char[ccalen+1];
-			strncpy(server->mCongestion, hdr->cca.value, ccalen);
-			server->mCongestion[ccalen] = '\0';
-			Socklen_t len = strlen(server->mCongestion) + 1;
-			int rc = setsockopt(server->mSock, IPPROTO_TCP, TCP_CONGESTION,
-					    server->mCongestion, len);
-			if (rc == SOCKET_ERROR) {
-			    fprintf(stderr, "Attempt to set '%s' congestion control failed: %s\n",
-				    server->mCongestion, strerror(errno));
-			    unsetCongestionControl(server);
+			if (server->mCongestion) {
+			    strncpy(server->mCongestion, hdr->cca.value, ccalen);
+			    server->mCongestion[ccalen] = '\0';
+			    Socklen_t len = strlen(server->mCongestion) + 1;
+			    int rc = setsockopt(server->mSock, IPPROTO_TCP, TCP_CONGESTION,
+						server->mCongestion, len);
+			    if (rc == SOCKET_ERROR) {
+				fprintf(stderr, "Attempt to set '%s' congestion control failed: %s\n",
+					server->mCongestion, strerror(errno));
+				unsetCongestionControl(server);
+				DELETE_ARRAY(server->mCongestion);
+			    }
 			}
 #endif
 		    }
