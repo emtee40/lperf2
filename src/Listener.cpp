@@ -1153,6 +1153,7 @@ bool Listener::apply_client_settings_tcp (thread_Settings *server) {
 #ifdef TCP_CONGESTION
 			int ccalen = ntohs(hdr->cca.cca_length);
 			setCongestionControl(server);
+			setEnhanced(server);
 			server->mCongestion = new char[ccalen+1];
 			strncpy(server->mCongestion, hdr->cca.value, ccalen);
 			server->mCongestion[ccalen] = '\0';

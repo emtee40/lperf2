@@ -2063,7 +2063,7 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
     }
 #endif
 #if HAVE_TCP_STATS
-    if (!isUDP(report->common) && (report->tcpinitstats.isValid)) {
+    if (!isUDP(report->common) && (report->tcpinitstats.isValid) && isEnhanced(report->common)) {
 	snprintf(b, SNBUFFERSIZE-strlen(b), " (icwnd/mss/irtt=%u/%u/%u)", \
 		 report->tcpinitstats.cwnd, report->tcpinitstats.mss_negotiated, report->tcpinitstats.rtt);
 	b += strlen(b);
