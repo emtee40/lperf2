@@ -634,7 +634,7 @@ void Client::RunTCP () {
 	    if (isIsochronous(mSettings)) {
 		assert(mSettings->mMean);
 		burst_remaining = static_cast<int>(lognormal(mSettings->mMean,mSettings->mVariance)) / (mSettings->mFPS * 8);
-#if HAVE_DECL_TCP_TX_DELAY
+#if HAVE_DECL_TCP_TX_DELAY && 0
 		if (isTcpTxDelay(mSettings)) {
 		    int delay = static_cast<int>(lognormal(mSettings->mTcpTxDelay,mSettings->mTcpTxDelayVar) * mSettings->mTcpTxDelayMeanShift);
 		    if (delay > 0) {
