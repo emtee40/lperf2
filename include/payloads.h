@@ -1,4 +1,3 @@
-
 /*---------------------------------------------------------------
  * Copyrighta (c) 2019
  * Broadcom Corporation
@@ -453,6 +452,11 @@ struct cca_field {
     char value[MAX_CCA_LEN];
 };
 
+struct txdelay_field {
+    uint32_t mean;
+    uint32_t variance;
+};
+
 struct permitKey {
     uint16_t length;
     char value[MAX_PERMITKEY_LEN];
@@ -552,7 +556,11 @@ struct client_hdr_ack {
  *                +--------+--------+--------+--------+
  *            28  |        BurstIPG                   |
  *                +--------+--------+--------+--------+
- *            29  | CCAS len value ...
+ *            29  |        txdelay (usecs)            |
+ *                +--------+--------+--------+--------+
+ *            29  |        txdelay var (usecs)        |
+ *                +--------+--------+--------+--------+
+ *            30  | CCAS len value ...
  *                +--------+--------+--------+--------+
  */
 struct client_tcp_testhdr {
@@ -560,6 +568,7 @@ struct client_tcp_testhdr {
     struct client_hdrext extend;
     struct client_hdrext_starttime_fq start_fq;
     struct client_hdrext_isoch_settings isoch_settings;
+    struct txdelay_field txdelay;
     struct cca_field cca;
     struct permitKey permitkey;
 };

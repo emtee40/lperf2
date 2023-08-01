@@ -5402,9 +5402,6 @@ printf "%s\n" "#define HAVE_AF_PACKET 1" >>confdefs.h
 else $as_nop
   enable_af_packet="no"
 fi
-
-fi
-
     if test "x${enable_af_packet}" = "xyes"; then
   AF_PACKET_TRUE=
   AF_PACKET_FALSE='#'
@@ -5413,6 +5410,8 @@ else
   AF_PACKET_FALSE=
 fi
 
+
+fi
 
 # Check whether --enable-tuntap-tun was given.
 if test ${enable_tuntap_tun+y}
@@ -5444,8 +5443,6 @@ else $as_nop
   enable_tuntap_tun="no"
 fi
 
-fi
-
     if test "x${enable_tuntap_tun}" = "xyes"; then
   TUNTAP_TUN_TRUE=
   TUNTAP_TUN_FALSE='#'
@@ -5454,6 +5451,8 @@ else
   TUNTAP_TUN_FALSE=
 fi
 
+
+fi
 
 # Check whether --enable-tuntap-tap was given.
 if test ${enable_tuntap_tap+y}
@@ -5485,8 +5484,6 @@ else $as_nop
   enable_tuntap_tap="no"
 fi
 
-fi
-
     if test "x${enable_tuntap_tap}" = "xyes"; then
   TUNTAP_TAP_TRUE=
   TUNTAP_TAP_FALSE='#'
@@ -5495,6 +5492,8 @@ else
   TUNTAP_TAP_FALSE=
 fi
 
+
+fi
 
 
 
@@ -9747,6 +9746,15 @@ else $as_nop
   ac_have_decl=0
 fi
 printf "%s\n" "#define HAVE_DECL_TCP_WINDOW_CLAMP $ac_have_decl" >>confdefs.h
+ac_fn_check_decl "$LINENO" "TCP_TX_DELAY" "ac_cv_have_decl_TCP_TX_DELAY" "$in_h
+" "$ac_c_undeclared_builtin_options" "CFLAGS"
+if test "x$ac_cv_have_decl_TCP_TX_DELAY" = xyes
+then :
+  ac_have_decl=1
+else $as_nop
+  ac_have_decl=0
+fi
+printf "%s\n" "#define HAVE_DECL_TCP_TX_DELAY $ac_have_decl" >>confdefs.h
 ac_fn_check_decl "$LINENO" "TCP_QUICKACK" "ac_cv_have_decl_TCP_QUICKACK" "$in_h
 " "$ac_c_undeclared_builtin_options" "CFLAGS"
 if test "x$ac_cv_have_decl_TCP_QUICKACK" = xyes

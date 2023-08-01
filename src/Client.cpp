@@ -634,6 +634,14 @@ void Client::RunTCP () {
 	    if (isIsochronous(mSettings)) {
 		assert(mSettings->mMean);
 		burst_remaining = static_cast<int>(lognormal(mSettings->mMean,mSettings->mVariance)) / (mSettings->mFPS * 8);
+#if HAVE_DECL_TCP_TX_DELAY
+		if (isTcpTxDelay(mSettings)) {
+		    int delay = static_cast<int>(lognormal(mSettings->mTcpTxDelay,mSettings->mTcpTxDelayVar) * mSettings->mTcpTxDelayMeanShift);
+		    if (delay > 0) {
+			SetSocketTcpTxDelay(mSettings, delay);
+		    }
+		}
+#endif
 	    } else if (isBurstSize(mSettings)){
 		assert(mSettings->mBurstSize);
 		burst_remaining = mSettings->mBurstSize;

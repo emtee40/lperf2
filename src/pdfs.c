@@ -63,13 +63,16 @@
 #define TRUE 1
 float box_muller(void) {
     float x1, x2, w, y1;
+#if 0
     static float y2;
     static int generate = FALSE;
     /* Each iteration produces two values, if one exists use the value from previous call */
     generate = !generate;
     if (!generate) {
 	y1 = y2;
-    } else {
+    } else
+#endif
+	{
 	int loopcontrol=100;
 	do {
 	    x1 = 2.0 * (float)rand()/(float)(RAND_MAX) - 1.0;
@@ -82,7 +85,9 @@ float box_muller(void) {
 	} else {
 	    w = sqrt( (-2.0 * logf( w ) ) / w );
 	    y1 = x1 * w;
+#if 0
 	    y2 = x2 * w;
+#endif
 	}
     }
     return(y1);

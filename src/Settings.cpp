@@ -125,6 +125,7 @@ static int bouncebackdelaystart = 0;
 static int tcpwritetimes = 0;
 static int primarycca = 0;
 static int loadcca = 0;
+static int tcptxdelay = 0;
 
 void Settings_Interpret(char option, const char *optarg, struct thread_Settings *mExtSettings);
 // apply compound settings after the command line has been fully parsed
@@ -231,6 +232,7 @@ const struct option long_options[] =
 {"tos-override", required_argument, &overridetos, 1},
 {"tcp-rx-window-clamp", required_argument, &rxwinclamp, 1},
 {"tcp-quickack", no_argument, &tcpquickack, 1},
+{"tcp-tx-delay", required_argument, &tcptxdelay, 1},
 {"tcp-write-prefetch", required_argument, &txnotsentlowwater, 1}, // see doc/DESIGN_NOTES
 {"tcp-write-times", no_argument, &tcpwritetimes, 1},
 {"tap-dev", optional_argument, &tapif, 1},
@@ -1178,6 +1180,15 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	    setTcpQuickAck(mExtSettings);
 #endif
 	}
+	if (tcptxdelay) {
+	    tcptxdelay = 0;
+#if HAVE_DECL_TCP_TX_DELAY
+	    mExtSettings->mTcpTxDelay = atoi(optarg);
+	    mExtSettings->mTcpTxDelayVar = 0;
+	    mExtSettings->mTcpTxDelayMeanShift = 1;
+	    setTcpTxDelay(mExtSettings);
+#endif
+	}
 	if (utctimes) {
 	    setUTC(mExtSettings);
 	}
@@ -1711,6 +1722,10 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	    if (isTcpQuickAck(mExtSettings)) {
 		fprintf(stderr, "WARN: setting of option --tcp-quickack is not supported with -u UDP\n");
 		unsetWritePrefetch(mExtSettings);
+	    }
+	    if (isTcpTxDelay(mExtSettings)) {
+		fprintf(stderr, "WARN: setting of option --tcp-tx-delay is not supported with -u UDP\n");
+		unsetTcpTxDelay(mExtSettings);
 	    }
 
 	    {

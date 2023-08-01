@@ -1,3 +1,4 @@
+
 .TH IPERF 1 "May 2023" NLANR/DAST "User Manuals"
 .SH NAME
 iperf \- perform network traffic tests using network sockets. Metrics include throughput and latency or link capacity and responsiveness.
@@ -75,6 +76,9 @@ sum traffic threads based upon the destination IP address (default is source ip 
 .TP
 .BR "    --sum-only "
 set the output to sum reports only. Useful for -P at large values
+.TP
+.BR "    --tcp-tx-delay " \fIn\fR
+Set TCP_TX_DELAY on the socket. Units is microseconds and takes an integer. See Notes for qdisc requirements.
 .TP
 .BR -t ", " --time " \fIn\fR"
 time in seconds to listen for new traffic connections, receive traffic or send traffic
@@ -1002,6 +1006,27 @@ Iperf 2 supports multicast with a couple of caveats. First, multicast streams ca
 .P
 .B TCP_QUICKACK:
 The TCP_QUICKACK socket option will be applied after every read() on the server such that TCP acks are sent immediately, rather than possibly delayed.
+.P
+.B TCP_TX_DELAY (--tcp-tx-delay):
+Iperf 2 flows can set different delays, simulating real world conditions. Units is microseconds.
+This \fBrequires FQ packet scheduler\fR or a EDT-enabled NIC.
+Note that FQ packet scheduler limits might need some tweaking
+  man tc-fq
+    PARAMETERS
+    limit
+        Hard  limit  on  the  real  queue  size. When this limit is
+        reached, new packets are dropped. If the value is  lowered,
+        packets  are  dropped so that the new limit is met. Default
+        is 10000 packets.
+
+     flow_limit
+        Hard limit on the maximum  number  of  packets  queued  per
+        flow.  Default value is 100.
+
+Use of TCP_TX_DELAY option will increase number of skbs in FQ qdisc,
+so packets would be dropped if any of the previous limit is hit.
+Using big delays might very well trigger
+old bugs in TSO auto defer logic and/or sndbuf limited detection.
 .P
 .B Fast Sampling:
 Use

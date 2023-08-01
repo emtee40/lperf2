@@ -305,6 +305,9 @@ struct thread_Settings {
     int mWritePrefetch;
 #endif
     int jitter_binwidth;
+    int mTcpTxDelay;
+    int mTcpTxDelayVar;
+    int mTcpTxDelayMeanShift;
 };
 
 /*
@@ -405,6 +408,7 @@ struct thread_Settings {
 #define FLAG_UTC            0x00020000
 #define FLAG_LOAD_CCA       0x00040000
 #define FLAG_BURSTSIZE      0x00080000
+#define FLAG_TCPTXDELAY     0x00100000
 
 
 #define isBuflenSet(settings)      ((settings->flags & FLAG_BUFLENSET) != 0)
@@ -486,6 +490,7 @@ struct thread_Settings {
 #define isUTC(settings)            ((settings->flags_extend2 & FLAG_UTC) != 0)
 #define isLoadCCA(settings) ((settings->flags_extend2 & FLAG_LOAD_CCA) != 0)
 #define isBurstSize(settings)      ((settings->flags_extend2 & FLAG_BURSTSIZE) != 0)
+#define isTcpTxDelay(settings)     ((settings->flags_extend2 & FLAG_TCPTXDELAY) != 0)
 
 #define setBuflenSet(settings)     settings->flags |= FLAG_BUFLENSET
 #define setCompat(settings)        settings->flags |= FLAG_COMPAT
@@ -563,6 +568,7 @@ struct thread_Settings {
 #define setUTC(settings)           settings->flags_extend2 |= FLAG_UTC
 #define setLoadCCA(settings)    settings->flags_extend2 |= FLAG_LOAD_CCA
 #define setBurstSize(settings)     settings->flags_extend2 |= FLAG_BURSTSIZE
+#define setTcpTxDelay(settings)    settings->flags_extend2 |= FLAG_TCPTXDELAY
 
 #define unsetBuflenSet(settings)   settings->flags &= ~FLAG_BUFLENSET
 #define unsetCompat(settings)      settings->flags &= ~FLAG_COMPAT
@@ -637,8 +643,9 @@ struct thread_Settings {
 #define unsetWorkingLoadDown(settings) settings->flags_extend2 &= ~FLAG_WORKING_LOAD_DOWN
 #define unsetJitterHistogram(settings) settings->flags_extend2 &= ~FLAG_JITTER_HISTOGRAM
 #define unsetUTC(settings)           settings->flags_extend2 &= ~FLAG_UTC
-#define unsetLoadCCA(settings)           settings->flags_extend2 &= ~FLAG_LOAD_CCA
+#define unsetLoadCCA(settings)       settings->flags_extend2 &= ~FLAG_LOAD_CCA
 #define unsetBurstSize(settings)     settings->flags_extend2 &= ~FLAG_BURSTSIZE
+#define unsetTcpTxDelay(settings)    settings->flags_extend2 &= ~FLAG_TCPTXDELAY
 
 // set to defaults
 void Settings_Initialize(struct thread_Settings* main);

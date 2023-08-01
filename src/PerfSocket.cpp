@@ -262,6 +262,11 @@ void SetSocketOptions (struct thread_Settings *inSettings) {
             WARN_errno(rc == SOCKET_ERROR, "setsockopt TCP_NOTSENT_LOWAT");
         }
 #endif
+#if HAVE_DECL_TCP_TX_DELAY
+        if (isTcpTxDelay(inSettings)) {
+	    SetSocketTcpTxDelay(inSettings, inSettings->mTcpTxDelay);
+	}
+#endif
     }
 
 #if HAVE_DECL_SO_MAX_PACING_RATE
@@ -344,10 +349,55 @@ void SetSocketOptionsIPTos (struct thread_Settings *mSettings, int tos) {
 #endif
 }
 
+/*
+ * Networking tools can now establish thousands of flows, each of them
+ * with a different delay, simulating real world conditions.
+ *
+ * This requires FQ packet scheduler or a EDT-enabled NIC.
+ *
+ * TCP_TX_DELAY socket option, to set a delay in usec units.
+ * Note that FQ packet scheduler limits might need some tweaking :
+ *
+ * man tc-fq
+ *
+ * PARAMETERS
+ *  limit
+ *      Hard  limit  on  the  real  queue  size. When this limit is
+ *      reached, new packets are dropped. If the value is  lowered,
+ *      packets  are  dropped so that the new limit is met. Default
+ *      is 10000 packets.
+ *
+ *   flow_limit
+ *       Hard limit on the maximum  number  of  packets  queued  per
+ *       flow.  Default value is 100.
+ *
+ * Use of TCP_TX_DELAY option will increase number of skbs in FQ qdisc,
+ * so packets would be dropped if any of the previous limit is hit.
+ * Using big delays might very well trigger
+ * old bugs in TSO auto defer logic and/or sndbuf limited detection.
+ ^
+ * [root@rjm-nas rjmcmahon]# tc qdisc replace dev enp4s0 root fq
+ * [root@rjm-nas rjmcmahon]# tc qdisc replace dev enp2s0 root fq
+ */
+void SetSocketTcpTxDelay(struct thread_Settings *mSettings, int delay) {
+#if HAVE_DECL_TCP_TX_DELAY
+    int rc = setsockopt(mSettings->mSock, SOL_TCP, TCP_TX_DELAY, &delay, sizeof(delay));
+    if (rc == SOCKET_ERROR) {
+	fprintf(stderr, "Fail on TCP_TX_DELAY for sock %d\n", mSettings->mSock);
+    }
+#ifdef HAVE_THREAD_DEBUG
+      else {
+        Socklen_t len = sizeof(delay);
+	rc = getsockopt(mSettings->mSock, SOL_TCP, TCP_TX_DELAY, reinterpret_cast<char*>(&delay), &len);
+	thread_debug("TCP_TX_DELAY set to %d for sock %d", (int) delay, mSettings->mSock);
+    }
+#endif
+#endif
+}
 
 /*
  * Set a socket to blocking or non-blocking
-*
+ *
  * Returns true on success, or false if there was an error
 */
 bool setsock_blocking (int fd, bool blocking) {

@@ -193,6 +193,10 @@
    don't. */
 #undef HAVE_DECL_TCP_QUICKACK
 
+/* Define to 1 if you have the declaration of `TCP_TX_DELAY', and to 0 if you
+   don't. */
+#undef HAVE_DECL_TCP_TX_DELAY
+
 /* Define to 1 if you have the declaration of `TCP_WINDOW_CLAMP', and to 0 if
    you don't. */
 #undef HAVE_DECL_TCP_WINDOW_CLAMP
