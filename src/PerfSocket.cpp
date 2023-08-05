@@ -85,7 +85,7 @@ void SetSocketOptions (struct thread_Settings *inSettings) {
     // must occur before call to accept() for large window sizes
     setsock_tcp_windowsize(inSettings->mSock, inSettings->mTCPWin,
                             (inSettings->mThreadMode == kMode_Client ? 1 : 0));
-#ifdef HAVE_DECL_TCP_CONGESTION
+#if HAVE_DECL_TCP_CONGESTION
     if (isCongestionControl(inSettings)) {
 	Socklen_t len = strlen(inSettings->mCongestion) + 1;
 	int rc = setsockopt(inSettings->mSock, IPPROTO_TCP, TCP_CONGESTION,

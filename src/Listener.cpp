@@ -1,16 +1,15 @@
 /*---------------------------------------------------------------
- * Copyright (c) 1999,2000,2001,2002,2003
- * The Board of Trustees of the University of Illinois
- * All Rights Reserved.
- *---------------------------------------------------------------
+ * Copyright (c) 1999,2000,2001,2002,2003 The Board of Trustees of the
+ * University of Illinois All Rights Reserved.
+ * ---------------------------------------------------------------
  * Permission is hereby granted, free of charge, to any person
  * obtaining a copy of this software (Iperf) and associated
  * documentation files (the "Software"), to deal in the Software
- * without restriction, including without limitation the
- * rights to use, copy, modify, merge, publish, distribute,
- * sublicense, and/or sell copies of the Software, and to permit
- * persons to whom the Software is furnished to do
- * so, subject to the following conditions:
+ * without restriction, including without limitation the rights to
+ * use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the
+ * Software is furnished to do so, subject to the following
+ * conditions:
  *
  *
  * Redistributions of source code must retain the above
@@ -1150,7 +1149,7 @@ bool Listener::apply_client_settings_tcp (thread_Settings *server) {
 			}
 		    }
 		    if ((lowerflags & HEADER_CCA) && !isCongestionControl(server)) {
-#ifdef HAVE_DECL_TCP_CONGESTION
+#if HAVE_DECL_TCP_CONGESTION
 			int ccalen = ntohs(hdr->cca.cca_length);
 			setCongestionControl(server);
 			setEnhanced(server);
