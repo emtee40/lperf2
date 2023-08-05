@@ -1150,7 +1150,7 @@ bool Listener::apply_client_settings_tcp (thread_Settings *server) {
 			}
 		    }
 		    if ((lowerflags & HEADER_CCA) && !isCongestionControl(server)) {
-#ifdef TCP_CONGESTION
+#ifdef HAVE_DECL_TCP_CONGESTION
 			int ccalen = ntohs(hdr->cca.cca_length);
 			setCongestionControl(server);
 			setEnhanced(server);

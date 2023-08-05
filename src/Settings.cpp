@@ -946,7 +946,7 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	break;
 
     case 'Z':
-#ifdef TCP_CONGESTION
+#ifdef HAVE_DECL_TCP_CONGESTION
 	if (isCongestionControl(mExtSettings)) {
 	    fprintf(stderr, "Option --tcp-congestion or -Z ignored because --tcp-cca set\n");
 	} else {
@@ -1194,7 +1194,7 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	}
 	if (loadcca) {
 	    loadcca = 0;
-#ifdef TCP_CONGESTION
+#ifdef HAVE_DECL_TCP_CONGESTION
 	    setLoadCCA(mExtSettings);
 	    mExtSettings->mLoadCCA = new char[strlen(optarg)+1];
 	    strcpy(mExtSettings->mLoadCCA, optarg);
@@ -1204,7 +1204,7 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	}
 	if (primarycca) {
 	    primarycca = 0;
-#ifdef TCP_CONGESTION
+#ifdef HAVE_DECL_TCP_CONGESTION
 	    if (isCongestionControl(mExtSettings)) {
 		fprintf(stderr, "Option --tcp-cca ignored because --tcp-congestion or -Z set\n");
 	    } else {

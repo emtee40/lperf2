@@ -1714,7 +1714,7 @@ static void reporter_output_listener_settings (struct ReportSettings *report) {
 	}
 
     }
-#ifdef TCP_CONGESTION
+#ifdef HAVE_DECL_TCP_CONGESTION
     if (isCongestionControl(report->common) || isEnhanced(report->common)) {
 	char cca[40] = "";
 	Socklen_t len = sizeof(cca);
@@ -1856,7 +1856,7 @@ static void reporter_output_client_settings (struct ReportSettings *report) {
 	    printf(report_default_mss, report->sockmaxseg);
 	}
     }
-#ifdef TCP_CONGESTION
+#ifdef HAVE_DECL_TCP_CONGESTION
     if (isCongestionControl(report->common) || isEnhanced(report->common)) {
 	char cca[40] = "";
 	Socklen_t len = sizeof(cca);
@@ -2016,7 +2016,7 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
     }
     if (isEnhanced(report->common)) {
         if (isCongestionControl(report->common)) {
-#ifdef TCP_CONGESTION
+#ifdef HAVE_DECL_TCP_CONGESTION
 	    char cca[40] = "";
 	    Socklen_t len = sizeof(cca);
 	    int rc;

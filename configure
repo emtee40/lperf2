@@ -9710,6 +9710,15 @@ else $as_nop
   ac_have_decl=0
 fi
 printf "%s\n" "#define HAVE_DECL_MSG_WAITALL $ac_have_decl" >>confdefs.h
+ac_fn_check_decl "$LINENO" "TCP_CONGESTION" "ac_cv_have_decl_TCP_CONGESTION" "$in_h
+" "$ac_c_undeclared_builtin_options" "CFLAGS"
+if test "x$ac_cv_have_decl_TCP_CONGESTION" = xyes
+then :
+  ac_have_decl=1
+else $as_nop
+  ac_have_decl=0
+fi
+printf "%s\n" "#define HAVE_DECL_TCP_CONGESTION $ac_have_decl" >>confdefs.h
 ac_fn_check_decl "$LINENO" "TCP_NODELAY" "ac_cv_have_decl_TCP_NODELAY" "$in_h
 " "$ac_c_undeclared_builtin_options" "CFLAGS"
 if test "x$ac_cv_have_decl_TCP_NODELAY" = xyes
