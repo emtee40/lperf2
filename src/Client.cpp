@@ -1210,7 +1210,8 @@ void Client::RunBounceBackTCP () {
 		    } else {
 			WARN(1, "timeout: bounceback read");
 			PostNullEvent(false);
-			goto RETRY_READ;
+			if (InProgress())
+			    goto RETRY_READ;
 		    }
 		}
 	    }
