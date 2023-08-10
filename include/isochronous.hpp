@@ -63,7 +63,7 @@ namespace Isochronous {
 	unsigned int get(long *);
 	unsigned int get(const Timestamp&) const;
 	unsigned int period_us(void);
-	unsigned int wait_tick(long *sched_err);
+        unsigned int wait_tick(long *sched_err, bool sync_strict);
 	unsigned int wait_sync(long sec, long usec);
 	long getSecs(void);
 	long getUsecs(void);

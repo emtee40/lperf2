@@ -349,7 +349,8 @@ inline bool Server::ReadBBWithRXTimestamp () {
 		peerclose = true;
 	} else if (n == IPERF_SOCKET_ERROR_NONFATAL) {
 	    PostNullEvent();
-	    goto RETRY_READ;
+	    if (InProgress())
+	        goto RETRY_READ;
 	} else {
 	    if (FATALTCPREADERR(errno)) {
 		WARN_errno(1, "fatal bounceback read");
@@ -358,7 +359,8 @@ inline bool Server::ReadBBWithRXTimestamp () {
 	    } else {
 		WARN(1, "timeout: bounceback read");
 		PostNullEvent();
-		goto RETRY_READ;
+		if (InProgress())
+		    goto RETRY_READ;
 	    }
 	}
     }

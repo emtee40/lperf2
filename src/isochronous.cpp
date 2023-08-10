@@ -57,7 +57,7 @@ using namespace Isochronous;
 FrameCounter::FrameCounter (double value, const Timestamp& start) : frequency(value) {
     period = static_cast<unsigned int>(1000000 / frequency);
     startTime = start;
-    nextslotTime=start;
+    nextslotTime = start;
     lastcounter = 0;
     slot_counter = 0;
     slip = 0;
@@ -69,6 +69,8 @@ FrameCounter::FrameCounter (double value) : frequency(value) {
     if (!SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL))
 	WARN_errno(1, "SetThreadPriority");
 #endif
+    startTime.setnow();
+    nextslotTime = startTime;
     period = static_cast<unsigned int>(1000000 / frequency); // unit us
     lastcounter = 0;
     slot_counter = 0;
@@ -119,7 +121,7 @@ int FrameCounter::mySetWaitableTimer (long delay_time) {
 #endif
 
 #if HAVE_CLOCK_NANOSLEEP
-unsigned int FrameCounter::wait_tick (long *sched_err) {
+unsigned int FrameCounter::wait_tick (long *sched_err, bool sync_strict) {
     Timestamp now;
     int rc = true;
     if (!slot_counter) {
@@ -127,10 +129,10 @@ unsigned int FrameCounter::wait_tick (long *sched_err) {
 	now.setnow();
 	nextslotTime = now;
     } else {
-	while (!now.before(nextslotTime)) {
+      while (now.subUsec(nextslotTime) > (sync_strict ? 0 : period)) {
 	    now.setnow();
 	    nextslotTime.add(period);
-//	    printf("***** next slot %ld.%ld\n",nextslotTime.getSecs(), nextslotTime.getUsecs());
+	    //	    printf("***** next slot %ld.%ld\n",nextslotTime.getSecs(), nextslotTime.getUsecs());
 	    slot_counter++;
 	}
 	if (lastcounter && ((slot_counter - lastcounter) > 1)) {
@@ -226,7 +228,7 @@ inline unsigned int FrameCounter::get (const Timestamp& slot) const {
     return(slot_counter + 1); // Frame counter for packets starts at 1
 }
 
-inline unsigned int FrameCounter::get (long *ticks_remaining) {
+unsigned int FrameCounter::get (long *ticks_remaining) {
     assert(ticks_remaining != NULL);
     Timestamp sampleTime;  // Constructor will initialize timestamp to now
     long usecs = -startTime.subUsec(sampleTime);
@@ -234,7 +236,7 @@ inline unsigned int FrameCounter::get (long *ticks_remaining) {
     // figure out how many usecs before the next frame counter tick
     // the caller can use this to delay until the next tick
     *ticks_remaining = (counter * period) - usecs;
-    return(counter + 1); // Frame counter for packets starts at 1
+    return(counter); // Frame counter for packets starts at 1
 }
 
 inline Timestamp FrameCounter::next_slot () {

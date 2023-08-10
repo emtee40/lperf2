@@ -333,7 +333,8 @@ int Client::StartSynch () {
     // check for an epoch based start time
     reportstruct->packetLen = 0;
     if (!isServerReverse(mSettings)) {
-	if (!isCompat(mSettings) && !isBounceBack(mSettings)) {
+        if (!isCompat(mSettings) && \
+	    (!isBounceBack(mSettings) || (isBounceBack(mSettings) && isTxStartTime(mSettings)))) {
 	    reportstruct->packetLen = SendFirstPayload();
 	    // Reverse UDP tests need to retry "first sends" a few times
 	    // before going to server or read mode
@@ -365,9 +366,11 @@ int Client::StartSynch () {
     } else if (isTripTime(mSettings) || isPeriodicBurst(mSettings)) {
 	reportstruct->packetLen = SendFirstPayload();
     }
-    if (isIsochronous(mSettings) || isPeriodicBurst(mSettings)) {
+    if (isIsochronous(mSettings) || isPeriodicBurst(mSettings) || isBounceBack(mSettings)) {
         Timestamp tmp;
-        tmp.set(mSettings->txstart_epoch.tv_sec, mSettings->txstart_epoch.tv_usec);
+	if (isTxStartTime(mSettings)) {
+	    tmp.set(mSettings->txstart_epoch.tv_sec, mSettings->txstart_epoch.tv_usec);
+	}
         framecounter = new Isochronous::FrameCounter(mSettings->mFPS, tmp);
 	// set the mbuf valid for burst period ahead of time. The same value will be set for all burst writes
 	if (!isUDP(mSettings) && framecounter) {
@@ -653,7 +656,7 @@ void Client::RunTCP () {
 		burst_remaining = static_cast<int>(sizeof(struct TCP_burst_payload));
 	    // apply scheduling if needed
 	    if (framecounter) {
-		burst_id = framecounter->wait_tick(&reportstruct->sched_err);
+	      burst_id = framecounter->wait_tick(&reportstruct->sched_err, true);
 		reportstruct->scheduled = true;
 		if (isPeriodicBurst(mSettings)) {
 		    // low duty cycle traffic needs special event handling
@@ -1115,10 +1118,11 @@ void Client::RunBounceBackTCP () {
     reportstruct->packetTime.tv_usec = now.getUsecs();
     while (InProgress()) {
 	int n;
+	long remaining;
 	reportstruct->writecnt = 0;
 	bool isFirst;
 	if (framecounter) {
-	    burst_id = framecounter->wait_tick(&reportstruct->sched_err);
+	  burst_id = framecounter->wait_tick(&reportstruct->sched_err, false);
 	    PostNullEvent(true); // now is set in this call
 	    reportstruct->sentTime.tv_sec = now.getSecs();
 	    reportstruct->sentTime.tv_usec = now.getUsecs();
@@ -1128,7 +1132,7 @@ void Client::RunBounceBackTCP () {
 	    isFirst = false;
 	}
 	int bb_burst = (mSettings->mBounceBackBurst > 0) ? mSettings->mBounceBackBurst : 1;
-	while ((bb_burst > 0) && InProgress()) {
+	while ((bb_burst > 0) && InProgress() && ((framecounter->get(&remaining)) == (unsigned int) burst_id)) {
 	    bb_burst--;
 	    if (isFirst) {
 		isFirst = false;
@@ -1415,7 +1419,7 @@ void Client::RunUDPIsochronous () {
 	udp_payload->isoch.burstsize  = htonl(bytecnt);
 	udp_payload->isoch.prevframeid  = htonl(frameid);
 	reportstruct->burstsize=bytecnt;
-	frameid =  framecounter->wait_tick(&reportstruct->sched_err);
+	frameid =  framecounter->wait_tick(&reportstruct->sched_err, true);
 	reportstruct->scheduled = true;
 	udp_payload->isoch.frameid  = htonl(frameid);
 	lastPacketTime.setnow();
