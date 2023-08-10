@@ -1683,6 +1683,8 @@ void Client::FinishTrafficActions () {
 	     *
 	     */
 	    reportstruct->packetLen = totLen;
+	    reportstruct->err_readwrite = WriteSuccess;
+	    myReportPacket();
 	}
     } else {
 	// stop timing
