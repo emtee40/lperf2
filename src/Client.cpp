@@ -656,7 +656,7 @@ void Client::RunTCP () {
 		burst_remaining = static_cast<int>(sizeof(struct TCP_burst_payload));
 	    // apply scheduling if needed
 	    if (framecounter) {
-	      burst_id = framecounter->wait_tick(&reportstruct->sched_err, true);
+	        burst_id = framecounter->wait_tick(&reportstruct->sched_err, true);
 		reportstruct->scheduled = true;
 		if (isPeriodicBurst(mSettings)) {
 		    // low duty cycle traffic needs special event handling
@@ -1122,7 +1122,7 @@ void Client::RunBounceBackTCP () {
 	reportstruct->writecnt = 0;
 	bool isFirst;
 	if (framecounter) {
-	  burst_id = framecounter->wait_tick(&reportstruct->sched_err, false);
+	    burst_id = framecounter->wait_tick(&reportstruct->sched_err, false);
 	    PostNullEvent(true); // now is set in this call
 	    reportstruct->sentTime.tv_sec = now.getSecs();
 	    reportstruct->sentTime.tv_usec = now.getUsecs();

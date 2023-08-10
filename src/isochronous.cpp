@@ -126,18 +126,17 @@ unsigned int FrameCounter::wait_tick (long *sched_err, bool sync_strict) {
     int rc = true;
     if (!slot_counter) {
 	slot_counter = 1;
-	now.setnow();
 	nextslotTime = now;
     } else {
-      while (now.subUsec(nextslotTime) > (sync_strict ? 0 : period)) {
-	    now.setnow();
+	nextslotTime.add(period);
+	slot_counter++;
+	while (now.subUsec(nextslotTime) > (sync_strict ? 0 : period)) {
 	    nextslotTime.add(period);
-	    //	    printf("***** next slot %ld.%ld\n",nextslotTime.getSecs(), nextslotTime.getUsecs());
 	    slot_counter++;
 	}
-	if (lastcounter && ((slot_counter - lastcounter) > 1)) {
+        if (lastcounter && ((slot_counter - lastcounter) > 1)) {
 	    slip++;
-	}
+        }
     }
   #ifndef WIN32
     timespec txtime_ts;
