@@ -189,17 +189,16 @@ unsigned int FrameCounter::wait_tick (long *sched_err, bool sync_strict) {
 	nextslotTime = now;
     } else {
         long remaining;
-	nextslotTime.add(slot_counter * period * 1e-6);
-	//	nextslotTime.add(period);
+	nextslotTime.add(period);
 	slot_counter++;
 	while (now.subUsec(nextslotTime) > (sync_strict ? 0 : period)) {
 	    nextslotTime.add(period);
 	    slot_counter++;
 	}
-	printf("**** sync strict %d now %ld.%ld next %ld.%ld\n", sync_strict, now.getSecs(), now.getUsecs(), nextslotTime.getSecs(), nextslotTime.getUsecs());
+//	printf("**** sync strict %d now %ld.%ld next %ld.%ld\n", sync_strict, now.getSecs(), now.getUsecs(), nextslotTime.getSecs(), nextslotTime.getUsecs());
 	if (now.before(nextslotTime)) {
 	    struct timespec tv0={0,0}, tv1;
-	    unsigned int current_slot = get(&remaining);
+	    get(&remaining);
 	    remaining *= 1000; // convert to nano seconds
 	    tv0.tv_sec = (remaining / BILLION);
 	    tv0.tv_nsec += (remaining % BILLION);
@@ -207,7 +206,7 @@ unsigned int FrameCounter::wait_tick (long *sched_err, bool sync_strict) {
 	        tv0.tv_sec++;
 		tv0.tv_nsec -= BILLION;
 	    }
-	    printf("**** wait: nanos %ld remain %ld.%ld\n", remaining, tv0.tv_sec, tv0.tv_nsec);
+//	    printf("**** wait: nanos %ld remain %ld.%ld\n", remaining, tv0.tv_sec, tv0.tv_nsec);
 	    int rc = nanosleep(&tv0, &tv1);
 	    if (sched_err) {
 	        Timestamp actual;
@@ -215,8 +214,6 @@ unsigned int FrameCounter::wait_tick (long *sched_err, bool sync_strict) {
 		//	printf("**** slot %ld.%ld actual %ld.%ld %ld\n", slotstart.getSecs(), slotstart.getUsecs(), actual.getSecs(), actual.getUsecs(), *sched_err);
 	    }
 	    WARN_errno((rc != 0), "nanosleep wait_tick");
-	} else {
-	  printf("***** jump\n");
 	}
     }
     return(slot_counter);
