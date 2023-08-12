@@ -1192,6 +1192,7 @@ void Client::RunBounceBackTCP () {
 			reportstruct->packetTime.tv_usec = now.getUsecs();
 			reportstruct->packetLen += n;
 			reportstruct->emptyreport = 0;
+			reportstruct->packetID = burst_id;
 			myReportPacket();
 		    } else if (InProgress()) {
 			PostNullEvent(false);
