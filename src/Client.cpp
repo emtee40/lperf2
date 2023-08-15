@@ -238,7 +238,7 @@ bool Client::my_connect (bool close_on_fail) {
 	}
 #endif
 	// Set the send timeout for the very first write which has the test exchange
-	int sosndtimer = TESTEXCHANGETIMEOUT; // 4 sec in usecs
+	int sosndtimer = DEFAULT_TESTEXCHANGETIMEOUT; //in usecs
 	SetSocketOptionsSendTimeout(mSettings, sosndtimer);
 	getsockname(mySocket, reinterpret_cast<sockaddr*>(&mSettings->local), &mSettings->size_local);
 	getpeername(mySocket, reinterpret_cast<sockaddr*>(&mSettings->peer), &mSettings->size_peer);

@@ -104,6 +104,7 @@ Server specific:\n\
       --jitter-histograms  enable jitter histograms\n\
       --permit-key-timeout set the timeout for a permit key in seconds\n\
       --tcp-rx-window-clamp set the TCP receive window clamp size in bytes\n\
+      --test-exchange-timeout set the timeout on the test exchange, use 0 for no timeout\n\
       --tap-dev   #[<dev>] use TAP device to receive at L2 layer\n\
   -t, --time      #        time in seconds to listen for new connections as well as to receive traffic (default not set)\n\
   -B, --bind <ip>[%<dev>]  bind to multicast address and optional device\n\

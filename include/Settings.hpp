@@ -94,7 +94,7 @@ extern "C" {
 #define CSVPEERLIMIT ((REPORT_ADDRLEN * 2) + 40)
 #define NEARCONGEST_DEFAULT 0.5
 #define DEFAULT_PERMITKEY_LIFE 20.0 // units is seconds
-#define TESTEXCHANGETIMEOUT (4 * 1000000) // 4 secs, units is microseconds
+#define DEFAULT_TESTEXCHANGETIMEOUT (60 * 1000000) // 60 secs, units is microseconds
 #ifndef MAXTTL
 #define MAXTTL 255
 #endif

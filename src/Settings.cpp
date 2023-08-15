@@ -126,6 +126,7 @@ static int tcpwritetimes = 0;
 static int primarycca = 0;
 static int loadcca = 0;
 static int tcptxdelay = 0;
+static int testxchangetimeout = 0;
 
 void Settings_Interpret(char option, const char *optarg, struct thread_Settings *mExtSettings);
 // apply compound settings after the command line has been fully parsed
@@ -235,6 +236,7 @@ const struct option long_options[] =
 {"tcp-tx-delay", required_argument, &tcptxdelay, 1},
 {"tcp-write-prefetch", required_argument, &txnotsentlowwater, 1}, // see doc/DESIGN_NOTES
 {"tcp-write-times", no_argument, &tcpwritetimes, 1},
+{"test-exchange-timeout", required_argument, &testxchangetimeout, 1},
 {"tap-dev", optional_argument, &tapif, 1},
 {"tun-dev", optional_argument, &tunif, 1},
 {"working-load", optional_argument, &workingload, 1},
@@ -1083,7 +1085,12 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	}
 	if (permitkeytimeout) {
 	    permitkeytimeout = 0;
-	    if (atof(optarg) >= 0.0)
+	    if (atof(optarg) > mExtSettings->mListenerTimeout)
+		mExtSettings->mListenerTimeout = static_cast<size_t>(atof(optarg));
+	}
+	if (testxchangetimeout) {
+	    testxchangetimeout = 0;
+	    if (atof(optarg) > mExtSettings->mListenerTimeout)
 		mExtSettings->mListenerTimeout = static_cast<size_t>(atof(optarg));
 	}
 	if (histogram) {

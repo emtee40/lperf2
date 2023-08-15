@@ -828,8 +828,12 @@ bool Listener::apply_client_settings (thread_Settings *server) {
     bool rc = false;
 
     // Set the receive timeout for the very first read
-    int sorcvtimer = TESTEXCHANGETIMEOUT; // 4 sec in usecs
-    SetSocketOptionsReceiveTimeout(server, sorcvtimer);
+    if (mSettings->mListenerTimeout >= 0) {
+	SetSocketOptionsReceiveTimeout(server, (int) (mSettings->mListenerTimeout * 1000000));
+    } else {
+	int sorcvtimer = DEFAULT_TESTEXCHANGETIMEOUT; // in usecs
+	SetSocketOptionsReceiveTimeout(server, sorcvtimer);
+    }
     server->peer_version_u = 0;
     server->peer_version_l = 0;
     server->mMode = kTest_Normal;

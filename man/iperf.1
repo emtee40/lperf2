@@ -147,6 +147,9 @@ Set the receive interface to the TAP device as specified.
 .BR "    --tcp-rx-window-clamp "  \fIn\fR[kmKM]
 Set the socket option of TCP_WINDOW_CLAMP, units is bytes.
 .TP
+.BR "    --test-exchange-timeout " \fI<value>\fR
+Set the maximum wait time for a test excahnge in seconds. Defaults to 60 seconds if not set. A value of zero will disable the timeout.
+.TP
 .BR -t ", " --time " \fIn\fR"
 time in seconds to listen for new traffic connections and/or receive traffic (defaults to infinite)
 .TP
