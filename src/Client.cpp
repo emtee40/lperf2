@@ -332,9 +332,8 @@ int Client::StartSynch () {
     // o Second is a holdback, a relative amount of seconds between the connect and data xfers
     // check for an epoch based start time
     reportstruct->packetLen = 0;
-    if (!isServerReverse(mSettings)) {
-        if (!isCompat(mSettings) && \
-	    (!isBounceBack(mSettings) || (isBounceBack(mSettings) && isTxStartTime(mSettings)))) {
+    if (!isServerReverse(mSettings) && !isCompat(mSettings)) {
+	if (!isBounceBack(mSettings)) {
 	    reportstruct->packetLen = SendFirstPayload();
 	    // Reverse UDP tests need to retry "first sends" a few times
 	    // before going to server or read mode
