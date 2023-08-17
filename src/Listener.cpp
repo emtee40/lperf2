@@ -1086,7 +1086,7 @@ bool Listener::apply_client_settings_tcp (thread_Settings *server) {
 	    int readlen;
 	    // figure out the length of the test header
 	    if ((readlen = Settings_ClientTestHdrLen(flags, server)) > 0) {
-		if (readlen > server->mBufLen) {
+		if (readlen > (server->mBufLen - nread)) {
 		    WARN(1, "read tcp header too large");
 		    rc = false;
 		    goto DONE;
