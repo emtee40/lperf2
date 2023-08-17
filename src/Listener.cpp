@@ -1086,6 +1086,11 @@ bool Listener::apply_client_settings_tcp (thread_Settings *server) {
 	    int readlen;
 	    // figure out the length of the test header
 	    if ((readlen = Settings_ClientTestHdrLen(flags, server)) > 0) {
+		if (readlen > server->mBufLen) {
+		    WARN(1, "read tcp header too large");
+		    rc = false;
+		    goto DONE;
+		}
 		// read the test settings passed to the server by the client
 		nread += recvn(server->mSock, readptr, (readlen - (int) sizeof(uint32_t)), 0);
 		FAIL_errno((nread < readlen), "read tcp test info", server);
