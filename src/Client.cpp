@@ -1861,7 +1861,7 @@ int Client::SendFirstPayload () {
 	    reportstruct->packetTime.tv_sec = now.getSecs();
 	    reportstruct->packetTime.tv_usec = now.getUsecs();
 	}
-	pattern(mSettings->mBuf, mSettings->mBufLen);
+
 	if (isTxStartTime(mSettings)) {
 	    pktlen = Settings_GenerateClientHdr(mSettings, (void *) mSettings->mBuf, mSettings->txstart_epoch);
 	} else {
@@ -1898,6 +1898,15 @@ int Client::SendFirstPayload () {
 #endif
 		if (isPeerVerDetect(mSettings) && !isServerReverse(mSettings)) {
 		    PeerXchange();
+		}
+		if (!isFileInput(mSettings)) {
+		    int buflen = (mSettings->mBufLen < (int) sizeof(struct client_tcp_testhdr)) ? mSettings->mBufLen \
+	                 : sizeof(struct client_tcp_testhdr);
+		    if (isTripTime(mSettings)) {
+			memset(mSettings->mBuf, 0xA5, buflen);
+		    } else {
+			pattern(mSettings->mBuf, buflen); // reset the pattern in the payload for future writes
+		    }
 		}
 #if HAVE_DECL_TCP_NODELAY
 		if (!isNoDelay(mSettings) && isPeerVerDetect(mSettings) && isTripTime(mSettings)) {
