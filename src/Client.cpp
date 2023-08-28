@@ -652,14 +652,6 @@ void Client::RunTCP () {
 	    if (isIsochronous(mSettings)) {
 		assert(mSettings->mMean);
 		burst_remaining = static_cast<int>(lognormal(mSettings->mMean,mSettings->mVariance)) / (mSettings->mFPS * 8);
-#if HAVE_DECL_TCP_TX_DELAY && 0
-		if (isTcpTxDelay(mSettings)) {
-		    int delay = static_cast<int>(lognormal(mSettings->mTcpTxDelay,mSettings->mTcpTxDelayVar) * mSettings->mTcpTxDelayMeanShift);
-		    if (delay > 0) {
-			SetSocketTcpTxDelay(mSettings, delay);
-		    }
-		}
-#endif
 	    } else if (isBurstSize(mSettings)){
 		assert(mSettings->mBurstSize);
 		burst_remaining = mSettings->mBurstSize;
@@ -1063,11 +1055,26 @@ void Client::RunWriteEventsTCP () {
     now.setnow();
     reportstruct->packetTime.tv_sec = now.getSecs();
     reportstruct->packetTime.tv_usec = now.getUsecs();
+#if defined(HAVE_DECL_SO_MAX_PACING_RATE)
+    if (isFQPacingStep(mSettings)) {
+	PacingStepTime = now;
+	PacingStepTime.add(mSettings->mFQPacingRateStepInterval);
+    }
+#endif
     while (InProgress()) {
         if (isModeAmount(mSettings)) {
 	    writelen = ((mSettings->mAmount < static_cast<unsigned>(mSettings->mBufLen)) ? mSettings->mAmount : mSettings->mBufLen);
 	}
 	now.setnow();
+#if defined(HAVE_DECL_SO_MAX_PACING_RATE)
+	if (isFQPacingStep(mSettings)) {
+	    if (PacingStepTime.before(now)) {
+		mSettings->mFQPacingRateCurrent += mSettings->mFQPacingRateStep;
+		setsockopt(mSettings->mSock, SOL_SOCKET, SO_MAX_PACING_RATE, &mSettings->mFQPacingRateCurrent, sizeof(mSettings->mFQPacingRateCurrent));
+		PacingStepTime.add(mSettings->mFQPacingRateStepInterval);
+	    }
+	}
+#endif
 	reportstruct->write_time = 0;
 	reportstruct->writecnt = 0;
 	if (isTcpWriteTimes(mSettings)) {
