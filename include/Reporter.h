@@ -222,6 +222,7 @@ struct ReportCommon {
 #endif
     int winsize_requested;
     unsigned int FQPacingRate;
+    int FQPacingRateStep;
     int HistBins;
     int HistBinsize;
     int HistUnits;

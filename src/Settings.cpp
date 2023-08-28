@@ -90,6 +90,8 @@ static int txstarttime = 0;
 static int noconnectsync = 0;
 static int txholdback = 0;
 static int fqrate = 0;
+static int fqratestep = 0;
+static int fqratestepinterval = 0;
 static int triptime = 0;
 static int infinitetime = 0;
 static int connectonly = 0;
@@ -215,6 +217,8 @@ const struct option long_options[] =
 {"txstart-time", required_argument, &txstarttime, 1},
 {"txdelay-time", required_argument, &txholdback, 1},
 {"fq-rate", required_argument, &fqrate, 1},
+{"fq-rate-step", required_argument, &fqratestep, 1},
+{"fq-rate-step-interval", required_argument, &fqratestepinterval, 1},
 {"trip-times", no_argument, &triptime, 1},
 {"no-udp-fin", no_argument, &noudpfin, 1},
 {"connect-only", optional_argument, &connectonly, 1},
@@ -1139,6 +1143,32 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	    fprintf(stderr, "WARNING: The --fq-rate option is not supported\n");
 #endif
 	}
+#if defined(HAVE_DECL_SO_MAX_PACING_RATE)
+	if (fqratestep) {
+	    fqratestep=0;
+	    setFQPacingStep(mExtSettings);
+	    mExtSettings->mFQPacingRateStep = static_cast<uintmax_t>(bitorbyte_atoi(optarg) / 8);
+	}
+	if (fqratestepinterval) {
+	    fqratestepinterval=0;
+	    double val;
+#if HAVE_STRTOD
+	    char *end;
+	    errno = 0;
+	    val = strtod(optarg, &end);
+	    if (errno || (*end != '\0')) {
+		fprintf(stderr, "ERROR: --fq-rate-step-interval value of '%s' not recognized\n", optarg);
+		exit(1);
+	    }
+#else
+	    val = atof(optarg);
+#endif
+	    if (val > 0.0) {
+		mExtSettings->mFQPacingRateStepInterval = val;
+		setFQPacingStepInterval(mExtSettings);
+	    }
+	}
+#endif
 	if (isochronous) {
 	    isochronous = 0;
 	    setEnhanced(mExtSettings);
@@ -1582,6 +1612,15 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	if (isPermitKey(mExtSettings) && (mExtSettings->mPermitKey[0] == '\0')) {
 	    fprintf(stderr, "ERROR: option of --permit-key requires a value on the client\n");
 	    bail = true;
+	}
+	if (isFQPacingStep(mExtSettings)) {
+	    if (!isFQPacing(mExtSettings)) {
+		setFQPacing(mExtSettings);
+		mExtSettings->mFQPacingRate = mExtSettings->mFQPacingRateStep;
+	    }
+	    if (!isFQPacingStepInterval(mExtSettings)) {
+		mExtSettings->mFQPacingRateStepInterval = 1.0;
+	    }
 	}
 	if (!isUDP(mExtSettings) && isTxHoldback(mExtSettings) && isTxStartTime(mExtSettings)) {
 	    fprintf(stderr,"ERROR: options of --txstart-time and --txdelay-time are mutually exclusive\n");

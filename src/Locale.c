@@ -131,6 +131,8 @@ Client specific:\n\
       --connect-retries #  number of times to retry tcp connect\n\
   -d, --dualtest           Do a bidirectional test simultaneously (multiple sockets)\n\
       --fq-rate #[kmgKMG]  bandwidth to socket pacing\n\
+      --fq-rate-step #[kmgKMG]  step value to socket pacing\n\
+      --fq-rate-step-interval #[kmgKMG]  step interval (in seconds) for socket pacing\n\
       --full-duplex        run full duplex test using same socket\n\
       --histograms         enable histograms for --tcp-write-times\n\
       --ipg                set the the interpacket gap (milliseconds) for packets within an isochronous frame\n\
@@ -297,6 +299,9 @@ const char server_burstperiod[] =
 
 const char client_fq_pacing [] =
 "fair-queue socket pacing set to %s/s\n";
+
+const char client_fq_pacing_step [] =
+"fair-queue socket pacing set to %s/s (stepping rate by %s/s)\n";
 
 /* -------------------------------------------------------------------
  * Legacy reports

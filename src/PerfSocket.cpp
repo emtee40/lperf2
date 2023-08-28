@@ -273,6 +273,7 @@ void SetSocketOptions (struct thread_Settings *inSettings) {
     /* If socket pacing is specified try to enable it. */
     if (isFQPacing(inSettings) && inSettings->mFQPacingRate > 0) {
 	int rc = setsockopt(inSettings->mSock, SOL_SOCKET, SO_MAX_PACING_RATE, &inSettings->mFQPacingRate, sizeof(inSettings->mFQPacingRate));
+	inSettings->mFQPacingRateCurrent = inSettings->mFQPacingRate;
         WARN_errno(rc == SOCKET_ERROR, "setsockopt SO_MAX_PACING_RATE");
     }
 #endif /* HAVE_SO_MAX_PACING_RATE */

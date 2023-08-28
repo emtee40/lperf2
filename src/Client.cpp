@@ -626,12 +626,28 @@ void Client::RunTCP () {
     reportstruct->packetTime.tv_sec = now.getSecs();
     reportstruct->packetTime.tv_usec = now.getUsecs();
     reportstruct->write_time = 0;
+#if defined(HAVE_DECL_SO_MAX_PACING_RATE)
+    if (isFQPacingStep(mSettings)) {
+	PacingStepTime = now;
+	PacingStepTime.add(mSettings->mFQPacingRateStepInterval);
+    }
+#endif
     while (InProgress()) {
 	reportstruct->writecnt = 0;
 	reportstruct->scheduled = false;
         if (isModeAmount(mSettings)) {
 	    writelen = ((mSettings->mAmount < static_cast<unsigned>(mSettings->mBufLen)) ? mSettings->mAmount : mSettings->mBufLen);
 	}
+#if defined(HAVE_DECL_SO_MAX_PACING_RATE)
+	if (isFQPacingStep(mSettings)) {
+	    now.setnow();
+	    if (PacingStepTime.before(now)) {
+		mSettings->mFQPacingRateCurrent += mSettings->mFQPacingRateStep;
+		setsockopt(mSettings->mSock, SOL_SOCKET, SO_MAX_PACING_RATE, &mSettings->mFQPacingRateCurrent, sizeof(mSettings->mFQPacingRateCurrent));
+		PacingStepTime.add(mSettings->mFQPacingRateStepInterval);
+	    }
+	}
+#endif
 	if (isburst && !(burst_remaining > 0)) {
 	    if (isIsochronous(mSettings)) {
 		assert(mSettings->mMean);

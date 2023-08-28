@@ -143,6 +143,9 @@ private:
     bool mysock_init_done;
     bool peerclose;
     Timestamp write_start;
+#if HAVE_DECL_SO_MAX_PACING_RATE
+    Timestamp PacingStepTime;
+#endif
 }; // end class Client
 
 #endif // CLIENT_H

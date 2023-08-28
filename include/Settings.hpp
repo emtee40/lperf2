@@ -273,6 +273,11 @@ struct thread_Settings {
     int recvflags; // used to set recv flags,e.g. MSG_TRUNC with L
     double mVariance; //vbr variance
     uintmax_t mFQPacingRate;
+#if defined(HAVE_DECL_SO_MAX_PACING_RATE)
+    int mFQPacingRateStep;
+    uintmax_t mFQPacingRateCurrent;
+    double mFQPacingRateStepInterval;
+#endif
     struct timeval txholdback_timer;
     struct timeval txstart_epoch;
     struct timeval accept_time;
@@ -409,7 +414,8 @@ struct thread_Settings {
 #define FLAG_LOAD_CCA       0x00040000
 #define FLAG_BURSTSIZE      0x00080000
 #define FLAG_TCPTXDELAY     0x00100000
-
+#define FLAG_FQPACINGSTEP     0x00200000
+#define FLAG_FQPACINGSTEPINTERVAL 0x00400000
 
 #define isBuflenSet(settings)      ((settings->flags & FLAG_BUFLENSET) != 0)
 #define isCompat(settings)         ((settings->flags & FLAG_COMPAT) != 0)
@@ -491,6 +497,8 @@ struct thread_Settings {
 #define isLoadCCA(settings) ((settings->flags_extend2 & FLAG_LOAD_CCA) != 0)
 #define isBurstSize(settings)      ((settings->flags_extend2 & FLAG_BURSTSIZE) != 0)
 #define isTcpTxDelay(settings)     ((settings->flags_extend2 & FLAG_TCPTXDELAY) != 0)
+#define isFQPacingStep(settings)       ((settings->flags_extend2 & FLAG_FQPACINGSTEP) != 0)
+#define isFQPacingStepInterval(settings) ((settings->flags_extend2 & FLAG_FQPACINGSTEPINTERVAL) != 0)
 
 #define setBuflenSet(settings)     settings->flags |= FLAG_BUFLENSET
 #define setCompat(settings)        settings->flags |= FLAG_COMPAT
@@ -569,6 +577,8 @@ struct thread_Settings {
 #define setLoadCCA(settings)    settings->flags_extend2 |= FLAG_LOAD_CCA
 #define setBurstSize(settings)     settings->flags_extend2 |= FLAG_BURSTSIZE
 #define setTcpTxDelay(settings)    settings->flags_extend2 |= FLAG_TCPTXDELAY
+#define setFQPacingStep(settings) settings->flags_extend2 |= FLAG_FQPACINGSTEP
+#define setFQPacingStepInterval(settings) settings->flags_extend2 |= FLAG_FQPACINGSTEPINTERVAL
 
 #define unsetBuflenSet(settings)   settings->flags &= ~FLAG_BUFLENSET
 #define unsetCompat(settings)      settings->flags &= ~FLAG_COMPAT
@@ -646,6 +656,8 @@ struct thread_Settings {
 #define unsetLoadCCA(settings)       settings->flags_extend2 &= ~FLAG_LOAD_CCA
 #define unsetBurstSize(settings)     settings->flags_extend2 &= ~FLAG_BURSTSIZE
 #define unsetTcpTxDelay(settings)    settings->flags_extend2 &= ~FLAG_TCPTXDELAY
+#define unsetFQPacingStep(settings)  settings->flags_extend2 &= ~FLAG_FQPACINGSTEP
+#define unsetFQPacingStepInterval(settings) settings->flags_extend2 &= ~FLAG_FQPACINGSTEPINTERVAL
 
 // set to defaults
 void Settings_Initialize(struct thread_Settings* main);

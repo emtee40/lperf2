@@ -1845,9 +1845,19 @@ static void reporter_output_client_settings (struct ReportSettings *report) {
 	}
     }
     if (isFQPacing(report->common)) {
-	byte_snprintf(outbuffer, sizeof(outbuffer), report->common->FQPacingRate, 'a');
-	outbuffer[(sizeof(outbuffer)-1)] = '\0';
-        printf(client_fq_pacing,outbuffer);
+	char prate[40];
+	byte_snprintf(prate, sizeof(prate), report->common->FQPacingRate, 'a');
+	prate[39] = '\0';
+	if (isFQPacingStep(report->common)) {
+	    char pratestep[40];
+	    byte_snprintf(pratestep, sizeof(pratestep), report->common->FQPacingRateStep, 'a');
+	    pratestep[39] = '\0';
+	    printf(client_fq_pacing_step,prate, pratestep);
+	} else {
+	    byte_snprintf(outbuffer, sizeof(outbuffer), report->common->FQPacingRate, 'a');
+	    outbuffer[(sizeof(outbuffer)-1)] = '\0';
+	    printf(client_fq_pacing,outbuffer);
+	}
     }
     if (isPrintMSS(report->common)) {
         if (isTCPMSS(report->common)) {

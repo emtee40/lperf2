@@ -149,6 +149,8 @@ extern const char client_bounceback_noqack[];
 extern const char server_burstperiod[];
 
 extern const char client_fq_pacing[];
+
+extern const char client_fq_pacing_step[];
 /* -------------------------------------------------------------------
  * Legacy reports
  * ------------------------------------------------------------------- */

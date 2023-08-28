@@ -222,8 +222,14 @@ number of times to retry a TCP connect at the application level.  See operating 
 .BR -d ", " --dualtest " "
 Do a bidirectional test simultaneous test using two unidirectional sockets
 .TP
-.BR "    --fq-rate n[kmgKMG]"
+.BR "    --fq-rate \fIn\fR[kmgKMG]"
 Set a rate to be used with fair-queuing based socket-level pacing, in bytes or bits per second. Only available on platforms supporting the SO_MAX_PACING_RATE socket option. (Note: Here the suffixes indicate bytes/sec or bits/sec per use of uppercase or lowercase, respectively)
+.TP
+.BR "    --fq-rate-step \fIn\fR[kmgKMG]"
+Set a step of rate to be used with fair-queuing based socket-level pacing, in bytes or bits per second. Step occurs every fq-rate-step-interval (defaults to one second)
+.TP
+.BR "    --fq-rate-step-interval \fIn\fR"
+Time in seconds before stepping the fq-rate
 .TP
 .BR "    --full-duplex"
 run a full duplex test, i.e. traffic in both transmit and receive directions using the \fBsame socket\fR
