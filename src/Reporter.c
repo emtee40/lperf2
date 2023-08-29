@@ -159,9 +159,18 @@ bool ReportPacket (struct ReporterData* data, struct ReportStruct *packet) {
     if (stats->isEnableTcpInfo) {
 	if (!TimeZero(stats->ts.nextTCPSampleTime) && (TimeDifference(stats->ts.nextTCPSampleTime, packet->packetTime) < 0)) {
 	    gettcpinfo(data->info.common->socket, &packet->tcpstats);
+#if defined(HAVE_DECL_SO_MAX_PACING_RATE)
+	    socklen_t len = sizeof(packet->FQPacingRate);
+	    if (isFQPacing(stats->common) && (stats->common->socket > 0)) {
+		getsockopt(stats->common->socket, SOL_SOCKET, SO_MAX_PACING_RATE, \
+							&packet->FQPacingRate, &len);
+	    }
+#endif
 	    TimeAdd(stats->ts.nextTCPSampleTime, stats->ts.intervalTime);
+	    rc = true;
 	} else {
 	    gettcpinfo(data->info.common->socket, &packet->tcpstats);
+	    rc = true;
 	}
     }
 #endif
@@ -1099,8 +1108,6 @@ inline void reporter_handle_packet_server_udp (struct ReporterData *data, struct
 	}
     }
 }
-
-// This is done in reporter thread context
 #if HAVE_TCP_STATS
 static inline void reporter_handle_packet_tcpistats (struct ReporterData *data, struct ReportStruct *packet) {
     assert(data!=NULL);
@@ -1111,9 +1118,11 @@ static inline void reporter_handle_packet_tcpistats (struct ReporterData *data, 
     stats->sock_callstats.write.tcpstats.cwnd = packet->tcpstats.cwnd;
     stats->sock_callstats.write.tcpstats.rtt = packet->tcpstats.rtt;
     stats->sock_callstats.write.tcpstats.rttvar = packet->tcpstats.rttvar;
+#if defined(HAVE_DECL_SO_MAX_PACING_RATE)
+    stats->FQPacingRateCurrent = packet->FQPacingRate;
+#endif
 }
 #endif
-
 
 /*
  * Report printing routines below

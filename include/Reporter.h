@@ -385,6 +385,7 @@ struct TransferInfo {
     double fInP;
     double iInPVar;
     double fInPVar;
+    intmax_t FQPacingRateCurrent;
 };
 
 struct SumReport {
@@ -530,6 +531,7 @@ void tcp_output_burst_write(struct TransferInfo *stats);
 void tcp_output_sum_write(struct TransferInfo *stats);
 void tcp_output_sumcnt_write(struct TransferInfo *stats);
 void tcp_output_write_enhanced (struct TransferInfo *stats);
+void tcp_output_write_enhanced_fq (struct TransferInfo *stats);
 void tcp_output_write_enhanced_isoch (struct TransferInfo *stats);
 void tcp_output_sum_write_enhanced (struct TransferInfo *stats);
 void tcp_output_sumcnt_write_enhanced (struct TransferInfo *stats);

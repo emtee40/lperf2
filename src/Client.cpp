@@ -391,7 +391,7 @@ int Client::StartSynch () {
 	    myReport->info.isEnableTcpInfo = true;
 	    myReport->info.ts.nextTCPSampleTime.tv_sec = 0;
 	    myReport->info.ts.nextTCPSampleTime.tv_usec = 0;
-	} else if (isEnhanced(mSettings) || isBounceBack(mSettings)) {
+	} else if (isEnhanced(mSettings) || isBounceBack(mSettings) || isFQPacing(mSettings)) {
 	    myReport->info.isEnableTcpInfo = true;
 	    myReport->info.ts.nextTCPSampleTime = myReport->info.ts.nextTime;
 	}

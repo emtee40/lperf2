@@ -68,6 +68,7 @@ static int HEADING_FLAG(report_bw_jitter_loss) = 0;
 static int HEADING_FLAG(report_bw_read_enhanced) = 0;
 static int HEADING_FLAG(report_bw_read_enhanced_netpwr) = 0;
 static int HEADING_FLAG(report_bw_write_enhanced) = 0;
+static int HEADING_FLAG(report_bw_write_enhanced_fq) = 0;
 static int HEADING_FLAG(report_write_enhanced_write) = 0;
 static int HEADING_FLAG(report_bw_write_enhanced_netpwr) = 0;
 static int HEADING_FLAG(report_bw_pps_enhanced) = 0;
@@ -108,6 +109,7 @@ void reporter_default_heading_flags (int flag) {
     HEADING_FLAG(report_bw_read_enhanced) = flag;
     HEADING_FLAG(report_bw_read_enhanced_netpwr) = flag;
     HEADING_FLAG(report_bw_write_enhanced) = flag;
+    HEADING_FLAG(report_bw_write_enhanced_fq) = flag;
     HEADING_FLAG(report_write_enhanced_write) = flag;
     HEADING_FLAG(report_write_enhanced_isoch) = flag;
     HEADING_FLAG(report_bw_write_enhanced_netpwr) = flag;
@@ -609,6 +611,52 @@ void tcp_output_write_enhanced (struct TransferInfo *stats) {
     }
 #endif
     fflush(stdout);
+}
+
+void tcp_output_write_enhanced_fq (struct TransferInfo *stats) {
+#if defined(HAVE_DECL_SO_MAX_PACING_RATE)
+    HEADING_PRINT_COND(report_bw_write_enhanced_fq);
+    _print_stats_common(stats);
+#if !(HAVE_TCP_STATS)
+    printf(report_bw_write_enhanced_format,
+	   stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
+	   outbuffer, outbufferext,
+	   stats->sock_callstats.write.WriteCnt,
+	   stats->sock_callstats.write.WriteErr);
+#else
+    set_netpowerbuf(stats->sock_callstats.write.tcpstats.rtt * 1e-6, stats);
+    char pacingrate[40];
+    byte_snprintf(pacingrate, sizeof(pacingrate), stats->FQPacingRateCurrent, 'a');
+    pacingrate[39] = '\0';
+    if (stats->sock_callstats.write.tcpstats.cwnd > 0) {
+	printf(report_bw_write_enhanced_fq_format,
+	       stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
+	       outbuffer, outbufferext,
+	       stats->sock_callstats.write.WriteCnt,
+	       stats->sock_callstats.write.WriteErr,
+	       stats->sock_callstats.write.tcpstats.retry,
+	       stats->sock_callstats.write.tcpstats.cwnd,
+	       stats->sock_callstats.write.tcpstats.rtt,
+	       stats->sock_callstats.write.tcpstats.rttvar,
+	       pacingrate, netpower_buf);
+    } else {
+	printf(report_bw_write_enhanced_nocwnd_format,
+	       stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
+	       outbuffer, outbufferext,
+	       stats->sock_callstats.write.WriteCnt,
+	       stats->sock_callstats.write.WriteErr,
+	       stats->sock_callstats.write.tcpstats.retry,
+	       stats->sock_callstats.write.tcpstats.rtt,
+	       netpower_buf);
+    }
+#endif
+#if HAVE_DECL_TCP_NOTSENT_LOWAT
+    if (stats->latency_histogram) {
+	histogram_print(stats->latency_histogram, stats->ts.iStart, stats->ts.iEnd);
+    }
+#endif
+    fflush(stdout);
+#endif
 }
 
 void tcp_output_write_enhanced_write (struct TransferInfo *stats) {

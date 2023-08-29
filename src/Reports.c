@@ -109,7 +109,9 @@ static void common_copy (struct ReportCommon **common, struct thread_Settings *i
     (*common)->MSS = inSettings->mMSS;
     (*common)->TCPWin = inSettings->mTCPWin;
     (*common)->FQPacingRate = inSettings->mFQPacingRate;
+#if defined(HAVE_DECL_SO_MAX_PACING_RATE)
     (*common)->FQPacingRateStep = inSettings->mFQPacingRateStep;
+#endif
     (*common)->Port = inSettings->mPort;
     (*common)->PortLast = inSettings->mPortLast;
     (*common)->BindPort = inSettings->mBindPort;
@@ -731,7 +733,11 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
 	    } else if (isTcpWriteTimes(inSettings)) {
 		ireport->info.output_handler = tcp_output_write_enhanced_write;
 	    } else if (isEnhanced(inSettings)) {
-		ireport->info.output_handler = tcp_output_write_enhanced;
+		if (isFQPacing(inSettings))
+		    ireport->info.output_handler = tcp_output_write_enhanced_fq;
+		else {
+		    ireport->info.output_handler = tcp_output_write_enhanced;
+		}
 	    } else if (isFullDuplex(inSettings)) {
 		ireport->info.output_handler = tcp_output_write;
 	    } else {

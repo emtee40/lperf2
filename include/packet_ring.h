@@ -100,6 +100,9 @@ struct ReportStruct {
     struct timeval sentTimeRX;
     struct timeval sentTimeTX;
     struct iperf_tcpstats tcpstats;
+#if defined(HAVE_DECL_SO_MAX_PACING_RATE)
+    intmax_t FQPacingRate;
+#endif
 };
 
 struct PacketRing {

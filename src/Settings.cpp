@@ -1613,6 +1613,7 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	    fprintf(stderr, "ERROR: option of --permit-key requires a value on the client\n");
 	    bail = true;
 	}
+#if defined(HAVE_DECL_SO_MAX_PACING_RATE)
 	if (isFQPacingStep(mExtSettings)) {
 	    if (!isFQPacing(mExtSettings)) {
 		setFQPacing(mExtSettings);
@@ -1622,6 +1623,7 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 		mExtSettings->mFQPacingRateStepInterval = 1.0;
 	    }
 	}
+#endif
 	if (!isUDP(mExtSettings) && isTxHoldback(mExtSettings) && isTxStartTime(mExtSettings)) {
 	    fprintf(stderr,"ERROR: options of --txstart-time and --txdelay-time are mutually exclusive\n");
 	    bail = true;
