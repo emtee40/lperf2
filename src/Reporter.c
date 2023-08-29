@@ -159,13 +159,6 @@ bool ReportPacket (struct ReporterData* data, struct ReportStruct *packet) {
     if (stats->isEnableTcpInfo) {
 	if (!TimeZero(stats->ts.nextTCPSampleTime) && (TimeDifference(stats->ts.nextTCPSampleTime, packet->packetTime) < 0)) {
 	    gettcpinfo(data->info.common->socket, &packet->tcpstats);
-#if defined(HAVE_DECL_SO_MAX_PACING_RATE)
-	    socklen_t len = sizeof(packet->FQPacingRate);
-	    if (isFQPacing(stats->common) && (stats->common->socket > 0)) {
-		getsockopt(stats->common->socket, SOL_SOCKET, SO_MAX_PACING_RATE, \
-							&packet->FQPacingRate, &len);
-	    }
-#endif
 	    TimeAdd(stats->ts.nextTCPSampleTime, stats->ts.intervalTime);
 	    rc = true;
 	} else {

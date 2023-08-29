@@ -645,6 +645,12 @@ void Client::RunTCP () {
 		mSettings->mFQPacingRateCurrent += mSettings->mFQPacingRateStep;
 		setsockopt(mSettings->mSock, SOL_SOCKET, SO_MAX_PACING_RATE, &mSettings->mFQPacingRateCurrent, sizeof(mSettings->mFQPacingRateCurrent));
 		PacingStepTime.add(mSettings->mFQPacingRateStepInterval);
+#if defined(HAVE_DECL_SO_MAX_PACING_RATE)
+		socklen_t len = sizeof(reportstruct->FQPacingRate);
+		getsockopt(mSettings->mSock, SOL_SOCKET, SO_MAX_PACING_RATE, &reportstruct->FQPacingRate, &len);
+#endif
+	    } else {
+		reportstruct->FQPacingRate = mSettings->mFQPacingRateCurrent;
 	    }
 	}
 #endif
