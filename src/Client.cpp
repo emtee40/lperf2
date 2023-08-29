@@ -638,22 +638,6 @@ void Client::RunTCP () {
         if (isModeAmount(mSettings)) {
 	    writelen = ((mSettings->mAmount < static_cast<unsigned>(mSettings->mBufLen)) ? mSettings->mAmount : mSettings->mBufLen);
 	}
-#if defined(HAVE_DECL_SO_MAX_PACING_RATE)
-	if (isFQPacingStep(mSettings)) {
-	    now.setnow();
-	    if (PacingStepTime.before(now)) {
-		mSettings->mFQPacingRateCurrent += mSettings->mFQPacingRateStep;
-		setsockopt(mSettings->mSock, SOL_SOCKET, SO_MAX_PACING_RATE, &mSettings->mFQPacingRateCurrent, sizeof(mSettings->mFQPacingRateCurrent));
-		PacingStepTime.add(mSettings->mFQPacingRateStepInterval);
-#if defined(HAVE_DECL_SO_MAX_PACING_RATE)
-		socklen_t len = sizeof(reportstruct->FQPacingRate);
-		getsockopt(mSettings->mSock, SOL_SOCKET, SO_MAX_PACING_RATE, &reportstruct->FQPacingRate, &len);
-#endif
-	    } else {
-		reportstruct->FQPacingRate = mSettings->mFQPacingRateCurrent;
-	    }
-	}
-#endif
 	if (isburst && !(burst_remaining > 0)) {
 	    if (isIsochronous(mSettings)) {
 		assert(mSettings->mMean);
@@ -773,6 +757,19 @@ void Client::RunTCP () {
 	}
 	if (!one_report) {
 	    myReportPacket();
+#if defined(HAVE_DECL_SO_MAX_PACING_RATE)
+	    if (isFQPacingStep(mSettings)) {
+		if (PacingStepTime.before(now)) {
+		    mSettings->mFQPacingRateCurrent += mSettings->mFQPacingRateStep;
+		    setsockopt(mSettings->mSock, SOL_SOCKET, SO_MAX_PACING_RATE, &mSettings->mFQPacingRateCurrent, sizeof(mSettings->mFQPacingRateCurrent));
+		    PacingStepTime.add(mSettings->mFQPacingRateStepInterval);
+		    socklen_t len = sizeof(reportstruct->FQPacingRate);
+		    getsockopt(mSettings->mSock, SOL_SOCKET, SO_MAX_PACING_RATE, &reportstruct->FQPacingRate, &len);
+		} else {
+		    reportstruct->FQPacingRate = mSettings->mFQPacingRateCurrent;
+		}
+	    }
+#endif
 	}
     }
     FinishTrafficActions();
@@ -1072,15 +1069,6 @@ void Client::RunWriteEventsTCP () {
 	    writelen = ((mSettings->mAmount < static_cast<unsigned>(mSettings->mBufLen)) ? mSettings->mAmount : mSettings->mBufLen);
 	}
 	now.setnow();
-#if defined(HAVE_DECL_SO_MAX_PACING_RATE)
-	if (isFQPacingStep(mSettings)) {
-	    if (PacingStepTime.before(now)) {
-		mSettings->mFQPacingRateCurrent += mSettings->mFQPacingRateStep;
-		setsockopt(mSettings->mSock, SOL_SOCKET, SO_MAX_PACING_RATE, &mSettings->mFQPacingRateCurrent, sizeof(mSettings->mFQPacingRateCurrent));
-		PacingStepTime.add(mSettings->mFQPacingRateStepInterval);
-	    }
-	}
-#endif
 	reportstruct->write_time = 0;
 	reportstruct->writecnt = 0;
 	if (isTcpWriteTimes(mSettings)) {
@@ -1117,6 +1105,19 @@ void Client::RunWriteEventsTCP () {
 	}
 	if (!one_report) {
 	    myReportPacket();
+#if defined(HAVE_DECL_SO_MAX_PACING_RATE)
+	    if (isFQPacingStep(mSettings)) {
+		if (PacingStepTime.before(now)) {
+		    mSettings->mFQPacingRateCurrent += mSettings->mFQPacingRateStep;
+		    setsockopt(mSettings->mSock, SOL_SOCKET, SO_MAX_PACING_RATE, &mSettings->mFQPacingRateCurrent, sizeof(mSettings->mFQPacingRateCurrent));
+		    PacingStepTime.add(mSettings->mFQPacingRateStepInterval);
+		    socklen_t len = sizeof(reportstruct->FQPacingRate);
+		    getsockopt(mSettings->mSock, SOL_SOCKET, SO_MAX_PACING_RATE, &reportstruct->FQPacingRate, &len);
+		} else {
+		    reportstruct->FQPacingRate = mSettings->mFQPacingRateCurrent;
+		}
+	    }
+#endif
 	}
     }
     FinishTrafficActions();
