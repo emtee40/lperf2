@@ -109,7 +109,7 @@ static void common_copy (struct ReportCommon **common, struct thread_Settings *i
     (*common)->MSS = inSettings->mMSS;
     (*common)->TCPWin = inSettings->mTCPWin;
     (*common)->FQPacingRate = inSettings->mFQPacingRate;
-#if defined(HAVE_DECL_SO_MAX_PACING_RATE)
+#if (HAVE_DECL_SO_PACING_RATE)
     (*common)->FQPacingRateStep = inSettings->mFQPacingRateStep;
 #endif
     (*common)->Port = inSettings->mPort;

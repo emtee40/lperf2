@@ -1111,7 +1111,7 @@ static inline void reporter_handle_packet_tcpistats (struct ReporterData *data, 
     stats->sock_callstats.write.tcpstats.cwnd = packet->tcpstats.cwnd;
     stats->sock_callstats.write.tcpstats.rtt = packet->tcpstats.rtt;
     stats->sock_callstats.write.tcpstats.rttvar = packet->tcpstats.rttvar;
-#if defined(HAVE_DECL_SO_MAX_PACING_RATE)
+#if (HAVE_DECL_SO_PACING_RATE)
     stats->FQPacingRateCurrent = packet->FQPacingRate;
 #endif
 }

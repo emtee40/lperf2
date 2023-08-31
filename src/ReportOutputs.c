@@ -614,7 +614,7 @@ void tcp_output_write_enhanced (struct TransferInfo *stats) {
 }
 
 void tcp_output_write_enhanced_fq (struct TransferInfo *stats) {
-#if defined(HAVE_DECL_SO_MAX_PACING_RATE)
+#if (HAVE_DECL_SO_PACING_RATE)
     HEADING_PRINT_COND(report_bw_write_enhanced_fq);
     _print_stats_common(stats);
 #if !(HAVE_TCP_STATS)
