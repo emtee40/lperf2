@@ -273,7 +273,7 @@ struct thread_Settings {
     int recvflags; // used to set recv flags,e.g. MSG_TRUNC with L
     double mVariance; //vbr variance
     uintmax_t mFQPacingRate;
-#if (HAVE_DECL_SO_PACING_RATE)
+#if (HAVE_DECL_SO_MAX_PACING_RATE)
     int mFQPacingRateStep;
     uintmax_t mFQPacingRateCurrent;
     double mFQPacingRateStepInterval;
