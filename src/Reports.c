@@ -147,6 +147,7 @@ static void common_copy (struct ReportCommon **common, struct thread_Settings *i
     (*common)->bbreplysize = inSettings->mBounceBackReplyBytes;
     (*common)->bbhold = inSettings->mBounceBackHold;
     (*common)->bbcount = inSettings->mBounceBackBurst;
+    (*common)->Omit = inSettings->mOmit;
 #if HAVE_DECL_TCP_WINDOW_CLAMP
     (*common)->ClampSize = inSettings->mClampSize;
 #endif
@@ -359,18 +360,18 @@ struct SumReport* InitSumReport(struct thread_Settings *inSettings, int inID, in
 		char name[] = "SUMT8";
 		sumreport->info.latency_histogram = histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0,\
 								    pow(10,inSettings->mHistUnits), \
-								    inSettings->mHistci_lower, inSettings->mHistci_upper, sumreport->info.common->transferID, name);
+								   inSettings->mHistci_lower, inSettings->mHistci_upper, sumreport->info.common->transferID, name, false);
 	    } else {
 		char name[] = "SUMF8";
 		sumreport->info.framelatency_histogram = histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0, \
 									 pow(10,inSettings->mHistUnits), inSettings->mHistci_lower, \
-									 inSettings->mHistci_upper, sumreport->info.common->transferID, name);
+									inSettings->mHistci_upper, sumreport->info.common->transferID, name, false);
 	    }
 	}
 	if (isJitterHistogram(inSettings) && isUDP(inSettings)) {
 	    char name[] = "SUMJ8";
 	    sumreport->info.jitter_histogram = histogram_init(JITTER_BINCNT,inSettings->jitter_binwidth,0,JITTER_UNITS, \
-							      JITTER_LCI, JITTER_UCI, sumreport->info.common->transferID, name);
+							      JITTER_LCI, JITTER_UCI, sumreport->info.common->transferID, name, false);
 	}
     }
     if (fullduplex_report) {
@@ -759,13 +760,13 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
 	    if (isJitterHistogram(inSettings)) {
 		char name[] = "J8";
 		ireport->info.jitter_histogram = histogram_init(JITTER_BINCNT,inSettings->jitter_binwidth,0,JITTER_UNITS, \
-							      JITTER_LCI, JITTER_UCI, ireport->info.common->transferID, name);
+							      JITTER_LCI, JITTER_UCI, ireport->info.common->transferID, name, false);
 	    }
 	    if (isTripTime(inSettings) && isHistogram(inSettings)) {
 		char name[] = "T8";
 		ireport->info.latency_histogram = histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0,\
 								  pow(10,inSettings->mHistUnits), \
-								  inSettings->mHistci_lower, inSettings->mHistci_upper, ireport->info.common->transferID, name);
+								  inSettings->mHistci_lower, inSettings->mHistci_upper, ireport->info.common->transferID, name, false);
 	    }
 	}
 	if (isHistogram(inSettings) && (isIsochronous(inSettings) || (!isUDP(inSettings) && isTripTime(inSettings)))) {
@@ -773,7 +774,7 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
 	    // make sure frame bin size min is 100 microsecond
 	    ireport->info.framelatency_histogram = histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0, \
 								   pow(10,inSettings->mHistUnits), inSettings->mHistci_lower, \
-								   inSettings->mHistci_upper, ireport->info.common->transferID, name);
+								   inSettings->mHistci_upper, ireport->info.common->transferID, name, false);
 	}
     }
     if ((inSettings->mThreadMode == kMode_Client) && !isUDP(inSettings) && isHistogram(inSettings)) {
@@ -781,12 +782,12 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
 	    char name[] = "W8";
 	    ireport->info.write_histogram = histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0,\
 							    pow(10,inSettings->mHistUnits), \
-							    inSettings->mHistci_lower, inSettings->mHistci_upper, ireport->info.common->transferID, name);
+							    inSettings->mHistci_lower, inSettings->mHistci_upper, ireport->info.common->transferID, name, false);
 	} else if (isWritePrefetch(inSettings)) {
 	    char name[] = "S8";
 	    ireport->info.latency_histogram = histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0,\
 							      pow(10,inSettings->mHistUnits), \
-							      inSettings->mHistci_lower, inSettings->mHistci_upper, ireport->info.common->transferID, name);
+							      inSettings->mHistci_lower, inSettings->mHistci_upper, ireport->info.common->transferID, name, false);
 	}
     }
     if ((inSettings->mThreadMode == kMode_Client) && isBounceBack(inSettings)) {
@@ -800,14 +801,14 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
 	}
 	ireport->info.bbrtt_histogram = histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0,	\
 						       pow(10,inSettings->mHistUnits), \
-						       inSettings->mHistci_lower, inSettings->mHistci_upper, ireport->info.common->transferID, name);
+						       inSettings->mHistci_lower, inSettings->mHistci_upper, ireport->info.common->transferID, name, false);
 	if (isTripTime(inSettings)) {
 	    ireport->info.bbowdto_histogram = histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0,	\
 							     pow(10,inSettings->mHistUnits), \
-							     inSettings->mHistci_lower, inSettings->mHistci_upper, ireport->info.common->transferID, " OWD-TX");
+							     inSettings->mHistci_lower, inSettings->mHistci_upper, ireport->info.common->transferID, " OWD-TX", false);
 	    ireport->info.bbowdfro_histogram = histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0,	\
 							     pow(10,inSettings->mHistUnits), \
-							     inSettings->mHistci_lower, inSettings->mHistci_upper, ireport->info.common->transferID, " OWD-RX");
+							     inSettings->mHistci_lower, inSettings->mHistci_upper, ireport->info.common->transferID, " OWD-RX", false);
 	}
     }
     return reporthdr;

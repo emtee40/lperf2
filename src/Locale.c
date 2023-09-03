@@ -311,28 +311,28 @@ const char report_bw_header[] =
 "[ ID] Interval       Transfer     Bandwidth\n";
 
 const char report_bw_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec%s\n";
 
 const char report_sum_bw_format[] =
-"[SUM] " IPERFTimeFrmt " sec  %ss  %ss/sec\n";
+"[SUM] " IPERFTimeFrmt " sec  %ss  %ss/sec%s\n";
 
 const char report_sumcnt_bw_format[] =
-"[SUM-%d] " IPERFTimeFrmt " sec  %ss  %ss/sec\n";
+"[SUM-%d] " IPERFTimeFrmt " sec  %ss  %ss/sec%s\n";
 
 const char report_bw_jitter_loss_header[] =
 "[ ID] Interval       Transfer     Bandwidth        Jitter   Lost/Total Datagrams\n";
 
 const char report_bw_jitter_loss_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %6.3f ms %" PRIdMAX "/%" PRIdMAX " (%.2g%%)\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %6.3f ms %" PRIdMAX "/%" PRIdMAX " (%.2g%%)%s\n";
 
 const char report_sum_bw_jitter_loss_format[] =
-"[SUM] " IPERFTimeFrmt " sec  %ss  %ss/sec   %" PRIdMAX "/%" PRIdMAX " (%.2g%%)\n";
+"[SUM] " IPERFTimeFrmt " sec  %ss  %ss/sec   %" PRIdMAX "/%" PRIdMAX " (%.2g%%)%s\n";
 
 const char report_sumcnt_bw_jitter_loss_header[] =
 "[SUM-cnt] Interval     Transfer     Bandwidth       Lost/Total    PPS\n";
 
 const char report_sumcnt_bw_jitter_loss_format[] =
-"[SUM-%d] " IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %8.0f pps\n";
+"[SUM-%d] " IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %8.0f pps%s\n";
 
 /* -------------------------------------------------------------------
  * Enhanced reports (per -e)
@@ -350,71 +350,71 @@ const char server_read_size[] =
 "Read buffer size";
 
 const char report_bw_enhanced_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec%s\n";
 
 const char report_sum_bw_enhanced_format[] =
-"[SUM] " IPERFTimeFrmt " sec  %ss  %ss/sec\n";
+"[SUM] " IPERFTimeFrmt " sec  %ss  %ss/sec%s\n";
 
 const char report_bw_read_enhanced_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth       Reads=Dist\n";
 
 const char report_bw_read_enhanced_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "=%d:%d:%d:%d:%d:%d:%d:%d\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "=%d:%d:%d:%d:%d:%d:%d:%d%s\n";
 
 const char report_sumcnt_bw_read_enhanced_header[] =
 "[SUM-cnt] Interval" IPERFTimeSpace "Transfer    Bandwidth       Reads=Dist\n";
 
 const char report_sumcnt_bw_read_enhanced_format[] =
-"[SUM-%d] " IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "=%d:%d:%d:%d:%d:%d:%d:%d\n";
+"[SUM-%d] " IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "=%d:%d:%d:%d:%d:%d:%d:%d%s\n";
 
 const char report_sumcnt_bw_read_triptime_header[] =
 "[SUM-cnt] Interval" IPERFTimeSpace "Transfer    Bandwidth  InP  Reads=Dist\n";
 
 const char report_sumcnt_bw_read_triptime_format[] =
-"[SUM-%d] " IPERFTimeFrmt " sec  %ss  %ss/sec %s  %" PRIdMAX "=%d:%d:%d:%d:%d:%d:%d:%d\n";
+"[SUM-%d] " IPERFTimeFrmt " sec  %ss  %ss/sec %s  %" PRIdMAX "=%d:%d:%d:%d:%d:%d:%d:%d%s\n";
 
 const char report_bw_read_enhanced_netpwr_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth    Burst Latency avg/min/max/stdev (cnt/size) inP NetPwr  Reads=Dist\n";
 
 const char report_bw_read_enhanced_netpwr_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %.3f/%.3f/%.3f/%.3f ms (%d/%d) %s %s  %" PRIdMAX "=%d:%d:%d:%d:%d:%d:%d:%d\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %.3f/%.3f/%.3f/%.3f ms (%d/%d) %s %s  %" PRIdMAX "=%d:%d:%d:%d:%d:%d:%d:%d%s\n";
 
 const char report_bw_isoch_enhanced_netpwr_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth    Burst Latency avg/min/max/stdev (cnt/size) NetPwr  Reads=Dist\n";
 
 const char report_bw_isoch_enhanced_netpwr_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %.3f/%.3f/%.3f/%.3f ms (%d/%d) %s  %" PRIdMAX "=%d:%d:%d:%d:%d:%d:%d:%d\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %.3f/%.3f/%.3f/%.3f ms (%d/%d) %s  %" PRIdMAX "=%d:%d:%d:%d:%d:%d:%d:%d%s\n";
 
 const char report_sum_bw_read_enhanced_format[] =
-"[SUM] " IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "=%d:%d:%d:%d:%d:%d:%d:%d\n";
+"[SUM] " IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "=%d:%d:%d:%d:%d:%d:%d:%d%s\n";
 
 const char report_triptime_enhanced_format[] =
-"%s" IPERFTimeFrmt " trip-time (3WHS done->fin+finack) = %.4f sec\n";
+"%s" IPERFTimeFrmt " trip-time (3WHS done->fin+finack) = %.4f sec%s\n";
 
 #if HAVE_TCP_STATS
 const char report_client_bb_bw_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth         BB cnt=avg/min/max/stdev         Rtry  Cwnd/RTT    RPS(avg)\n";
 
 const char report_client_bb_bw_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec    %" PRIdMAX "=%.3f/%.3f/%.3f/%.3f ms %4d %4dK/%u us    %s rps\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec    %" PRIdMAX "=%.3f/%.3f/%.3f/%.3f ms %4d %4dK/%u us    %s rps%s\n";
 #else
 const char report_client_bb_bw_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth         BB cnt=avg/min/max/stdev    RPS(avg)\n";
 
 const char report_client_bb_bw_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec    %" PRIdMAX "=%.3f/%.3f/%.3f/%.3f ms    %s rps\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec    %" PRIdMAX "=%.3f/%.3f/%.3f/%.3f ms    %s rps%s\n";
 #endif
 const char report_client_bb_bw_triptime_format[] =
-"%s" IPERFTimeFrmt " sec  OWD (ms) Cnt=%" PRIdMAX " TX=%.3f/%.3f/%.3f/%.3f RX=%.3f/%.3f/%.3f/%.3f Asymmetry=%.3f/%.3f/%.3f/%.3f\n";
+"%s" IPERFTimeFrmt " sec  OWD (ms) Cnt=%" PRIdMAX " TX=%.3f/%.3f/%.3f/%.3f RX=%.3f/%.3f/%.3f/%.3f Asymmetry=%.3f/%.3f/%.3f/%.3f%s\n";
 
 const char report_write_enhanced_write_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth       Write/Err  Rtry     Cwnd/RTT        NetPwr  write-times avg/min/max/stdev (cnt)\n";
 
 const char report_write_enhanced_write_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %10" PRIdMAX "%8dK/%u us  %s  %.3f/%.3f/%.3f/%.3f ms (%" PRIdMAX ")\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %10" PRIdMAX "%8dK/%u us  %s  %.3f/%.3f/%.3f/%.3f ms (%" PRIdMAX ")%s\n";
 
 const char report_write_enhanced_nocwnd_write_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %10" PRIdMAX "       NA/%u us  %s  %.3f/%.3f/%.3f/%.3f ms (%" PRIdMAX ")\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %10" PRIdMAX "       NA/%u us  %s  %.3f/%.3f/%.3f/%.3f ms (%" PRIdMAX ")%s\n";
 
 
 #if HAVE_TCP_STATS
@@ -422,7 +422,7 @@ const char report_bw_write_enhanced_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth       Write/Err  Rtry     Cwnd/RTT(var)        NetPwr\n";
 
 const char report_sum_bw_write_enhanced_format[] =
-"[SUM] " IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX "\n";
+"[SUM] " IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX "%s\n";
 
 const char report_bw_write_enhanced_format[] =
 "%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX " %8dK/%u(%u) us  %s\n";
@@ -431,19 +431,19 @@ const char report_bw_write_enhanced_fq_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth       Write/Err  Rtry     Cwnd/RTT(var)  fq-rate  NetPwr\n";
 
 const char report_bw_write_enhanced_fq_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX " %8dK/%u(%u) us %s/sec %s \n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX " %8dK/%u(%u) us %s/sec%s\n";
 
 const char report_bw_write_enhanced_nocwnd_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %10" PRIdMAX "       NA/%u us  %s\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %10" PRIdMAX "       NA/%u us%s\n";
 
 const char report_write_enhanced_isoch_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer     Bandwidth      Write/Err  Rtry     Cwnd/RTT     isoch:tx/miss/slip  NetPwr\n";
 
 const char report_write_enhanced_isoch_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %8d %8dK/%u us  %9" PRIuMAX "/%" PRIuMAX "/%" PRIuMAX "        %s\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %8d %8dK/%u us  %9" PRIuMAX "/%" PRIuMAX "/%" PRIuMAX "%s\n";
 
 const char report_write_enhanced_isoch_nocwnd_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %10" PRIdMAX "    NA/%u us  %9" PRIuMAX "/%" PRIuMAX "/%" PRIuMAX " %s\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %10" PRIdMAX "    NA/%u us  %9" PRIuMAX "/%" PRIuMAX "/%" PRIuMAX "%s\n";
 
 #else
 
@@ -451,62 +451,62 @@ const char report_bw_write_enhanced_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth       Write/Err\n";
 
 const char report_bw_write_enhanced_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%s\n";
 
 const char report_sum_bw_write_enhanced_format[] =
-"[SUM] " IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "\n";
+"[SUM] " IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%s\n";
 
 const char report_write_enhanced_isoch_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer     Bandwidth      Write/Err  isoch:tx/miss/slip\n";
 
 const char report_write_enhanced_isoch_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%9" PRIuMAX "/%" PRIuMAX "/%" PRIuMAX "\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%9" PRIuMAX "/%" PRIuMAX "/%" PRIuMAX "%s\n";
 #endif
 
 const char report_sumcnt_bw_write_enhanced_header[] =
 "[SUM-cnt] Interval" IPERFTimeSpace "Transfer    Bandwidth       Write/Err  Rtry\n";
 
 const char report_sumcnt_bw_write_enhanced_format[] =
-"[SUM-%d] " IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX "\n";
+"[SUM-%d] " IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX "%s\n";
 
 const char report_bw_pps_enhanced_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer     Bandwidth      Write/Err/Timeo  PPS\n";
 
 const char report_bw_pps_enhanced_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "/%" PRIdMAX "%8.0f pps\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "/%" PRIdMAX "%8.0f pps%s\n";
 
 const char report_sumcnt_bw_pps_enhanced_header[] =
 "[SUM-cnt] Interval" IPERFTimeSpace "Transfer     Bandwidth      Write/Err  PPS\n";
 
 const char report_sumcnt_bw_pps_enhanced_format[] =
-"[SUM-%d] " IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %8.0f pps\n";
+"[SUM-%d] " IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %8.0f pps%s\n";
 
 const char report_sumcnt_udp_enhanced_header[] =
 "[SUM-cnt] Interval" IPERFTimeSpace "Transfer     Bandwidth      Lost/Total  PPS\n";
 
 const char report_sumcnt_udp_enhanced_format[] =
-"[SUM-%d] " IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %8.0f pps\n";
+"[SUM-%d] " IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %8.0f pps%s\n";
 
 const char report_sumcnt_udp_triptime_header[] =
 "[SUM-cnt] Interval" IPERFTimeSpace "Transfer     Bandwidth      Lost/Total  Rx/inP PPS\n";
 
 const char report_sumcnt_udp_triptime_format[] =
-"[SUM-%d] " IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "   %" PRIdMAX "/%.0f  %8.0f pps\n";
+"[SUM-%d] " IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "   %" PRIdMAX "/%.0f  %8.0f pps%s\n";
 
 const char report_bw_pps_enhanced_isoch_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer     Bandwidth      Write/Err  PPS  isoch:tx/miss/slip\n";
 
 const char report_bw_pps_enhanced_isoch_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%8.0f pps  %3" PRIuMAX "/%" PRIuMAX "/%" PRIuMAX "\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%8.0f pps  %3" PRIuMAX "/%" PRIuMAX "/%" PRIuMAX "%s\n";
 
 const char report_sum_bw_pps_enhanced_format[] =
-"[SUM] " IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%8.0f pps\n";
+"[SUM] " IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%8.0f pps%s\n";
 
 const char report_bw_jitter_loss_pps_header[] =
 "[ ID] Interval       Transfer     Bandwidth        Jitter   Lost/Total Datagrams   PPS\n";
 
 const char report_bw_jitter_loss_pps_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %6.3f ms %" PRIdMAX "/%" PRIdMAX " (%.2g%%) %8.0f pps\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %6.3f ms %" PRIdMAX "/%" PRIdMAX " (%.2g%%) %8.0f pps%s\n";
 
 #if HAVE_DECL_MSG_TRUNC
 const char report_bw_jitter_loss_enhanced_header[] =
@@ -514,7 +514,7 @@ const char report_bw_jitter_loss_enhanced_header[] =
  Latency avg/min/max/stdev PPS Read/Timeo/Trunc NetPwr\n";
 
 const char report_bw_jitter_loss_enhanced_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %6.3f ms %" PRIdMAX "/%" PRIdMAX " (%.2g%%) %.3f/%.3f/%.3f/%.3f ms %.0f pps %" PRIdMAX "/%" PRIdMAX "/%" PRIdMAX " %s\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %6.3f ms %" PRIdMAX "/%" PRIdMAX " (%.2g%%) %.3f/%.3f/%.3f/%.3f ms %.0f pps %" PRIdMAX "/%" PRIdMAX "/%" PRIdMAX "%s\n";
 
 const char report_bw_jitter_loss_enhanced_triptime_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer     Bandwidth        Jitter   Lost/Total \
@@ -528,14 +528,14 @@ const char report_bw_jitter_loss_enhanced_header[] =
  Latency avg/min/max/stdev PPS Read/Timeo NetPwr\n";
 
 const char report_bw_jitter_loss_enhanced_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %6.3f ms %" PRIdMAX "/%" PRIdMAX " (%.2g%%) %.3f/%.3f/%.3f/%.3f ms %.0f pps %" PRIdMAX "/%" PRIdMAX " %s\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %6.3f ms %" PRIdMAX "/%" PRIdMAX " (%.2g%%) %.3f/%.3f/%.3f/%.3f ms %.0f pps %" PRIdMAX "/%" PRIdMAX "%s\n";
 
 const char report_bw_jitter_loss_enhanced_triptime_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer     Bandwidth        Jitter   Lost/Total \
  Latency avg/min/max/stdev PPS  Rx/inP  Read/Timeo  NetPwr\n";
 
 const char report_bw_jitter_loss_enhanced_triptime_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %6.3f ms %" PRIdMAX "/%" PRIdMAX " (%.2g%%) %.3f/%.3f/%.3f/%.3f ms %.0f pps %" PRIdMAX "/%s %" PRIdMAX "/%" PRIdMAX " %s\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %6.3f ms %" PRIdMAX "/%" PRIdMAX " (%.2g%%) %.3f/%.3f/%.3f/%.3f ms %.0f pps %" PRIdMAX "/%s %" PRIdMAX "/%" PRIdMAX "%s\n";
 #endif
 const char report_bw_jitter_loss_enhanced_isoch_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer     Bandwidth        Jitter   Lost/Total \
@@ -546,16 +546,16 @@ const char report_bw_jitter_loss_enhanced_isoch_triptime_header[] =
 Latency avg/min/max/stdev  PPS  Frame:rx/lost  Frame-latency avg/min/max/stdev  NetPwr\n";
 
 const char report_bw_jitter_loss_enhanced_isoch_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %6.3f ms %" PRIdMAX "/%" PRIdMAX " (%.2g%%) %.3f/%.3f/%.3f/%.3f ms %.0f pps  %3d/%d  %.3f/%.3f/%.3f/%.3f ms %s\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %6.3f ms %" PRIdMAX "/%" PRIdMAX " (%.2g%%) %.3f/%.3f/%.3f/%.3f ms %.0f pps  %3d/%d  %.3f/%.3f/%.3f/%.3f ms%s\n";
 
 const char report_sum_bw_jitter_loss_enhanced_format[] =
-"[SUM] " IPERFTimeFrmt " sec  %ss  %ss/sec  %6.3f ms %" PRIdMAX "/%" PRIdMAX " (%.2g%%)  %.0f pps\n";
+"[SUM] " IPERFTimeFrmt " sec  %ss  %ss/sec  %6.3f ms %" PRIdMAX "/%" PRIdMAX " (%.2g%%)  %.0f pps%s\n";
 
 const char report_sumcnt_bw_jitter_loss_enhanced_format[] =
-"[SUM-%d] " IPERFTimeFrmt " sec  %ss  %ss/sec  %6.3f ms %" PRIdMAX "/%" PRIdMAX " (%.2g%%)  %.0f pps\n";
+"[SUM-%d] " IPERFTimeFrmt " sec  %ss  %ss/sec  %6.3f ms %" PRIdMAX "/%" PRIdMAX " (%.2g%%)  %.0f pps%s\n";
 
 const char report_bw_jitter_loss_suppress_enhanced_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %6.3f ms %" PRIdMAX "/%" PRIdMAX " (%.2g%%) -/-/-/- ms %.0f pps %" PRIdMAX "/%" PRIdMAX "/%" PRIdMAX "\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %6.3f ms %" PRIdMAX "/%" PRIdMAX " (%.2g%%) -/-/-/- ms %.0f pps %" PRIdMAX "/%" PRIdMAX "/%" PRIdMAX "%s\n";
 
 /*
  * Frame interval reports
@@ -567,10 +567,10 @@ const char report_frame_jitter_loss_enhanced_header[] =
  Latency avg/min/max/stdev PPS  inP NetPwr\n";
 
 const char report_frame_jitter_loss_enhanced_format[] =
-"%s" IPERFFTimeFrmt "(%0.4f) sec %ss  %ss/sec %" PRIdMAX "   %6.3f ms %" PRIdMAX "/%" PRIdMAX " (%.2g%%) %.3f/%.3f/%.3f/%.3f ms %.0f pps %2.0f pkts %s\n";
+"%s" IPERFFTimeFrmt "(%0.4f) sec %ss  %ss/sec %" PRIdMAX "   %6.3f ms %" PRIdMAX "/%" PRIdMAX " (%.2g%%) %.3f/%.3f/%.3f/%.3f ms %.0f pps %2.0f pkts%s\n";
 
 const char report_frame_jitter_loss_suppress_enhanced_format[] =
-"%s" IPERFTimeFrmt "(%0.4f) sec %" PRIdMAX " %ss  %ss/sec %" PRIdMAX "   %6.3f ms %" PRIdMAX "/%" PRIdMAX " (%.2g%%) -/-/-/- ms %.0f pps\n";
+"%s" IPERFTimeFrmt "(%0.4f) sec %" PRIdMAX " %ss  %ss/sec %" PRIdMAX "   %6.3f ms %" PRIdMAX "/%" PRIdMAX " (%.2g%%) -/-/-/- ms %.0f pps%s\n";
 
 const char report_frame_tcp_enhanced_header[] =
 "[ ID] Interval(f-transit)" IPERFFTimeSpace "Transfer     Bandwidth    FrameID\n";
@@ -579,7 +579,7 @@ const char report_burst_read_tcp_header[] =
 "[ ID] Burst (start-end)" IPERFFTimeSpace "Transfer     Bandwidth       XferTime  (DC%)     Reads=Dist          NetPwr\n";
 
 const char report_burst_read_tcp_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %6.3f ms (%.2g%%)    %" PRIdMAX "=%d:%d:%d:%d:%d:%d:%d:%d  %s\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %6.3f ms (%.2g%%)    %" PRIdMAX "=%d:%d:%d:%d:%d:%d:%d:%d%s\n";
 
 const char report_burst_read_tcp_final_format[] =
 "%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %.3f/%.3f/%.3f/%.3f ms  %" PRIdMAX "=%d:%d:%d:%d:%d:%d:%d:%d\n";
@@ -588,57 +588,51 @@ const char report_burst_write_tcp_header[] =
 "[ ID] Burst (start-end)" IPERFFTimeSpace "Transfer     Bandwidth       XferTime  Write/Err  Rtry  Cwnd/RTT   NetPwr\n";
 
 const char report_burst_write_tcp_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %6.3f ms %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX "%8dK/%u %s\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %6.3f ms %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX "%8dK/%u%s\n";
 
 #else
 const char report_burst_write_tcp_header[] =
 "[ ID] Burst (start-end)" IPERFFTimeSpace "Transfer     Bandwidth       XferTime  Write/Err\n";
 
 const char report_burst_write_tcp_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %6.3f ms %" PRIdMAX "/%" PRIdMAX"\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %6.3f ms %" PRIdMAX "/%" PRIdMAX"%s\n";
 #endif
 
 const char report_burst_write_tcp_nocwnd_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %6.3f ms %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX "NA/%u %s\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %6.3f ms %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX "NA/%u%s\n";
 
 const char report_burst_write_tcp_final_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec               %" PRIdMAX "=%d:%d:%d:%d:%d:%d:%d:%d\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec               %" PRIdMAX "=%d:%d:%d:%d:%d:%d:%d:%d%s\n";
 
 /* -------------------------------------------------------------------
  * Fullduplex reports
  * ------------------------------------------------------------------- */
 const char report_bw_sum_fullduplex_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec%s\n";
 
 const char report_bw_sum_fullduplex_enhanced_format[] =
-"[FD%d] " IPERFTimeFrmt " sec  %ss  %ss/sec\n";
+"[FD%d] " IPERFTimeFrmt " sec  %ss  %ss/sec%s\n";
 
 const char report_udp_fullduplex_header[] =
 "[ ID] Interval       Transfer     Bandwidth    Datagrams   PPS\n";
 
-const char report_sumcnt_udp_fullduplex_header[] =
-"[SUM-cnt] Interval       Transfer     Bandwidth    Datagrams   PPS\n";
-
-const char report_sumcnt_udp_fullduplex_format[] =
-"[SUM-%d] " IPERFTimeFrmt " sec  %ss  %ss/sec %" PRIdMAX "%8.0f pps\n";
-
 const char report_udp_fullduplex_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec %" PRIdMAX "%8.0f pps\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec %" PRIdMAX "%8.0f pps%s\n";
 
 const char report_udp_fullduplex_enhanced_format[] =
-"[FD%d] " IPERFTimeFrmt " sec  %ss  %ss/sec %" PRIdMAX "%8.0f pps\n";
+"[FD%d] " IPERFTimeFrmt " sec  %ss  %ss/sec %" PRIdMAX "%8.0f pps%s\n";
 
 const char report_udp_fullduplex_sum_format[] =
-"[SUM] " IPERFTimeFrmt " sec  %ss  %ss/sec %" PRIdMAX "%8.0f pps\n";
+"[SUM] " IPERFTimeFrmt " sec  %ss  %ss/sec %" PRIdMAX "%8.0f pps%s\n";
 
 /* -------------------------------------------------------------------
  * Misc reports
  * ------------------------------------------------------------------- */
 const char report_outoforder[] =
-"%s" IPERFTimeFrmt " sec  %d datagrams received out-of-order\n";
+"%s" IPERFTimeFrmt " sec  %d datagrams received out-of-order%s\n";
 
 const char report_sumcnt_outoforder[] =
-"[SUM-%d] " IPERFTimeFrmt " sec  %d datagrams received out-of-order\n";
+"[SUM-%d] " IPERFTimeFrmt " sec  %d datagrams received out-of-order%s\n";
 
 const char report_l2statistics[] =
 "%s" IPERFTimeFrmt " sec   L2 processing detected errors, total(length/checksum/unknown) = %" PRIdMAX "(%" PRIdMAX "/%" PRIdMAX "/%" PRIdMAX ")\n";
@@ -800,6 +794,8 @@ const char error_starttime_exceeds[] =
 
 const char error_delaytime_exceeds[] =
 "ERROR: --txdelay-time of %d seconds is more than the supported delay of %d seconds\n";
+
+const char report_omitted[] = "  (omitted)";
 
 #ifdef __cplusplus
 } /* end extern "C" */

@@ -315,10 +315,6 @@ extern const char report_udp_fullduplex_sum_format[];
 
 extern const char report_udp_fullduplex_enhanced_format[];
 
-extern const char report_sumcnt_udp_fullduplex_header[];
-
-extern const char report_sumcnt_udp_fullduplex_format[];
-
 extern const char report_client_bb_bw_header[];
 
 extern const char report_client_bb_bw_format[];
@@ -446,6 +442,8 @@ extern const char error_starttime_exceeds[];
 extern const char error_delaytime_exceeds[];
 
 extern const char report_client_bb_triptime_clocksync_error[];
+
+extern const char report_omitted[] ;
 
 #ifdef __cplusplus
 } /* end extern "C" */

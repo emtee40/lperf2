@@ -195,6 +195,7 @@ struct ReportCommon {
     enum ThreadMode ThreadMode;
     enum ReportMode ReportMode;
     bool KeyCheck;
+    bool Omit;
     int flags;
     int flags_extend;
     int flags_extend2;

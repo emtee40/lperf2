@@ -313,6 +313,7 @@ struct thread_Settings {
     int mTcpTxDelay;
     int mTcpTxDelayVar;
     int mTcpTxDelayMeanShift;
+    bool mOmit;
 };
 
 /*
