@@ -131,7 +131,7 @@ unsigned int FrameCounter::wait_tick (long *sched_err, bool sync_strict) {
     } else {
 	nextslotTime.add(period);
 	slot_counter++;
-	while (now.subUsec(nextslotTime) > (sync_strict ? 0 : period)) {
+	while (now.subUsec(nextslotTime) > static_cast<long>(sync_strict ? 0 : period)) {
 	    nextslotTime.add(period);
 	    slot_counter++;
 	}
