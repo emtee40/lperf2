@@ -1105,7 +1105,8 @@ void udp_output_sum_read (struct TransferInfo *stats) {
 	   stats->ts.iStart, stats->ts.iEnd,
 	   outbuffer, outbufferext,
 	   stats->cntError, stats->cntDatagrams,
-	   (100.0 * stats->cntError) / stats->cntDatagrams);
+	   ((100.0 * stats->cntError) / stats->cntDatagrams),
+           (stats->common->Omit ? report_omitted : ""));
     if ((stats->cntOutofOrder > 0)  && stats->final) {
 	printf(report_sum_outoforder,
 	       stats->ts.iStart,

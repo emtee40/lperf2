@@ -641,7 +641,7 @@ const char report_l2statistics[] =
 "%s" IPERFTimeFrmt " sec   L2 processing detected errors, total(length/checksum/unknown) = %" PRIdMAX "(%" PRIdMAX "/%" PRIdMAX "/%" PRIdMAX ")\n";
 
 const char report_sum_outoforder[] =
-"[SUM] " IPERFTimeFrmt " sec  %d datagrams received out-of-order\n";
+"[SUM] " IPERFTimeFrmt " sec  %d datagrams received out-of-order%s\n";
 
 const char report_peer [] =
 "%slocal %s port %u connected with %s port %u%s\n";

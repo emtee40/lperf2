@@ -1,6 +1,6 @@
 #include "config.h"
 #define IPERF_VERSION VERSION
-#define IPERF_VERSION_DATE "3 September 2023"
+#define IPERF_VERSION_DATE "6 September 2023"
 #define IPERF_VERSION_MAJORHEX 0x00020001
 #define IPERF_VERSION_MINORHEX 0x000A0005
 
