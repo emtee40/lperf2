@@ -231,6 +231,8 @@ extern const char report_bw_write_enhanced_fq_header[];
 
 extern const char report_bw_write_enhanced_fq_format[];
 
+extern const char report_bw_write_enhanced_fq_final_format[];
+
 extern const char report_write_enhanced_write_header[];
 
 extern const char report_write_enhanced_write_format[];

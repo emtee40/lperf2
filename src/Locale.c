@@ -433,6 +433,9 @@ const char report_bw_write_enhanced_fq_header[] =
 const char report_bw_write_enhanced_fq_format[] =
 "%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX " %8dK/%u(%u) us %s/sec %s%s\n";
 
+const char report_bw_write_enhanced_fq_final_format[] =
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX " %8dK/%u(%u) us %s%s\n";
+
 const char report_bw_write_enhanced_nocwnd_format[] =
 "%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %10" PRIdMAX "       NA/%u us%s\n";
 

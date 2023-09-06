@@ -642,20 +642,38 @@ void tcp_output_write_enhanced_fq (struct TransferInfo *stats) {
 #else
     set_netpowerbuf(stats->sock_callstats.write.tcpstats.rtt * 1e-6, stats);
     char pacingrate[40];
-    byte_snprintf(pacingrate, sizeof(pacingrate), stats->FQPacingRateCurrent, 'a');
-    pacingrate[39] = '\0';
+    if (!stats->final) {
+	byte_snprintf(pacingrate, sizeof(pacingrate), stats->FQPacingRateCurrent, 'a');
+	pacingrate[39] = '\0';
+    } else {
+	pacingrate[0] = '\0';
+    }
     if (stats->sock_callstats.write.tcpstats.cwnd > 0) {
-	printf(report_bw_write_enhanced_fq_format,
-	       stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
-	       outbuffer, outbufferext,
-	       stats->sock_callstats.write.WriteCnt,
-	       stats->sock_callstats.write.WriteErr,
-	       stats->sock_callstats.write.tcpstats.retry,
-	       stats->sock_callstats.write.tcpstats.cwnd,
-	       stats->sock_callstats.write.tcpstats.rtt,
-	       stats->sock_callstats.write.tcpstats.rttvar,
-	       pacingrate, netpower_buf,
-	       (stats->common->Omit ? report_omitted : ""));
+	if (!stats->final) {
+	    printf(report_bw_write_enhanced_fq_format,
+		   stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
+		   outbuffer, outbufferext,
+		   stats->sock_callstats.write.WriteCnt,
+		   stats->sock_callstats.write.WriteErr,
+		   stats->sock_callstats.write.tcpstats.retry,
+		   stats->sock_callstats.write.tcpstats.cwnd,
+		   stats->sock_callstats.write.tcpstats.rtt,
+		   stats->sock_callstats.write.tcpstats.rttvar,
+		   pacingrate, netpower_buf,
+		   (stats->common->Omit ? report_omitted : ""));
+	} else {
+	    printf(report_bw_write_enhanced_fq_final_format,
+		   stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
+		   outbuffer, outbufferext,
+		   stats->sock_callstats.write.WriteCnt,
+		   stats->sock_callstats.write.WriteErr,
+		   stats->sock_callstats.write.tcpstats.retry,
+		   stats->sock_callstats.write.tcpstats.cwnd,
+		   stats->sock_callstats.write.tcpstats.rtt,
+		   stats->sock_callstats.write.tcpstats.rttvar,
+		   netpower_buf,
+		   (stats->common->Omit ? report_omitted : ""));
+	}
     } else {
 	printf(report_bw_write_enhanced_nocwnd_format,
 	       stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
