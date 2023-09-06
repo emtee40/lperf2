@@ -626,7 +626,7 @@ void Client::RunTCP () {
     reportstruct->packetTime.tv_sec = now.getSecs();
     reportstruct->packetTime.tv_usec = now.getUsecs();
     reportstruct->write_time = 0;
-#if (HAVE_DECL_SO_PACING_RATE)
+#if (HAVE_DECL_SO_MAX_PACING_RATE)
     if (isFQPacingStep(mSettings)) {
 	PacingStepTime = now;
 	PacingStepTime.add(mSettings->mFQPacingRateStepInterval);
@@ -757,7 +757,7 @@ void Client::RunTCP () {
 	}
 	if (!one_report) {
 	    myReportPacket();
-#if (HAVE_DECL_SO_PACING_RATE)
+#if (HAVE_DECL_SO_MAX_PACING_RATE)
 	    if (isFQPacingStep(mSettings)) {
 		if (PacingStepTime.before(now)) {
 		    mSettings->mFQPacingRateCurrent += mSettings->mFQPacingRateStep;
@@ -1058,7 +1058,7 @@ void Client::RunWriteEventsTCP () {
     now.setnow();
     reportstruct->packetTime.tv_sec = now.getSecs();
     reportstruct->packetTime.tv_usec = now.getUsecs();
-#if (HAVE_DECL_SO_PACING_RATE)
+#if (HAVE_DECL_SO_MAX_PACING_RATE)
     if (isFQPacingStep(mSettings)) {
 	PacingStepTime = now;
 	PacingStepTime.add(mSettings->mFQPacingRateStepInterval);
@@ -1105,7 +1105,7 @@ void Client::RunWriteEventsTCP () {
 	}
 	if (!one_report) {
 	    myReportPacket();
-#if (HAVE_DECL_SO_PACING_RATE)
+#if (HAVE_DECL_SO_MAX_PACING_RATE)
 	    if (isFQPacingStep(mSettings)) {
 		if (PacingStepTime.before(now)) {
 		    mSettings->mFQPacingRateCurrent += mSettings->mFQPacingRateStep;

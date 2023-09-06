@@ -1135,7 +1135,7 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	    }
 	}
 	if (fqrate) {
-#if (HAVE_DECL_SO_PACING_RATE)
+#if (HAVE_DECL_SO_MAX_PACING_RATE)
 	    fqrate=0;
 	    setFQPacing(mExtSettings);
 	    mExtSettings->mFQPacingRate = static_cast<uintmax_t>(bitorbyte_atoi(optarg) / 8);
@@ -1143,7 +1143,7 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	    fprintf(stderr, "WARNING: The --fq-rate option is not supported\n");
 #endif
 	}
-#if (HAVE_DECL_SO_PACING_RATE)
+#if (HAVE_DECL_SO_MAX_PACING_RATE)
 	if (fqratestep) {
 	    fqratestep=0;
 	    setFQPacingStep(mExtSettings);
@@ -1613,7 +1613,7 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	    fprintf(stderr, "ERROR: option of --permit-key requires a value on the client\n");
 	    bail = true;
 	}
-#if (HAVE_DECL_SO_PACING_RATE)
+#if (HAVE_DECL_SO_MAX_PACING_RATE)
 	if (isFQPacingStep(mExtSettings)) {
 	    if (!isFQPacing(mExtSettings)) {
 		setFQPacing(mExtSettings);
