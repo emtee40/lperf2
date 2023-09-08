@@ -150,7 +150,9 @@ void Listener::Run () {
 	mEndTime.add(mSettings->mListenerTimeout);
     }
     Timestamp now;
+    bool need_listen = true;
 #define SINGLECLIENTDELAY_DURATION 50000 // units is microseconds
+
     while (!sInterupted && mCount) {
 #ifdef HAVE_THREAD_DEBUG
 	thread_debug("Listener main loop port %d ", mSettings->mPort);
@@ -179,10 +181,13 @@ void Listener::Run () {
 	    continue;
 	}
         // This will set ListenSocket to a new sock fd
-	if (isUDP(mSettings)) {
+	if (isUDP(mSettings) && need_listen) {
 	    // UDP needs a new listen per every new socket
-	    if (!my_listen())
+	    if (!my_listen()) {
 		break;
+	    } else {
+		need_listen = false;
+	    }
 	}
 	// Use a select() with a timeout if -t is set or if this is a v1 -r or -d test
 	fd_set set;
@@ -236,7 +241,7 @@ void Listener::Run () {
 	    Settings_Destroy(server);
 	    continue;
 	}
-
+	need_listen = true;
 #ifdef HAVE_THREAD_DEBUG
 	thread_debug("Listener thread accepted server sock=%d transferID", server->mSock, server->mTransferID);
 #endif
@@ -711,12 +716,11 @@ int Listener::udp_accept (thread_Settings *server) {
 #endif
 	// Handle connection for UDP sockets
 	int gid = Iperf_push_host_port_conditional(server);
-
+	if (gid < 0) {
 #if HAVE_THREAD_DEBUG
-	if (gid < 0)
 	    thread_debug("rcvfrom peer: drop duplicate");
 #endif
-	if (gid > 0) {
+	} else if (gid > 0) {
 	    int rc;
 	    // We have a new UDP flow (based upon key of quintuple)
 	    // so let's hand off this socket
