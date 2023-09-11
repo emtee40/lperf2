@@ -264,6 +264,12 @@ void Iperf_destroy_active_table () {
         delete itr1;
         itr1 = itr2;
     }
+    itr1 = active_table.flow_root;
+    while (itr1 != NULL) {
+        itr2 = itr1->next;
+        delete itr1;
+        itr1 = itr2;
+    }
     Mutex_Destroy(&active_table.my_mutex);
     active_table.sum_root = NULL;
 #if HAVE_THREAD_DEBUG
