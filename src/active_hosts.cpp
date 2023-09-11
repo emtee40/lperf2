@@ -166,7 +166,7 @@ static bool Iperf_push_flow (iperf_sockaddr *host) {
 // Thread access to store a host
 bool Iperf_push_host (struct thread_Settings *agent) {
     Mutex_Lock(&active_table.my_mutex);
-    if (isUDP(agent)) {
+    if (isUDP(agent) && (agent->mThreadMode == kMode_Server)) {
 	if (!Iperf_push_flow(&agent->peer)) {
 	    // this is a duplicate on UDP, should just ignore
 	    Mutex_Unlock(&active_table.my_mutex);
