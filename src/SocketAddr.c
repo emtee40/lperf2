@@ -149,9 +149,11 @@ void SockAddr_localAddr (struct thread_Settings *inSettings) {
 	     /* Server or Listener thread, -p and no -B */
 	     SockAddr_setPort(&inSettings->local, inSettings->mPort);
 #if HAVE_DECL_SO_REUSEPORT
-	     int boolean = 1;
-	     Socklen_t len = sizeof(boolean);
-	     setsockopt(inSettings->mSock, SOL_SOCKET, SO_REUSEPORT, (char*) &boolean, len);
+	     if (isUDP(inSettings)) {	     
+		 int boolean = 1;
+		 Socklen_t len = sizeof(boolean);
+		 setsockopt(inSettings->mSock, SOL_SOCKET, SO_REUSEPORT, (char*) &boolean, len);
+	     }
 #endif
 	 }
      } else {
