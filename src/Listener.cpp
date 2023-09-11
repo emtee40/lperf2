@@ -685,6 +685,7 @@ int Listener::udp_accept (thread_Settings *server) {
     // most likely not a new client thread requiring a new server thread, but remnants of an
     // old one that already ended. Hence, the Listener should ignore "first packets" when
     // they have negative seq numbers.
+  RETRYREAD:
     do {
 	packetID = 0;
 	nread = recvfrom(ListenSocket, server->mBuf, server->mBufLen, 0, \
@@ -705,22 +706,12 @@ int Listener::udp_accept (thread_Settings *server) {
 	Timestamp now;
 	server->accept_time.tv_sec = now.getSecs();
 	server->accept_time.tv_usec = now.getUsecs();
-#if HAVE_THREAD_DEBUG
-	{
-	    char tmpaddr[200];
-	    size_t len=200;
-	    unsigned short port = SockAddr_getPort(&server->peer);
-	    SockAddr_getHostAddress(&server->peer, tmpaddr, len);
-	    thread_debug("rcvfrom peer: %s port %d len=%d", tmpaddr, port, nread);
-	}
-#endif
-	// Handle connection for UDP sockets
-	int gid = Iperf_push_host_port_conditional(server);
-	if (gid < 0) {
-#if HAVE_THREAD_DEBUG
-	    thread_debug("rcvfrom peer: drop duplicate");
-#endif
-	} else if (gid > 0) {
+	// Drop duplicates, may need to use a BPF drop for better performance
+	// or ebfs
+	if (!Iperf_push_host(server)) {
+	    packetID = 0;
+	    goto RETRYREAD;
+	} else {
 	    int rc;
 	    // We have a new UDP flow (based upon key of quintuple)
 	    // so let's hand off this socket
