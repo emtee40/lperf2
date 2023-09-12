@@ -146,28 +146,10 @@ void SetSocketOptions (struct thread_Settings *inSettings) {
     } else
 #endif
 	if (!isMulticast(inSettings)) {
-#if (HAVE_DECL_SO_BINDTODEVICE)
-	    {
-		char **device = (inSettings->mThreadMode == kMode_Client) ? &inSettings->mIfrnametx : &inSettings->mIfrname;
-		if (*device) {
-		    struct ifreq ifr;
-		    memset(&ifr, 0, sizeof(ifr));
-		    snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "%s", *device);
-		    if (setsockopt(inSettings->mSock, SOL_SOCKET, SO_BINDTODEVICE, (void *)&ifr, sizeof(ifr)) < 0) {
-			char *buf;
-			int len = snprintf(NULL, 0, "%s %s", "bind to device", *device);
-			len++;  // Trailing null byte + extra
-			buf = static_cast<char *>(malloc(len));
-			len = snprintf(buf, len, "%s %s", "bind to device", *device);
-			WARN_errno(1, buf);
-			free(buf);
-			free(*device);
-			*device = NULL;
-			FAIL(1, "setsockopt() SO_BINDTODEVICE", inSettings);
-		    }
-		}
+	    char **device = (inSettings->mThreadMode == kMode_Client) ? &inSettings->mIfrnametx : &inSettings->mIfrname;
+	    if (*device) {
+		SetSocketBindToDevice(inSettings, *device);
 	    }
-#endif
 	}
 
     // check if we're sending multicast
@@ -393,6 +375,27 @@ void SetSocketTcpTxDelay(struct thread_Settings *mSettings, int delay) {
 	thread_debug("TCP_TX_DELAY set to %d for sock %d", (int) delay, mSettings->mSock);
     }
 #endif
+#endif
+}
+
+
+void SetSocketBindToDevice (struct thread_Settings *inSettings, char *device) {
+#if (HAVE_DECL_SO_BINDTODEVICE)
+    struct ifreq ifr;
+    memset(&ifr, 0, sizeof(ifr));
+    snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "%s", device);
+    if (setsockopt(inSettings->mSock, SOL_SOCKET, SO_BINDTODEVICE, (void *)&ifr, sizeof(ifr)) < 0) {
+	char *buf;
+	int len = snprintf(NULL, 0, "%s %s", "bind to device", device);
+	len++;  // Trailing null byte + extra
+	buf = static_cast<char *>(malloc(len));
+	len = snprintf(buf, len, "%s %s", "bind to device", device);
+	WARN_errno(1, buf);
+	free(buf);
+	free(device);
+	device = NULL;
+	FAIL(1, "setsockopt() SO_BINDTODEVICE", inSettings);
+    }
 #endif
 }
 
