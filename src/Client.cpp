@@ -152,12 +152,6 @@ void Client::mySockInit (void) {
     SockAddr_localAddr(mSettings);
     SockAddr_remoteAddr(mSettings);
 
-    if (mSettings->mLocalhost != NULL) {
-	// bind socket to local address
-	int rc = bind(mySocket, reinterpret_cast<sockaddr*>(&mSettings->local),
-		      SockAddr_get_sizeof_sockaddr(&mSettings->local));
-	WARN_errno(rc == SOCKET_ERROR, "bind");
-    }
 #ifndef WIN32
     if (isMulticast(mSettings)) {
 	// Multicast can bind to a send device & ip addr in two ways,
@@ -167,8 +161,10 @@ void Client::mySockInit (void) {
 	// Check to see if a device is bound to determine which tecnique to use
 	bool host_bind = (((mSettings->mLocalhost != NULL) && !isIPV6(mSettings)) ? true : false);
 	bool device_bind = ((mSettings->mIfrnametx != NULL) ? true : false);
-	if (host_bind) {
-	    if ((iperf_multicast_sendif_v4(mSettings) != IPERF_MULTICAST_SENDIF_SUCCESS) && device_bind) {
+	if (!isIPV6(mSettings)) {
+	    if (host_bind) {
+		iperf_multicast_sendif_v4(mSettings);
+	    } else if (device_bind) {
 		SetSocketBindToDevice(mSettings, mSettings->mIfrnametx);
 	    }
 	} else if (isIPV6(mSettings) && device_bind) {
@@ -176,6 +172,18 @@ void Client::mySockInit (void) {
 		SetSocketBindToDevice(mSettings, mSettings->mIfrnametx);
 	    }
 	}
+    } else if (mSettings->mLocalhost != NULL) { // unicast bind
+	// bind socket to local address
+	int rc = bind(mySocket, reinterpret_cast<sockaddr*>(&mSettings->local),
+		      SockAddr_get_sizeof_sockaddr(&mSettings->local));
+	WARN_errno(rc == SOCKET_ERROR, "bind");
+    }
+#else
+    if (mSettings->mLocalhost != NULL) {
+	// bind socket to local address
+	int rc = bind(mySocket, reinterpret_cast<sockaddr*>(&mSettings->local),
+		      SockAddr_get_sizeof_sockaddr(&mSettings->local));
+	WARN_errno(rc == SOCKET_ERROR, "bind");
     }
 #endif
     mysock_init_done = true;

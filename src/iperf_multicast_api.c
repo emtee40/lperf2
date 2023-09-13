@@ -346,6 +346,23 @@ int iperf_multicast_join (struct thread_Settings *inSettings) {
     return rc;
 }
 
+static void iperf_multicast_sync_ifrname (struct thread_Settings *inSettings) {
+    if (inSettings->mIfrname && !inSettings->mIfrnametx) {
+	int len = strlen(inSettings->mIfrname);
+	inSettings->mIfrnametx = calloc((len + 1), sizeof(char));
+	if (inSettings->mIfrnametx) {
+	    strncpy(inSettings->mIfrnametx, inSettings->mIfrname, len+1);
+	}
+    }
+    if (!inSettings->mIfrname && inSettings->mIfrnametx) {
+	int len = strlen(inSettings->mIfrnametx);
+	inSettings->mIfrname = calloc((len + 1), sizeof(char));
+	if (inSettings->mIfrname) {
+	    strncpy(inSettings->mIfrname, inSettings->mIfrnametx, len+1);
+	}
+    }
+
+}
 
 int iperf_multicast_sendif_v4 (struct thread_Settings *inSettings) {
     int rc = IPERF_MULTICAST_SENDIF_FAIL;
@@ -354,6 +371,9 @@ int iperf_multicast_sendif_v4 (struct thread_Settings *inSettings) {
     memcpy(&interface_addr, SockAddr_get_in_addr(&inSettings->local), sizeof(interface_addr));
     rc = setsockopt(inSettings->mSock, IPPROTO_IP, IP_MULTICAST_IF,
 			(char*)(&interface_addr), sizeof(interface_addr));
+    if ((rc != SOCKET_ERROR) && SockAddr_Ifrname(inSettings)) {
+	iperf_multicast_sync_ifrname(inSettings);
+    }
     FAIL_errno(rc == SOCKET_ERROR, "v4 multicast if", inSettings);
     return ((rc == 0) ? IPERF_MULTICAST_SENDIF_SUCCESS : IPERF_MULTICAST_SENDIF_FAIL);
 #endif
@@ -369,6 +389,7 @@ int iperf_multicast_sendif_v6 (struct thread_Settings *inSettings) {
 	    rc = setsockopt(inSettings->mSock, IPPROTO_IPV6, IPV6_MULTICAST_IF, &ifindex, sizeof(ifindex));
 	    if (rc == 0) {
 		rc = IPERF_MULTICAST_SENDIF_SUCCESS;
+		iperf_multicast_sync_ifrname(inSettings);
 	    }
 	}
     }
