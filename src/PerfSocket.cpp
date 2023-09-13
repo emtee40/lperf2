@@ -107,6 +107,19 @@ void SetSocketOptions (struct thread_Settings *inSettings) {
     }
 #endif
 
+    int boolean = 1;
+    int rc;
+    Socklen_t len = sizeof(boolean);
+#if HAVE_DECL_SO_REUSEADDR
+    // reuse the address, so we can run if a former server was killed off
+    rc = setsockopt(inSettings->mSock, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&boolean), len);
+    WARN_errno(rc == SOCKET_ERROR, "SO_REUSEADDR");
+#endif
+#if HAVE_DECL_SO_REUSEPORT
+    setsockopt(inSettings->mSock, SOL_SOCKET, SO_REUSEPORT, (char*) &boolean, len);
+    WARN_errno(rc == SOCKET_ERROR, "SO_REUSEADDR");
+#endif
+
 #if ((HAVE_TUNTAP_TAP) && (HAVE_TUNTAP_TUN))
     if (isTunDev(inSettings) || isTapDev(inSettings)) {
 	char **device = (inSettings->mThreadMode == kMode_Client) ? &inSettings->mIfrnametx : &inSettings->mIfrname;

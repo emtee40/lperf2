@@ -442,11 +442,6 @@ bool Listener::my_listen () {
 	    }
 	mSettings->mSock = ListenSocket;
 	SetSocketOptions(mSettings);
-	// reuse the address, so we can run if a former server was killed off
-	int boolean = 1;
-	Socklen_t len = sizeof(boolean);
-	rc = setsockopt(ListenSocket, SOL_SOCKET, SO_REUSEADDR, reinterpret_cast<char*>(&boolean), len);
-	WARN_errno(rc == SOCKET_ERROR, "SO_REUSEADDR");
 	rc = SOCKET_ERROR;
 	if (isUDP(mSettings) && SockAddr_isMulticast(&mSettings->multicast)) {
 #if HAVE_MULTICAST

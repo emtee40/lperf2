@@ -148,13 +148,6 @@ void SockAddr_localAddr (struct thread_Settings *inSettings) {
 	 } else {
 	     /* Server or Listener thread, -p and no -B */
 	     SockAddr_setPort(&inSettings->local, inSettings->mPort);
-#if HAVE_DECL_SO_REUSEPORT
-	     if (isUDP(inSettings)) {	     
-		 int boolean = 1;
-		 Socklen_t len = sizeof(boolean);
-		 setsockopt(inSettings->mSock, SOL_SOCKET, SO_REUSEPORT, (char*) &boolean, len);
-	     }
-#endif
 	 }
      } else {
 	 // -B was set
@@ -177,16 +170,10 @@ void SockAddr_localAddr (struct thread_Settings *inSettings) {
 	      * any -B port will be ignored
 	      */
 	     SockAddr_setPort(&inSettings->local, inSettings->mPort);
-#if HAVE_DECL_SO_REUSEPORT
-	     if (isUDP(inSettings)) {
-		 int boolean = 1;
-		 Socklen_t len = sizeof(boolean);
-		 setsockopt(inSettings->mSock, SOL_SOCKET, SO_REUSEPORT, (char*) &boolean, len);
-	     }
-#endif
 	 }
      }
 }
+
 // end SocketAddr
 
 /* -------------------------------------------------------------------

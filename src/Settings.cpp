@@ -1597,10 +1597,6 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	    fprintf(stderr, "WARN: option of --jitter-histogram not supported on the client\n");
 	    unsetJitterHistogram(mExtSettings);
 	}
-	if (isIncrSrcPort(mExtSettings) && !mExtSettings->mBindPort) {
-	    fprintf(stderr, "WARN: option of --incr-srcport requires -B bind option w/port to be set\n");
-	    unsetIncrSrcPort(mExtSettings);
-	}
 	if (isPeriodicBurst(mExtSettings)) {
 	    setEnhanced(mExtSettings);
 	    setFrameInterval(mExtSettings);
@@ -2144,13 +2140,6 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	    else
 		setMulticast(mExtSettings);
 	}
-#ifndef HAVE_DECL_SO_BINDTODEVICE
-	if (mExtSettings->mIfrnametx) {
-	    fprintf(stderr, "bind to device will be ignored because not supported\n");
-	    free(mExtSettings->mIfrnametx);
-	    mExtSettings->mIfrnametx=NULL;
-	}
-#endif
     }
     if ((mExtSettings->mIntervalMode == kInterval_Time) && (mExtSettings->mIntervalMode <= 0)) {
 	mExtSettings->mIntervalMode = kInterval_None;
