@@ -2141,6 +2141,10 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 		setMulticast(mExtSettings);
 	}
     }
+    if (isIncrSrcPort(mExtSettings) && !mExtSettings->mBindPort) {
+	fprintf(stderr, "WARN: option of --incr-srcport requires -B bind option w/port to be set\n");
+	unsetIncrSrcPort(mExtSettings);
+    }
     if ((mExtSettings->mIntervalMode == kInterval_Time) && (mExtSettings->mIntervalMode <= 0)) {
 	mExtSettings->mIntervalMode = kInterval_None;
 	mExtSettings->mInterval = 0;
