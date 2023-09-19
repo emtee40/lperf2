@@ -324,10 +324,10 @@ int Client::StartSynch () {
     }
     myJob = InitIndividualReport(mSettings);
     myReport = static_cast<struct ReporterData *>(myJob->this_report);
-    myReport->info.common->socket=mySocket;
-    myReport->info.isEnableTcpInfo = false; // default here, set in init traffic actions
+    myReport->admit_info->common->socket=mySocket;
+    myReport->admit_info->isEnableTcpInfo = false; // default here, set in init traffic actions
     if (!isReverse(mSettings) && (mSettings->mReportMode == kReport_CSV)) {
-	format_ips_port_string(&myReport->info, 0);
+	format_ips_port_string(myReport->admit_info, 0);
     }
 
     // Perform delays, usually between connect() and data xfer though before connect
@@ -392,27 +392,27 @@ int Client::StartSynch () {
     if (!isUDP(mSettings)) {
 	// Near congestion and peridiodic need sampling on every report packet
 	if (isNearCongest(mSettings) || isPeriodicBurst(mSettings)) {
-	    myReport->info.isEnableTcpInfo = true;
-	    myReport->info.ts.nextTCPSampleTime.tv_sec = 0;
-	    myReport->info.ts.nextTCPSampleTime.tv_usec = 0;
+	    myReport->admit_info->isEnableTcpInfo = true;
+	    myReport->admit_info->ts.nextTCPSampleTime.tv_sec = 0;
+	    myReport->admit_info->ts.nextTCPSampleTime.tv_usec = 0;
 	} else if (isEnhanced(mSettings) || isBounceBack(mSettings) || isFQPacing(mSettings)) {
-	    myReport->info.isEnableTcpInfo = true;
-	    myReport->info.ts.nextTCPSampleTime = myReport->info.ts.nextTime;
+	    myReport->admit_info->isEnableTcpInfo = true;
+	    myReport->admit_info->ts.nextTCPSampleTime = myReport->admit_info->ts.nextTime;
 	}
     }
 #endif
 
     if (reportstruct->packetLen > 0) {
 	reportstruct->err_readwrite = WriteSuccess;
-	reportstruct->packetTime = myReport->info.ts.startTime;
+	reportstruct->packetTime = myReport->admit_info->ts.startTime;
 	reportstruct->sentTime = reportstruct->packetTime;
 	reportstruct->prevSentTime = reportstruct->packetTime;
-	reportstruct->prevPacketTime = myReport->info.ts.prevpacketTime;
+	reportstruct->prevPacketTime = myReport->admit_info->ts.prevpacketTime;
 	if (isModeAmount(mSettings)) {
 	    mSettings->mAmount -= reportstruct->packetLen;
 	}
 	myReportPacket();
-	myReport->info.ts.prevpacketTime = reportstruct->packetTime;
+	myReport->admit_info->ts.prevpacketTime = reportstruct->packetTime;
 	reportstruct->packetID++;
     }
     if (setfullduplexflag) {
@@ -427,12 +427,12 @@ int Client::StartSynch () {
 
 inline void Client::SetFullDuplexReportStartTime () {
     assert(myReport->FullDuplexReport != NULL);
-    struct TransferInfo *fullduplexstats = &myReport->FullDuplexReport->info;
+    struct TransferInfo *fullduplexstats = myReport->FullDuplexReport->admit_info;
     assert(fullduplexstats != NULL);
     if (TimeZero(fullduplexstats->ts.startTime)) {
-	fullduplexstats->ts.startTime = myReport->info.ts.startTime;
+	fullduplexstats->ts.startTime = myReport->admit_info->ts.startTime;
 	if (isModeTime(mSettings)) {
-	    fullduplexstats->ts.nextTime = myReport->info.ts.nextTime;
+	    fullduplexstats->ts.nextTime = myReport->admit_info->ts.nextTime;
 	}
     }
 #ifdef HAVE_THREAD_DEBUG
@@ -442,22 +442,22 @@ inline void Client::SetFullDuplexReportStartTime () {
 inline void Client::SetReportStartTime () {
     assert(myReport!=NULL);
     now.setnow();
-    myReport->info.ts.startTime.tv_sec = now.getSecs();
-    myReport->info.ts.startTime.tv_usec = now.getUsecs();
-    myReport->info.ts.IPGstart = myReport->info.ts.startTime;
-    myReport->info.ts.prevpacketTime = myReport->info.ts.startTime;
-    if (!TimeZero(myReport->info.ts.intervalTime)) {
-	myReport->info.ts.nextTime = myReport->info.ts.startTime;
-	TimeAdd(myReport->info.ts.nextTime, myReport->info.ts.intervalTime);
+    myReport->admit_info->ts.startTime.tv_sec = now.getSecs();
+    myReport->admit_info->ts.startTime.tv_usec = now.getUsecs();
+    myReport->admit_info->ts.IPGstart = myReport->admit_info->ts.startTime;
+    myReport->admit_info->ts.prevpacketTime = myReport->admit_info->ts.startTime;
+    if (!TimeZero(myReport->admit_info->ts.intervalTime)) {
+	myReport->admit_info->ts.nextTime = myReport->admit_info->ts.startTime;
+	TimeAdd(myReport->admit_info->ts.nextTime, myReport->admit_info->ts.intervalTime);
     }
     if (myReport->GroupSumReport) {
-	struct TransferInfo *sumstats = &myReport->GroupSumReport->info;
+	struct TransferInfo *sumstats = myReport->GroupSumReport->admit_info;
 	assert(sumstats != NULL);
 	Mutex_Lock(&myReport->GroupSumReport->reference.lock);
 	if (TimeZero(sumstats->ts.startTime)) {
-	    sumstats->ts.startTime = myReport->info.ts.startTime;
+	    sumstats->ts.startTime = myReport->admit_info->ts.startTime;
 	    if (isModeTime(mSettings) || isModeInfinite(mSettings)) {
-		sumstats->ts.nextTime = myReport->info.ts.nextTime;
+		sumstats->ts.nextTime = myReport->admit_info->ts.nextTime;
 	    }
 #ifdef HAVE_THREAD_DEBUG
 	    thread_debug("Client group sum report start=%ld.%ld next=%ld.%ld", sumstats->ts.startTime.tv_sec, sumstats->ts.startTime.tv_usec, sumstats->ts.nextTime.tv_sec, sumstats->ts.nextTime.tv_usec);
@@ -466,7 +466,7 @@ inline void Client::SetReportStartTime () {
 	Mutex_Unlock(&myReport->GroupSumReport->reference.lock);
     }
 #ifdef HAVE_THREAD_DEBUG
-    thread_debug("Client(%d) report start/ipg=%ld.%ld next=%ld.%ld", mSettings->mSock, myReport->info.ts.startTime.tv_sec, myReport->info.ts.startTime.tv_usec, myReport->info.ts.nextTime.tv_sec, myReport->info.ts.nextTime.tv_usec);
+    thread_debug("Client(%d) report start/ipg=%ld.%ld next=%ld.%ld", mSettings->mSock, myReport->admit_info->ts.startTime.tv_sec, myReport->admit_info->ts.startTime.tv_usec, myReport->admit_info->ts.nextTime.tv_sec, myReport->admit_info->ts.nextTime.tv_usec);
 #endif
 }
 
@@ -543,7 +543,7 @@ void Client::InitTrafficLoop () {
     delay_lower_bounds = static_cast<double>(sosndtimer) * -1e3;
 
     if (isIsochronous(mSettings))
-	myReport->info.matchframeID = 1;
+	myReport->admit_info->matchframeID = 1;
 
     // set the total bytes sent to zero
     totLen = 0;
@@ -553,7 +553,7 @@ void Client::InitTrafficLoop () {
 	// now.setnow(); fprintf(stderr, "DEBUG: end time set to %ld.%ld now is %ld.%ld\n", mEndTime.getSecs(), mEndTime.getUsecs(), now.getSecs(), now.getUsecs());
     }
     readAt = mSettings->mBuf;
-    lastPacketTime.set(myReport->info.ts.startTime.tv_sec, myReport->info.ts.startTime.tv_usec);
+    lastPacketTime.set(myReport->admit_info->ts.startTime.tv_sec, myReport->admit_info->ts.startTime.tv_usec);
     reportstruct->err_readwrite=WriteSuccess;
     reportstruct->emptyreport=0;
     reportstruct->packetLen = 0;
@@ -662,7 +662,7 @@ void Client::RunTCP () {
 		if (isPeriodicBurst(mSettings)) {
 		    // low duty cycle traffic needs special event handling
 		    now.setnow();
-		    myReport->info.ts.prevsendTime = reportstruct->packetTime;
+		    myReport->admit_info->ts.prevsendTime = reportstruct->packetTime;
 		    reportstruct->packetTime.tv_sec = now.getSecs();
 		    reportstruct->packetTime.tv_usec = now.getUsecs();
 		    if (!InProgress()) {
@@ -687,7 +687,7 @@ void Client::RunTCP () {
 	    reportstruct->packetTime.tv_usec = now.getUsecs();
 	    WriteTcpTxHdr(reportstruct, burst_remaining, burst_id++);
 	    reportstruct->sentTime = reportstruct->packetTime;
-	    myReport->info.ts.prevsendTime = reportstruct->packetTime;
+	    myReport->admit_info->ts.prevsendTime = reportstruct->packetTime;
 	    writelen = (mSettings->mBufLen > burst_remaining) ? burst_remaining : mSettings->mBufLen;
 	    // perform write, full header must succeed
 	    if (isTcpWriteTimes(mSettings)) {
@@ -747,7 +747,7 @@ void Client::RunTCP () {
 		    reportstruct->transit_ready = 0;
 		} else {
 		    reportstruct->transit_ready = 1;
-		    reportstruct->prevSentTime = myReport->info.ts.prevsendTime;
+		    reportstruct->prevSentTime = myReport->admit_info->ts.prevsendTime;
 		}
 	    }
 	}
@@ -803,7 +803,7 @@ void Client::RunNearCongestionTCP () {
 	    reportstruct->packetTime.tv_usec = now.getUsecs();
 	    WriteTcpTxHdr(reportstruct, burst_remaining, burst_id++);
 	    reportstruct->sentTime = reportstruct->packetTime;
-	    myReport->info.ts.prevsendTime = reportstruct->packetTime;
+	    myReport->admit_info->ts.prevsendTime = reportstruct->packetTime;
 	    // perform write
 	    int writelen = (mSettings->mBufLen > burst_remaining) ? burst_remaining : mSettings->mBufLen;
 	    reportstruct->packetLen = write(mySocket, mSettings->mBuf, writelen);
@@ -1406,10 +1406,10 @@ void Client::RunUDP () {
 
 	// report packets
 	reportstruct->packetLen = static_cast<unsigned long>(currLen);
-	reportstruct->prevPacketTime = myReport->info.ts.prevpacketTime;
+	reportstruct->prevPacketTime = myReport->admit_info->ts.prevpacketTime;
 	myReportPacket();
 	reportstruct->packetID++;
-	myReport->info.ts.prevpacketTime = reportstruct->packetTime;
+	myReport->admit_info->ts.prevpacketTime = reportstruct->packetTime;
 	// Insert delay here only if the running delay is greater than 100 usec,
 	// otherwise don't delay and immediately continue with the next tx.
 	if (delay >= 100000) {
@@ -1552,11 +1552,11 @@ void Client::RunUDPIsochronous () {
 
 	    reportstruct->frameID=frameid;
 	    reportstruct->packetLen = static_cast<unsigned long>(currLen);
-	    reportstruct->prevPacketTime = myReport->info.ts.prevpacketTime;
+	    reportstruct->prevPacketTime = myReport->admit_info->ts.prevpacketTime;
 	    myReportPacket();
 	    reportstruct->scheduled = false; // reset to false after the report
 	    reportstruct->packetID++;
-	    myReport->info.ts.prevpacketTime = reportstruct->packetTime;
+	    myReport->admit_info->ts.prevpacketTime = reportstruct->packetTime;
 	    // Insert delay here only if the running delay is greater than 1 usec,
 	    // otherwise don't delay and immediately continue with the next tx.
 	    if (delay >= 1000) {
@@ -1597,8 +1597,8 @@ inline void Client::WriteTcpTxHdr (struct ReportStruct *reportstruct, int burst_
     struct TCP_burst_payload * mBuf_burst = reinterpret_cast<struct TCP_burst_payload *>(mSettings->mBuf);
     // store packet ID into buffer
     reportstruct->packetID += burst_size;
-    mBuf_burst->start_tv_sec = htonl(myReport->info.ts.startTime.tv_sec);
-    mBuf_burst->start_tv_usec = htonl(myReport->info.ts.startTime.tv_usec);
+    mBuf_burst->start_tv_sec = htonl(myReport->admit_info->ts.startTime.tv_sec);
+    mBuf_burst->start_tv_usec = htonl(myReport->admit_info->ts.startTime.tv_usec);
 
 #ifdef HAVE_INT64_T
     // Pack signed 64bit packetID into unsigned 32bit id1 + unsigned
@@ -1745,10 +1745,10 @@ void Client::FinishTrafficActions () {
 	reportstruct->packetLen = 0;
     }
     int do_close = EndJob(myJob, reportstruct);
-    if (isIsochronous(mSettings) && (myReport->info.schedule_error.cnt > 2)) {
+    if (isIsochronous(mSettings) && (myReport->admit_info->schedule_error.cnt > 2)) {
 	fprintf(stderr,"%sIsoch schedule errors (mean/min/max/stdev) = %0.3f/%0.3f/%0.3f/%0.3f ms\n",mSettings->mTransferIDStr, \
-		((myReport->info.schedule_error.sum /  myReport->info.schedule_error.cnt) * 1e-3), (myReport->info.schedule_error.min * 1e-3), \
-		(myReport->info.schedule_error.max * 1e-3), (1e-3 * (sqrt(myReport->info.schedule_error.m2 / (myReport->info.schedule_error.cnt - 1)))));
+		((myReport->admit_info->schedule_error.sum /  myReport->admit_info->schedule_error.cnt) * 1e-3), (myReport->admit_info->schedule_error.min * 1e-3), \
+		(myReport->admit_info->schedule_error.max * 1e-3), (1e-3 * (sqrt(myReport->admit_info->schedule_error.m2 / (myReport->admit_info->schedule_error.cnt - 1)))));
     }
     if (isUDP(mSettings) && !isMulticast(mSettings) && !isNoUDPfin(mSettings)) {
 	/*
@@ -1888,8 +1888,8 @@ void Client::AwaitServerCloseEvent () {
 int Client::SendFirstPayload () {
     int pktlen = 0;
     if (!isConnectOnly(mSettings)) {
-	if (myReport && !TimeZero(myReport->info.ts.startTime) && !(mSettings->mMode == kTest_TradeOff)) {
-	    reportstruct->packetTime = myReport->info.ts.startTime;
+	if (myReport && !TimeZero(myReport->admit_info->ts.startTime) && !(mSettings->mMode == kTest_TradeOff)) {
+	    reportstruct->packetTime = myReport->admit_info->ts.startTime;
 	} else {
 	    now.setnow();
 	    reportstruct->packetTime.tv_sec = now.getSecs();

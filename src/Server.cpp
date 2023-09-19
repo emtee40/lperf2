@@ -152,7 +152,7 @@ void Server::RunTCP () {
 
     if (!InitTrafficLoop())
 	return;
-    myReport->info.ts.prevsendTime = myReport->info.ts.startTime;
+    myReport->admit_info->ts.prevsendTime = myReport->admit_info->ts.startTime;
 
     int burst_nleft = 0;
     burst_info.burst_id = 0;
@@ -203,8 +203,8 @@ void Server::RunTCP () {
 			burst_info.send_tt.write_tv_sec = ntohl(burst_info.send_tt.write_tv_sec);
 			burst_info.send_tt.write_tv_usec = ntohl(burst_info.send_tt.write_tv_usec);
 		    } else if (isIsochronous(mSettings)) {
-			burst_info.send_tt.write_tv_sec = (uint32_t)myReport->info.ts.startTime.tv_sec;
-			burst_info.send_tt.write_tv_usec = (uint32_t)myReport->info.ts.startTime.tv_usec;
+			burst_info.send_tt.write_tv_sec = (uint32_t)myReport->admit_info->ts.startTime.tv_sec;
+			burst_info.send_tt.write_tv_usec = (uint32_t)myReport->admit_info->ts.startTime.tv_usec;
 			burst_info.burst_period_us = ntohl(burst_info.burst_period_us);
 		    } else {
 			now.setnow();
@@ -213,10 +213,10 @@ void Server::RunTCP () {
 		    }
 		    reportstruct->sentTime.tv_sec = burst_info.send_tt.write_tv_sec;
 		    reportstruct->sentTime.tv_usec = burst_info.send_tt.write_tv_usec;
-		    myReport->info.ts.prevsendTime = reportstruct->sentTime;
+		    myReport->admit_info->ts.prevsendTime = reportstruct->sentTime;
 		    burst_nleft = burst_info.burst_size - n;
 		    if (burst_nleft == 0) {
-			reportstruct->prevSentTime = myReport->info.ts.prevsendTime;
+			reportstruct->prevSentTime = myReport->admit_info->ts.prevsendTime;
 			reportstruct->transit_ready = 1;
 			reportstruct->burstperiod = burst_info.burst_period_us;
 		    }
@@ -243,7 +243,7 @@ void Server::RunTCP () {
 		    if (isburst) {
 			burst_nleft -= n;
 			if (burst_nleft == 0) {
-			    reportstruct->sentTime = myReport->info.ts.prevsendTime;
+			    reportstruct->sentTime = myReport->admit_info->ts.prevsendTime;
 			    if (isTripTime(mSettings) || isIsochronous(mSettings)) {
 				reportstruct->isochStartTime.tv_sec = burst_info.send_tt.write_tv_sec;
 				reportstruct->isochStartTime.tv_usec = burst_info.send_tt.write_tv_usec;
@@ -429,7 +429,7 @@ void Server::RunBounceBackTCP () {
 	SetSocketOptionsSendTimeout(mSettings, sotimer);
 	SetSocketOptionsReceiveTimeout(mSettings, sotimer);
     }
-    myReport->info.ts.prevsendTime = myReport->info.ts.startTime;
+    myReport->admit_info->ts.prevsendTime = myReport->admit_info->ts.startTime;
     now.setnow();
     reportstruct->packetTime.tv_sec = now.getSecs();
     reportstruct->packetTime.tv_usec = now.getUsecs();
@@ -493,12 +493,12 @@ void Server::InitKernelTimeStamping () {
 //
 inline void Server::SetFullDuplexReportStartTime () {
     assert(myReport->FullDuplexReport != NULL);
-    struct TransferInfo *fullduplexstats = &myReport->FullDuplexReport->info;
+    struct TransferInfo *fullduplexstats = myReport->FullDuplexReport->admit_info;
     assert(fullduplexstats != NULL);
     if (TimeZero(fullduplexstats->ts.startTime)) {
-	fullduplexstats->ts.startTime = myReport->info.ts.startTime;
+	fullduplexstats->ts.startTime = myReport->admit_info->ts.startTime;
 	if (isModeTime(mSettings)) {
-	    fullduplexstats->ts.nextTime = myReport->info.ts.nextTime;
+	    fullduplexstats->ts.nextTime = myReport->admit_info->ts.nextTime;
 	}
     }
 #ifdef HAVE_THREAD_DEBUG
@@ -507,41 +507,41 @@ inline void Server::SetFullDuplexReportStartTime () {
 }
 
 inline void Server::SetReportStartTime () {
-    if (TimeZero(myReport->info.ts.startTime)) {
+    if (TimeZero(myReport->admit_info->ts.startTime)) {
 	if (!TimeZero(mSettings->sent_time) && !isTxStartTime(mSettings)) {
 	    // Servers that aren't full duplex use the accept timestamp for start
-	    myReport->info.ts.startTime.tv_sec = mSettings->sent_time.tv_sec;
-	    myReport->info.ts.startTime.tv_usec = mSettings->sent_time.tv_usec;
+	    myReport->admit_info->ts.startTime.tv_sec = mSettings->sent_time.tv_sec;
+	    myReport->admit_info->ts.startTime.tv_usec = mSettings->sent_time.tv_usec;
 	} else if (!TimeZero(mSettings->accept_time) && !isTxStartTime(mSettings)) {
 	    // Servers that aren't full duplex use the accept timestamp for start
-	    myReport->info.ts.startTime.tv_sec = mSettings->accept_time.tv_sec;
-	    myReport->info.ts.startTime.tv_usec = mSettings->accept_time.tv_usec;
+	    myReport->admit_info->ts.startTime.tv_sec = mSettings->accept_time.tv_sec;
+	    myReport->admit_info->ts.startTime.tv_usec = mSettings->accept_time.tv_usec;
 	} else {
 	    now.setnow();
-	    myReport->info.ts.startTime.tv_sec = now.getSecs();
-	    myReport->info.ts.startTime.tv_usec = now.getUsecs();
+	    myReport->admit_info->ts.startTime.tv_sec = now.getSecs();
+	    myReport->admit_info->ts.startTime.tv_usec = now.getUsecs();
 	}
     }
-    myReport->info.ts.IPGstart = myReport->info.ts.startTime;
+    myReport->admit_info->ts.IPGstart = myReport->admit_info->ts.startTime;
 
-    if (!TimeZero(myReport->info.ts.intervalTime)) {
-	myReport->info.ts.nextTime = myReport->info.ts.startTime;
-	TimeAdd(myReport->info.ts.nextTime, myReport->info.ts.intervalTime);
+    if (!TimeZero(myReport->admit_info->ts.intervalTime)) {
+	myReport->admit_info->ts.nextTime = myReport->admit_info->ts.startTime;
+	TimeAdd(myReport->admit_info->ts.nextTime, myReport->admit_info->ts.intervalTime);
     }
     if (myReport->GroupSumReport) {
-	struct TransferInfo *sumstats = &myReport->GroupSumReport->info;
+	struct TransferInfo *sumstats = myReport->GroupSumReport->admit_info;
 	assert(sumstats != NULL);
 	Mutex_Lock(&myReport->GroupSumReport->reference.lock);
 	if (TimeZero(sumstats->ts.startTime)) {
-	    sumstats->ts.startTime = myReport->info.ts.startTime;
+	    sumstats->ts.startTime = myReport->admit_info->ts.startTime;
 	    if (isModeTime(mSettings) || isModeInfinite(mSettings)) {
-		sumstats->ts.nextTime = myReport->info.ts.nextTime;
+		sumstats->ts.nextTime = myReport->admit_info->ts.nextTime;
 	    }
 	}
 	Mutex_Unlock(&myReport->GroupSumReport->reference.lock);
     }
 #ifdef HAVE_THREAD_DEBUG
-    thread_debug("Server(%d) report start=%ld.%ld next=%ld.%ld", mSettings->mSock, myReport->info.ts.startTime.tv_sec, myReport->info.ts.startTime.tv_usec, myReport->info.ts.nextTime.tv_sec, myReport->info.ts.nextTime.tv_usec);
+    thread_debug("Server(%d) report start=%ld.%ld next=%ld.%ld", mSettings->mSock, myReport->admit_info->ts.startTime.tv_sec, myReport->admit_info->ts.startTime.tv_usec, myReport->admit_info->ts.nextTime.tv_sec, myReport->admit_info->ts.nextTime.tv_usec);
 #endif
 }
 
@@ -624,7 +624,7 @@ bool Server::InitTrafficLoop (void) {
     myReport = static_cast<struct ReporterData *>(myJob->this_report);
     assert(myJob != NULL);
     if (mSettings->mReportMode == kReport_CSV) {
-	format_ips_port_string(&myReport->info, 0);
+	format_ips_port_string(myReport->admit_info, 0);
     }
     //  copy the thread drop socket to this object such
     //  that the destructor can close it if needed
@@ -668,7 +668,7 @@ bool Server::InitTrafficLoop (void) {
 	}
     }
     SetReportStartTime();
-    reportstruct->prevPacketTime = myReport->info.ts.startTime;
+    reportstruct->prevPacketTime = myReport->admit_info->ts.startTime;
 
     if (setfullduplexflag)
 	SetFullDuplexReportStartTime();
@@ -696,8 +696,8 @@ bool Server::InitTrafficLoop (void) {
 	    UDPReady = !ReadPacketID(offset);
 	    reportstruct->packetTime = mSettings->accept_time;
 	} else {
-	    reportstruct->sentTime.tv_sec = myReport->info.ts.startTime.tv_sec;
-	    reportstruct->sentTime.tv_usec = myReport->info.ts.startTime.tv_usec;
+	    reportstruct->sentTime.tv_sec = myReport->admit_info->ts.startTime.tv_sec;
+	    reportstruct->sentTime.tv_usec = myReport->admit_info->ts.startTime.tv_usec;
 	    reportstruct->packetTime = reportstruct->sentTime;
 	}
 	ReportPacket(myReport, reportstruct);
@@ -727,8 +727,8 @@ inline int Server::ReadWithRxTimestamp () {
 		    cmsg->cmsg_type  == SCM_TIMESTAMP &&
 		    cmsg->cmsg_len   == CMSG_LEN(sizeof(struct timeval))) {
 		    memcpy(&(reportstruct->packetTime), CMSG_DATA(cmsg), sizeof(struct timeval));
-		    if (TimeZero(myReport->info.ts.prevpacketTime)) {
-			myReport->info.ts.prevpacketTime = reportstruct->packetTime;
+		    if (TimeZero(myReport->admit_info->ts.prevpacketTime)) {
+			myReport->admit_info->ts.prevpacketTime = reportstruct->packetTime;
 		    }
 		    tsdone = true;
 		}
@@ -753,8 +753,8 @@ inline int Server::ReadWithRxTimestamp () {
 	} else {
 	    reportstruct->err_readwrite = ReadTimeo;
 	}
-    } else if (TimeZero(myReport->info.ts.prevpacketTime)) {
-	myReport->info.ts.prevpacketTime = reportstruct->packetTime;
+    } else if (TimeZero(myReport->admit_info->ts.prevpacketTime)) {
+	myReport->admit_info->ts.prevpacketTime = reportstruct->packetTime;
     }
     if (!tsdone) {
 	now.setnow();
@@ -977,11 +977,11 @@ void Server::RunUDP () {
 	        if (!(reportstruct->l2errors & L2UNKNOWN)) {
 	            // ReadPacketID returns true if this is the last UDP packet sent by the client
 	            // also sets the packet rx time in the reportstruct
-	            reportstruct->prevSentTime = myReport->info.ts.prevsendTime;
-	            reportstruct->prevPacketTime = myReport->info.ts.prevpacketTime;
+	            reportstruct->prevSentTime = myReport->admit_info->ts.prevsendTime;
+	            reportstruct->prevPacketTime = myReport->admit_info->ts.prevpacketTime;
 	            isLastPacket = ReadPacketID(mSettings->l4payloadoffset);
-	            myReport->info.ts.prevsendTime = reportstruct->sentTime;
-	            myReport->info.ts.prevpacketTime = reportstruct->packetTime;
+	            myReport->admit_info->ts.prevsendTime = reportstruct->sentTime;
+	            myReport->admit_info->ts.prevpacketTime = reportstruct->packetTime;
 	            if (isIsochronous(mSettings)) {
 	                udp_isoch_processing(rxlen);
 	            }
@@ -997,7 +997,7 @@ void Server::RunUDP () {
 	// 1) we're NOT receiving multicast
 	// 2) the user requested no final exchange
 	// 3) this is a full duplex test
-	write_UDP_AckFIN(&myReport->info, mSettings->mBufLen);
+	write_UDP_AckFIN(myReport->admit_info, mSettings->mBufLen);
     }
     if (do_close) {
 #if HAVE_THREAD_DEBUG

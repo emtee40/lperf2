@@ -393,7 +393,8 @@ struct SumReport {
     struct ReferenceMutex reference;
     int threads;
     int threads_cntr_fsum;
-    struct TransferInfo info;
+    struct TransferInfo *admit_info;
+    struct TransferInfo *omit_info;
     void (*transfer_protocol_sum_handler) (struct TransferInfo *stats, int final);
     struct BarrierMutex fullduplex_barrier;
     int sum_fd_set;
@@ -413,11 +414,12 @@ struct ReporterData {
     // group sum and full duplext reports
     struct SumReport *GroupSumReport;
     struct SumReport *FullDuplexReport;
-    struct TransferInfo info;
+    struct TransferInfo *admit_info;
+    struct TransferInfo *omit_info;
 };
 
 struct ServerRelay {
-    struct TransferInfo info;
+    struct TransferInfo *admit_info;
     iperf_sockaddr peer;
     Socklen_t size_peer;
     iperf_sockaddr local;

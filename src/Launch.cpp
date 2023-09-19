@@ -240,7 +240,7 @@ static void clientside_client_fullduplex (struct thread_Settings *thread, \
 	// When -P > 1 then all threads finish connect before starting traffic
 	theClient->BarrierClient(thread->connects_done);
     if (theClient->isConnected()) {
-	thread->mFullDuplexReport->info.common->socket = thread->mSock;
+	thread->mFullDuplexReport->admit_info->common->socket = thread->mSock;
 	FAIL((!reverse_client || !(thread->mSock > 0)), "Reverse test failed to start per thread settings or socket problem",  thread);
 	reverse_client->mSock = thread->mSock; // use the same socket for both directions
 	reverse_client->mThreadMode = kMode_Server;
