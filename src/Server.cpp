@@ -512,14 +512,10 @@ inline void Server::SetReportStartTime () {
 	    // Servers that aren't full duplex use the accept timestamp for start
 	    myReport->info.ts.startTime.tv_sec = mSettings->sent_time.tv_sec;
 	    myReport->info.ts.startTime.tv_usec = mSettings->sent_time.tv_usec;
-	} else if (!TimeZero(mSettings->accept_time) && !isTxStartTime(mSettings)) {
+	} else if (!TimeZero(mSettings->accept_time)) {
 	    // Servers that aren't full duplex use the accept timestamp for start
 	    myReport->info.ts.startTime.tv_sec = mSettings->accept_time.tv_sec;
 	    myReport->info.ts.startTime.tv_usec = mSettings->accept_time.tv_usec;
-	} else if (isTxStartTime(mSettings)) {
-	    // Servers that aren't full duplex use the accept timestamp for start
-	    myReport->info.ts.startTime.tv_sec = mSettings->txstart_epoch.tv_sec;
-	    myReport->info.ts.startTime.tv_usec = mSettings->txstart_epoch.tv_usec;
 	} else {
 	    now.setnow();
 	    myReport->info.ts.startTime.tv_sec = now.getSecs();
@@ -643,6 +639,14 @@ bool Server::InitTrafficLoop (void) {
     reportstruct->l2errors = 0x0;
 
     int setfullduplexflag = 0;
+#if HAVE_CLOCK_NANOSLEEP && !WIN32
+    if (isTxStartTime(mSettings)) {
+	timespec txtime_ts;
+	txtime_ts.tv_sec = (mSettings->txstart_epoch.tv_sec - 1);
+	txtime_ts.tv_nsec = mSettings->txstart_epoch.tv_usec * 1000;
+	clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &txtime_ts, NULL);
+    }
+#endif
     if (isFullDuplex(mSettings) && !isServerReverse(mSettings)) {
 	assert(mSettings->mFullDuplexReport != NULL);
 	if ((setfullduplexflag = fullduplex_start_barrier(&mSettings->mFullDuplexReport->fullduplex_barrier)) < 0)

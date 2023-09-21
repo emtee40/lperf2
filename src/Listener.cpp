@@ -202,12 +202,6 @@ void Listener::Run () {
 		timeout.tv_sec = static_cast<long>(mSettings->mListenerTimeout);
 		timeout.tv_usec = (static_cast<long>(mSettings->mListenerTimeout) * 1000000) % 1000000;
 	    }
-	    if (isTxStartTime(mSettings)) {
-		now.setnow();
-		long adjsecs = (mSettings->txstart_epoch.tv_sec - now.getSecs());
-		if (adjsecs > 0)
-		    timeout.tv_sec += adjsecs + 1;
-	    }
 	    FD_ZERO(&set);
 	    FD_SET(ListenSocket, &set);
 	    if (!(select(ListenSocket + 1, &set, NULL, NULL, &timeout) > 0)) {
