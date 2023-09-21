@@ -470,6 +470,7 @@ struct client_udpsmall_testhdr {
     struct UDP_datagram seqno_ts;
     uint16_t flags;
     uint32_t start_tv_sec;
+    uint32_t start_tv_usec;
 };
 
 struct client_hdr_ack_ts {

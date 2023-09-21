@@ -661,8 +661,8 @@ bool Server::InitTrafficLoop (void) {
 	    diff_tolerance = 2; // min is 2 seconds
 	}
 	if (mSettings->txstart_epoch.tv_sec > 0) {
-	    mSettings->accept_time.tv_sec = now.getSecs();
-	    mSettings->accept_time.tv_usec = now.getUsecs();
+	    mSettings->accept_time.tv_sec = mSettings->txstart_epoch.tv_sec;
+	    mSettings->accept_time.tv_usec = mSettings->txstart_epoch.tv_usec;
 	    mSettings->sent_time = mSettings->accept_time; // the first sent time w/epoch starts uses now()
 	} else if ((abs(now.getSecs() - mSettings->sent_time.tv_sec)) > diff_tolerance) {
 	    unsetTripTime(mSettings);

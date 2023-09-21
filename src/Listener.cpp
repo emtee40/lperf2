@@ -891,6 +891,7 @@ bool Listener::apply_client_settings_udp (thread_Settings *server) {
 	server->sent_time.tv_sec = ntohl(hdr->seqno_ts.tv_sec);
 	server->sent_time.tv_usec = ntohl(hdr->seqno_ts.tv_usec);
 	server->txstart_epoch.tv_sec = ntohl(smallhdr->start_tv_sec);
+	server->txstart_epoch.tv_usec = ntohl(smallhdr->start_tv_usec);
 	uint32_t seqno = ntohl(hdr->seqno_ts.id);
 	if (server->txstart_epoch.tv_sec > 0) {
 	    setTxStartTime(server);
