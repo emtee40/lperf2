@@ -660,9 +660,13 @@ bool Server::InitTrafficLoop (void) {
 	if (diff_tolerance < 2) {
 	    diff_tolerance = 2; // min is 2 seconds
 	}
-	if ((abs(now.getSecs() - mSettings->sent_time.tv_sec)) > diff_tolerance) {
+	if (mSettings->txstart_epoch.tv_sec > 0) {
+	    mSettings->accept_time.tv_sec = now.getSecs();
+	    mSettings->accept_time.tv_usec = now.getUsecs();
+	    mSettings->sent_time = mSettings->accept_time; // the first sent time w/epoch starts uses now()
+	} else if ((abs(now.getSecs() - mSettings->sent_time.tv_sec)) > diff_tolerance) {
 	    unsetTripTime(mSettings);
-	    fprintf(stdout,"WARN: ignore --trip-times because client didn't provide valid start timestamp within %d seconds of now\n", MAXDIFFTIMESTAMPSECS);
+	    fprintf(stdout,"WARN: ignore --trip-times because client didn't provide valid start timestamp within %d seconds of now\n", diff_tolerance);
 	    mSettings->accept_time.tv_sec = now.getSecs();
 	    mSettings->accept_time.tv_usec = now.getUsecs();
 	}
