@@ -951,6 +951,7 @@ inline void Server::udp_isoch_processing (int rxlen) {
  * Does not close the socket.
  * ------------------------------------------------------------------- */
 void Server::RunUDP () {
+    int rxlen;
     bool isLastPacket = false;
 
     if (InitTrafficLoop()) {
@@ -969,12 +970,12 @@ void Server::RunUDP () {
 	    reportstruct->packetLen=0;
 	    // read the next packet with timestamp
 	    // will also set empty report or not
-	    if ((reportstruct->packetLen=ReadWithRxTimestamp()) > 0) {
-	        reportstruct->emptyreport = (((mSettings->txstart_epoch.tv_sec > 0) && (TimeDifference(mSettings->txstart_epoch, reportstruct->packetTime) > 0)) ? 0 : 1);
-	    }
-	    if (!peerclose && (reportstruct->packetLen > 0) && !reportstruct->emptyreport) {
+	    rxlen=ReadWithRxTimestamp();
+	    if (!peerclose && (rxlen > 0)) {
+	        reportstruct->emptyreport = 0;
+	        reportstruct->packetLen = rxlen;
 	        if (isL2LengthCheck(mSettings)) {
-	            reportstruct->l2len = reportstruct->packetLen;
+	            reportstruct->l2len = rxlen;
 	            // L2 processing will set the reportstruct packet length with the length found in the udp header
 	            // and also set the expected length in the report struct.  The reporter thread
 	            // will do the compare and account and print l2 errors
@@ -990,7 +991,7 @@ void Server::RunUDP () {
 	            myReport->info.ts.prevsendTime = reportstruct->sentTime;
 	            myReport->info.ts.prevpacketTime = reportstruct->packetTime;
 	            if (isIsochronous(mSettings)) {
-	                udp_isoch_processing(reportstruct->packetLen);
+	                udp_isoch_processing(rxlen);
 	            }
 	        }
 	    }
