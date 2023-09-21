@@ -1792,9 +1792,9 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 		}
 	    }
 	    if (isTripTime(mExtSettings)) {
-		if (mExtSettings->mBufLen < MINTRIPTIMEPLAYOAD) {
+		if (mExtSettings->mBufLen < MINTRIPTIMEPAYLOAD) {
 		    if (isReverse(mExtSettings) || isFullDuplex(mExtSettings) || (mExtSettings->mMode != kTest_Normal)) {
-			fprintf(stderr, "ERROR: payload (-l) size of %d too small for --trip-times, must be %d or greater\n", mExtSettings->mBufLen, MINTRIPTIMEPLAYOAD);
+			fprintf(stderr, "ERROR: payload (-l) size of %d too small for --trip-times, must be %d or greater\n", mExtSettings->mBufLen, MINTRIPTIMEPAYLOAD);
 			bail = true;
 		    } else {
 			setSmallTripTime(mExtSettings);
@@ -2463,10 +2463,13 @@ int Settings_GenerateClientHdr (struct thread_Settings *client, void *testhdr, s
 	struct client_udpsmall_testhdr *hdr = static_cast<struct client_udpsmall_testhdr *>(testhdr);
 	memset(hdr, 0, buflen);
 	hdr->flags = htons(HEADER16_SMALL_TRIPTIMES);
+	if (isTxStartTime(client) && !TimeZero(startTime)) {
+	    hdr->start_tv_sec = htonl(startTime.tv_sec);
+	}
 #ifdef HAVE_THREAD_DEBUG
 	thread_debug("UDP small trip times flags = %X", ntohs(hdr->flags));
 #endif
-	return (MINIPERFPAYLOAD);
+	return buflen;
     }
     // flags common to both TCP and UDP
     if (isReverse(client) && !isCompat(client)) {

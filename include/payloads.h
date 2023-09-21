@@ -469,6 +469,7 @@ struct client_udp_testhdr {
 struct client_udpsmall_testhdr {
     struct UDP_datagram seqno_ts;
     uint16_t flags;
+    uint32_t start_tv_sec;
 };
 
 struct client_hdr_ack_ts {
@@ -629,7 +630,7 @@ struct server_hdr {
 #define SIZEOF_TCPHDRMSG_V1 (sizeof(struct client_hdr_v1))
 #define SIZEOF_TCPHDRMSG_EXT (sizeof(struct client_tcp_testhdr))
 #define MINMBUFALLOCSIZE (int) (sizeof(struct client_tcp_testhdr)) + TAPBYTESSLOP
-#define MINTRIPTIMEPLAYOAD (int) (sizeof(struct client_udp_testhdr) - sizeof(struct client_hdrext_isoch_settings))
+#define MINTRIPTIMEPAYLOAD (int) (sizeof(struct client_udp_testhdr) - sizeof(struct client_hdrext_isoch_settings))
 #ifdef __cplusplus
 } /* end extern "C" */
 #endif

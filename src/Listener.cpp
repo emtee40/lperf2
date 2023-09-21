@@ -887,8 +887,10 @@ bool Listener::apply_client_settings_udp (thread_Settings *server) {
 #if HAVE_THREAD_DEBUG
         thread_debug("UDP small header");
 #endif
+	struct client_udpsmall_testhdr *smallhdr = reinterpret_cast<struct client_udpsmall_testhdr *>(server->mBuf + server->l4payloadoffset);
 	server->sent_time.tv_sec = ntohl(hdr->seqno_ts.tv_sec);
 	server->sent_time.tv_usec = ntohl(hdr->seqno_ts.tv_usec);
+	server->txstart_epoch.tv_sec = ntohl(smallhdr->start_tv_sec);
 	uint32_t seqno = ntohl(hdr->seqno_ts.id);
 	if (seqno != 1) {
 	    fprintf(stderr, "WARN: first received packet (id=%d) was not first sent packet, report start time will be off\n", seqno);
@@ -899,6 +901,9 @@ bool Listener::apply_client_settings_udp (thread_Settings *server) {
 	    unsetTripTime(server);
 	} else {
 	    setTripTime(server);
+	    if (server->txstart_epoch.tv_sec) {
+		setTxStartTime(server);
+	    }
 	}
 	setEnhanced(server);
     } else if ((flags & HEADER_VERSION1) || (flags & HEADER_VERSION2) || (flags & HEADER_EXTEND)) {
