@@ -639,20 +639,20 @@ bool Server::InitTrafficLoop (void) {
     reportstruct->l2errors = 0x0;
 
     int setfullduplexflag = 0;
-#if HAVE_CLOCK_NANOSLEEP && !WIN32
-    if (isTxStartTime(mSettings)) {
-	timespec txtime_ts;
-	txtime_ts.tv_sec = (mSettings->txstart_epoch.tv_sec - 1);
-	txtime_ts.tv_nsec = mSettings->txstart_epoch.tv_usec * 1000;
-	clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &txtime_ts, NULL);
+    Timestamp now;
+
+    if ((mSettings->txstart_epoch.tv_sec > 0) && (mSettings->txstart_epoch.tv_sec - now.getSecs()) > 1) {
+	// Have the server thread wait on the client's epoch start
+	// unblocking one second ahead
+	struct timeval wait_until = mSettings->txstart_epoch;
+	wait_until.tv_sec -= 1;
+	clock_usleep_abstime(&wait_until);
     }
-#endif
     if (isFullDuplex(mSettings) && !isServerReverse(mSettings)) {
 	assert(mSettings->mFullDuplexReport != NULL);
 	if ((setfullduplexflag = fullduplex_start_barrier(&mSettings->mFullDuplexReport->fullduplex_barrier)) < 0)
 	    exit(-1);
     }
-    Timestamp now;
     if (isReverse(mSettings)) {
 	mSettings->accept_time.tv_sec = now.getSecs();
 	mSettings->accept_time.tv_usec = now.getUsecs();
