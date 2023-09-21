@@ -1888,6 +1888,9 @@ void Client::AwaitServerCloseEvent () {
 int Client::SendFirstPayload () {
     int pktlen = 0;
     if (!isConnectOnly(mSettings)) {
+	if (isUDP(mSettings) && (mSettings->sendfirst_pacing > 0)) {
+	    delay_loop(mSettings->sendfirst_pacing);
+	}
 	if (myReport && !TimeZero(myReport->info.ts.startTime) && !(mSettings->mMode == kTest_TradeOff)) {
 	    reportstruct->packetTime = myReport->info.ts.startTime;
 	} else {

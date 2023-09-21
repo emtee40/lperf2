@@ -389,6 +389,16 @@ void client_init(struct thread_Settings *clients) {
 	    if (isIncrSrcIP(clients) && (clients->mLocalhost != NULL)) {
 		next->incrsrcip = i;
 	    }
+	    if (isTxStartTime(clients)) {
+		// break apart -P first pkt sends by some usecs
+		// this allows the listener thread to spawn a server, connect() and open
+		// a new socket for subsequent threads. This issue is most
+		// notable with --tx-starttime and -P > 1
+		// use max cores & a max aggregate delay to limit this so it's bounded
+#define MAXCORES 40
+#define MAXDELAY 10000 // 10 ms
+		next->sendfirst_pacing = ((i % MAXCORES) + 1)  * (MAXDELAY  / MAXCORES);
+	    }
 	    if (isIncrDstIP(clients)) {
 		next->incrdstip = i;
 		// force a setHostname

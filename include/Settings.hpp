@@ -314,6 +314,7 @@ struct thread_Settings {
     int mTcpTxDelayVar;
     int mTcpTxDelayMeanShift;
     bool mOmit;
+    int sendfirst_pacing;
 };
 
 /*
