@@ -516,6 +516,10 @@ inline void Server::SetReportStartTime () {
 	    // Servers that aren't full duplex use the accept timestamp for start
 	    myReport->info.ts.startTime.tv_sec = mSettings->accept_time.tv_sec;
 	    myReport->info.ts.startTime.tv_usec = mSettings->accept_time.tv_usec;
+	} else if (isTxStartTime(mSettings)) {
+	    // Servers that aren't full duplex use the accept timestamp for start
+	    myReport->info.ts.startTime.tv_sec = mSettings->txstart_epoch.tv_sec;
+	    myReport->info.ts.startTime.tv_usec = mSettings->txstart_epoch.tv_usec;
 	} else {
 	    now.setnow();
 	    myReport->info.ts.startTime.tv_sec = now.getSecs();
