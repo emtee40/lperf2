@@ -395,9 +395,9 @@ void client_init(struct thread_Settings *clients) {
 		// a new socket for subsequent threads. This issue is most
 		// notable with --tx-starttime and -P > 1
 		// use max cores & a max aggregate delay to limit this so it's bounded
-#define MAXCORES 40
-#define MAXDELAY 10000 // 10 ms
-		next->sendfirst_pacing = ((i % MAXCORES) + 1)  * (MAXDELAY  / MAXCORES);
+#define MAXCORES 10
+#define MAXDELAY 20000 // 20 ms
+		next->sendfirst_pacing = (i % MAXCORES)  * (MAXDELAY  / MAXCORES);
 	    }
 	    if (isIncrDstIP(clients)) {
 		next->incrdstip = i;
