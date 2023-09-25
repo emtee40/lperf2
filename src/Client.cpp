@@ -1131,10 +1131,16 @@ void Client::RunBounceBackTCP () {
     int burst_id = 0;
     int writelen = mSettings->mBounceBackBytes;
     memset(mSettings->mBuf, 0x5A, sizeof(struct bounceback_hdr));
-    if (isModeTime(mSettings)) {
-	int sotimer = static_cast<int>(mSettings->mAmount * 10000);
+    if (mSettings->mInterval && (mSettings->mIntervalMode == kInterval_Time)) {
+	int sotimer = static_cast<int>(round(mSettings->mInterval / 2.0));
 	SetSocketOptionsReceiveTimeout(mSettings, sotimer);
 	SetSocketOptionsSendTimeout(mSettings, sotimer);
+    } else if (isModeTime(mSettings)) {
+	int sotimer = static_cast<int>(round(mSettings->mAmount * 10000) / 2);
+	SetSocketOptionsReceiveTimeout(mSettings, sotimer);
+	SetSocketOptionsSendTimeout(mSettings, sotimer);
+    }
+    if (isModeTime(mSettings)) {
 	uintmax_t end_usecs = (mSettings->mAmount * 10000);
 	if (int err = set_itimer(end_usecs)) {
 	    FAIL_errno(err != 0, "setitimer", mSettings);
@@ -1236,7 +1242,7 @@ void Client::RunBounceBackTCP () {
 			peerclose = true;
 			break;
 		    } else {
-			WARN_errno(1, "timeout: bounceback read");
+			WARN(1, "timeout: bounceback read");
 			PostNullEvent(false);
 			if (InProgress())
 			    goto RETRY_READ;
