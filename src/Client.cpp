@@ -1242,7 +1242,7 @@ void Client::RunBounceBackTCP () {
 			peerclose = true;
 			break;
 		    } else {
-			WARN(1, "timeout: bounceback read");
+			WARN_errno(1, "timeout: bounceback read");
 			PostNullEvent(false);
 			if (InProgress())
 			    goto RETRY_READ;
