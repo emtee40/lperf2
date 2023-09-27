@@ -299,7 +299,7 @@ class iperf_flow(object):
         }
         return switcher.get(txt.upper(), None)
 
-    def __init__(self, name='iperf', server='localhost', client='localhost', user=None, proto='TCP', dstip='127.0.0.1', interval=1, format='b', offered_load=None, tos='BE', window='4M', src=None, srcip=None, srcport=None, dstport=None,  debug=False, length=None, ipg=0.0, amount=None, trip_times=True, prefetch=None, latency=False, bb=False, working_load=False, bb_period=None, bb_hold=None, txstart_delay_sec=None, burst_size=None, burst_period=None, fullduplex=False, cca=None):
+    def __init__(self, name='iperf', server=None, client=None, user=None, proto='TCP', dstip='127.0.0.1', interval=1, format='b', offered_load=None, tos='BE', window='4M', src=None, srcip=None, srcport=None, dstport=None,  debug=False, length=None, ipg=0.0, amount=None, trip_times=True, prefetch=None, latency=False, bb=False, working_load=False, bb_period=None, bb_hold=None, txstart_delay_sec=None, burst_size=None, burst_period=None, fullduplex=False, cca=None):
         iperf_flow.instances.add(self)
         self.name = name
         self.latency = latency
@@ -319,6 +319,7 @@ class iperf_flow(object):
             self.client = client.ipaddr
         except AttributeError:
             self.client = client
+
         self.client_device = client.device
         self.server_device = server.device
 
@@ -1216,14 +1217,15 @@ class flow_histogram(object):
         datafilename = os.path.join(directory, filename + '.data')
         self.max  = None
         with open(datafilename, 'w') as fid :
-            cummulative = 0
+            cummulative = 0.0
             for bin in self.bins :
                 x,y = bin.split(':')
                 #logging.debug('bin={} x={} y={}'.format(bin, x, y))
-                cummulative += float(y)
-                perc = cummulative / float(self.population)
-                self.max = float(x) * float(self.binwidth) / 1000.0 # max is the last value
-                fid.write('{} {} {}\n'.format((float(x) * float(self.binwidth) / 1000.0), int(y), perc))
+                if (float(y) > 1.0) or ((cummulative / float(self.population)) < 0.99) :
+                    cummulative += float(y)
+                    perc = cummulative / float(self.population)
+                    self.max = float(x) * float(self.binwidth) / 1000.0 # max is the last value
+                    fid.write('{} {} {}\n'.format((float(x) * float(self.binwidth) / 1000.0), int(y), perc))
 
         self.basefilename = basefilename
         self.datafilename = datafilename
