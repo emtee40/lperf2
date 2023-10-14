@@ -638,16 +638,17 @@ inline void Client::apply_txdelay_func (void) {
 	    state_tokens[NO_DELAY] += (int) (mSettings->mTcpTxDelayMean * (1 - mSettings->mTcpTxDelayProb));
 	    state_tokens[ADD_DELAY] += (int) (mSettings->mTcpTxDelayMean * mSettings->mTcpTxDelayProb);
 	} while ((state_tokens[NO_DELAY] < 0) && (state_tokens[ADD_DELAY] < 0));
-	TcpTxDelayQuantumEnd = now;
+	// set the next quantum end
+	while (TcpTxDelayQuantumEnd.before(now))
+	    TcpTxDelayQuantumEnd.add((unsigned int) TCPDELAYDEFAULTQUANTUM);
+	// do any state change
 	if ((state_tokens[NO_DELAY] < 0) && (current_state == NO_DELAY)) {
 //	    printf("**** f state change to 0->1 current=%d %d %d\n", current_state, state_tokens[NO_DELAY], state_tokens[ADD_DELAY]);
 	    SetSocketTcpTxDelay(mSettings, (mSettings->mTcpTxDelayMean * 1000.0));
-	    TcpTxDelayQuantumEnd.add((unsigned int) TCPDELAYDEFAULTQUANTUM);
 	    current_state = ADD_DELAY;
 	} else if ((state_tokens[ADD_DELAY] < 0) && (current_state == ADD_DELAY)) {
 //	    printf("**** f state change to 1->0 current=%d %d %d\n", current_state, state_tokens[NO_DELAY], state_tokens[ADD_DELAY]);
 	    SetSocketTcpTxDelay(mSettings, 0.0);
-	    TcpTxDelayQuantumEnd.add((unsigned int) TCPDELAYDEFAULTQUANTUM);
 	    current_state = NO_DELAY;
 	} else {
 	    int rval = (random() % 2);
@@ -661,8 +662,6 @@ inline void Client::apply_txdelay_func (void) {
 //		    printf("**** state change to 1->0  rval=%d current=%d %d %d\n", rval, current_state, state_tokens[NO_DELAY], state_tokens[ADD_DELAY]);
 		    SetSocketTcpTxDelay(mSettings, 0.0);
 		    current_state = NO_DELAY;
-		} else if ((state_tokens[NO_DELAY] < 0) && (state_tokens[ADD_DELAY] < 0)) {
-//		    printf("**** no state change rval=%d current=%d %d %d\n", rval, current_state, state_tokens[NO_DELAY], state_tokens[ADD_DELAY]);
 		}
 	    }
 	}
