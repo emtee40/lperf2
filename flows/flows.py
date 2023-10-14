@@ -299,7 +299,7 @@ class iperf_flow(object):
         }
         return switcher.get(txt.upper(), None)
 
-    def __init__(self, name='iperf', server=None, client=None, user=None, proto='TCP', dstip='127.0.0.1', interval=1, format='b', offered_load=None, tos='BE', window='4M', src=None, srcip=None, srcport=None, dstport=None,  debug=False, length=None, ipg=0.0, amount=None, trip_times=True, prefetch=None, latency=False, bb=False, working_load=False, bb_period=None, bb_hold=None, txstart_delay_sec=None, burst_size=None, burst_period=None, fullduplex=False, cca=None):
+    def __init__(self, name='iperf', server=None, client=None, user=None, proto='TCP', dstip='127.0.0.1', interval=1, format='b', offered_load=None, tos='BE', window='4M', src=None, srcip=None, srcport=None, dstport=None,  debug=False, length=None, ipg=0.0, amount=None, trip_times=True, prefetch=None, latency=False, bb=False, working_load=False, bb_period=None, bb_hold=None, txstart_delay_sec=None, burst_size=None, burst_period=None, fullduplex=False, cca=None, tcp_tx_delay=None):
         iperf_flow.instances.add(self)
         self.name = name
         self.latency = latency
@@ -328,6 +328,7 @@ class iperf_flow(object):
         else :
             self.user = user
         self.proto = proto
+        self.tcp_tx_delay = tcp_tx_delay
         self.tos = tos
         if length :
             self.length = length
@@ -949,6 +950,8 @@ class iperf_client(object):
         else :
             client_dst = self.dstip
         self.sshcmd=[self.ssh, self.user + '@' + self.host, self.iperf, '-c', client_dst, '-p ' + str(self.dstport), '-e', '-f{}'.format(self.format), '-w' , self.window ,'--realtime']
+        if self.tcp_tx_delay :
+            self.sshcmd.extend(['--tcp-tx-delay', self.tcp_tx_delay])
         if self.tos :
             self.sshcmd.extend(['-S ', self.tos])
         if self.length :

@@ -310,9 +310,10 @@ struct thread_Settings {
     int mWritePrefetch;
 #endif
     int jitter_binwidth;
-    int mTcpTxDelay;
-    int mTcpTxDelayVar;
-    int mTcpTxDelayMeanShift;
+#if HAVE_DECL_TCP_TX_DELAY
+    float mTcpTxDelayMean;
+    float mTcpTxDelayProb;
+#endif
     bool mOmit;
     int sendfirst_pacing;
 };

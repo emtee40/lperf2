@@ -1220,10 +1220,21 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	if (tcptxdelay) {
 	    tcptxdelay = 0;
 #if HAVE_DECL_TCP_TX_DELAY
-	    mExtSettings->mTcpTxDelay = atoi(optarg);
-	    mExtSettings->mTcpTxDelayVar = 0;
-	    mExtSettings->mTcpTxDelayMeanShift = 1;
-	    setTcpTxDelay(mExtSettings);
+	    char *tmp= new char [strlen(optarg) + 1];
+	    char *results;
+	    strcpy(tmp, optarg);
+	    mExtSettings->mTcpTxDelayProb = 1.0;
+	    if (((results = strtok(tmp, ",")) != NULL) && !strcmp(results,tmp)) {
+		mExtSettings->mTcpTxDelayMean = atof(results);
+		if ((results = strtok(NULL, ",")) != NULL) {
+		    mExtSettings->mTcpTxDelayProb = atof(results);
+		}
+	    }
+	    if (mExtSettings->mTcpTxDelayMean > 0) {
+		setTcpTxDelay(mExtSettings);
+	    }
+#else
+	    fprintf(stderr, "The --tcp-tx-delay option is not available on this operating system\n");
 #endif
 	}
 	if (utctimes) {

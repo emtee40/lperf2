@@ -77,8 +77,8 @@ sum traffic threads based upon the destination IP address (default is source ip 
 .BR "    --sum-only "
 set the output to sum reports only. Useful for -P at large values
 .TP
-.BR "    --tcp-tx-delay " \fIn\fR
-Set TCP_TX_DELAY on the socket. Units is microseconds and takes an integer. See Notes for qdisc requirements.
+.BR "    --tcp-tx-delay " \fIn\fR,\fI[<prob>]\fR
+Set TCP_TX_DELAY on the socket. Delay units are milliseconds and probability is prob >= 0 and prob <= 1. Values takes float. See Notes for qdisc requirements.
 .TP
 .BR -t ", " --time " \fIn\fR"
 time in seconds to listen for new traffic connections, receive traffic or send traffic
