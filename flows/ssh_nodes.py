@@ -207,11 +207,11 @@ class ssh_node:
             results=self.rexec(cmd='/usr/bin/dhd {}'.format(cmd))
         return results
 
-    def rexec(self, cmd='pwd', IO_TIMEOUT=DEFAULT_IO_TIMEOUT, CMD_TIMEOUT=DEFAULT_CMD_TIMEOUT, CONNECT_TIMEOUT=DEFAULT_CONNECT_TIMEOUT, run_now=False) :
+    def rexec(self, cmd='pwd', IO_TIMEOUT=DEFAULT_IO_TIMEOUT, CMD_TIMEOUT=DEFAULT_CMD_TIMEOUT, CONNECT_TIMEOUT=DEFAULT_CONNECT_TIMEOUT, run_now=True) :
         io_timer = IO_TIMEOUT
         cmd_timer = CMD_TIMEOUT
         connect_timer = CONNECT_TIMEOUT
-        this_session = ssh_session(name=self.name, hostname=self.ipaddr, CONNECT_TIMEOUT=connect_timer, node=self, ssh_speedups=True)
+        this_session = ssh_session(name=self.name, hostname=self.ipaddr, CONNECT_TIMEOUT=connect_timer, node=self, ssh_speedups=False)
         this_future = asyncio.ensure_future(this_session.post_cmd(cmd=cmd, IO_TIMEOUT=io_timer, CMD_TIMEOUT=cmd_timer), loop=ssh_node.loop)
         if run_now:
             ssh_node.loop.run_until_complete(asyncio.wait([this_future], timeout=CMD_TIMEOUT))
@@ -441,7 +441,7 @@ class ssh_session:
         if node.relay :
             self.ssh = ['/usr/bin/ssh', 'root@{}'.format(node.relay), '/usr/local/bin/ush', self.ipddr]
         else :
-            self.ssh = []
+            self.ssh = ['/usr/bin/ssh']
         ################################
 
         self.silent_mode = silent_mode
@@ -489,7 +489,6 @@ class ssh_session:
     async def post_cmd(self, cmd=None, IO_TIMEOUT=None, CMD_TIMEOUT=None, ssh_speedups=True) :
         logging.debug("{} Post command {}".format(self.name, cmd))
         self.opened.clear()
-        self.cmd = cmd
         self.IO_TIMEOUT = IO_TIMEOUT
         self.CMD_TIMEOUT = CMD_TIMEOUT
         sshcmd = self.ssh
@@ -499,12 +498,10 @@ class ssh_session:
             except OSError:
                 pass
             sshcmd.extend(['-o ControlMaster=yes', '-o ControlPath={}'.format(self.controlmasters), '-o ControlPersist=1'])
-        elif self.node.sshtype == 'ssh' :
-            sshcmd.append('-o ControlPath={}'.format(self.controlmasters))
         if self.node.ssh_speedups :
             sshcmd.extend(['{}@{}'.format(self.user, self.hostname), cmd])
         else :
-            sshcmd.extend(['{}'.format(self.hostname), cmd])
+            sshcmd.extend(['{}@{}'.format(self.user, self.hostname), cmd])
         s = " "
         logging.info('{} {}'.format(self.name, s.join(sshcmd)))
         # self in the ReaderProtocol() is this ssh_session instance

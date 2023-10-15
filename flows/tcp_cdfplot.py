@@ -40,18 +40,22 @@ from flows import *
 from ssh_nodes import *
 
 parser = argparse.ArgumentParser(description='Run an isochronous UDP data stream')
-parser.add_argument('-s','--server', type=str, default="10.19.85.106", required=False, help='host to run iperf server')
-parser.add_argument('-c','--client', type=str, default="10.19.85.202", required=False, help='host to run iperf client')
-parser.add_argument('-d','--dstip', type=str, default="192.168.1.231",required=False, help='iperf destination ip address')
+parser.add_argument('-s','--server', type=str, default="192.168.1.32", required=False, help='host to run iperf server')
+parser.add_argument('--server_dev', type=str, default='eth0', required=False, help='server device name')
+parser.add_argument('-c','--client', type=str, default="192.168.1.33", required=False, help='host to run iperf client')
+parser.add_argument('--client_dev', type=str, default='eth0', required=False, help='client device name')
+parser.add_argument('-d','--dstip', type=str, default="192.168.1.32",required=False, help='iperf destination ip address')
 parser.add_argument('-i','--interval', type=float, required=False, default=1, help='iperf report interval')
 parser.add_argument('-l','--length', type=int, required=False, default=None, help='udp payload size')
 parser.add_argument('-n','--runcount', type=int, required=False, default=5, help='number of runs')
 parser.add_argument('-t','--time', type=float, default=10, required=False, help='time or duration to run traffic')
 parser.add_argument('-O','--offered_load', type=str, default=None, required=False, help='offered load; <fps>:<mean>,<variance>')
-parser.add_argument('-T','--title', type=str, default="TCP Single Flow", required=False, help='title for graphs')
-parser.add_argument('--tcp_tx_delay', type=str, default=None, required=False, help='enable tcp tx delay')
+parser.add_argument('-T','--title', type=str, default="TCP Single Flow CDF", required=False, help='title for graphs')
+parser.add_argument('--tcp_tx_delay', type=str, default='80', required=False, help='enable tcp tx delay')
 parser.add_argument('-S','--tos', type=str, default='ac_be', required=False, help='type of service or access class; BE, VI, VO or BK')
 parser.add_argument('-o','--output_directory', type=str, required=False, default='./data', help='output directory')
+parser.add_argument('--qdisc', type=str, required=False, default='fq', help='set the tc qdisc')
+parser.add_argument('--tc_bin', type=str, required=False, default='/usr/sbin/tc', help='set the tc command')
 parser.add_argument('--loglevel', type=str, required=False, default='INFO', help='python logging level, e.g. INFO or DEBUG')
 
 args = parser.parse_args()
@@ -73,13 +77,16 @@ loop.set_debug(False)
 ssh_node.loop.set_debug(False)
 loop = asyncio.get_event_loop()
 
-plottitle='{} {} {} {} bytes {}'.format(args.title, args.offered_load, args.tos, args.length, args.tcp_tx_delay)
+plottitle='{} {} {} {} bytes tcpdelay={} qdisc={}'.format(args.title, args.offered_load, args.tos, args.length, args.tcp_tx_delay, args.qdisc)
 
-duta = ssh_node(name='DUTA', ipaddr=args.client, device='enp2s0', console=True, ssh_speedups=False)
-dutb = ssh_node(name='DUTB', ipaddr=args.server, device='eth1', console=True, ssh_speedups=False)
+duta = ssh_node(name='DUTA', ipaddr=args.client, console=True, ssh_speedups=False)
+dutb = ssh_node(name='DUTB', ipaddr=args.server, console=True, ssh_speedups=False)
 duts = [duta, dutb]
 
-ssh_node.open_consoles()
+duta.rexec(cmd='{} qdisc replace dev {} root {}'.format(args.tc_bin, args.client_dev, args.qdisc))
+dutb.rexec(cmd='{} qdisc replace dev {} root {}'.format(args.tc_bin, args.server_dev, args.qdisc))
+duta.rexec(cmd='{} qdisc show'.format(args.tc_bin))
+dutb.rexec(cmd='{} qdisc show'.format(args.tc_bin))
 
 flows = [iperf_flow(name="TCP", user='root', server=dutb, client=duta, proto='TCP', offered_load=args.offered_load, interval=args.interval, dstip=args.dstip, tos=args.tos, length=args.length, latency=True, tcp_tx_delay=args.tcp_tx_delay)]
 
