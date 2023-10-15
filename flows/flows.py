@@ -1224,7 +1224,7 @@ class flow_histogram(object):
             for bin in self.bins :
                 x,y = bin.split(':')
                 #logging.debug('bin={} x={} y={}'.format(bin, x, y))
-                if (float(y) > 1.0) or ((cummulative / float(self.population)) < 0.99) :
+                if (float(y) > 1.0) or ((cummulative / float(self.population)) <= 1.0) :
                     cummulative += float(y)
                     perc = cummulative / float(self.population)
                     self.max = float(x) * float(self.binwidth) / 1000.0 # max is the last value
