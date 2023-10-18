@@ -375,11 +375,13 @@ int Client::StartSynch () {
 	if (isTxStartTime(mSettings)) {
 	    tmp.set(mSettings->txstart_epoch.tv_sec, mSettings->txstart_epoch.tv_usec);
 	}
-        framecounter = new Isochronous::FrameCounter(mSettings->mFPS, tmp);
-	// set the mbuf valid for burst period ahead of time. The same value will be set for all burst writes
-	if (!isUDP(mSettings) && framecounter) {
-	    struct TCP_burst_payload * mBuf_burst = reinterpret_cast<struct TCP_burst_payload *>(mSettings->mBuf);
-	    mBuf_burst->burst_period_us  = htonl(framecounter->period_us());
+	if (mSettings->mFPS > 0) {
+	    framecounter = new Isochronous::FrameCounter(mSettings->mFPS, tmp);
+	    // set the mbuf valid for burst period ahead of time. The same value will be set for all burst writes
+	    if (!isUDP(mSettings) && framecounter) {
+		struct TCP_burst_payload * mBuf_burst = reinterpret_cast<struct TCP_burst_payload *>(mSettings->mBuf);
+		mBuf_burst->burst_period_us  = htonl(framecounter->period_us());
+	    }
 	}
     }
     int setfullduplexflag = 0;
@@ -1219,7 +1221,7 @@ void Client::RunBounceBackTCP () {
 	    isFirst = false;
 	}
 	int bb_burst = (mSettings->mBounceBackBurst > 0) ? mSettings->mBounceBackBurst : 1;
-	while ((bb_burst > 0) && InProgress() && ((framecounter->get(&remaining)) == (unsigned int) burst_id)) {
+	while ((bb_burst > 0) && InProgress() && (!framecounter || (framecounter->get(&remaining)) == (unsigned int) burst_id)) {
 	    bb_burst--;
 	    if (isFirst) {
 		isFirst = false;

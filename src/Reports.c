@@ -140,7 +140,7 @@ static void common_copy (struct ReportCommon **common, struct thread_Settings *i
     (*common)->pktIPG =inSettings->mBurstIPG;
     (*common)->rtt_weight = inSettings->rtt_nearcongest_weight_factor;
     (*common)->ListenerTimeout =inSettings->mListenerTimeout;
-    (*common)->FPS = inSettings->mFPS;
+    (*common)->FPS = (inSettings->mFPS > 0) ? inSettings->mFPS : 0;
     (*common)->TOS = inSettings->mTOS;
     (*common)->RTOS = inSettings->mRTOS;
     (*common)->bbsize = inSettings->mBounceBackBytes;
@@ -877,7 +877,7 @@ struct ReportHeader* InitConnectionReport (struct thread_Settings *inSettings) {
     creport->common->winsize_requested = inSettings->mTCPWin;
     creport->txholdbacktime = inSettings->txholdback_timer;
     if (isPeriodicBurst(inSettings)) {
-	creport->common->FPS = inSettings->mFPS;
+	creport->common->FPS = (inSettings->mFPS > 0) ? inSettings->mFPS : 0;
     }
     if (isLoadCCA(inSettings) && (isWorkingLoadUp(inSettings) || isWorkingLoadDown(inSettings))) {
 	strncpy(creport->connected_cca, inSettings->mLoadCCA, MAX_CCA_LEN);
