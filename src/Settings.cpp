@@ -758,7 +758,10 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	break;
 
     case 'v': // print version and exit
-	fprintf(stdout, "%s", version);
+	if (strlen(IPERF_BRANCH))
+	    fprintf(stdout, "%s", branch_version);
+	else
+	    fprintf(stdout, "%s", version);
 	exit(0);
 	break;
 

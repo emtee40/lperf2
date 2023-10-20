@@ -205,6 +205,8 @@ Report bugs to <iperf-users@lists.sourceforge.net>\n";
 
 const char version[] =
 "iperf version " IPERF_VERSION " (" IPERF_VERSION_DATE ") " IPERF_THREADS "\n";
+const char branch_version[] =
+"iperf (branch " IPERF_BRANCH ") (" IPERF_VERSION_DATE ") " IPERF_THREADS "\n";
 
 /* -------------------------------------------------------------------
  * settings

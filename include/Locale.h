@@ -79,6 +79,7 @@ extern const char usage_long1[];
 extern const char usage_long2[];
 
 extern const char version[];
+extern const char branch_version[];
 
 /* -------------------------------------------------------------------
  * settings
