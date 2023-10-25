@@ -1123,7 +1123,7 @@ void Client::RunWriteEventsTCP () {
 #endif
     while (InProgress()) {
 #if HAVE_DECL_TCP_TX_DELAY
-	apply_txdelay_func();
+//	apply_txdelay_func();
 #endif
         if (isModeAmount(mSettings)) {
 	    writelen = ((mSettings->mAmount < static_cast<unsigned>(mSettings->mBufLen)) ? mSettings->mAmount : mSettings->mBufLen);
