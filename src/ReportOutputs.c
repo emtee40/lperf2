@@ -1221,7 +1221,7 @@ void udp_output_sum_read_enhanced (struct TransferInfo *stats) {
 	   stats->ts.iStart, stats->ts.iEnd,
 	   outbuffer, outbufferext,
 	   stats->cntError, stats->cntDatagrams,
-	   (stats->cntIPG ? (stats->cntIPG / stats->IPGsum) : 0.0));
+	   (stats->cntIPG ? (stats->cntIPG / stats->IPGsum) : 0.0), (stats->common->Omit ? report_omitted : ""));
     if (stats->latency_histogram && stats->final) {
 	histogram_print(stats->latency_histogram, stats->ts.iStart, stats->ts.iEnd);
     }
