@@ -445,6 +445,9 @@ inline void Client::SetFullDuplexReportStartTime () {
 inline void Client::SetReportStartTime () {
     assert(myReport!=NULL);
     now.setnow();
+    if (isUDP(mSettings) && (mSettings->sendfirst_pacing > 0)) {
+	now.add(static_cast<unsigned int>(mSettings->sendfirst_pacing));
+    }
     myReport->info.ts.startTime.tv_sec = now.getSecs();
     myReport->info.ts.startTime.tv_usec = now.getUsecs();
     myReport->info.ts.IPGstart = myReport->info.ts.startTime;
