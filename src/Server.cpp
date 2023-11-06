@@ -639,12 +639,20 @@ bool Server::InitTrafficLoop (void) {
     reportstruct->l2errors = 0x0;
 
     int setfullduplexflag = 0;
+    Timestamp now;
+
+    if ((mSettings->txstart_epoch.tv_sec > 0) && (mSettings->txstart_epoch.tv_sec - now.getSecs()) > 1) {
+	// Have the server thread wait on the client's epoch start
+	// unblocking one second ahead
+	struct timeval wait_until = mSettings->txstart_epoch;
+	wait_until.tv_sec -= 1;
+	clock_usleep_abstime(&wait_until);
+    }
     if (isFullDuplex(mSettings) && !isServerReverse(mSettings)) {
 	assert(mSettings->mFullDuplexReport != NULL);
 	if ((setfullduplexflag = fullduplex_start_barrier(&mSettings->mFullDuplexReport->fullduplex_barrier)) < 0)
 	    exit(-1);
     }
-    Timestamp now;
     if (isReverse(mSettings)) {
 	mSettings->accept_time.tv_sec = now.getSecs();
 	mSettings->accept_time.tv_usec = now.getUsecs();
@@ -660,9 +668,13 @@ bool Server::InitTrafficLoop (void) {
 	if (diff_tolerance < 2) {
 	    diff_tolerance = 2; // min is 2 seconds
 	}
-	if ((abs(now.getSecs() - mSettings->sent_time.tv_sec)) > diff_tolerance) {
+	if (mSettings->txstart_epoch.tv_sec > 0) {
+	    mSettings->accept_time.tv_sec = mSettings->txstart_epoch.tv_sec;
+	    mSettings->accept_time.tv_usec = mSettings->txstart_epoch.tv_usec;
+	    mSettings->sent_time = mSettings->accept_time; // the first sent time w/epoch starts uses now()
+	} else if ((abs(now.getSecs() - mSettings->sent_time.tv_sec)) > diff_tolerance) {
 	    unsetTripTime(mSettings);
-	    fprintf(stdout,"WARN: ignore --trip-times because client didn't provide valid start timestamp within %d seconds of now\n", MAXDIFFTIMESTAMPSECS);
+	    fprintf(stdout,"WARN: ignore --trip-times because client didn't provide valid start timestamp within %d seconds of now\n", diff_tolerance);
 	    mSettings->accept_time.tv_sec = now.getSecs();
 	    mSettings->accept_time.tv_usec = now.getUsecs();
 	}

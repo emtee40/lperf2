@@ -258,8 +258,8 @@ void SetSocketOptions (struct thread_Settings *inSettings) {
         }
 #endif
 #if HAVE_DECL_TCP_TX_DELAY
-        if (isTcpTxDelay(inSettings)) {
-	    SetSocketTcpTxDelay(inSettings, inSettings->mTcpTxDelay);
+        if (isTcpTxDelay(inSettings) && (inSettings->mTcpTxDelayProb >= 1.0)) {
+	    SetSocketTcpTxDelay(inSettings, inSettings->mTcpTxDelayMean * 1000);
 	}
 #endif
     }

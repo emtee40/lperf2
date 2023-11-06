@@ -202,12 +202,6 @@ void Listener::Run () {
 		timeout.tv_sec = static_cast<long>(mSettings->mListenerTimeout);
 		timeout.tv_usec = (static_cast<long>(mSettings->mListenerTimeout) * 1000000) % 1000000;
 	    }
-	    if (isTxStartTime(mSettings)) {
-		now.setnow();
-		long adjsecs = (mSettings->txstart_epoch.tv_sec - now.getSecs());
-		if (adjsecs > 0)
-		    timeout.tv_sec += adjsecs + 1;
-	    }
 	    FD_ZERO(&set);
 	    FD_SET(ListenSocket, &set);
 	    if (!(select(ListenSocket + 1, &set, NULL, NULL, &timeout) > 0)) {
@@ -887,15 +881,21 @@ bool Listener::apply_client_settings_udp (thread_Settings *server) {
 #if HAVE_THREAD_DEBUG
         thread_debug("UDP small header");
 #endif
+	struct client_udpsmall_testhdr *smallhdr = reinterpret_cast<struct client_udpsmall_testhdr *>(server->mBuf + server->l4payloadoffset);
 	server->sent_time.tv_sec = ntohl(hdr->seqno_ts.tv_sec);
 	server->sent_time.tv_usec = ntohl(hdr->seqno_ts.tv_usec);
+	server->txstart_epoch.tv_sec = ntohl(smallhdr->start_tv_sec);
+	server->txstart_epoch.tv_usec = ntohl(smallhdr->start_tv_usec);
 	uint32_t seqno = ntohl(hdr->seqno_ts.id);
+	if (server->txstart_epoch.tv_sec > 0) {
+	    setTxStartTime(server);
+	}
 	if (seqno != 1) {
 	    fprintf(stderr, "WARN: first received packet (id=%d) was not first sent packet, report start time will be off\n", seqno);
 	}
 	Timestamp now;
 	if (!isTxStartTime(server) && ((abs(now.getSecs() - server->sent_time.tv_sec)) > (MAXDIFFTIMESTAMPSECS + 1))) {
-	    fprintf(stdout,"WARN: ignore --trip-times because client didn't provide valid start timestamp within %d seconds of now\n", MAXDIFFTIMESTAMPSECS);
+	    fprintf(stdout,"WARN: ignore --trip-times because client didn't provide valid start timestamp within %d seconds of now (now=%ld send=%ld)\n", MAXDIFFTIMESTAMPSECS, now.getSecs(), server->sent_time.tv_sec);
 	    unsetTripTime(server);
 	} else {
 	    setTripTime(server);

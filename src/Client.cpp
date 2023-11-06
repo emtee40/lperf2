@@ -74,6 +74,7 @@ const int    kBytes_to_Bits = 8;
 
 #define VARYLOAD_PERIOD 0.1 // recompute the variable load every n seconds
 #define MAXUDPBUF 1470
+#define TCPDELAYDEFAULTQUANTUM 4000 // units usecs
 
 Client::Client (thread_Settings *inSettings) {
 #ifdef HAVE_THREAD_DEBUG
@@ -215,7 +216,7 @@ bool Client::my_connect (bool close_on_fail) {
 		    if (close_on_fail) {
 			close(mySocket);
 			mySocket = INVALID_SOCKET;
-		    }
+		   }
 		} else {
 		    delay_loop(200000);
 		}
@@ -374,11 +375,13 @@ int Client::StartSynch () {
 	if (isTxStartTime(mSettings)) {
 	    tmp.set(mSettings->txstart_epoch.tv_sec, mSettings->txstart_epoch.tv_usec);
 	}
-        framecounter = new Isochronous::FrameCounter(mSettings->mFPS, tmp);
-	// set the mbuf valid for burst period ahead of time. The same value will be set for all burst writes
-	if (!isUDP(mSettings) && framecounter) {
-	    struct TCP_burst_payload * mBuf_burst = reinterpret_cast<struct TCP_burst_payload *>(mSettings->mBuf);
-	    mBuf_burst->burst_period_us  = htonl(framecounter->period_us());
+	if (mSettings->mFPS > 0) {
+	    framecounter = new Isochronous::FrameCounter(mSettings->mFPS, tmp);
+	    // set the mbuf valid for burst period ahead of time. The same value will be set for all burst writes
+	    if (!isUDP(mSettings) && framecounter) {
+		struct TCP_burst_payload * mBuf_burst = reinterpret_cast<struct TCP_burst_payload *>(mSettings->mBuf);
+		mBuf_burst->burst_period_us  = htonl(framecounter->period_us());
+	    }
 	}
     }
     int setfullduplexflag = 0;
@@ -552,6 +555,14 @@ void Client::InitTrafficLoop () {
         mEndTime.add(mSettings->mAmount / 100.0);
 	// now.setnow(); fprintf(stderr, "DEBUG: end time set to %ld.%ld now is %ld.%ld\n", mEndTime.getSecs(), mEndTime.getUsecs(), now.getSecs(), now.getUsecs());
     }
+#if HAVE_DECL_TCP_TX_DELAY
+    current_state = NO_DELAY;
+    if (isTcpTxDelay(mSettings)) {
+        state_tokens[NO_DELAY] = (int) (mSettings->mTcpTxDelayMean * (1 - mSettings->mTcpTxDelayProb));
+        state_tokens[ADD_DELAY] = (int) (mSettings->mTcpTxDelayMean * mSettings->mTcpTxDelayProb);
+	TcpTxDelayQuantumEnd.setnow();
+    }
+#endif
     readAt = mSettings->mBuf;
     lastPacketTime.set(myReport->admit_info->ts.startTime.tv_sec, myReport->admit_info->ts.startTime.tv_usec);
     reportstruct->err_readwrite=WriteSuccess;
@@ -617,6 +628,48 @@ void Client::Run () {
 	}
     }
 }
+
+#if HAVE_DECL_TCP_TX_DELAY
+inline void Client::apply_txdelay_func (void) {
+    now.setnow();
+    if (isTcpTxDelay(mSettings) && TcpTxDelayQuantumEnd.before(now)) {
+	// expense the tokens for the current state
+	state_tokens[current_state] -= now.subUsec(TcpTxDelayQuantumEnd);
+	// add tokens
+	do {
+	    state_tokens[NO_DELAY] += (int) (mSettings->mTcpTxDelayMean * (1 - mSettings->mTcpTxDelayProb));
+	    state_tokens[ADD_DELAY] += (int) (mSettings->mTcpTxDelayMean * mSettings->mTcpTxDelayProb);
+	} while ((state_tokens[NO_DELAY] < 0) && (state_tokens[ADD_DELAY] < 0));
+	// set the next quantum end
+	while (TcpTxDelayQuantumEnd.before(now))
+	    TcpTxDelayQuantumEnd.add((unsigned int) TCPDELAYDEFAULTQUANTUM);
+	// do any state change
+	if ((state_tokens[NO_DELAY] < 0) && (current_state == NO_DELAY)) {
+//	    printf("**** f state change to 0->1 current=%d %d %d\n", current_state, state_tokens[NO_DELAY], state_tokens[ADD_DELAY]);
+	    SetSocketTcpTxDelay(mSettings, (mSettings->mTcpTxDelayMean * 1000.0));
+	    current_state = ADD_DELAY;
+	} else if ((state_tokens[ADD_DELAY] < 0) && (current_state == ADD_DELAY)) {
+//	    printf("**** f state change to 1->0 current=%d %d %d\n", current_state, state_tokens[NO_DELAY], state_tokens[ADD_DELAY]);
+	    SetSocketTcpTxDelay(mSettings, 0.0);
+	    current_state = NO_DELAY;
+	} else {
+	    int rval = (random() % 2);
+	    //      printf("**** curr=%d rval=%d tokens 0:%d 1:%d\n", current_state, rval, state_tokens[NO_DELAY], state_tokens[ADD_DELAY]);
+	    if (rval != current_state) {
+		if (rval && (state_tokens[ADD_DELAY] > 0)) {
+//		    printf("**** state change to 0->1  rval=%d current=%d %d %d\n", rval, current_state, state_tokens[NO_DELAY], state_tokens[ADD_DELAY]);
+		    SetSocketTcpTxDelay(mSettings, (mSettings->mTcpTxDelayMean * 1000.0));
+		    current_state = ADD_DELAY;
+		} else if ((rval != 1) && (state_tokens[NO_DELAY] > 0))  {
+//		    printf("**** state change to 1->0  rval=%d current=%d %d %d\n", rval, current_state, state_tokens[NO_DELAY], state_tokens[ADD_DELAY]);
+		    SetSocketTcpTxDelay(mSettings, 0.0);
+		    current_state = NO_DELAY;
+		}
+	    }
+	}
+    }
+}
+#endif
 
 /*
  * TCP send loop
@@ -1069,6 +1122,9 @@ void Client::RunWriteEventsTCP () {
     }
 #endif
     while (InProgress()) {
+#if HAVE_DECL_TCP_TX_DELAY
+//	apply_txdelay_func();
+#endif
         if (isModeAmount(mSettings)) {
 	    writelen = ((mSettings->mAmount < static_cast<unsigned>(mSettings->mBufLen)) ? mSettings->mAmount : mSettings->mBufLen);
 	}
@@ -1165,7 +1221,7 @@ void Client::RunBounceBackTCP () {
 	    isFirst = false;
 	}
 	int bb_burst = (mSettings->mBounceBackBurst > 0) ? mSettings->mBounceBackBurst : 1;
-	while ((bb_burst > 0) && InProgress() && ((framecounter->get(&remaining)) == (unsigned int) burst_id)) {
+	while ((bb_burst > 0) && InProgress() && (!framecounter || (framecounter->get(&remaining)) == (unsigned int) burst_id)) {
 	    bb_burst--;
 	    if (isFirst) {
 		isFirst = false;
@@ -1242,7 +1298,7 @@ void Client::RunBounceBackTCP () {
 			peerclose = true;
 			break;
 		    } else {
-			WARN(1, "timeout: bounceback read");
+			WARN_errno(1, "timeout: bounceback read");
 			PostNullEvent(false);
 			if (InProgress())
 			    goto RETRY_READ;
@@ -1888,6 +1944,9 @@ void Client::AwaitServerCloseEvent () {
 int Client::SendFirstPayload () {
     int pktlen = 0;
     if (!isConnectOnly(mSettings)) {
+	if (isUDP(mSettings) && (mSettings->sendfirst_pacing > 0)) {
+	    delay_loop(mSettings->sendfirst_pacing);
+	}
 	if (myReport && !TimeZero(myReport->admit_info->ts.startTime) && !(mSettings->mMode == kTest_TradeOff)) {
 	    reportstruct->packetTime = myReport->admit_info->ts.startTime;
 	} else {
@@ -1895,7 +1954,6 @@ int Client::SendFirstPayload () {
 	    reportstruct->packetTime.tv_sec = now.getSecs();
 	    reportstruct->packetTime.tv_usec = now.getUsecs();
 	}
-
 	if (isTxStartTime(mSettings)) {
 	    pktlen = Settings_GenerateClientHdr(mSettings, (void *) mSettings->mBuf, mSettings->txstart_epoch);
 	} else {

@@ -1221,7 +1221,7 @@ void udp_output_sum_read_enhanced (struct TransferInfo *stats) {
 	   stats->ts.iStart, stats->ts.iEnd,
 	   outbuffer, outbufferext,
 	   stats->cntError, stats->cntDatagrams,
-	   (stats->cntIPG ? (stats->cntIPG / stats->IPGsum) : 0.0));
+	   (stats->cntIPG ? (stats->cntIPG / stats->IPGsum) : 0.0), (stats->common->Omit ? report_omitted : ""));
     if (stats->latency_histogram && stats->final) {
 	histogram_print(stats->latency_histogram, stats->ts.iStart, stats->ts.iEnd);
     }
@@ -1919,9 +1919,11 @@ static void reporter_output_client_settings (struct ReportSettings *report) {
 	} else {
 	    printf(client_bounceback_noqack, tmplbuf, tmprbuf, report->common->bbhold);
 	}
-	printf(client_bbburstperiodcount, report->common->bbcount, (1.0 / report->common->FPS));
+	if (report->common->FPS > 0) {
+	    printf(client_bbburstperiodcount, report->common->bbcount, (1.0 / report->common->FPS));
+	}
     } else {
-	if (isPeriodicBurst(report->common)) {
+	if (isPeriodicBurst(report->common) && (report->common->FPS > 0)) {
 	    char tmpbuf[40];
 	    byte_snprintf(tmpbuf, sizeof(tmpbuf), report->common->BurstSize, 'A');
 	    tmpbuf[39]='\0';
