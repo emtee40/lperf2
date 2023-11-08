@@ -17,17 +17,20 @@ run_iperf() {
     mode=server
     server=(-s)
     client=(-c)
+    match=""
     # Split server and client args lists
-    for a; do
-	case $a in
+    while [ $# -gt 0 ]; do
+	case $1 in
 	    (-c) mode=client;;
 	    (-s) mode=server;;
+	    (-match) shift; match=$1;;
 	    (*)
 		case $mode in
-		    (server) server+=($a);;
-		    (client) client+=($a);;
+		    (server) server+=($1);;
+		    (client) client+=($1);;
 		esac
 	esac
+	shift
     done
     # Start server
     # Wait for "listening"
@@ -43,5 +46,8 @@ run_iperf() {
     if [[ "$results" =~ unrecognized|ignoring|failed|not\ valid ]]; then
 	exit 1
     fi
+    if [[ -n "$match" && ! ("$results" =~ "$match") ]]; then
+       exit 1
+    fi
+    exit 0
 }
-
