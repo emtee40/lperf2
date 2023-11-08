@@ -8,5 +8,6 @@
 # results returned in $results
 
 run_iperf    \
+    -match "T8(f)-PDF:" \
     -s -P 1 -u -i 1 -t 3 --histograms    \
     -c $ip -P 1 -u -b 10m -i 1 -t 2 --trip-times
