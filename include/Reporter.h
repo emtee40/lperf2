@@ -395,6 +395,7 @@ struct SumReport {
     int threads_cntr_fsum;
     struct TransferInfo *admit_info;
     struct TransferInfo *omit_info;
+    struct TransferInfo *consumer_info;
     void (*transfer_protocol_sum_handler) (struct TransferInfo *stats, int final);
     struct BarrierMutex fullduplex_barrier;
     int sum_fd_set;
@@ -416,6 +417,8 @@ struct ReporterData {
     struct SumReport *FullDuplexReport;
     struct TransferInfo *admit_info;
     struct TransferInfo *omit_info;
+    struct TransferInfo *producer_info;
+    struct TransferInfo *consumer_info;
 };
 
 struct ServerRelay {

@@ -147,7 +147,6 @@ static void common_copy (struct ReportCommon **common, struct thread_Settings *i
     (*common)->bbreplysize = inSettings->mBounceBackReplyBytes;
     (*common)->bbhold = inSettings->mBounceBackHold;
     (*common)->bbcount = inSettings->mBounceBackBurst;
-    (*common)->Omit = inSettings->mOmit;
 #if HAVE_DECL_TCP_WINDOW_CLAMP
     (*common)->ClampSize = inSettings->mClampSize;
 #endif
@@ -235,12 +234,12 @@ void setTransferID (struct thread_Settings *inSettings, int role_reversal) {
 void SetFullDuplexHandlers (struct thread_Settings *inSettings, struct SumReport* sumreport) {
     if (isUDP(inSettings)) {
 	sumreport->transfer_protocol_sum_handler = reporter_transfer_protocol_fullduplex_udp;
-	sumreport->admit_info->output_handler = ((inSettings->mReportMode == kReport_CSV) ? NULL : \
+	sumreport->consumer_info->output_handler = ((inSettings->mReportMode == kReport_CSV) ? NULL : \
 					  (isSumOnly(inSettings) ? NULL : \
 					   (isEnhanced(inSettings) ? udp_output_fullduplex_enhanced : udp_output_fullduplex)));
     } else {
 	sumreport->transfer_protocol_sum_handler = reporter_transfer_protocol_fullduplex_tcp;
-	sumreport->admit_info->output_handler = ((inSettings->mReportMode == kReport_CSV) ? NULL : \
+	sumreport->consumer_info->output_handler = ((inSettings->mReportMode == kReport_CSV) ? NULL : \
 					      (isSumOnly(inSettings) ? NULL : \
 					       (isEnhanced(inSettings) ? tcp_output_fullduplex_enhanced : tcp_output_fullduplex)));
     }
@@ -253,36 +252,36 @@ void SetSumHandlers (struct thread_Settings *inSettings, struct SumReport* sumre
 	    sumreport->transfer_protocol_sum_handler = reporter_transfer_protocol_sum_server_udp;
 	    if (inSettings->mReportMode == kReport_CSV) {
 		if (isEnhanced(inSettings))
-		    sumreport->admit_info->output_handler = udp_output_enhanced_csv;
+		    sumreport->consumer_info->output_handler = udp_output_enhanced_csv;
 		else
-		    sumreport->admit_info->output_handler = udp_output_basic_csv;
+		    sumreport->consumer_info->output_handler = udp_output_basic_csv;
 	    } else {
 		if (isTripTime(inSettings)) {
-		    sumreport->admit_info->output_handler = udp_output_sumcnt_read_triptime;
+		    sumreport->consumer_info->output_handler = udp_output_sumcnt_read_triptime;
 		} else if (isSumOnly(inSettings)) {
-		    sumreport->admit_info->output_handler = udp_output_sumcnt_enhanced;
+		    sumreport->consumer_info->output_handler = udp_output_sumcnt_enhanced;
 		} else if (isFullDuplex(inSettings)) {
-		    sumreport->admit_info->output_handler = udp_output_fullduplex_sum;
+		    sumreport->consumer_info->output_handler = udp_output_fullduplex_sum;
 		} else {
-		    sumreport->admit_info->output_handler =  (isEnhanced(inSettings) ? udp_output_sum_read_enhanced : udp_output_sum_read);
+		    sumreport->consumer_info->output_handler =  (isEnhanced(inSettings) ? udp_output_sum_read_enhanced : udp_output_sum_read);
 		}
 	    }
 	} else {
 	    sumreport->transfer_protocol_sum_handler = reporter_transfer_protocol_sum_server_tcp;
 	    if (inSettings->mReportMode == kReport_CSV) {
 		if (isEnhanced(inSettings))
-		    sumreport->admit_info->output_handler = tcp_output_read_enhanced_csv;
+		    sumreport->consumer_info->output_handler = tcp_output_read_enhanced_csv;
 		else
-		    sumreport->admit_info->output_handler = tcp_output_basic_csv;
+		    sumreport->consumer_info->output_handler = tcp_output_basic_csv;
 	    } else {
 		if (isTripTime(inSettings)) {
-		    sumreport->admit_info->output_handler = tcp_output_sumcnt_read_triptime;
+		    sumreport->consumer_info->output_handler = tcp_output_sumcnt_read_triptime;
 		} else if (isSumOnly(inSettings)) {
-		    sumreport->admit_info->output_handler = (isEnhanced(inSettings) ? tcp_output_sumcnt_read_enhanced : tcp_output_sumcnt_read);
+		    sumreport->consumer_info->output_handler = (isEnhanced(inSettings) ? tcp_output_sumcnt_read_enhanced : tcp_output_sumcnt_read);
 		} else if (isFullDuplex(inSettings)) {
-		    sumreport->admit_info->output_handler = tcp_output_sum_read;
+		    sumreport->consumer_info->output_handler = tcp_output_sum_read;
 		} else {
-		    sumreport->admit_info->output_handler =  (isEnhanced(inSettings) ? tcp_output_sum_read_enhanced : tcp_output_sum_read);
+		    sumreport->consumer_info->output_handler =  (isEnhanced(inSettings) ? tcp_output_sum_read_enhanced : tcp_output_sum_read);
 		}
 	    }
 	}
@@ -292,33 +291,33 @@ void SetSumHandlers (struct thread_Settings *inSettings, struct SumReport* sumre
 	    sumreport->transfer_protocol_sum_handler = reporter_transfer_protocol_sum_client_udp;
 	    if (inSettings->mReportMode == kReport_CSV) {
 		if (isEnhanced(inSettings))
-		    sumreport->admit_info->output_handler = udp_output_enhanced_csv;
+		    sumreport->consumer_info->output_handler = udp_output_enhanced_csv;
 		else
-		    sumreport->admit_info->output_handler = udp_output_basic_csv;
+		    sumreport->consumer_info->output_handler = udp_output_basic_csv;
 	    } else {
 		if (isSumOnly(inSettings)) {
-		    sumreport->admit_info->output_handler = ((isEnhanced(inSettings) && !isFullDuplex(inSettings)) ? \
+		    sumreport->consumer_info->output_handler = ((isEnhanced(inSettings) && !isFullDuplex(inSettings)) ? \
 						      udp_output_sumcnt_write_enhanced : udp_output_sumcnt);
 		} else if (isFullDuplex(inSettings)) {
-		    sumreport->admit_info->output_handler = udp_output_fullduplex_sum;
+		    sumreport->consumer_info->output_handler = udp_output_fullduplex_sum;
 		} else {
-		    sumreport->admit_info->output_handler = (isEnhanced(inSettings) ? udp_output_sum_write_enhanced : udp_output_sum_write);
+		    sumreport->consumer_info->output_handler = (isEnhanced(inSettings) ? udp_output_sum_write_enhanced : udp_output_sum_write);
 		}
 	    }
 	} else {
 	    sumreport->transfer_protocol_sum_handler = reporter_transfer_protocol_sum_client_tcp;
 	    if (inSettings->mReportMode == kReport_CSV) {
 		if (isEnhanced(inSettings))
-		    sumreport->admit_info->output_handler = tcp_output_write_enhanced_csv;
+		    sumreport->consumer_info->output_handler = tcp_output_write_enhanced_csv;
 		else
-		    sumreport->admit_info->output_handler = tcp_output_basic_csv;
+		    sumreport->consumer_info->output_handler = tcp_output_basic_csv;
 	    } else {
 		if (isSumOnly(inSettings)) {
-		    sumreport->admit_info->output_handler = (isEnhanced(inSettings) ? tcp_output_sumcnt_write_enhanced : tcp_output_sumcnt_write);
+		    sumreport->consumer_info->output_handler = (isEnhanced(inSettings) ? tcp_output_sumcnt_write_enhanced : tcp_output_sumcnt_write);
 		} else if (isFullDuplex(inSettings)) {
-		    sumreport->admit_info->output_handler = tcp_output_fullduplex_sum;
+		    sumreport->consumer_info->output_handler = tcp_output_fullduplex_sum;
 		} else {
-		    sumreport->admit_info->output_handler = (isEnhanced(inSettings) ? tcp_output_sum_write_enhanced : tcp_output_sum_write);
+		    sumreport->consumer_info->output_handler = (isEnhanced(inSettings) ? tcp_output_sum_write_enhanced : tcp_output_sum_write);
 		}
 	    }
 	}
@@ -333,45 +332,59 @@ struct SumReport* InitSumReport(struct thread_Settings *inSettings, int inID, in
     if (sumreport == NULL) {
 	FAIL(1, "Out of Memory!!\n", inSettings);
     }
+    struct TransferInfo *tmp  = (struct TransferInfo *)calloc(1, sizeof(struct TransferInfo));
+    if (tmp == NULL) {
+	FAIL(1, "Out of Memory!!\n", inSettings);
+    }
+    sumreport->admit_info = tmp;
+    if (isOmit(inSettings)) {
+	struct TransferInfo *tmp  = (struct TransferInfo *)calloc(1, sizeof(struct TransferInfo));
+	if (tmp == NULL) {
+	    FAIL(1, "Out of Memory!!\n", inSettings);
+	}
+	sumreport->omit_info = tmp;
+    }
+    sumreport->consumer_info = tmp;
+
     sumreport->reference.count = 0;
     sumreport->reference.maxcount = 0;
     Mutex_Initialize(&sumreport->reference.lock);
     sumreport->threads = 0;
-    common_copy(&sumreport->admit_info->common, inSettings);
-    // sumreport->admit_info->common->transferID = inID; // this is now set in the active code
-    sumreport->admit_info->threadcnt = 0;
-    sumreport->admit_info->isMaskOutput = false;
+    common_copy(&sumreport->consumer_info->common, inSettings);
+    // sumreport->consumer_info->common->transferID = inID; // this is now set in the active code
+    sumreport->consumer_info->threadcnt = 0;
+    sumreport->consumer_info->isMaskOutput = false;
     if (inSettings->mReportMode == kReport_CSV) {
-        format_ips_port_string(sumreport->admit_info, 1);
+        format_ips_port_string(sumreport->consumer_info, 1);
     }
 
     // Only initialize the interval time here
     // The startTime and nextTime for summing reports will be set by
     // the reporter thread in realtime
     if ((inSettings->mInterval) && (inSettings->mIntervalMode == kInterval_Time)) {
-	sumreport->admit_info->ts.intervalTime.tv_sec = (long) (inSettings->mInterval / rMillion);
-	sumreport->admit_info->ts.intervalTime.tv_usec = (long) (inSettings->mInterval % rMillion);
-	sumreport->admit_info->ts.significant_partial = ((double) inSettings->mInterval * PARTIALPERCENT / rMillion) ;
+	sumreport->consumer_info->ts.intervalTime.tv_sec = (long) (inSettings->mInterval / rMillion);
+	sumreport->consumer_info->ts.intervalTime.tv_usec = (long) (inSettings->mInterval % rMillion);
+	sumreport->consumer_info->ts.significant_partial = ((double) inSettings->mInterval * PARTIALPERCENT / rMillion) ;
     }
     // Note that for UDP the client flag settings have not been read (and set) so only use server side flags in tests
     if (isEnhanced(inSettings) && (inSettings->mThreadMode == kMode_Server) && !fullduplex_report) {
 	if (isHistogram(inSettings)) {
 	    if (isUDP(inSettings)) {
 		char name[] = "SUMT8";
-		sumreport->admit_info->latency_histogram = histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0,\
+		sumreport->consumer_info->latency_histogram = histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0,\
 								    pow(10,inSettings->mHistUnits), \
-								   inSettings->mHistci_lower, inSettings->mHistci_upper, sumreport->admit_info->common->transferID, name, false);
+								   inSettings->mHistci_lower, inSettings->mHistci_upper, sumreport->consumer_info->common->transferID, name, false);
 	    } else {
 		char name[] = "SUMF8";
-		sumreport->admit_info->framelatency_histogram = histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0, \
+		sumreport->consumer_info->framelatency_histogram = histogram_init(inSettings->mHistBins,inSettings->mHistBinsize,0, \
 									 pow(10,inSettings->mHistUnits), inSettings->mHistci_lower, \
-									inSettings->mHistci_upper, sumreport->admit_info->common->transferID, name, false);
+									inSettings->mHistci_upper, sumreport->consumer_info->common->transferID, name, false);
 	    }
 	}
 	if (isJitterHistogram(inSettings) && isUDP(inSettings)) {
 	    char name[] = "SUMJ8";
-	    sumreport->admit_info->jitter_histogram = histogram_init(JITTER_BINCNT,inSettings->jitter_binwidth,0,JITTER_UNITS, \
-							      JITTER_LCI, JITTER_UCI, sumreport->admit_info->common->transferID, name, false);
+	    sumreport->consumer_info->jitter_histogram = histogram_init(JITTER_BINCNT,inSettings->jitter_binwidth,0,JITTER_UNITS, \
+							      JITTER_LCI, JITTER_UCI, sumreport->consumer_info->common->transferID, name, false);
 	}
     }
     if (fullduplex_report) {
@@ -384,9 +397,9 @@ struct SumReport* InitSumReport(struct thread_Settings *inSettings, int inID, in
 	    if (sumreport->fullduplex_barrier.timeout < MINBARRIERTIMEOUT)
 		sumreport->fullduplex_barrier.timeout = MINBARRIERTIMEOUT;
 	} else {
-	    sumreport->admit_info->ts.startTime = inSettings->accept_time;
-	    sumreport->admit_info->ts.nextTime = sumreport->admit_info->ts.startTime;
-	    TimeAdd(sumreport->admit_info->ts.nextTime, sumreport->admit_info->ts.intervalTime);
+	    sumreport->consumer_info->ts.startTime = inSettings->accept_time;
+	    sumreport->consumer_info->ts.nextTime = sumreport->consumer_info->ts.startTime;
+	    TimeAdd(sumreport->consumer_info->ts.nextTime, sumreport->consumer_info->ts.intervalTime);
 	}
     } else {
 	SetSumHandlers(inSettings, sumreport);
@@ -420,25 +433,28 @@ void FreeSumReport (struct SumReport *sumreport) {
     thread_debug("Free sum report hdr=%p", (void *)sumreport);
 #endif
     Condition_Destroy_Reference(&sumreport->reference);
-    if (sumreport->admit_info->latency_histogram) {
-	histogram_delete(sumreport->admit_info->latency_histogram);
+    if (sumreport->consumer_info->latency_histogram) {
+	histogram_delete(sumreport->consumer_info->latency_histogram);
     }
-    if (sumreport->admit_info->framelatency_histogram) {
-	histogram_delete(sumreport->admit_info->framelatency_histogram);
+    if (sumreport->consumer_info->framelatency_histogram) {
+	histogram_delete(sumreport->consumer_info->framelatency_histogram);
     }
-    if (sumreport->admit_info->bbrtt_histogram) {
-	histogram_delete(sumreport->admit_info->bbrtt_histogram);
+    if (sumreport->consumer_info->bbrtt_histogram) {
+	histogram_delete(sumreport->consumer_info->bbrtt_histogram);
     }
-    if (sumreport->admit_info->bbowdto_histogram) {
-	histogram_delete(sumreport->admit_info->bbowdto_histogram);
+    if (sumreport->consumer_info->bbowdto_histogram) {
+	histogram_delete(sumreport->consumer_info->bbowdto_histogram);
     }
-    if (sumreport->admit_info->bbowdfro_histogram) {
-	histogram_delete(sumreport->admit_info->bbowdfro_histogram);
+    if (sumreport->consumer_info->bbowdfro_histogram) {
+	histogram_delete(sumreport->consumer_info->bbowdfro_histogram);
     }
-    if (sumreport->admit_info->jitter_histogram) {
-	histogram_delete(sumreport->admit_info->jitter_histogram);
+    if (sumreport->consumer_info->jitter_histogram) {
+	histogram_delete(sumreport->consumer_info->jitter_histogram);
     }
-    free_common_copy(sumreport->admit_info->common);
+    free_common_copy(sumreport->consumer_info->common);
+    if (sumreport->consumer_info) {
+	free(sumreport->consumer_info);
+    }
     free(sumreport);
 }
 
@@ -449,37 +465,37 @@ static void Free_iReport (struct ReporterData *ireport) {
 #ifdef HAVE_THREAD_DEBUG
     thread_debug("Free report hdr=%p reporter thread suspend count=%d packetring=%p histo=%p frame histo=%p", \
 		 (void *)ireport, ireport->reporter_thread_suspends, (void *) ireport->packetring, \
-		 (void *)ireport->admit_info->latency_histogram, (void *) ireport->admit_info->framelatency_histogram);
+		 (void *)ireport->consumer_info->latency_histogram, (void *) ireport->consumer_info->framelatency_histogram);
 #endif
-    if (ireport->packetring && ireport->admit_info->total.Bytes.current && !(isSingleUDP(ireport->admit_info->common)) && \
-	!TimeZero(ireport->admit_info->ts.intervalTime) && (ireport->reporter_thread_suspends < 3)) {
+    if (ireport->packetring && ireport->consumer_info->total.Bytes.current && !(isSingleUDP(ireport->consumer_info->common)) && \
+	!TimeZero(ireport->consumer_info->ts.intervalTime) && (ireport->reporter_thread_suspends < 3)) {
 	fprintf(stdout, "WARN: this test may have been CPU bound (%d) (or may not be detecting the underlying network devices)\n", \
 		ireport->reporter_thread_suspends);
     }
     if (ireport->packetring) {
 	packetring_free(ireport->packetring);
     }
-    if (ireport->admit_info->latency_histogram) {
-	histogram_delete(ireport->admit_info->latency_histogram);
+    if (ireport->consumer_info->latency_histogram) {
+	histogram_delete(ireport->consumer_info->latency_histogram);
     }
-    if (ireport->admit_info->jitter_histogram) {
-	histogram_delete(ireport->admit_info->jitter_histogram);
+    if (ireport->consumer_info->jitter_histogram) {
+	histogram_delete(ireport->consumer_info->jitter_histogram);
     }
-    if (ireport->admit_info->framelatency_histogram) {
-	histogram_delete(ireport->admit_info->framelatency_histogram);
+    if (ireport->consumer_info->framelatency_histogram) {
+	histogram_delete(ireport->consumer_info->framelatency_histogram);
     }
-    if (ireport->admit_info->bbrtt_histogram) {
-	histogram_delete(ireport->admit_info->bbrtt_histogram);
+    if (ireport->consumer_info->bbrtt_histogram) {
+	histogram_delete(ireport->consumer_info->bbrtt_histogram);
     }
-    if (ireport->admit_info->bbowdto_histogram) {
-	histogram_delete(ireport->admit_info->bbowdto_histogram);
+    if (ireport->consumer_info->bbowdto_histogram) {
+	histogram_delete(ireport->consumer_info->bbowdto_histogram);
     }
-    if (ireport->admit_info->bbowdfro_histogram) {
-	histogram_delete(ireport->admit_info->bbowdfro_histogram);
+    if (ireport->consumer_info->bbowdfro_histogram) {
+	histogram_delete(ireport->consumer_info->bbowdfro_histogram);
     }
-    free_common_copy(ireport->admit_info->common);
-    if (ireport->admit_info) {
-	free(ireport->admit_info);
+    free_common_copy(ireport->consumer_info->common);
+    if (ireport->consumer_info) {
+	free(ireport->consumer_info);
     }
     free(ireport);
 }
@@ -585,6 +601,18 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
     tmp->admit_info = (struct TransferInfo *)calloc(1, sizeof(struct TransferInfo));
     if (tmp->admit_info == NULL) {
 	FAIL(1, "Out of Memory!!\n", inSettings);
+    }
+    if (isOmit(inSettings)) {
+	tmp->omit_info = (struct TransferInfo *)calloc(1, sizeof(struct TransferInfo));
+	if (tmp->omit_info == NULL) {
+	    FAIL(1, "Out of Memory!!\n", inSettings);
+	}
+	tmp->producer_info = tmp->omit_info;
+	tmp->consumer_info = tmp->omit_info;
+	common_copy(&tmp->omit_info->common, inSettings);
+    } else {
+	tmp->producer_info = tmp->admit_info;
+	tmp->consumer_info = tmp->admit_info;
     }
     reporthdr->type = DATA_REPORT;
     reporthdr->ReportMode = inSettings->mReportMode;
