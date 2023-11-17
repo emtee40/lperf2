@@ -108,20 +108,20 @@ void SetSocketOptions (struct thread_Settings *inSettings) {
     } else if (isLoadCCA(inSettings)) {
 	Socklen_t len = strlen(inSettings->mLoadCCA) + 1;
 	int rc = setsockopt(inSettings->mSock, IPPROTO_TCP, TCP_CONGESTION,
-			     inSettings->mLoadCCA, len);
+			    inSettings->mLoadCCA, len);
 	if (rc == SOCKET_ERROR) {
 	    fprintf(stderr, "Attempt to set '%s' load congestion control failed: %s\n",
 		    inSettings->mLoadCCA, strerror(errno));
 	    unsetLoadCCA(inSettings);
 	    thread_stop(inSettings);
-	    char cca[40] = "";
-	    len = sizeof(cca);
-	    if (getsockopt(inSettings->mSock, IPPROTO_TCP, TCP_CONGESTION, &cca, &len) == 0) {
-		cca[len]='\0';
-		if (strcmp(cca, inSettings->mLoadCCA) != 0) {
-		    fprintf(stderr, "Failed to set '%s' load congestion control got '%s'\n", inSettings->mLoadCCA, cca);
-		    thread_stop(inSettings);
-		}
+	}
+	char cca[40] = "";
+	len = sizeof(cca);
+	if (getsockopt(inSettings->mSock, IPPROTO_TCP, TCP_CONGESTION, &cca, &len) == 0) {
+	    cca[len]='\0';
+	    if (strcmp(cca, inSettings->mLoadCCA) != 0) {
+		fprintf(stderr, "Failed to set '%s' load congestion control got '%s'\n", inSettings->mLoadCCA, cca);
+		thread_stop(inSettings);
 	    }
 	}
     }
