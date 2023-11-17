@@ -125,6 +125,11 @@ void SetSocketOptions (struct thread_Settings *inSettings) {
 	    }
 	}
     }
+#else
+    if (isCongestionControl(inSettings) || isLoadCCA(inSettings)) {
+	fprintf(stderr, "TCP congestion control not supported\n");
+	thread_stop(inSettings);	
+    }
 #endif
 
     int boolean = 1;
