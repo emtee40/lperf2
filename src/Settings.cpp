@@ -962,6 +962,7 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	    setCongestionControl(mExtSettings);
 	    mExtSettings->mCongestion = new char[strlen(optarg)+1];
 	    strcpy(mExtSettings->mCongestion, optarg);
+	    make_lower(mExtSettings->mCongestion);
 	}
 #else
 	fprintf(stderr, "The -Z option is not available on this operating system\n");
@@ -1249,6 +1250,7 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	    setLoadCCA(mExtSettings);
 	    mExtSettings->mLoadCCA = new char[strlen(optarg)+1];
 	    strcpy(mExtSettings->mLoadCCA, optarg);
+	    make_lower(mExtSettings->mLoadCCA);
 #else
 	    fprintf(stderr, "The --working-load-cca option is not available on this operating system\n");
 #endif
@@ -1262,6 +1264,7 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 		setCongestionControl(mExtSettings);
 		mExtSettings->mCongestion = new char[strlen(optarg)+1];
 		strcpy(mExtSettings->mCongestion, optarg);
+		make_lower(mExtSettings->mCongestion);
 	    }
 #else
 	    fprintf(stderr, "The --tcp-cca option is not available on this operating system\n");
