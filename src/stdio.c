@@ -322,6 +322,17 @@ void byte_snprintf(char* outString, int inLen, double inNum, char inFormat) {
     snprintf(outString, inLen, format, inNum, suffix);
 } /* end byte_snprintf */
 
+
+void make_lower (char *s) {
+    if (s) {
+	int length = strlen(s);
+	for (int i = 0; i < length; i++) {
+	    s[i] = tolower(s[i]);
+	}
+    }
+    return;
+}
+
 /* -------------------------------------------------------------------
  * redirect
  *
