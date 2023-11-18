@@ -56,6 +56,7 @@ extern "C" {
  */
 
 #define TAPBYTESSLOP 512
+#define TCP_CCA_NAME_MAX 32
 
 /* key for permit */
 #define HEADER_KEYCHECK     0x10000000
@@ -65,7 +66,6 @@ extern "C" {
 #define DEFAULT_PERMITKEY_LEN 16
 #define MIN_PERMITKEY_LEN      4
 #define MAX_PERMITKEY_LEN    128
-#define MAX_CCA_LEN    32
 
 /*
  * base flags, keep compatible with older versions
@@ -449,7 +449,7 @@ struct isoch_payload {
 
 struct cca_field {
     uint16_t cca_length;
-    char value[MAX_CCA_LEN];
+    char value[TCP_CCA_NAME_MAX];
 };
 
 struct permitKey {

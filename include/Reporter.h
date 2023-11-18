@@ -272,9 +272,8 @@ struct ConnectionInfo {
     char peerversion[PEERVERBUFSIZE];
     struct MeanMinMaxStats connect_times;
     struct iperf_tcpstats tcpinitstats;
-    char connected_cca[MAX_CCA_LEN];
+    char connected_cca[TCP_CCA_NAME_MAX];
 };
-
 
 struct ShiftCounters {
     struct ShiftUintCounter Bytes;

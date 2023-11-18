@@ -75,8 +75,6 @@
 #include "SocketAddr.h"
 #include "util.h"
 
-#define TCP_CCA_NAME_MAX 40
-
 /* -------------------------------------------------------------------
  * Set socket options before the listen() or connect() calls.
  * These are optional performance tuning factors.
