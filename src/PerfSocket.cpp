@@ -75,6 +75,8 @@
 #include "SocketAddr.h"
 #include "util.h"
 
+#define TCP_CCA_NAME_MAX 40
+
 /* -------------------------------------------------------------------
  * Set socket options before the listen() or connect() calls.
  * These are optional performance tuning factors.
@@ -96,10 +98,10 @@ void SetSocketOptions (struct thread_Settings *inSettings) {
 	    unsetCongestionControl(inSettings);
 	    thread_stop(inSettings);
 	}
-	char cca[40] = "";
+	char cca[TCP_CCA_NAME_MAX] = "";
 	len = sizeof(cca);
 	if (getsockopt(inSettings->mSock, IPPROTO_TCP, TCP_CONGESTION, &cca, &len) == 0) {
-	    cca[len]='\0';
+	    cca[TCP_CCA_NAME_MAX-1]='\0';
 	    if (strcmp(cca, inSettings->mCongestion) != 0) {
 		fprintf(stderr, "Failed to set '%s' congestion control got '%s'\n", inSettings->mCongestion, cca);
 		thread_stop(inSettings);
@@ -115,10 +117,10 @@ void SetSocketOptions (struct thread_Settings *inSettings) {
 	    unsetLoadCCA(inSettings);
 	    thread_stop(inSettings);
 	}
-	char cca[40] = "";
+	char cca[TCP_CCA_NAME_MAX] = "";
 	len = sizeof(cca);
 	if (getsockopt(inSettings->mSock, IPPROTO_TCP, TCP_CONGESTION, &cca, &len) == 0) {
-	    cca[len]='\0';
+	    cca[TCP_CCA_NAME_MAX-1]='\0';
 	    if (strcmp(cca, inSettings->mLoadCCA) != 0) {
 		fprintf(stderr, "Failed to set '%s' load congestion control got '%s'\n", inSettings->mLoadCCA, cca);
 		thread_stop(inSettings);
