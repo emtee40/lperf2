@@ -425,6 +425,7 @@ void client_init(struct thread_Settings *clients) {
 	    if (isUDP(next)) {
 		unsetUDP(next);
 		unsetBWSet(next);
+		setNoSettReport(next);
 		next->mAppRate=0;
 	    }
 	    if (isLoadCCA(next)) {
