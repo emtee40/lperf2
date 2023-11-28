@@ -1,4 +1,3 @@
-
 .TH IPERF 1 "Nov 2023" NLANR/DAST "User Manuals"
 .SH NAME
 iperf \- perform network traffic tests using network sockets. Metrics include throughput and latency or link capacity and responsiveness.
@@ -186,6 +185,9 @@ Enable IPv6 reception by setting the domain and socket to AF_INET6 (Can receive 
 .TP
 .BR "    --tcp-cca "
 Set the congestion control algorithm to be used for TCP connections - will overide any client side settings (same as --tcp-congestion)
+.TP
+.BR "    --working-load "
+Enable support for TCP working loads on UDP traffic streams
 .TP
 .BR "    --working-load-cca "
 Set the congestion control algorithm to be used for TCP working loads - will overide any client side settings
