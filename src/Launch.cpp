@@ -502,6 +502,7 @@ void listeners_init(struct thread_Settings *listener) {
 	    unsetUDP(next);
 	    next->mAppRate = 0;
 	    unsetBWSet(next);
+	    setNoSettReport(next);
 	    itr->runNow = next;
 	    itr = next;
 	}
