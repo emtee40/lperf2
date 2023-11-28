@@ -425,6 +425,9 @@ void client_init(struct thread_Settings *clients) {
 	    if (isLoadCCA(next)) {
 		unsetCongestionControl(next);
 	    }
+	    if (isIsochronous(next)) {
+	        unsetIsochronous(next);
+	    }
 	    if (next != NULL) {
 		unsetBounceBack(next);
 		unsetConnectOnly(next);
