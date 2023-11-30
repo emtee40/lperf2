@@ -507,12 +507,15 @@ void tcp_output_write_bb (struct TransferInfo *stats) {
 		   (stats->common->Omit ? report_omitted : ""));
 	}
 	if (stats->bbowdto_histogram) {
+	    stats->bbowdto_histogram->final = 1;
 	    histogram_print(stats->bbowdto_histogram, stats->ts.iStart, stats->ts.iEnd);
 	}
 	if (stats->bbowdfro_histogram) {
+	    stats->bbowdfro_histogram->final = 1;
 	    histogram_print(stats->bbowdfro_histogram, stats->ts.iStart, stats->ts.iEnd);
 	}
 	if (stats->bbrtt_histogram) {
+	    stats->bbrtt_histogram->final = 1;
 	    histogram_print(stats->bbrtt_histogram, stats->ts.iStart, stats->ts.iEnd);
 	}
 	if (isTripTime(stats->common) && (stats->bb_clocksync_error > 0)) {
@@ -552,6 +555,18 @@ void tcp_output_write_bb (struct TransferInfo *stats) {
 	       rps_string,
 	       (stats->common->Omit ? report_omitted : ""));
 #endif
+	if (stats->bbowdto_histogram) {
+	    stats->bbowdto_histogram->final = 0;
+	    histogram_print(stats->bbowdto_histogram, stats->ts.iStart, stats->ts.iEnd);
+	}
+	if (stats->bbowdfro_histogram) {
+	    stats->bbowdfro_histogram->final = 0;
+	    histogram_print(stats->bbowdfro_histogram, stats->ts.iStart, stats->ts.iEnd);
+	}
+	if (stats->bbrtt_histogram) {
+	    stats->bbrtt_histogram->final = 0;
+	    histogram_print(stats->bbrtt_histogram, stats->ts.iStart, stats->ts.iEnd);
+	}
     }
     fflush(stdout);
 }
