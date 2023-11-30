@@ -192,7 +192,7 @@ double bitorbyte_atof(const char *inString);
 intmax_t byte_atoi(const char  *inString);
 uintmax_t bitorbyte_atoi(const char *inString);
 void byte_snprintf(char* outString, int inLen, double inNum, char inFormat);
-
+void make_lower(char *s);
 /*
  * Time macros for C-code (not the include Timestamp.hpp)
  */

@@ -1911,6 +1911,11 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 		mExtSettings->mListenerTimeout = DEFAULT_PERMITKEY_LIFE;
 	    }
 	}
+	if ((mExtSettings->mWorkingLoadThreads > 0) || (!isWorkingLoadUp(mExtSettings) && isWorkingLoadDown(mExtSettings)) \
+	    || (isWorkingLoadUp(mExtSettings) && !isWorkingLoadDown(mExtSettings))) {
+	    fprintf(stderr, "ERROR: setting of --working-load options is not supported on the server, just use --working-load\n");
+	    bail = true;
+	}
         if (isBounceBack(mExtSettings)) {
             fprintf(stderr, "ERROR: setting of option --bounce-back is not supported on the server\n");
 	    bail = true;

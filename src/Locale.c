@@ -224,6 +224,9 @@ const char client_port[] =
 const char server_pid_port[] =
 "Server listening on %s port %d with pid %d\n";
 
+const char server_working_load_port[] =
+"Working load listening on %s port %d\n";
+
 const char server_pid_portrange[] =
 "Server listening on %s ports %d-%d with pid %d\n";
 

@@ -487,6 +487,7 @@ AC_SUBST(STRIP_END)
 AC_CONFIG_FILES([Makefile
 		compat/Makefile
 		doc/Makefile
+		flows/Makefile
 		include/Makefile
 		src/Makefile
                 man/Makefile])

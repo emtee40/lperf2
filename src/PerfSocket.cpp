@@ -94,16 +94,41 @@ void SetSocketOptions (struct thread_Settings *inSettings) {
 	    fprintf(stderr, "Attempt to set '%s' congestion control failed: %s\n",
 		    inSettings->mCongestion, strerror(errno));
 	    unsetCongestionControl(inSettings);
+	    thread_stop(inSettings);
+	}
+	char cca[TCP_CCA_NAME_MAX] = "";
+	len = sizeof(cca);
+	if (getsockopt(inSettings->mSock, IPPROTO_TCP, TCP_CONGESTION, &cca, &len) == 0) {
+	    cca[TCP_CCA_NAME_MAX-1]='\0';
+	    if (strcmp(cca, inSettings->mCongestion) != 0) {
+		fprintf(stderr, "Failed to set '%s' congestion control got '%s'\n", inSettings->mCongestion, cca);
+		thread_stop(inSettings);
+	    }
 	}
     } else if (isLoadCCA(inSettings)) {
 	Socklen_t len = strlen(inSettings->mLoadCCA) + 1;
 	int rc = setsockopt(inSettings->mSock, IPPROTO_TCP, TCP_CONGESTION,
-			     inSettings->mLoadCCA, len);
+			    inSettings->mLoadCCA, len);
 	if (rc == SOCKET_ERROR) {
-	    fprintf(stderr, "Attempt to set '%s' congestion control failed: %s\n",
+	    fprintf(stderr, "Attempt to set '%s' load congestion control failed: %s\n",
 		    inSettings->mLoadCCA, strerror(errno));
 	    unsetLoadCCA(inSettings);
+	    thread_stop(inSettings);
 	}
+	char cca[TCP_CCA_NAME_MAX] = "";
+	len = sizeof(cca);
+	if (getsockopt(inSettings->mSock, IPPROTO_TCP, TCP_CONGESTION, &cca, &len) == 0) {
+	    cca[TCP_CCA_NAME_MAX-1]='\0';
+	    if (strcmp(cca, inSettings->mLoadCCA) != 0) {
+		fprintf(stderr, "Failed to set '%s' load congestion control got '%s'\n", inSettings->mLoadCCA, cca);
+		thread_stop(inSettings);
+	    }
+	}
+    }
+#else
+    if (isCongestionControl(inSettings) || isLoadCCA(inSettings)) {
+	fprintf(stderr, "TCP congestion control not supported\n");
+	thread_stop(inSettings);	
     }
 #endif
 

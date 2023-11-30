@@ -1746,6 +1746,9 @@ static void reporter_output_listener_settings (struct ReportSettings *report) {
 	printf(isEnhanced(report->common) ? server_pid_port : server_port,
 	       (isUDP(report->common) ? "UDP" : "TCP"), report->common->Port, report->pid);
     }
+    if (isUDP(report->common) && isWorkingLoadUp(report->common) && isWorkingLoadDown(report->common)) {
+	printf(server_working_load_port, "TCP", report->common->Port);
+    }
     if (report->common->Localhost != NULL) {
 	if (isEnhanced(report->common) && !SockAddr_isMulticast(&report->local)) {
 	    if (report->common->Ifrname) {

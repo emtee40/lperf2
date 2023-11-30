@@ -916,11 +916,11 @@ struct ReportHeader* InitConnectionReport (struct thread_Settings *inSettings) {
 	creport->common->FPS = (inSettings->mFPS > 0) ? inSettings->mFPS : 0;
     }
     if (isLoadCCA(inSettings) && (isWorkingLoadUp(inSettings) || isWorkingLoadDown(inSettings))) {
-	strncpy(creport->connected_cca, inSettings->mLoadCCA, MAX_CCA_LEN);
+	strncpy(creport->connected_cca, inSettings->mLoadCCA, TCP_CCA_NAME_MAX);
     } else if (isCongestionControl(inSettings)) {
-	strncpy(creport->connected_cca, inSettings->mCongestion, MAX_CCA_LEN);
+	strncpy(creport->connected_cca, inSettings->mCongestion, TCP_CCA_NAME_MAX);
     }
-    creport->connected_cca[MAX_CCA_LEN - 1] = '\0';
+    creport->connected_cca[TCP_CCA_NAME_MAX - 1] = '\0';
 #ifdef HAVE_THREAD_DEBUG
     char rs[REPORTTXTMAX];
     reporttype_text(reporthdr, &rs[0]);

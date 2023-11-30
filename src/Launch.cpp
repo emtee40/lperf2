@@ -422,8 +422,17 @@ void client_init(struct thread_Settings *clients) {
 	int working_load_threads = (clients->mWorkingLoadThreads == 0) ? 1 : clients->mWorkingLoadThreads;
 	while (working_load_threads--) {
 	    Settings_Copy(clients, &next, DEEP_COPY);
+	    if (isUDP(next)) {
+		unsetUDP(next);
+		unsetBWSet(next);
+		setNoSettReport(next);
+		next->mAppRate=0;
+	    }
 	    if (isLoadCCA(next)) {
 		unsetCongestionControl(next);
+	    }
+	    if (isIsochronous(next)) {
+	        unsetIsochronous(next);
 	    }
 	    if (next != NULL) {
 		unsetBounceBack(next);
@@ -483,6 +492,18 @@ void listeners_init(struct thread_Settings *listener) {
 	    setNoSettReport(next);
 	    next->mPort = listener->mPort + ix;
 	    next->mThreadMode = kMode_Listener;
+	    itr->runNow = next;
+	    itr = next;
+	}
+    }
+    // See if a working load TCP listener is needed
+    if (isUDP(listener) && (isWorkingLoadUp(listener) || isWorkingLoadDown(listener))) {
+	Settings_Copy(listener, &next, DEEP_COPY);
+	if (next != NULL) {
+	    unsetUDP(next);
+	    next->mAppRate = 0;
+	    unsetBWSet(next);
+	    setNoSettReport(next);
 	    itr->runNow = next;
 	    itr = next;
 	}
