@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------
-# * Copyright (c) 2018
+# * Copyright (c) 2018-2023
 # * Broadcom Corporation
 # * All Rights Reserved.
 # *---------------------------------------------------------------
@@ -26,7 +26,7 @@
 #
 # Python object to support sending remote commands to a host
 #
-# Date April 2018
+# Date April 2018 - December 2023
 
 import logging
 import asyncio, subprocess
@@ -211,7 +211,7 @@ class ssh_node:
         io_timer = IO_TIMEOUT
         cmd_timer = CMD_TIMEOUT
         connect_timer = CONNECT_TIMEOUT
-        this_session = ssh_session(name=self.name, hostname=self.ipaddr, CONNECT_TIMEOUT=connect_timer, node=self, ssh_speedups=False)
+        this_session = ssh_session(name=self.name, hostname=self.ipaddr, CONNECT_TIMEOUT=connect_timer, node=self, ssh_speedups=True)
         this_future = asyncio.ensure_future(this_session.post_cmd(cmd=cmd, IO_TIMEOUT=io_timer, CMD_TIMEOUT=cmd_timer), loop=ssh_node.loop)
         if run_now:
             ssh_node.loop.run_until_complete(asyncio.wait([this_future], timeout=CMD_TIMEOUT))
@@ -435,15 +435,7 @@ class ssh_session:
         self.IO_TIMEOUT = None
         self.CMD_TIMEOUT = None
         self.control_master = control_master
-        ################################
-        # Why this is needed since we have it in the node?
-        # In the node, ssh=['/usr/bin/ssh'] but we are clearing it here. Why?
-        if node.relay :
-            self.ssh = ['/usr/bin/ssh', 'root@{}'.format(node.relay), '/usr/local/bin/ush', self.ipddr]
-        else :
-            self.ssh = ['/usr/bin/ssh']
-        ################################
-
+        self.ssh = node.ssh.copy()
         self.silent_mode = silent_mode
         self.ssh_speedups = ssh_speedups
         logger = logging.getLogger(__name__)
@@ -489,6 +481,7 @@ class ssh_session:
     async def post_cmd(self, cmd=None, IO_TIMEOUT=None, CMD_TIMEOUT=None, ssh_speedups=True) :
         logging.debug("{} Post command {}".format(self.name, cmd))
         self.opened.clear()
+        self.cmd = cmd
         self.IO_TIMEOUT = IO_TIMEOUT
         self.CMD_TIMEOUT = CMD_TIMEOUT
         sshcmd = self.ssh
@@ -498,10 +491,12 @@ class ssh_session:
             except OSError:
                 pass
             sshcmd.extend(['-o ControlMaster=yes', '-o ControlPath={}'.format(self.controlmasters), '-o ControlPersist=1'])
+        elif self.node.sshtype == 'ssh' :
+            sshcmd.append('-o ControlPath={}'.format(self.controlmasters))
         if self.node.ssh_speedups :
             sshcmd.extend(['{}@{}'.format(self.user, self.hostname), cmd])
         else :
-            sshcmd.extend(['{}@{}'.format(self.user, self.hostname), cmd])
+            sshcmd.extend(['{}'.format(self.hostname), cmd])
         s = " "
         logging.info('{} {}'.format(self.name, s.join(sshcmd)))
         # self in the ReaderProtocol() is this ssh_session instance

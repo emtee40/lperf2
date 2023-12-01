@@ -40,11 +40,15 @@ from flows import *
 from ssh_nodes import *
 
 parser = argparse.ArgumentParser(description='Run an isochronous UDP data stream')
-parser.add_argument('-s','--server', type=str, default="192.168.1.33", required=False, help='host to run iperf server')
-parser.add_argument('--server_dev', type=str, default='eth0', required=False, help='server device name')
-parser.add_argument('-c','--client', type=str, default="192.168.1.31", required=False, help='host to run iperf client')
-parser.add_argument('--client_dev', type=str, default='eth0', required=False, help='client device name')
-parser.add_argument('-d','--dstip', type=str, default="192.168.1.33",required=False, help='iperf destination ip address')
+parser.add_argument('-s','--server', type=str, default="10.19.85.106", required=False, help='host to run iperf server')
+parser.add_argument('-c','--client', type=str, default="10.19.85.202", required=False, help='host to run iperf client')
+parser.add_argument('--srcip', type=str, default="192.168.1.15",required=False, help='iperf source ip address')
+parser.add_argument('--dstip', type=str, default="192.168.1.231",required=False, help='iperf destination ip address')
+parser.add_argument('--srcdev', type=str, default='enp2s0', required=False, help='server device name')
+parser.add_argument('--dstdev', type=str, default='eth1', required=False, help='client device name')
+parser.add_argument('--srctype', type=str, default='wired', required=False, help='server link type')
+parser.add_argument('--dsttype', type=str, default='wireless', required=False, help='client link type')
+parser.add_argument('--srclinkspeed', type=str, default='2.5G', required=False, help='client link speed')
 parser.add_argument('-i','--interval', type=float, required=False, default=1, help='iperf report interval')
 parser.add_argument('-l','--length', type=int, required=False, default=None, help='udp payload size')
 parser.add_argument('-n','--runcount', type=int, required=False, default=5, help='number of runs')
@@ -58,16 +62,27 @@ parser.add_argument('--qdisc', type=str, required=False, default='fq', help='set
 parser.add_argument('--tc_bin', type=str, required=False, default='/usr/sbin/tc', help='set the tc command')
 parser.add_argument('--loglevel', type=str, required=False, default='INFO', help='python logging level, e.g. INFO or DEBUG')
 parser.add_argument('--chronyc', dest='chronyc', action='store_true', help='chronyc is available on duts')
-parser.set_defaults(chronyc=True)
+parser.set_defaults(chronyc=False)
+
+def link2speed(txt) :
+    switcher = {
+        "1G" : "1000",
+        "2.5G" : "2500",
+        "5G" : "5000",
+        "10G" : "10000",
+    }
+    return switcher.get(txt.upper(), None)
 
 args = parser.parse_args()
 
 logfilename='test.log'
-if not os.path.exists(args.output_directory):
-    print('Making log directory {}'.format(args.output_directory))
-    os.makedirs(args.output_directory)
+separator = '_'
+datapath = separator.join([args.output_directory, args.srclinkspeed, args.srctype, "to", args.dsttype])
+if not os.path.exists(datapath):
+    print('Making log directory {}'.format(datapath))
+    os.makedirs(datapath)
 
-fqlogfilename = os.path.join(args.output_directory, logfilename)
+fqlogfilename = os.path.join(datapath, logfilename)
 print('Writing log to {}'.format(fqlogfilename))
 
 logging.basicConfig(filename=fqlogfilename, level=logging.INFO, format='%(asctime)s %(levelname)-8s %(module)-9s  %(message)s')
@@ -79,20 +94,27 @@ loop.set_debug(False)
 ssh_node.loop.set_debug(False)
 loop = asyncio.get_event_loop()
 
-plottitle='{} {} {} {} bytes tcpdelay={} qdisc={}'.format(args.title, args.offered_load, args.tos, args.length, args.tcp_tx_delay, args.qdisc)
+plottitle='{} {} {} {} bytes tcpdelay={} qdisc={} {}'.format(args.title, args.offered_load, args.tos, args.length, args.tcp_tx_delay, args.qdisc, datapath)
 
-duta = ssh_node(name='DUTA', ipaddr=args.client, console=True, ssh_speedups=False)
-dutb = ssh_node(name='DUTB', ipaddr=args.server, console=True, ssh_speedups=False)
+duta = ssh_node(name='DUTA', ipaddr=args.client, device=args.srcdev, console=True, ssh_speedups=False)
+dutb = ssh_node(name='DUTB', ipaddr=args.server, device=args.dstdev,console=True, ssh_speedups=False)
 duts = [duta, dutb]
 
-duta.rexec(cmd='/usr/bin/uname -r'.format(args.tc_bin, args.client_dev, args.qdisc))
-dutb.rexec(cmd='/usr/bin/uname -r'.format(args.tc_bin, args.client_dev, args.qdisc))
-duta.rexec(cmd='/usr/local/bin/iperf -v'.format(args.tc_bin, args.client_dev, args.qdisc))
-dutb.rexec(cmd='/usr/local/bin/iperf -v'.format(args.tc_bin, args.client_dev, args.qdisc))
-duta.rexec(cmd='{} qdisc replace dev {} root {}'.format(args.tc_bin, args.client_dev, args.qdisc))
-dutb.rexec(cmd='{} qdisc replace dev {} root {}'.format(args.tc_bin, args.server_dev, args.qdisc))
+ssh_node.open_consoles(silent_mode=False)
+
+duta.rexec(cmd='/usr/bin/uname -r'.format(args.tc_bin, args.srcdev, args.qdisc))
+dutb.rexec(cmd='/usr/bin/uname -r'.format(args.tc_bin, args.srcdev, args.qdisc))
+duta.rexec(cmd='/usr/local/bin/iperf -v')
+dutb.rexec(cmd='/usr/local/bin/iperf -v')
+duta.rexec(cmd='{} qdisc replace dev {} root {}'.format(args.tc_bin, args.srcdev, args.qdisc))
+dutb.rexec(cmd='{} qdisc replace dev {} root {}'.format(args.tc_bin, args.dstdev, args.qdisc))
 duta.rexec(cmd='{} qdisc show'.format(args.tc_bin))
 dutb.rexec(cmd='{} qdisc show'.format(args.tc_bin))
+if args.srclinkspeed:
+    linkspeed = link2speed(args.srclinkspeed)
+    duta.rexec(cmd='/usr/sbin/ethtool -s {} speed {} autoneg off'.format(args.srcdev, linkspeed))
+duta.rexec(cmd='/usr/sbin/ethtool {}'.format(args.srcdev))
+
 if args.chronyc:
     for dut in duts :
         dut.rexec(cmd='/usr/bin/chronyc sources')
