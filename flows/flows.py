@@ -23,7 +23,7 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # Author Robert J. McMahon, Broadcom LTD
-# Date April 2016 - December 2022
+# Date April 2016 - December 2023
 
 import re
 import subprocess
@@ -726,7 +726,7 @@ class iperf_server(object):
         if self.proto == 'UDP' :
             self.sshcmd.extend(['-u'])
         if self.latency :
-            self.sshcmd.extend(['--histograms=100u,100000,5,95'])
+            self.sshcmd.extend(['--histograms=100u,100000,50,95'])
             self.sshcmd.extend(['--jitter-histograms'])
 
         logging.info('{}'.format(str(self.sshcmd)))
@@ -1224,7 +1224,7 @@ class flow_histogram(object):
             for bin in self.bins :
                 x,y = bin.split(':')
                 #logging.debug('bin={} x={} y={}'.format(bin, x, y))
-                if (float(y) > 1.0) or ((cummulative / float(self.population)) <= 1.0) :
+                if (float(y) > 1.0) or ((cummulative / float(self.population)) < 0.99) :
                     cummulative += float(y)
                     perc = cummulative / float(self.population)
                     self.max = float(x) * float(self.binwidth) / 1000.0 # max is the last value
