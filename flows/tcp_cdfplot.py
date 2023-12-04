@@ -39,15 +39,16 @@ from datetime import datetime as datetime, timezone
 from flows import *
 from ssh_nodes import *
 
-parser = argparse.ArgumentParser(description='Run an isochronous UDP data stream')
-parser.add_argument('-s','--server', type=str, default="10.19.85.106", required=False, help='host to run iperf server')
+parser = argparse.ArgumentParser(description='Run and plot a TCP flow')
+parser.add_argument('-s','--server', type=str, default="10.19.85.124", required=False, help='host to run iperf server')
 parser.add_argument('-c','--client', type=str, default="10.19.85.202", required=False, help='host to run iperf client')
 parser.add_argument('--srcip', type=str, default="192.168.1.15",required=False, help='iperf source ip address')
-parser.add_argument('--dstip', type=str, default="192.168.1.231",required=False, help='iperf destination ip address')
+parser.add_argument('--dstip', type=str, default="192.168.1.11",required=False, help='iperf destination ip address')
 parser.add_argument('--srcdev', type=str, default='enp2s0', required=False, help='server device name')
-parser.add_argument('--dstdev', type=str, default='eth1', required=False, help='client device name')
+parser.add_argument('--dstdev', type=str, default='enp2s0f0', required=False, help='client device name')
+#parser.add_argument('--dstdev', type=str, default='eth1', required=False, help='client device name')
 parser.add_argument('--srctype', type=str, default='wired', required=False, help='server link type')
-parser.add_argument('--dsttype', type=str, default='wireless', required=False, help='client link type')
+parser.add_argument('--dsttype', type=str, default='wired', required=False, help='client link type')
 parser.add_argument('--srclinkspeed', type=str, default='2.5G', required=False, help='client link speed')
 parser.add_argument('-i','--interval', type=float, required=False, default=1, help='iperf report interval')
 parser.add_argument('-l','--length', type=int, required=False, default=None, help='udp payload size')
@@ -55,7 +56,7 @@ parser.add_argument('-n','--runcount', type=int, required=False, default=5, help
 parser.add_argument('-t','--time', type=float, default=10, required=False, help='time or duration to run traffic')
 parser.add_argument('-O','--offered_load', type=str, default=None, required=False, help='offered load; <fps>:<mean>,<variance>')
 parser.add_argument('-T','--title', type=str, default="TCP Single Flow CDF", required=False, help='title for graphs')
-parser.add_argument('--tcp_tx_delay', type=str, default='80', required=False, help='enable tcp tx delay')
+parser.add_argument('--tcp_tx_delay', type=str, default=None , required=False, help='enable tcp tx delay')
 parser.add_argument('-S','--tos', type=str, default='ac_be', required=False, help='type of service or access class; BE, VI, VO or BK')
 parser.add_argument('-o','--output_directory', type=str, required=False, default='./data', help='output directory')
 parser.add_argument('--qdisc', type=str, required=False, default='fq', help='set the tc qdisc')
@@ -75,9 +76,18 @@ def link2speed(txt) :
 
 args = parser.parse_args()
 
+if args.dsttype == "wireless" :
+    args.server = '10.19.85.106'
+    args.dstdev = 'eth1'
+    args.dstip = '192.168.1.231'
+else :
+    args.server = '10.19.85.124'
+    args.dstdev = 'enp2s0f0'
+    args.dstip = '192.168.1.11'
+
 logfilename='test.log'
 separator = '_'
-datapath = separator.join([args.output_directory, args.srclinkspeed, args.srctype, "to", args.dsttype])
+datapath = separator.join([args.output_directory, args.srclinkspeed, args.dsttype, "<", args.srctype])
 if not os.path.exists(datapath):
     print('Making log directory {}'.format(datapath))
     os.makedirs(datapath)
@@ -98,6 +108,7 @@ plottitle='{} {} {} {} bytes tcpdelay={} qdisc={} {}'.format(args.title, args.of
 
 duta = ssh_node(name='DUTA', ipaddr=args.client, device=args.srcdev, console=True, ssh_speedups=False)
 dutb = ssh_node(name='DUTB', ipaddr=args.server, device=args.dstdev,console=True, ssh_speedups=False)
+ap = ssh_node(name='AP', ipaddr='192.168.1.1', relay='10.19.85.202', sshtype = 'ush', ssh_speedups=False)
 duts = [duta, dutb]
 
 ssh_node.open_consoles(silent_mode=False)
@@ -110,9 +121,12 @@ duta.rexec(cmd='{} qdisc replace dev {} root {}'.format(args.tc_bin, args.srcdev
 dutb.rexec(cmd='{} qdisc replace dev {} root {}'.format(args.tc_bin, args.dstdev, args.qdisc))
 duta.rexec(cmd='{} qdisc show'.format(args.tc_bin))
 dutb.rexec(cmd='{} qdisc show'.format(args.tc_bin))
+
+
 if args.srclinkspeed:
     linkspeed = link2speed(args.srclinkspeed)
     duta.rexec(cmd='/usr/sbin/ethtool -s {} speed {} autoneg off'.format(args.srcdev, linkspeed))
+    time.sleep(2)
 duta.rexec(cmd='/usr/sbin/ethtool {}'.format(args.srcdev))
 
 if args.chronyc:
@@ -120,16 +134,25 @@ if args.chronyc:
         dut.rexec(cmd='/usr/bin/chronyc sources')
         dut.rexec(cmd='/usr/bin/chronyc tracking')
 
-flows = [iperf_flow(name="TCP", user='root', server=dutb, client=duta, proto='TCP', offered_load=args.offered_load, interval=args.interval, dstip=args.dstip, tos=args.tos, length=args.length, latency=True, tcp_tx_delay=args.tcp_tx_delay)]
+flow1 = iperf_flow(name="TCP1", user='root', server=dutb, client=duta, proto='TCP', offered_load=args.offered_load, interval=args.interval, dstip=args.dstip, tos=args.tos, length=args.length, latency=True, tcp_tx_delay=args.tcp_tx_delay)
+# flow2 = iperf_flow(name="TCP2", user='root', server=dutb, client=duta, proto='TCP', offered_load=args.offered_load, interval=args.interval, dstip=args.dstip, tos=args.tos, length=args.length, latency=True, tcp_tx_delay=args.tcp_tx_delay)
+flows = [flow1]
+
+ap.rexec(cmd='wl -i wl0 status')
+ap.rexec(cmd='wl -i wl0 assoclist')
 
 for i in range(args.runcount) :
     print("Running ({}) traffic with load {} for {} seconds".format(str(i), args.offered_load, args.time))
+    if args.dsttype == "wireless" :
+        ap.rexec(cmd='wl -i wl0 dump_clear ampdu')
     iperf_flow.run(time=args.time, flows='all', preclean=False)
+    if args.dsttype == "wireless" :
+        ap.rexec(cmd='wl -i wl0 dump ampdu')
 
 ssh_node.close_consoles()
 
 for flow in flows :
-    flow.compute_ks_table(directory=args.output_directory, title=plottitle)
+    flow.compute_ks_table(directory=datapath, title=plottitle)
 
 # iperf_flow.plot(title=plottitle, directory=args.output_directory)
 

@@ -175,14 +175,11 @@ class ssh_node:
         self.relay = None
         if relay :
             self.relay = relay
-            self.ssh = ['/usr/bin/ssh', 'root@{}'.format(relay), '/usr/local/bin/ush']
+            self.ssh = ['/usr/bin/ssh', 'root@{}'.format(relay)]
         else :
             self.ssh = []
         if self.sshtype.lower() == 'ush' :
-            if not self.ssh :
-                logging.debug("node add /usr/local/bin/ush")
-                self.ssh.extend(['/usr/local/bin/ush'])
-            logging.debug("ush={} ".format(self.ssh))
+            self.ssh.extend(['/usr/local/bin/ush'])
         elif self.sshtype.lower() == 'ssh' :
             if not self.ssh :
                 logging.debug("node add /usr/bin/ssh")
@@ -484,7 +481,7 @@ class ssh_session:
         self.cmd = cmd
         self.IO_TIMEOUT = IO_TIMEOUT
         self.CMD_TIMEOUT = CMD_TIMEOUT
-        sshcmd = self.ssh
+        sshcmd = self.ssh.copy()
         if self.control_master :
             try:
                 os.remove(str(self.controlmasters))
