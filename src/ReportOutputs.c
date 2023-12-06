@@ -1511,6 +1511,7 @@ void udp_output_basic_csv (struct TransferInfo *stats) {
 	    stats->cntError,
 	    stats->cntDatagrams,
 	    (100.0 * stats->cntError) / stats->cntDatagrams, stats->cntOutofOrder );
+    fflush(stdout);
 }
 
 void udp_output_enhanced_csv (struct TransferInfo *stats) {
@@ -1534,6 +1535,7 @@ void udp_output_enhanced_csv (struct TransferInfo *stats) {
 	   stats->sock_callstats.write.WriteCnt,
 	   stats->sock_callstats.write.WriteErr,
 	   (stats->cntIPG ? (stats->cntIPG / stats->IPGsum) : 0.0));
+    fflush(stdout);
 }
 
 void tcp_output_basic_csv (struct TransferInfo *stats) {
@@ -1548,6 +1550,7 @@ void tcp_output_basic_csv (struct TransferInfo *stats) {
 	   stats->ts.iEnd,
 	   stats->cntBytes,
 	   speed);
+    fflush(stdout);
 }
 
 void tcp_output_read_enhanced_csv (struct TransferInfo *stats) {
@@ -1572,6 +1575,7 @@ void tcp_output_read_enhanced_csv (struct TransferInfo *stats) {
 	   stats->sock_callstats.read.bins[5],
 	   stats->sock_callstats.read.bins[6],
 	   stats->sock_callstats.read.bins[7]);
+    fflush(stdout);
 }
 
 void tcp_output_write_enhanced_csv (struct TransferInfo *stats) {
@@ -1643,6 +1647,7 @@ void tcp_output_write_enhanced_csv (struct TransferInfo *stats) {
 	       0);
     }
 #endif
+    fflush(stdout);
 }
 
 void tcp_output_write_bb_csv (struct TransferInfo *stats) {
