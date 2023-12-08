@@ -555,17 +555,37 @@ void tcp_output_write_bb (struct TransferInfo *stats) {
 	       rps_string,
 	       (stats->common->Omit ? report_omitted : ""));
 #endif
-	if (stats->bbowdto_histogram) {
-	    stats->bbowdto_histogram->final = 0;
-	    histogram_print(stats->bbowdto_histogram, stats->ts.iStart, stats->ts.iEnd);
+	if (isTripTime(stats->common)) {
+	    printf(report_client_bb_bw_triptime_format, stats->common->transferIDStr,
+		   stats->ts.iStart, stats->ts.iEnd,
+		   stats->bbowdto.current.cnt,
+		   (stats->bbowdto.current.mean * 1e3),
+		   (stats->bbowdto.current.cnt < 2) ? 0 : (stats->bbowdto.current.min * 1e3),
+		   (stats->bbowdto.current.cnt < 2) ? 0 : (stats->bbowdto.current.max * 1e3),
+		   (stats->bbowdto.current.cnt < 2) ? 0 : 1e3 * (sqrt(stats->bbowdto.current.m2 / (stats->bbowdto.current.cnt - 1))),
+		   (stats->bbowdfro.current.mean * 1e3),
+		   (stats->bbowdfro.current.cnt < 2) ? 0 : (stats->bbowdfro.current.min * 1e3),
+		   (stats->bbowdfro.current.cnt < 2) ? 0 : (stats->bbowdfro.current.max * 1e3),
+		   (stats->bbowdfro.current.cnt < 2) ? 0 : 1e3 * (sqrt(stats->bbowdfro.current.m2 / (stats->bbowdfro.current.cnt - 1))),
+		   (stats->bbasym.current.mean * 1e3),
+		   (stats->bbasym.current.cnt < 2) ? 0 : (stats->bbasym.current.min * 1e3),
+		   (stats->bbasym.current.cnt < 2) ? 0 : (stats->bbasym.current.max * 1e3),
+		   (stats->bbasym.current.cnt < 2) ? 0 : 1e3 * (sqrt(stats->bbasym.current.m2 / (stats->bbasym.current.cnt - 1))),
+		   (stats->common->Omit ? report_omitted : ""));
 	}
-	if (stats->bbowdfro_histogram) {
-	    stats->bbowdfro_histogram->final = 0;
-	    histogram_print(stats->bbowdfro_histogram, stats->ts.iStart, stats->ts.iEnd);
-	}
-	if (stats->bbrtt_histogram) {
-	    stats->bbrtt_histogram->final = 0;
-	    histogram_print(stats->bbrtt_histogram, stats->ts.iStart, stats->ts.iEnd);
+	if (isHistogram(stats->common)) {
+	    if (stats->bbowdto_histogram) {
+		stats->bbowdto_histogram->final = 0;
+		histogram_print(stats->bbowdto_histogram, stats->ts.iStart, stats->ts.iEnd);
+	    }
+	    if (stats->bbowdfro_histogram) {
+		stats->bbowdfro_histogram->final = 0;
+		histogram_print(stats->bbowdfro_histogram, stats->ts.iStart, stats->ts.iEnd);
+	    }
+	    if (stats->bbrtt_histogram) {
+		stats->bbrtt_histogram->final = 0;
+		histogram_print(stats->bbrtt_histogram, stats->ts.iStart, stats->ts.iEnd);
+	    }
 	}
     }
     fflush(stdout);

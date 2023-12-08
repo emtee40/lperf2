@@ -986,6 +986,9 @@ void reporter_handle_packet_bb_client (struct ReporterData *data, struct ReportS
 	    reporter_update_mmm(&stats->bbowdto.total, bbowdto);
 	    reporter_update_mmm(&stats->bbowdfro.total, bbowdfro);
 	    reporter_update_mmm(&stats->bbasym.total, fabs(asym));
+	    reporter_update_mmm(&stats->bbowdto.current, bbowdto);
+	    reporter_update_mmm(&stats->bbowdfro.current, bbowdfro);
+	    reporter_update_mmm(&stats->bbasym.current, fabs(asym));
 	    if (stats->bbowdto_histogram) {
 		histogram_insert(stats->bbowdto_histogram, bbowdto, NULL);
 	    }
