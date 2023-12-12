@@ -25,7 +25,7 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # Author Robert J. McMahon, Broadcom LTD
-# Date Sept 2023
+# Date Dec 2023
 import shutil
 import logging
 import flows
@@ -92,7 +92,6 @@ if not os.path.exists(datapath):
 fqlogfilename = os.path.join(datapath, logfilename)
 print('Writing log to {}'.format(fqlogfilename))
 
-
 logging.basicConfig(filename=fqlogfilename, level=logging.INFO, format='%(asctime)s %(levelname)-8s %(module)-9s  %(message)s')
 
 logging.getLogger('asyncio').setLevel(logging.INFO)
@@ -103,7 +102,6 @@ ssh_node.loop.set_debug(False)
 loop = asyncio.get_event_loop()
 
 plottitle='{} {} {} {} {} bytes qdisc={} {}'.format(args.title, args.dsttype, args.offered_load, args.tos, args.length, args.qdisc, datapath)
-
 
 duta = ssh_node(name='DUTA', ipaddr=args.client, device='enp2s0', console=True, ssh_speedups=False)
 dutb = ssh_node(name='DUTB', ipaddr=args.server, device='eth1', console=True, ssh_speedups=False)
@@ -128,16 +126,8 @@ duta.rexec(cmd='/usr/sbin/ethtool {}'.format(args.srcdev))
 
 flows = [iperf_flow(name="UDP", user='root', server=dutb, client=duta, proto='UDP', offered_load=args.offered_load, interval=args.interval, dstip=args.dstip, tos=args.tos, length=args.length, latency=True, window=args.window)]
 
-ap.rexec(cmd='wl -i wl0 status')
-ap.rexec(cmd='wl -i wl0 assoclist')
-
 for i in range(args.runcount) :
-    print("Running ({}) traffic with load {} for {} seconds".format(str(i), args.offered_load, args.time))
-    if args.dsttype == "wireless" :
-        ap.rexec(cmd='wl -i wl0 dump_clear ampdu')
     iperf_flow.run(time=args.time, flows='all', preclean=False)
-    if args.dsttype == "wireless" :
-        ap.rexec(cmd='wl -i wl0 dump ampdu')
 
 ssh_node.close_consoles()
 
