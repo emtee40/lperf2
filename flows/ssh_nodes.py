@@ -172,7 +172,6 @@ class ssh_node:
             self.controlmasters = None
         self.ssh_console_session = None
 
-        self.relay = None
         if relay :
             self.relay = relay
             self.ssh = ['/usr/bin/ssh', 'root@{}'.format(relay)]
@@ -190,20 +189,6 @@ class ssh_node:
 
         ssh_node.instances.add(self)
 
-    def wl (self, cmd) :
-        if self.device :
-            results=self.rexec(cmd='/usr/bin/wl -i {} {}'.format(self.device, cmd))
-        else :
-            results=self.rexec(cmd='/usr/bin/wl {}'.format(cmd))
-        return results
-
-    def dhd (self, cmd) :
-        if self.device :
-            results=self.rexec(cmd='/usr/bin/dhd -i {} {}'.format(self.device, cmd))
-        else :
-            results=self.rexec(cmd='/usr/bin/dhd {}'.format(cmd))
-        return results
-
     def rexec(self, cmd='pwd', IO_TIMEOUT=DEFAULT_IO_TIMEOUT, CMD_TIMEOUT=DEFAULT_CMD_TIMEOUT, CONNECT_TIMEOUT=DEFAULT_CONNECT_TIMEOUT, run_now=True) :
         io_timer = IO_TIMEOUT
         cmd_timer = CMD_TIMEOUT
@@ -212,6 +197,9 @@ class ssh_node:
         this_future = asyncio.ensure_future(this_session.post_cmd(cmd=cmd, IO_TIMEOUT=io_timer, CMD_TIMEOUT=cmd_timer), loop=ssh_node.loop)
         if run_now:
             ssh_node.loop.run_until_complete(asyncio.wait([this_future], timeout=CMD_TIMEOUT))
+            if this_future.done() :
+                return this_future.result()
+
         else:
             ssh_node.rexec_tasks.append(this_future)
             self.my_futures.append(this_future)
@@ -398,6 +386,7 @@ class ssh_session:
             logging.debug('{} subprocess with pid={} closed'.format(self._session.name, self._mypid))
             self._exited = True
             self._mypid = None
+            self.setresult(self._stdout_buffer)
             self.signal_exit()
 
         def wd_timer(self, type=None):
