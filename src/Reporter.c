@@ -1314,7 +1314,10 @@ void reporter_transfer_protocol_server_udp (struct ReporterData *data, int final
 	sumstats->total.IPG.current += stats->cntIPG;
 	if (sumstats->IPGsum < stats->IPGsum)
 	    sumstats->IPGsum = stats->IPGsum;
-	sumstats->threadcnt++;
+	if (final)
+	  sumstats->threadcntfinal++;
+	else
+	  sumstats->threadcnt++;
 	sumstats->iInP += stats->iInP;
 	sumstats->sock_callstats.read.cntRead += stats->sock_callstats.read.cntRead;
 	sumstats->sock_callstats.read.cntReadTimeo += stats->sock_callstats.read.cntReadTimeo;
@@ -1459,7 +1462,7 @@ void reporter_transfer_protocol_sum_client_udp (struct TransferInfo *stats, int 
 	stats->threadcnt = 0;
 	reporter_reset_transfer_stats_client_udp(stats);
     } else if ((stats->common->ReportMode != kReport_CSV) && !(stats->isMaskOutput)) {
-	printf(report_sumcnt_datagrams, stats->threadcnt, stats->total.Datagrams.current);
+      printf(report_sumcnt_datagrams, (stats->final ? stats->threadcntfinal : stats->threadcnt), stats->total.Datagrams.current);
 	fflush(stdout);
     }
 }
@@ -1488,7 +1491,10 @@ void reporter_transfer_protocol_client_udp (struct ReporterData *data, int final
 	if (sumstats->IPGsum < stats->IPGsum)
 	    sumstats->IPGsum = stats->IPGsum;
 	sumstats->total.IPG.current += stats->cntIPG;
-	sumstats->threadcnt++;
+	if (final)
+	  sumstats->threadcntfinal++;
+	else
+	  sumstats->threadcnt++;
     }
     if (fullduplexstats) {
 	fullduplexstats->total.Bytes.current += stats->cntBytes;
@@ -1554,7 +1560,11 @@ void reporter_transfer_protocol_server_tcp (struct ReporterData *data, int final
         stats->sock_callstats.read.cntRead = stats->sock_callstats.read.ReadCnt.current;
     }
     if (sumstats) {
-	sumstats->threadcnt++;
+        if (final)
+	    sumstats->threadcntfinal++;
+	else
+	    sumstats->threadcnt++;
+
 	sumstats->total.Bytes.current += stats->cntBytes;
         sumstats->sock_callstats.read.ReadCnt.current += stats->sock_callstats.read.cntRead;
         for (ix = 0; ix < TCPREADBINCOUNT; ix++) {
@@ -1651,7 +1661,10 @@ void reporter_transfer_protocol_client_tcp (struct ReporterData *data, int final
 	sumstats->sock_callstats.write.WriteCnt += stats->sock_callstats.write.WriteCnt;
 	sumstats->sock_callstats.write.totWriteErr += stats->sock_callstats.write.WriteErr;
 	sumstats->sock_callstats.write.totWriteCnt += stats->sock_callstats.write.WriteCnt;
-	sumstats->threadcnt++;
+	if (final)
+	  sumstats->threadcntfinal++;
+	else
+	  sumstats->threadcnt++;
 #if HAVE_TCP_STATS
 	sumstats->sock_callstats.write.tcpstats.retry += stats->sock_callstats.write.tcpstats.retry;
 	sumstats->sock_callstats.write.tcpstats.retry_tot += stats->sock_callstats.write.tcpstats.retry;
