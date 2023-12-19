@@ -9961,6 +9961,54 @@ then :
 fi
 
 
+ac_fn_c_check_member "$LINENO" "struct tcp_info" "tcpi_delivered" "ac_cv_member_struct_tcp_info_tcpi_delivered" "
+#include <linux/tcp.h>
+
+"
+if test "x$ac_cv_member_struct_tcp_info_tcpi_delivered" = xyes
+then :
+
+printf "%s\n" "#define HAVE_STRUCT_TCP_INFO_TCPI_DELIVERED 1" >>confdefs.h
+
+
+fi
+
+ac_fn_c_check_member "$LINENO" "struct tcp_info" "tcpi_delivered_ce" "ac_cv_member_struct_tcp_info_tcpi_delivered_ce" "
+#include <linux/tcp.h>
+
+"
+if test "x$ac_cv_member_struct_tcp_info_tcpi_delivered_ce" = xyes
+then :
+
+printf "%s\n" "#define HAVE_STRUCT_TCP_INFO_TCPI_DELIVERED_CE 1" >>confdefs.h
+
+
+fi
+
+ac_fn_c_check_member "$LINENO" "struct tcp_info" "tcpi_dsack_dups" "ac_cv_member_struct_tcp_info_tcpi_dsack_dups" "
+#include <linux/tcp.h>
+
+"
+if test "x$ac_cv_member_struct_tcp_info_tcpi_dsack_dups" = xyes
+then :
+
+printf "%s\n" "#define HAVE_STRUCT_TCP_INFO_TCPI_DSACK_DUPS 1" >>confdefs.h
+
+
+fi
+
+ac_fn_c_check_member "$LINENO" "struct tcp_info" "tcpi_data_segs_out" "ac_cv_member_struct_tcp_info_tcpi_data_segs_out" "
+#include <linux/tcp.h>
+
+"
+if test "x$ac_cv_member_struct_tcp_info_tcpi_data_segs_out" = xyes
+then :
+
+printf "%s\n" "#define HAVE_STRUCT_TCP_INFO_TCPI_DATA_SEGS_OUT 1" >>confdefs.h
+
+
+fi
+
 ac_fn_c_check_member "$LINENO" "struct tcp_info" "tcpi_total_retrans" "ac_cv_member_struct_tcp_info_tcpi_total_retrans" "
 #include <netinet/in.h>
 #include <netinet/tcp.h>

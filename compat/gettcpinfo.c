@@ -42,6 +42,16 @@
  * gettcpinfo.c
  * Suppport for tcp info in a portable way
  *
+ * Hi Bob,
+ *
+ * I would suggest that the most interesting metrics from tcp_info would be:
+ *
+ * double ecn_mark_rate = (double)tcpi_delivered_ce / (double)tcpi_delivered
+ * double retransmit_rate = (double)(tcpi_total_retrans - tcpi_dsack_dups) / (double)tcpi_data_segs_out
+ * double smoothed_rtt = tcpi_rtt
+ *
+ * neal
+ *
  * by Robert J. McMahon (rjmcmahon@rjmcmahon.com, bob.mcmahon@broadcom.com)
  * -------------------------------------------------------------------
  */

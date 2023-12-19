@@ -294,6 +294,18 @@ AC_CHECK_MEMBER([struct tcp_info.tcpi_total_retrans], [], [],[
 #include <netinet/tcp.h>
 ])
 
+AC_CHECK_MEMBERS([struct tcp_info.tcpi_delivered], [], [],[
+#include <linux/tcp.h>
+])
+AC_CHECK_MEMBERS([struct tcp_info.tcpi_delivered_ce], [], [],[
+#include <linux/tcp.h>
+])
+AC_CHECK_MEMBERS([struct tcp_info.tcpi_dsack_dups], [], [],[
+#include <linux/tcp.h>
+])
+AC_CHECK_MEMBERS([struct tcp_info.tcpi_data_segs_out], [], [],[
+#include <linux/tcp.h>
+])
 AC_CHECK_MEMBERS([struct tcp_info.tcpi_total_retrans], [], [],[
 #include <netinet/in.h>
 #include <netinet/tcp.h>
