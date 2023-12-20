@@ -402,7 +402,7 @@ void SetSocketOptionsIPTos (struct thread_Settings *mSettings, int tos) {
  */
 void SetSocketTcpTxDelay(struct thread_Settings *mSettings, int delay) {
 #if HAVE_DECL_TCP_TX_DELAY
-    int rc = setsockopt(mSettings->mSock, SOL_TCP, TCP_TX_DELAY, &delay, sizeof(delay));
+    int rc = setsockopt(mSettings->mSock, IPPROTO_TCP, TCP_TX_DELAY, &delay, sizeof(delay));
     if (rc == SOCKET_ERROR) {
 	fprintf(stderr, "Fail on TCP_TX_DELAY for sock %d\n", mSettings->mSock);
     }

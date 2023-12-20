@@ -8576,6 +8576,12 @@ then :
   printf "%s\n" "#define HAVE_LINUX_UDP_H 1" >>confdefs.h
 
 fi
+ac_fn_c_check_header_compile "$LINENO" "linux/tcp.h" "ac_cv_header_linux_tcp_h" "$ac_includes_default"
+if test "x$ac_cv_header_linux_tcp_h" = xyes
+then :
+  printf "%s\n" "#define HAVE_LINUX_TCP_H 1" >>confdefs.h
+
+fi
 ac_fn_c_check_header_compile "$LINENO" "linux/if_packet.h" "ac_cv_header_linux_if_packet_h" "$ac_includes_default"
 if test "x$ac_cv_header_linux_if_packet_h" = xyes
 then :
