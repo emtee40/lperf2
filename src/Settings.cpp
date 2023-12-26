@@ -1659,6 +1659,11 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 		bail = true;
 	    }
 	}
+	if (isTripTime(mExtSettings) && (mExtSettings->mBufLen < static_cast<int> (sizeof(struct TCP_burst_payload)))) {
+	    fprintf(stderr, "ERROR: payload (-l) size of %d too small for --trip-times, must be %d or greater\n",\
+		    mExtSettings->mBufLen, static_cast<int> (sizeof(struct TCP_burst_payload)));
+	    bail = true;
+	}
 	if (isBounceBack(mExtSettings)) {
 	    if (static_cast<int> (mExtSettings->mBurstSize) > 0) {
 		fprintf(stderr, "WARN: options of --burst-size for bounce-back ignored, use -l sets size\n");

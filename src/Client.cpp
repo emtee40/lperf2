@@ -932,8 +932,7 @@ void Client::RunNearCongestionTCP () {
 void Client::RunRateLimitedTCP () {
     double tokens = 0;
     Timestamp time1, time2;
-    int burst_size = mSettings->mBufLen;
-    int burst_remaining = 0;
+    int write_remaining = 0;
     int burst_id = 1;
 
     long var_rate = mSettings->mAppRate;
@@ -966,13 +965,17 @@ void Client::RunRateLimitedTCP () {
 	    // perform write
 	    int len = 0;
 	    int len2 = 0;
-	    if (burst_remaining == 0) {
-		burst_remaining = mSettings->mBufLen;
+
+	    if (isburst && !(write_remaining > 0)) {
+		write_remaining = mSettings->mBufLen;
+		// check for TCP minimum payload
+		if (write_remaining < static_cast<int>(sizeof(struct TCP_burst_payload)))
+		    write_remaining = static_cast<int>(sizeof(struct TCP_burst_payload));
 		now.setnow();
 		reportstruct->packetTime.tv_sec = now.getSecs();
 		reportstruct->packetTime.tv_usec = now.getUsecs();
 		reportstruct->sentTime = reportstruct->packetTime;
-		WriteTcpTxHdr(reportstruct, burst_size, burst_id++);
+		WriteTcpTxHdr(reportstruct, static_cast<int>(sizeof(struct TCP_burst_payload)), burst_id++);
 		// perform write
 		// perform write, full header must succeed
 		if (isTcpWriteTimes(mSettings)) {
@@ -983,13 +986,8 @@ void Client::RunRateLimitedTCP () {
 		    AwaitSelectWrite();
 		}
 #endif
-		if (isTripTime(mSettings)) {
-		    len = writen(mySocket, mSettings->mBuf, mSettings->mBufLen, &reportstruct->writecnt);
-		    WARN(len != mSettings->mBufLen, "burst write failed");
-		} else {
-		    len = writen(mySocket, mSettings->mBuf, sizeof(struct TCP_burst_payload), &reportstruct->writecnt);
-		    WARN(len != sizeof(struct TCP_burst_payload), "burst hdr write failed");
-		}
+		len = writen(mySocket, mSettings->mBuf, write_remaining, &reportstruct->writecnt);
+		WARN((len < static_cast<int> (sizeof(struct TCP_burst_payload))), "burst hdr write failed");
 		if (isTcpWriteTimes(mSettings)) {
 		    now.setnow();
 		    reportstruct->write_time = now.subUsec(write_start);
@@ -1007,13 +1005,13 @@ void Client::RunRateLimitedTCP () {
 			reportstruct->err_readwrite=WriteNoAccount;
 		    }
 		} else {
-		    burst_remaining -= len;
+		    write_remaining -= len;
 		}
 		// thread_debug("***write burst header %d id=%d", burst_size, (burst_id - 1));
-	    } else if (reportstruct->packetLen > burst_remaining) {
-		reportstruct->packetLen = burst_remaining;
+	    } else {
+		write_remaining = mSettings->mBufLen;
 	    }
-	    if (burst_remaining > 0) {
+	    if (write_remaining > 0) {
 		if (isTcpWriteTimes(mSettings)) {
 		    write_start.setnow();
 		}
@@ -1022,7 +1020,7 @@ void Client::RunRateLimitedTCP () {
 		    AwaitSelectWrite();
 		}
 #endif
-		len2 = write(mySocket, mSettings->mBuf, reportstruct->packetLen);
+		len2 = write(mySocket, mSettings->mBuf, write_remaining);
 		if (isTcpWriteTimes(mSettings)) {
 		    now.setnow();
 		    reportstruct->write_time = now.subUsec(write_start);
