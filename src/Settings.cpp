@@ -2313,7 +2313,7 @@ void Settings_GenerateClientSettings (struct thread_Settings *server, struct thr
 	thread_debug("header set for a version 1 test");
 #endif
     if (isFullDuplex(server) || isServerReverse(server))
-	setTransferID(server, 1);
+	setTransferID(server, REVERSED);
     if (isFullDuplex(server) || v1test) {
 	Settings_Copy(server, client, SHALLOW_COPY);
 	reversed_thread = *client;

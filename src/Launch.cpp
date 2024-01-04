@@ -167,7 +167,7 @@ void server_spawn(struct thread_Settings *thread) {
 }
 
 static void clientside_client_basic (struct thread_Settings *thread, Client *theClient) {
-    setTransferID(thread, 0);
+    setTransferID(thread, NORMAL);
 #ifdef HAVE_THREAD_DEBUG
     if (isBounceBack(thread)) {
 	thread_debug("Launch: spawn client bounce-back mode, size = %d", thread->mBurstSize);
@@ -190,7 +190,7 @@ static void clientside_client_basic (struct thread_Settings *thread, Client *the
 
 static void clientside_client_reverse (struct thread_Settings *thread,  \
 				       struct thread_Settings *reverse_client, Client *theClient) {
-    setTransferID(thread, 0);
+    setTransferID(thread, NORMAL);
     SockAddr_remoteAddr(thread);
     theClient->my_connect(true);
 #ifdef HAVE_THREAD_DEBUG
@@ -201,7 +201,7 @@ static void clientside_client_reverse (struct thread_Settings *thread,  \
 	theClient->BarrierClient(thread->connects_done);
     if (theClient->isConnected()) {
 	FAIL((!reverse_client || !(thread->mSock > 0)), "Reverse test failed to start per thread settings or socket problem",  thread);
-	setTransferID(reverse_client, 1);
+	setTransferID(reverse_client, REVERSED);
 	theClient->StartSynch();
 	reverse_client->mSock = thread->mSock; // use the same socket for both directions
 	reverse_client->mThreadMode = kMode_Server;
@@ -219,7 +219,7 @@ static void clientside_client_reverse (struct thread_Settings *thread,  \
 
 static void clientside_client_fullduplex (struct thread_Settings *thread, \
 					  struct thread_Settings *reverse_client, Client *theClient) {
-    setTransferID(thread, 0);
+    setTransferID(thread, NORMAL);
     SockAddr_remoteAddr(thread);
     if (!isBounceBack(thread)) {
         thread->mFullDuplexReport = InitSumReport(thread, -1, 1);
@@ -231,7 +231,7 @@ static void clientside_client_fullduplex (struct thread_Settings *thread, \
 	Iperf_push_host(reverse_client);
     }
     assert(reverse_client != NULL);
-    setTransferID(reverse_client, 1);
+    setTransferID(reverse_client, REVERSED);
     theClient->my_connect(true);
 #ifdef HAVE_THREAD_DEBUG
     thread_debug("Launch: client spawn thread fullduplex (sock=%d)", thread->mSock);
@@ -259,7 +259,7 @@ static void serverside_client_fullduplex (struct thread_Settings *thread, Client
 #ifdef HAVE_THREAD_DEBUG
     thread_debug("Launch: Listener spawn client thread (fd sock=%d)", thread->mSock);
 #endif
-    setTransferID(thread, 1);
+    setTransferID(thread, REVERSED);
     if (theClient->StartSynch() != -1) {
 	theClient->Run();
     }
@@ -269,7 +269,7 @@ static void serverside_client_bidir (struct thread_Settings *thread, Client *the
 #ifdef HAVE_THREAD_DEBUG
     thread_debug("Launch: Listener spawn client thread (bidir sock=%d)", thread->mSock);
 #endif
-    setTransferID(thread, 1);
+    setTransferID(thread, REVERSED);
     SockAddr_zeroAddress(&thread->peer);
     SockAddr_remoteAddr(thread);
     if (thread->mReportMode == kReport_CSV) {
@@ -313,7 +313,7 @@ void client_spawn (struct thread_Settings *thread) {
     thread_setscheduler(thread);
 #endif
     // start up the client
-    setTransferID(thread, 0);
+    setTransferID(thread, NORMAL);
     theClient = new Client(thread);
     // let the reporter thread go first in the case of -P greater than 1
     Condition_Lock(reporter_state.await);

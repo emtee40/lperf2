@@ -192,7 +192,7 @@ static void free_common_copy (struct ReportCommon *common) {
 // on the setting object. If the current id is zero
 // this will get the next one. Otherwise it will use
 // the value.
-void setTransferID (struct thread_Settings *inSettings, int role_reversal) {
+void setTransferID (struct thread_Settings *inSettings, enum TansferIDType traffic_direction) {
     if (!inSettings->mTransferIDStr) {
 	if (!inSettings->mTransferID) {
 	    Mutex_Lock(&transferid_mutex);
@@ -200,7 +200,7 @@ void setTransferID (struct thread_Settings *inSettings, int role_reversal) {
 	    Mutex_Unlock(&transferid_mutex);
 	}
 	int len = 0;
-	if (role_reversal)  {
+	if (traffic_direction == REVERSED)  {
 #ifdef HAVE_ROLE_REVERSAL_ID
 	    if (isPermitKey(inSettings) && (inSettings->mPermitKey[0] != '\0')) {
 		len = snprintf(NULL, 0, "[%s(*%d)] ", \

@@ -310,7 +310,7 @@ void Listener::Run () {
 	if (isUDP(server) && isCompat(mSettings)) {
 	    setSeqNo64b(server);
 	}
-	setTransferID(server, 0);
+	setTransferID(server, NORMAL);
 	if ((mSettings->mReportMode == kReport_CSV) && server->mSumReport && !server->mSumReport->sum_reverse_set) {
 	    format_ips_port_string(&server->mSumReport->info, 1);
 	    server->mSumReport->sum_reverse_set = true;
@@ -335,7 +335,7 @@ void Listener::Run () {
 	    if (listener_client_settings) {
 		if (server->mMode != kTest_Normal)
 		    listener_client_settings->mTransferID = 0;
-		setTransferID(listener_client_settings, 1);
+		setTransferID(listener_client_settings, REVERSED);
 		if (isFullDuplex(listener_client_settings) || isReverse(listener_client_settings))
 		    Iperf_push_host(listener_client_settings);
 		if (isFullDuplex(server)) {
@@ -369,7 +369,7 @@ void Listener::Run () {
 		}
 	    }
 	}
-	setTransferID(server, 0);
+	setTransferID(server, NORMAL);
 	if (isConnectionReport(server) && !isSumOnly(server)) {
 	    struct ReportHeader *reporthdr = InitConnectionReport(server);
 	    struct ConnectionInfo *cr = static_cast<struct ConnectionInfo *>(reporthdr->this_report);
