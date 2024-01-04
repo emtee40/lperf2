@@ -409,7 +409,7 @@ void SetSocketTcpTxDelay(struct thread_Settings *mSettings, int delay) {
 #ifdef HAVE_THREAD_DEBUG
       else {
         Socklen_t len = sizeof(delay);
-	rc = getsockopt(mSettings->mSock, SOL_TCP, TCP_TX_DELAY, reinterpret_cast<char*>(&delay), &len);
+	rc = getsockopt(mSettings->mSock, IPPROTO_TCP, TCP_TX_DELAY, reinterpret_cast<char*>(&delay), &len);
 	thread_debug("TCP_TX_DELAY set to %d for sock %d", (int) delay, mSettings->mSock);
     }
 #endif
