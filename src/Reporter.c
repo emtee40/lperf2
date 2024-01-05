@@ -1462,7 +1462,7 @@ void reporter_transfer_protocol_sum_client_udp (struct TransferInfo *stats, int 
 	stats->threadcnt = 0;
 	reporter_reset_transfer_stats_client_udp(stats);
     } else if ((stats->common->ReportMode != kReport_CSV) && !(stats->isMaskOutput)) {
-      printf(report_sumcnt_datagrams, (stats->final ? stats->threadcntfinal : stats->threadcnt), stats->total.Datagrams.current);
+	printf(report_sumcnt_datagrams, (stats->final ? stats->threadcntfinal : stats->threadcnt), stats->total.Datagrams.current);
 	fflush(stdout);
     }
 }

@@ -341,6 +341,8 @@ struct SumReport* InitSumReport(struct thread_Settings *inSettings, int inID, in
     // sumreport->info.common->transferID = inID; // this is now set in the active code
     sumreport->info.threadcnt = 0;
     sumreport->info.isMaskOutput = false;
+    sumreport->info.sumreport = sumreport;
+    sumreport->info.type = SUM_REPORT;
     if (inSettings->mReportMode == kReport_CSV) {
         format_ips_port_string(&sumreport->info, 1);
     }
@@ -592,9 +594,11 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
     }
     // Copy common settings into the transfer report section
     common_copy(&ireport->info.common, inSettings);
+    ireport->info.sumreport = inSettings->mSumReport;
     ireport->info.final = false;
     ireport->info.burstid_transition = false;
     ireport->info.isEnableTcpInfo = false;
+    ireport->info.type = DATA_REPORT;
 
     // Create a new packet ring which is used to communicate
     // packet stats from the traffic thread to the reporter

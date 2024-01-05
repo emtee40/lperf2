@@ -345,6 +345,8 @@ struct TransferInfo {
     struct ReportCommon *common;
     struct ReportTimeStamps ts;
     void (*output_handler) (struct TransferInfo *stats);
+    struct SumReport *sumreport;
+    enum ReportType type;
     int groupID;
     int threadcnt;
     int threadcntfinal;
