@@ -139,16 +139,24 @@ void reporter_default_heading_flags (int flag) {
 //
 // flush when
 //
-// o) there is a sum report and one or less traffic threads
+// o) it's a final report
 // o) this is the sum report (all preceding interval reports need flush)
-// o) there isn't a sum report
-// o) report interval is one second or greater
-// o) It's a final report
+// o) the time since the last flush is equal or larger to the smallest allowed report interval
 //
-static inline void check_flush (struct TransferInfo *stats) {
-    if ((!(stats->ts.intervalTime.tv_sec < 1) || !stats->sumreport) || stats->final ||\
-	(stats->sumreport && ((stats->type == SUM_REPORT) || (stats->sumreport->reference.count < 2)))) {
+static inline void cond_flush (struct TransferInfo *stats) {
+    static struct timeval prev={0,0};
+    struct timeval now={0,0};
+#ifdef HAVE_CLOCK_GETTIME
+    struct timespec t1;
+    clock_gettime(CLOCK_REALTIME, &t1);
+    now.tv_sec  = t1.tv_sec;
+    now.tv_usec = t1.tv_nsec / 1000;
+#else
+    gettimeofday(&now, NULL);
+#endif
+    if (stats->final || (stats->type == SUM_REPORT) || !(TimeDifferenceUsec(now, prev) < SMALLEST_INTERVAL)) {
 	fflush(stdout);
+	prev = now;
     }
 }
 
@@ -235,27 +243,27 @@ void tcp_output_fullduplex (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_bw);
     _print_stats_common(stats);
     printf(report_bw_sum_fullduplex_format, stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd, outbuffer, outbufferext, (stats->common->Omit ? report_omitted : ""));
-    check_flush(stats);}
+    cond_flush(stats);}
 
 void tcp_output_fullduplex_sum (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_bw);
     _print_stats_common(stats);
     printf(report_sum_bw_format, stats->ts.iStart, stats->ts.iEnd, outbuffer, outbufferext, (stats->common->Omit ? report_omitted : ""));
-    check_flush(stats);
+    cond_flush(stats);
 }
 
 void tcp_output_fullduplex_enhanced (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_bw);
     _print_stats_common(stats);
     printf(report_bw_sum_fullduplex_enhanced_format, stats->common->transferID, stats->ts.iStart, stats->ts.iEnd, outbuffer, outbufferext, (stats->common->Omit ? report_omitted : ""));
-    check_flush(stats);
+    cond_flush(stats);
 }
 
 void tcp_output_read (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_bw);
     _print_stats_common(stats);
     printf(report_bw_format, stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd, outbuffer, outbufferext, (stats->common->Omit ? report_omitted : ""));
-    check_flush(stats);
+    cond_flush(stats);
 }
 //TCP read or server output
 void tcp_output_read_enhanced (struct TransferInfo *stats) {
@@ -274,7 +282,7 @@ void tcp_output_read_enhanced (struct TransferInfo *stats) {
 	   stats->sock_callstats.read.bins[6],
 	   stats->sock_callstats.read.bins[7],
 	   (stats->common->Omit ? report_omitted : ""));
-    check_flush(stats);
+    cond_flush(stats);
 }
 void tcp_output_read_triptime (struct TransferInfo *stats) {
     double meantransit;
@@ -334,7 +342,7 @@ void tcp_output_read_triptime (struct TransferInfo *stats) {
     if (stats->framelatency_histogram) {
 	histogram_print(stats->framelatency_histogram, stats->ts.iStart, stats->ts.iEnd);
     }
-    check_flush(stats);
+    cond_flush(stats);
 }
 void tcp_output_read_enhanced_isoch (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_bw_isoch_enhanced_netpwr);
@@ -390,7 +398,7 @@ void tcp_output_read_enhanced_isoch (struct TransferInfo *stats) {
     if (stats->framelatency_histogram) {
 	histogram_print(stats->framelatency_histogram, stats->ts.iStart, stats->ts.iEnd);
     }
-    check_flush(stats);
+    cond_flush(stats);
 }
 
 void tcp_output_frame_read (struct TransferInfo *stats) {
@@ -409,7 +417,7 @@ void tcp_output_frame_read (struct TransferInfo *stats) {
 	   stats->sock_callstats.read.bins[6],
 	   stats->sock_callstats.read.bins[7],
 	   (stats->common->Omit ? report_omitted : ""));
-    check_flush(stats);
+    cond_flush(stats);
 }
 void tcp_output_frame_read_triptime (struct TransferInfo *stats) {
     fprintf(stderr, "FIXME\n");
@@ -454,7 +462,7 @@ void tcp_output_burst_read (struct TransferInfo *stats) {
 	       stats->sock_callstats.read.bins[7],
 	       (stats->common->Omit ? report_omitted : ""));
     }
-    check_flush(stats);
+    cond_flush(stats);
 }
 
 //TCP write or client output
@@ -464,7 +472,7 @@ void tcp_output_write (struct TransferInfo *stats) {
     printf(report_bw_format, stats->common->transferIDStr,
 	   stats->ts.iStart, stats->ts.iEnd,
 	   outbuffer, outbufferext, (stats->common->Omit ? report_omitted : ""));
-    check_flush(stats);
+    cond_flush(stats);
 }
 
 void tcp_output_write_bb (struct TransferInfo *stats) {
@@ -605,7 +613,7 @@ void tcp_output_write_bb (struct TransferInfo *stats) {
 	    }
 	}
     }
-    check_flush(stats);
+    cond_flush(stats);
 }
 
 void tcp_output_burst_write (struct TransferInfo *stats) {
@@ -633,7 +641,7 @@ void tcp_output_burst_write (struct TransferInfo *stats) {
 	   stats->sock_callstats.write.WriteErr,
 	   (stats->common->Omit ? report_omitted : ""));
 #endif
-    check_flush(stats);
+    cond_flush(stats);
 }
 
 void tcp_output_write_enhanced (struct TransferInfo *stats) {
@@ -677,7 +685,7 @@ void tcp_output_write_enhanced (struct TransferInfo *stats) {
 	histogram_print(stats->latency_histogram, stats->ts.iStart, stats->ts.iEnd);
     }
 #endif
-    check_flush(stats);
+    cond_flush(stats);
 }
 
 void tcp_output_write_enhanced_fq (struct TransferInfo *stats) {
@@ -743,7 +751,7 @@ void tcp_output_write_enhanced_fq (struct TransferInfo *stats) {
 	histogram_print(stats->latency_histogram, stats->ts.iStart, stats->ts.iEnd);
     }
 #endif
-    check_flush(stats);
+    cond_flush(stats);
 #endif
 }
 
@@ -802,7 +810,7 @@ void tcp_output_write_enhanced_write (struct TransferInfo *stats) {
     if (stats->write_histogram) {
 	histogram_print(stats->write_histogram, stats->ts.iStart, stats->ts.iEnd);
     }
-    check_flush(stats);
+    cond_flush(stats);
 }
 
 void tcp_output_write_enhanced_isoch (struct TransferInfo *stats) {
@@ -845,7 +853,7 @@ void tcp_output_write_enhanced_isoch (struct TransferInfo *stats) {
 	histogram_print(stats->latency_histogram, stats->ts.iStart, stats->ts.iEnd);
     }
 #endif
-    check_flush(stats);
+    cond_flush(stats);
 }
 
 
@@ -855,7 +863,7 @@ void udp_output_fullduplex (struct TransferInfo *stats) {
     _print_stats_common(stats);
     printf(report_udp_fullduplex_format, stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd, outbuffer, outbufferext, \
 	   stats->cntDatagrams, (stats->cntIPG && (stats->IPGsum > 0.0) ? (stats->cntIPG / stats->IPGsum) : 0.0),(stats->common->Omit ? report_omitted : ""));
-    check_flush(stats);
+    cond_flush(stats);
 }
 
 void udp_output_fullduplex_enhanced (struct TransferInfo *stats) {
@@ -863,7 +871,7 @@ void udp_output_fullduplex_enhanced (struct TransferInfo *stats) {
     _print_stats_common(stats);
     printf(report_udp_fullduplex_enhanced_format, stats->common->transferID, stats->ts.iStart, stats->ts.iEnd, outbuffer, outbufferext, \
 	   stats->cntDatagrams, (stats->cntIPG && (stats->IPGsum > 0.0) ? (stats->cntIPG / stats->IPGsum) : 0.0),(stats->common->Omit ? report_omitted : ""));
-    check_flush(stats);
+    cond_flush(stats);
 }
 
 void udp_output_fullduplex_sum (struct TransferInfo *stats) {
@@ -871,7 +879,7 @@ void udp_output_fullduplex_sum (struct TransferInfo *stats) {
     _print_stats_common(stats);
     printf(report_udp_fullduplex_sum_format, stats->ts.iStart, stats->ts.iEnd, outbuffer, outbufferext, \
 	   stats->cntDatagrams, (stats->cntIPG && (stats->IPGsum > 0.0) ? (stats->cntIPG / stats->IPGsum) : 0.0),(stats->common->Omit ? report_omitted : ""));
-    check_flush(stats);
+    cond_flush(stats);
 }
 
 
@@ -894,7 +902,7 @@ void udp_output_read (struct TransferInfo *stats) {
 	       (100.0 * stats->cntError) / stats->cntDatagrams, (stats->common->Omit ? report_omitted : ""));
     }
     _output_outoforder(stats);
-    check_flush(stats);
+    cond_flush(stats);
 }
 
 void udp_output_read_triptime (struct TransferInfo *stats) {
@@ -976,7 +984,7 @@ void udp_output_read_triptime (struct TransferInfo *stats) {
 	histogram_print(stats->jitter_histogram, stats->ts.iStart, stats->ts.iEnd);
     }
     _output_outoforder(stats);
-    check_flush(stats);
+    cond_flush(stats);
 }
 void udp_output_read_enhanced (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_bw_jitter_loss_enhanced);
@@ -1049,7 +1057,7 @@ void udp_output_read_enhanced (struct TransferInfo *stats) {
 	histogram_print(stats->jitter_histogram, stats->ts.iStart, stats->ts.iEnd);
     }
     _output_outoforder(stats);
-    check_flush(stats);
+    cond_flush(stats);
 }
 void udp_output_read_triptime_isoch (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_bw_jitter_loss_enhanced_isoch_triptime);
@@ -1113,7 +1121,7 @@ void udp_output_read_triptime_isoch (struct TransferInfo *stats) {
 	histogram_print(stats->framelatency_histogram, stats->ts.iStart, stats->ts.iEnd);
     }
     _output_outoforder(stats);
-    check_flush(stats);
+    cond_flush(stats);
 }
 void udp_output_write (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_bw);
@@ -1121,7 +1129,7 @@ void udp_output_write (struct TransferInfo *stats) {
     printf(report_bw_format, stats->common->transferIDStr,
 	   stats->ts.iStart, stats->ts.iEnd,
 	   outbuffer, outbufferext, (stats->common->Omit ? report_omitted : ""));
-    check_flush(stats);
+    cond_flush(stats);
 }
 
 void udp_output_write_enhanced (struct TransferInfo *stats) {
@@ -1134,7 +1142,7 @@ void udp_output_write_enhanced (struct TransferInfo *stats) {
 	   stats->sock_callstats.write.WriteErr,
 	   stats->sock_callstats.write.WriteTimeo,
 	   (stats->cntIPG ? (stats->cntIPG / stats->IPGsum) : 0.0), (stats->common->Omit ? report_omitted : ""));
-    check_flush(stats);
+    cond_flush(stats);
 }
 void udp_output_write_enhanced_isoch (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_bw_pps_enhanced_isoch);
@@ -1146,7 +1154,7 @@ void udp_output_write_enhanced_isoch (struct TransferInfo *stats) {
 	   stats->sock_callstats.write.WriteErr,
 	   (stats->cntIPG ? (stats->cntIPG / stats->IPGsum) : 0.0),
 	   stats->isochstats.cntFrames, stats->isochstats.cntFramesMissed, stats->isochstats.cntSlips, (stats->common->Omit ? report_omitted : ""));
-    check_flush(stats);
+    cond_flush(stats);
 }
 
 // Sum reports
@@ -1164,7 +1172,7 @@ void udp_output_sum_read (struct TransferInfo *stats) {
 	       stats->ts.iStart,
 	       stats->ts.iEnd, stats->cntOutofOrder, (stats->common->Omit ? report_omitted : ""));
     }
-    check_flush(stats);
+    cond_flush(stats);
 }
 void udp_output_sumcnt (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_sumcnt_bw);
@@ -1184,7 +1192,7 @@ void udp_output_sumcnt (struct TransferInfo *stats) {
 		   stats->ts.iEnd, stats->cntOutofOrder, (stats->common->Omit ? report_omitted : ""));
 	}
     }
-    check_flush(stats);
+    cond_flush(stats);
 }
 void udp_output_sumcnt_enhanced (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_sumcnt_bw_jitter_loss);
@@ -1203,7 +1211,7 @@ void udp_output_sumcnt_enhanced (struct TransferInfo *stats) {
 		   stats->ts.iEnd, stats->cntOutofOrder,(stats->common->Omit ? report_omitted : ""));
 	}
     }
-    check_flush(stats);
+    cond_flush(stats);
 }
 
 void udp_output_sumcnt_read_enhanced (struct TransferInfo *stats) {
@@ -1227,7 +1235,7 @@ void udp_output_sumcnt_read_enhanced (struct TransferInfo *stats) {
 		   stats->ts.iEnd, stats->cntOutofOrder, (stats->common->Omit ? report_omitted : ""));
 	}
     }
-    check_flush(stats);
+    cond_flush(stats);
 }
 
 void udp_output_sumcnt_read_triptime (struct TransferInfo *stats) {
@@ -1248,7 +1256,7 @@ void udp_output_sumcnt_read_triptime (struct TransferInfo *stats) {
 		   stats->ts.iEnd, stats->cntOutofOrder, (stats->common->Omit ? report_omitted : ""));
 	}
     }
-    check_flush(stats);
+    cond_flush(stats);
 }
 
 void udp_output_sum_write (struct TransferInfo *stats) {
@@ -1256,7 +1264,7 @@ void udp_output_sum_write (struct TransferInfo *stats) {
     _print_stats_common(stats);
     printf(report_sum_bw_format, stats->ts.iStart, stats->ts.iEnd,
 	   outbuffer, outbufferext, (stats->common->Omit ? report_omitted : ""));
-    check_flush(stats);
+    cond_flush(stats);
 }
 void udp_output_sumcnt_write (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_sumcnt_bw);
@@ -1264,7 +1272,7 @@ void udp_output_sumcnt_write (struct TransferInfo *stats) {
     printf(report_sumcnt_bw_format, (stats->final ? stats->threadcntfinal : stats->threadcnt),
 	   stats->ts.iStart, stats->ts.iEnd,
 	   outbuffer, outbufferext, (stats->common->Omit ? report_omitted : ""));
-    check_flush(stats);
+    cond_flush(stats);
 }
 void udp_output_sum_read_enhanced (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_sumcnt_udp_enhanced);
@@ -1292,7 +1300,7 @@ void udp_output_sum_read_enhanced (struct TransferInfo *stats) {
 		   stats->ts.iEnd, stats->cntOutofOrder, (stats->common->Omit ? report_omitted : ""));
 	}
     }
-    check_flush(stats);
+    cond_flush(stats);
 }
 void udp_output_sum_write_enhanced (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_bw_pps_enhanced);
@@ -1303,7 +1311,7 @@ void udp_output_sum_write_enhanced (struct TransferInfo *stats) {
 	    stats->sock_callstats.write.WriteCnt,
 	    stats->sock_callstats.write.WriteErr,
 	   ((stats->cntIPG && (stats->IPGsum > 0.0)) ? (stats->cntIPG / stats->IPGsum) : 0.0), (stats->common->Omit ? report_omitted : ""));
-    check_flush(stats);
+    cond_flush(stats);
 }
 void udp_output_sumcnt_write_enhanced (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_sumcnt_bw_pps_enhanced);
@@ -1314,7 +1322,7 @@ void udp_output_sumcnt_write_enhanced (struct TransferInfo *stats) {
 	    stats->sock_callstats.write.WriteCnt,
 	    stats->sock_callstats.write.WriteErr,
 	   ((stats->cntIPG && (stats->IPGsum > 0.0)) ? (stats->cntIPG / stats->IPGsum) : 0.0), (stats->common->Omit ? report_omitted : ""));
-    check_flush(stats);
+    cond_flush(stats);
 }
 
 void tcp_output_sum_read (struct TransferInfo *stats) {
@@ -1323,7 +1331,7 @@ void tcp_output_sum_read (struct TransferInfo *stats) {
     printf(report_sum_bw_format,
 	   stats->ts.iStart, stats->ts.iEnd,
 	   outbuffer, outbufferext, (stats->common->Omit ? report_omitted : ""));
-    check_flush(stats);
+    cond_flush(stats);
 }
 void tcp_output_sum_read_enhanced (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_bw_read_enhanced);
@@ -1343,7 +1351,7 @@ void tcp_output_sum_read_enhanced (struct TransferInfo *stats) {
     if (stats->framelatency_histogram && stats->final) {
 	histogram_print(stats->framelatency_histogram, stats->ts.iStart, stats->ts.iEnd);
     }
-    check_flush(stats);
+    cond_flush(stats);
 }
 void tcp_output_sumcnt_read (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_sumcnt_bw);
@@ -1351,7 +1359,7 @@ void tcp_output_sumcnt_read (struct TransferInfo *stats) {
     printf(report_sumcnt_bw_format, (stats->final ? stats->threadcntfinal : stats->threadcnt),
 	   stats->ts.iStart, stats->ts.iEnd,
 	   outbuffer, outbufferext, (stats->common->Omit ? report_omitted : ""));
-    check_flush(stats);
+    cond_flush(stats);
 }
 void tcp_output_sumcnt_read_enhanced (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_sumcnt_bw_read_enhanced);
@@ -1368,7 +1376,7 @@ void tcp_output_sumcnt_read_enhanced (struct TransferInfo *stats) {
 	   stats->sock_callstats.read.bins[5],
 	   stats->sock_callstats.read.bins[6],
 	   stats->sock_callstats.read.bins[7], (stats->common->Omit ? report_omitted : ""));
-    check_flush(stats);
+    cond_flush(stats);
 }
 void tcp_output_sumcnt_read_triptime (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_sumcnt_bw_read_triptime);
@@ -1388,7 +1396,7 @@ void tcp_output_sumcnt_read_triptime (struct TransferInfo *stats) {
 	   stats->sock_callstats.read.bins[5],
 	   stats->sock_callstats.read.bins[6],
 	   stats->sock_callstats.read.bins[7], (stats->common->Omit ? report_omitted : ""));
-    check_flush(stats);
+    cond_flush(stats);
 }
 
 void tcp_output_sum_write (struct TransferInfo *stats) {
@@ -1397,7 +1405,7 @@ void tcp_output_sum_write (struct TransferInfo *stats) {
     printf(report_sum_bw_format,
 	   stats->ts.iStart, stats->ts.iEnd,
 	   outbuffer, outbufferext, (stats->common->Omit ? report_omitted : ""));
-    check_flush(stats);
+    cond_flush(stats);
 }
 void tcp_output_sumcnt_write (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_sumcnt_bw);
@@ -1405,7 +1413,7 @@ void tcp_output_sumcnt_write (struct TransferInfo *stats) {
     printf(report_sumcnt_bw_format, (stats->final ? stats->threadcntfinal : stats->threadcnt),
 	   stats->ts.iStart, stats->ts.iEnd,
 	   outbuffer, outbufferext, (stats->common->Omit ? report_omitted : ""));
-    check_flush(stats);
+    cond_flush(stats);
 }
 void tcp_output_sum_write_enhanced (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_bw_write_enhanced);
@@ -1419,7 +1427,7 @@ void tcp_output_sum_write_enhanced (struct TransferInfo *stats) {
 	   ,stats->sock_callstats.write.tcpstats.retry
 #endif
 	   ,(stats->common->Omit ? report_omitted : ""));
-    check_flush(stats);
+    cond_flush(stats);
 }
 void tcp_output_sumcnt_write_enhanced (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_sumcnt_bw_write_enhanced);
@@ -1433,7 +1441,7 @@ void tcp_output_sumcnt_write_enhanced (struct TransferInfo *stats) {
 	   ,stats->sock_callstats.write.tcpstats.retry
 #endif
 	   ,(stats->common->Omit ? report_omitted : ""));
-    check_flush(stats);
+    cond_flush(stats);
 }
 
 // CSV outputs
@@ -1548,7 +1556,7 @@ void udp_output_basic_csv (struct TransferInfo *stats) {
 	    stats->cntError,
 	    stats->cntDatagrams,
 	    (100.0 * stats->cntError) / stats->cntDatagrams, stats->cntOutofOrder );
-    check_flush(stats);
+    cond_flush(stats);
 }
 
 void udp_output_enhanced_csv (struct TransferInfo *stats) {
@@ -1572,7 +1580,7 @@ void udp_output_enhanced_csv (struct TransferInfo *stats) {
 	   stats->sock_callstats.write.WriteCnt,
 	   stats->sock_callstats.write.WriteErr,
 	   (stats->cntIPG ? (stats->cntIPG / stats->IPGsum) : 0.0));
-    check_flush(stats);
+    cond_flush(stats);
 }
 
 void tcp_output_basic_csv (struct TransferInfo *stats) {
@@ -1587,7 +1595,7 @@ void tcp_output_basic_csv (struct TransferInfo *stats) {
 	   stats->ts.iEnd,
 	   stats->cntBytes,
 	   speed);
-    check_flush(stats);
+    cond_flush(stats);
 }
 
 void tcp_output_read_enhanced_csv (struct TransferInfo *stats) {
@@ -1612,7 +1620,7 @@ void tcp_output_read_enhanced_csv (struct TransferInfo *stats) {
 	   stats->sock_callstats.read.bins[5],
 	   stats->sock_callstats.read.bins[6],
 	   stats->sock_callstats.read.bins[7]);
-    check_flush(stats);
+    cond_flush(stats);
 }
 
 void tcp_output_write_enhanced_csv (struct TransferInfo *stats) {
@@ -1684,7 +1692,7 @@ void tcp_output_write_enhanced_csv (struct TransferInfo *stats) {
 	       0);
     }
 #endif
-    check_flush(stats);
+    cond_flush(stats);
 }
 
 void tcp_output_write_bb_csv (struct TransferInfo *stats) {
@@ -1773,7 +1781,7 @@ void tcp_output_write_bb_csv (struct TransferInfo *stats) {
 	       rps);
 #endif
     }
-    check_flush(stats);
+    cond_flush(stats);
 }
 
 /*
