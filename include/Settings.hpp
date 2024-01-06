@@ -77,7 +77,7 @@ extern "C" {
 #define SMALLEST_INTERVAL_SEC 0.005 // 5ms
 #else
 #define SMALLEST_INTERVAL 100 // 100 usec
-#define SMALLEST_INTERVAL_SEC 0.0001 // 5ms
+#define SMALLEST_INTERVAL_SEC 0.0001
 #endif
 
 #define SLOPSECS 2

@@ -141,8 +141,9 @@ void reporter_default_heading_flags (int flag) {
 //
 // o) it's a final report
 // o) this is the sum report (all preceding interval reports need flush)
-// o) the time since the last flush is equal or larger to the smallest allowed report interval
+// o) below the flush rate limiter
 //
+#define FLUSH_RATE_LIMITER 5000 //units is microseconds
 static inline void cond_flush (struct TransferInfo *stats) {
     static struct timeval prev={0,0};
     struct timeval now={0,0};
@@ -154,7 +155,7 @@ static inline void cond_flush (struct TransferInfo *stats) {
 #else
     gettimeofday(&now, NULL);
 #endif
-    if (stats->final || (stats->type == SUM_REPORT) || !(TimeDifferenceUsec(now, prev) < SMALLEST_INTERVAL)) {
+    if (stats->final || (stats->type == SUM_REPORT) || !(TimeDifferenceUsec(now, prev) < FLUSH_RATE_LIMITER)) {
 	fflush(stdout);
 	prev = now;
     }
