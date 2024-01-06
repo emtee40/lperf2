@@ -290,6 +290,7 @@ struct thread_Settings {
     int32_t peer_version_u;
     int32_t peer_version_l;
     double connecttime;
+    long barrier_time; // wait in units of microseconds
     double rtt_nearcongest_weight_factor;
     char mPermitKey[MAX_PERMITKEY_LEN + 1]; //add some space for timestamp
     struct timeval mPermitKeyTime;

@@ -2669,6 +2669,10 @@ int Settings_GenerateClientHdr (struct thread_Settings *client, void *testhdr, s
 		hdr->extend.TCPWritePrefetch = htonl((long)client->mWritePrefetch);
 	    }
 #endif
+	    if (client->barrier_time) {
+		lowerflags |= HEADER_BARRIER_TIME;
+		hdr->extend.barrier_usecs = htonl((long)client->barrier_time);
+	    }
 #if HAVE_DECL_TCP_QUICKACK
 	    if (isTcpQuickAck(client) && (!isReverse(client) || isFullDuplex(client))) {
 		upperflags  |= HEADER_TCPQUICKACK;

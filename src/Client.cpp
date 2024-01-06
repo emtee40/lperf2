@@ -2051,22 +2051,15 @@ void Client::PeerXchange () {
 /*
  * BarrierClient allows for multiple stream clients to be syncronized
  */
-int Client::BarrierClient (struct BarrierMutex *barrier) {
-    int last = 0;
+#define BARRIER_MIN 100 // units is seconds to inform the server
+bool Client::BarrierClient (struct BarrierMutex *barrier) {
+    bool last = false;
 #ifdef HAVE_THREAD
     assert(barrier != NULL);
+    Timestamp now;
     Condition_Lock(barrier->await);
     if (--barrier->count <= 0) {
-	// store the barrier release timer
-#ifdef HAVE_CLOCK_GETTIME
-	struct timespec t1;
-	clock_gettime(CLOCK_REALTIME, &t1);
-	barrier->release_time.tv_sec  = t1.tv_sec;
-	barrier->release_time.tv_usec = t1.tv_nsec / 1000;
-#else
-	gettimeofday(&barrier->release_time, NULL);
-#endif
-	last = 1;
+	last = true;
 	// last one wake's up everyone else
 	Condition_Broadcast(&barrier->await);
 #ifdef HAVE_THREAD_DEBUG
@@ -2082,8 +2075,13 @@ int Client::BarrierClient (struct BarrierMutex *barrier) {
 #ifdef HAVE_THREAD_DEBUG
     thread_debug("Barrier EXIT on condition %p", (void *)&barrier->await);
 #endif
+    delay_loop(200);
+    mSettings->barrier_time = now.delta_usec();
+    if (mSettings->barrier_time < BARRIER_MIN) {
+	mSettings->barrier_time = 0;
+    }
 #else
-    last = 1;
+    last = true;
 #endif // HAVE_THREAD
     return last;
 }

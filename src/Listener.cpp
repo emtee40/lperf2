@@ -1168,6 +1168,9 @@ bool Listener::apply_client_settings_tcp (thread_Settings *server) {
 			}
 #endif
 		    }
+		    if (lowerflags & HEADER_BARRIER_TIME) {
+			server->barrier_time = ntohl(hdr->extend.barrier_usecs);
+		    }
 		    if (flags & HEADER_VERSION2) {
 			if (upperflags & HEADER_FULLDUPLEX) {
 			    setFullDuplex(server);

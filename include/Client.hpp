@@ -83,7 +83,7 @@ public:
     void mySockInit(void);
     bool isConnected(void) const;
     int SendFirstPayload(void);
-    int BarrierClient(struct BarrierMutex *);
+    bool BarrierClient(struct BarrierMutex *);
     void RunBounceBackTCP(void);
     struct ReportHeader *myJob;
 

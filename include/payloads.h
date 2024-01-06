@@ -119,6 +119,7 @@ extern "C" {
 
 // lower flags (16 bit)
 #define HEADER_CCA          0x8000
+#define HEADER_BARRIER_TIME 0x4000
 
 // later features
 #define HDRXACKMAX 2500000 // default 2.5 seconds, units microseconds
@@ -262,10 +263,10 @@ struct client_hdrext {
     uint32_t lRate;
     uint32_t uRate;
     uint32_t TCPWritePrefetch;
+    uint32_t barrier_usecs;
 };
 
 struct client_hdrext_starttime_fq {
-    uint32_t reserved;
     uint32_t start_tv_sec;
     uint32_t start_tv_usec;
     uint32_t fqratel;
@@ -527,7 +528,7 @@ struct client_hdr_ack {
  *                +--------+--------+--------+--------+
  *            15  |        write prefetch   (0.13)    |
  *                +--------+--------+--------+--------+
- *            16  |        reserved (0.14 start)      |
+ *            16  |        barrier wait (usecs)       |
  *                +--------+--------+--------+--------+
  *            17  |        start tv_sec (0.14)        |
  *                +--------+--------+--------+--------+

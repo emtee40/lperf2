@@ -217,6 +217,16 @@ void make_lower(char *s);
                                     left.tv_sec += right.tv_sec;        \
                                 } while (0)
 
+#define TimeAddIntUsec(left, right)  do {                                    \
+                                    left.tv_usec += right % 1000000;  \
+                                    if (left.tv_usec > rMillion) {    \
+                                        left.tv_usec -= rMillion;       \
+                                        left.tv_sec++;                  \
+                                    }                                   \
+                                    left.tv_usec += right / 1000000;  \
+                                } while (0)
+
+
 /* -------------------------------------------------------------------
  * redirect the stdout to a specified file
  * stdio.c
