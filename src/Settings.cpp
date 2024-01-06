@@ -1272,6 +1272,7 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 #ifdef HAVE_THREAD
 	    setWorkingLoadUp(mExtSettings);
 	    setWorkingLoadDown(mExtSettings);
+	    setEnhanced(mExtSettings);
 	    if (optarg) {
 		char *tmp= new char [strlen(optarg) + 1];
 		if (tmp) {
