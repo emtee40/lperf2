@@ -516,8 +516,13 @@ inline void Server::SetReportStartTime () {
 	    // Servers that aren't full duplex use the accept timestamp for start
 	    myReport->info.ts.startTime.tv_sec = mSettings->accept_time.tv_sec;
 	    myReport->info.ts.startTime.tv_usec = mSettings->accept_time.tv_usec;
-	    // subtract the time the client spent in the barrier between the connect() and first write()
-	    TimeAddIntUsec(myReport->info.ts.startTime, mSettings->barrier_time);
+	    // The client may have had a barrier between the connect and start of traffic, check and adjust
+	    if (mSettings->barrier_time) {
+		now.setnow();
+		if (now.subUsec(mSettings->accept_time) >= mSettings->barrier_time) {
+		    TimeAddIntUsec(myReport->info.ts.startTime, mSettings->barrier_time);
+		}
+	    }
 	} else {
 	    now.setnow();
 	    myReport->info.ts.startTime.tv_sec = now.getSecs();
