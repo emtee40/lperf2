@@ -223,7 +223,7 @@ void make_lower(char *s);
                                         left.tv_usec -= rMillion;       \
                                         left.tv_sec++;                  \
                                     }                                   \
-                                    left.tv_usec += right / 1000000;  \
+                                    left.tv_sec += right / 1000000;  \
                                 } while (0)
 
 
