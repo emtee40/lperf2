@@ -143,9 +143,10 @@ void reporter_default_heading_flags (int flag) {
 // o) this is the sum report (all preceding interval reports need flush)
 // o) there isn't a sum report
 // o) report interval is one second or greater
+// o) It's a final report
 //
 static inline void check_flush (struct TransferInfo *stats) {
-    if ((!(stats->ts.intervalTime.tv_sec < 1) || !stats->sumreport) || \
+    if ((!(stats->ts.intervalTime.tv_sec < 1) || !stats->sumreport) || stats->final ||\
 	(stats->sumreport && ((stats->type == SUM_REPORT) || (stats->sumreport->reference.count < 2)))) {
 	fflush(stdout);
     }
