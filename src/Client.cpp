@@ -2075,7 +2075,7 @@ bool Client::BarrierClient (struct BarrierMutex *barrier) {
 #ifdef HAVE_THREAD_DEBUG
     thread_debug("Barrier EXIT on condition %p", (void *)&barrier->await);
 #endif
-    delay_loop(200);
+//    delay_loop(2000000);
     mSettings->barrier_time = now.delta_usec();
     if (mSettings->barrier_time < BARRIER_MIN) {
 	mSettings->barrier_time = 0;
