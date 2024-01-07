@@ -78,6 +78,7 @@ struct PacketRing * packetring_init (int count, struct Condition *awake_consumer
 	pr->mutex_enable=1;
     pr->consumerdone = 0;
     pr->awaitcounter = 0;
+    pr->interval_blocking = 1;
     pr->retryfinal = true;
 #ifdef HAVE_THREAD_DEBUG
     Mutex_Lock(&packetringdebug_mutex);
@@ -126,7 +127,7 @@ inline void packetring_enqueue (struct PacketRing *pr, struct ReportStruct *meta
     pr->producer = writeindex;
 }
 
-inline struct ReportStruct *packetring_dequeue (struct PacketRing *pr) {
+inline struct ReportStruct *packetring_dequeue (struct PacketRing *pr, struct timeval *interval_end) {
     struct ReportStruct *packet = NULL;
     if (pr->producer == pr->consumer)
 	return NULL;
@@ -138,10 +139,30 @@ inline struct ReportStruct *packetring_dequeue (struct PacketRing *pr) {
 	readindex = (pr->consumer + 1);
 
     packet = (pr->data + readindex);
-    if ((packet->packetID < 0) && pr->retryfinal) {
+
+    //
+    //  signal the reporter to advance to the next packet ring by returning a null per
+    //  a first final dequeue attempt or a first edge dequeue event
+    //
+    bool final = ((packet->packetID < 0) ? true : false);
+    if (final && pr->retryfinal) {
 	pr->retryfinal = false;
 	return NULL;
     }
+    if (!final && interval_end) {
+	struct timeval pt = packet->packetTime;
+	struct timeval edge = *interval_end;
+//	printf("**** diff %f %d\n", TimeDifference(pt, edge), pr->interval_blocking);
+	if (TimeDifference(pt, edge) > 0) {
+	    if (pr->interval_blocking > 0) {
+		pr->interval_blocking--;
+		return NULL;
+	    } else {
+		pr->interval_blocking = 1;
+	    }
+	}
+    }
+
     // advance the consumer pointer last
     pr->consumer = readindex;
     if (pr->mutex_enable) {
@@ -171,7 +192,7 @@ inline void enqueue_ackring (struct PacketRing *pr, struct ReportStruct *metapac
 inline struct ReportStruct *dequeue_ackring (struct PacketRing *pr) {
     struct ReportStruct *packet = NULL;
     Condition_Lock((*(pr->awake_consumer)));
-    while ((packet = packetring_dequeue(pr)) == NULL) {
+    while ((packet = packetring_dequeue(pr, NULL)) == NULL) {
 	Condition_TimedWait(pr->awake_consumer, 1);
     }
     Condition_Unlock((*(pr->awake_consumer)));
