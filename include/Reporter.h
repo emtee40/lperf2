@@ -349,7 +349,6 @@ struct TransferInfo {
     enum ReportType type;
     int groupID;
     int threadcnt;
-    int threadcntfinal;
     bool isMaskOutput;
     uintmax_t cntBytes;
     intmax_t cntError;

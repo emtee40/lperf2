@@ -116,6 +116,7 @@ struct PacketRing {
     int awaitcounter;
     int mutex_enable;
     int bytes;
+    bool retryfinal;
 
     // Use a condition variables
     // o) awake_producer - producer waits for the consumer thread to

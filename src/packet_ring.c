@@ -78,6 +78,7 @@ struct PacketRing * packetring_init (int count, struct Condition *awake_consumer
 	pr->mutex_enable=1;
     pr->consumerdone = 0;
     pr->awaitcounter = 0;
+    pr->retryfinal = true;
 #ifdef HAVE_THREAD_DEBUG
     Mutex_Lock(&packetringdebug_mutex);
     totalpacketringcount++;
@@ -135,7 +136,12 @@ inline struct ReportStruct *packetring_dequeue (struct PacketRing *pr) {
 	readindex = 0;
     else
 	readindex = (pr->consumer + 1);
+
     packet = (pr->data + readindex);
+    if ((packet->packetID < 0) && pr->retryfinal) {
+	pr->retryfinal = false;
+	return NULL;
+    }
     // advance the consumer pointer last
     pr->consumer = readindex;
     if (pr->mutex_enable) {

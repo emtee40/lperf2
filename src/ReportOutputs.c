@@ -1179,13 +1179,13 @@ void udp_output_sum_read (struct TransferInfo *stats) {
 void udp_output_sumcnt (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_sumcnt_bw);
     _print_stats_common(stats);
-    printf(report_sumcnt_bw_format, (stats->final ? stats->threadcntfinal : stats->threadcnt),
+    printf(report_sumcnt_bw_format, stats->threadcnt,
 	   stats->ts.iStart, stats->ts.iEnd,
 	   outbuffer, outbufferext, (stats->common->Omit ? report_omitted : ""));
     if ((stats->cntOutofOrder > 0)  && stats->final) {
 	if (isSumOnly(stats->common)) {
 	    printf(report_sumcnt_outoforder,
-		   (stats->final ? stats->threadcntfinal : stats->threadcnt),
+		   stats->threadcnt,
 		   stats->ts.iStart,
 		   stats->ts.iEnd, stats->cntOutofOrder, (stats->common->Omit ? report_omitted : ""));
 	} else {
@@ -1199,12 +1199,12 @@ void udp_output_sumcnt (struct TransferInfo *stats) {
 void udp_output_sumcnt_enhanced (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_sumcnt_bw_jitter_loss);
     _print_stats_common(stats);
-    printf(report_sumcnt_bw_jitter_loss_format, (stats->final ? stats->threadcntfinal : stats->threadcnt), stats->ts.iStart, stats->ts.iEnd, outbuffer, outbufferext, \
+    printf(report_sumcnt_bw_jitter_loss_format, stats->threadcnt, stats->ts.iStart, stats->ts.iEnd, outbuffer, outbufferext, \
 	   stats->cntError, stats->cntDatagrams, (stats->cntIPG && (stats->IPGsum > 0.0) ? (stats->cntIPG / stats->IPGsum) : 0.0), (stats->common->Omit ? report_omitted : ""));
     if ((stats->cntOutofOrder > 0)  && stats->final) {
 	if (isSumOnly(stats->common)) {
 	    printf(report_sumcnt_outoforder,
-		   (stats->final ? stats->threadcntfinal : stats->threadcnt),
+		   stats->threadcnt,
 		   stats->ts.iStart,
 		   stats->ts.iEnd, stats->cntOutofOrder, (stats->common->Omit ? report_omitted : ""));
 	} else {
@@ -1219,7 +1219,7 @@ void udp_output_sumcnt_enhanced (struct TransferInfo *stats) {
 void udp_output_sumcnt_read_enhanced (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_sumcnt_bw_read_enhanced);
     _print_stats_common(stats);
-    printf(report_sumcnt_bw_read_enhanced_format, (stats->final ? stats->threadcntfinal : stats->threadcnt),
+    printf(report_sumcnt_bw_read_enhanced_format, stats->threadcnt,
 	   stats->ts.iStart, stats->ts.iEnd,
 	   outbuffer, outbufferext,
 	   (stats->final) ? ((stats->inline_jitter.total.sum / (double) stats->inline_jitter.total.cnt) * 1e3) : (stats->jitter * 1e3),  \
@@ -1228,7 +1228,7 @@ void udp_output_sumcnt_read_enhanced (struct TransferInfo *stats) {
     if ((stats->cntOutofOrder > 0)  && stats->final) {
 	if (isSumOnly(stats->common)) {
 	    printf(report_sumcnt_outoforder,
-		   (stats->final ? stats->threadcntfinal : stats->threadcnt),
+		   stats->threadcnt,
 		   stats->ts.iStart,
 		   stats->ts.iEnd, stats->cntOutofOrder, (stats->common->Omit ? report_omitted : ""));
 	} else {
@@ -1243,13 +1243,13 @@ void udp_output_sumcnt_read_enhanced (struct TransferInfo *stats) {
 void udp_output_sumcnt_read_triptime (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_sumcnt_udp_triptime);
     _print_stats_common(stats);
-    printf(report_sumcnt_udp_triptime_format, (stats->final ? stats->threadcntfinal : stats->threadcnt), stats->ts.iStart, stats->ts.iEnd, outbuffer, outbufferext, \
+    printf(report_sumcnt_udp_triptime_format, stats->threadcnt, stats->ts.iStart, stats->ts.iEnd, outbuffer, outbufferext, \
 	   stats->cntError, stats->cntDatagrams, stats->cntIPG, (stats->final ? stats->fInP : stats->iInP), \
 	   (stats->cntIPG && (stats->IPGsum > 0.0) ? (stats->cntIPG / stats->IPGsum) : 0.0), (stats->common->Omit ? report_omitted : ""));
     if ((stats->cntOutofOrder > 0)  && stats->final) {
 	if (isSumOnly(stats->common)) {
 	    printf(report_sumcnt_outoforder,
-		   (stats->final ? stats->threadcntfinal : stats->threadcnt),
+		   stats->threadcnt,
 		   stats->ts.iStart,
 		   stats->ts.iEnd, stats->cntOutofOrder, (stats->common->Omit ? report_omitted : ""));
 	} else {
@@ -1271,7 +1271,7 @@ void udp_output_sum_write (struct TransferInfo *stats) {
 void udp_output_sumcnt_write (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_sumcnt_bw);
     _print_stats_common(stats);
-    printf(report_sumcnt_bw_format, (stats->final ? stats->threadcntfinal : stats->threadcnt),
+    printf(report_sumcnt_bw_format, stats->threadcnt,
 	   stats->ts.iStart, stats->ts.iEnd,
 	   outbuffer, outbufferext, (stats->common->Omit ? report_omitted : ""));
     cond_flush(stats);
@@ -1279,7 +1279,7 @@ void udp_output_sumcnt_write (struct TransferInfo *stats) {
 void udp_output_sum_read_enhanced (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_sumcnt_udp_enhanced);
     _print_stats_common(stats);
-    printf(report_sumcnt_udp_enhanced_format, (stats->final ? stats->threadcntfinal : stats->threadcnt),
+    printf(report_sumcnt_udp_enhanced_format, stats->threadcnt,
 	   stats->ts.iStart, stats->ts.iEnd,
 	   outbuffer, outbufferext,
 	   stats->cntError, stats->cntDatagrams,
@@ -1293,7 +1293,7 @@ void udp_output_sum_read_enhanced (struct TransferInfo *stats) {
     if ((stats->cntOutofOrder > 0)  && stats->final) {
 	if (isSumOnly(stats->common)) {
 	    printf(report_sumcnt_outoforder,
-		   (stats->final ? stats->threadcntfinal : stats->threadcnt),
+		   stats->threadcnt,
 		   stats->ts.iStart,
 		   stats->ts.iEnd, stats->cntOutofOrder, (stats->common->Omit ? report_omitted : ""));
 	} else {
@@ -1318,7 +1318,7 @@ void udp_output_sum_write_enhanced (struct TransferInfo *stats) {
 void udp_output_sumcnt_write_enhanced (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_sumcnt_bw_pps_enhanced);
     _print_stats_common(stats);
-    printf(report_sumcnt_bw_pps_enhanced_format, (stats->final ? stats->threadcntfinal : stats->threadcnt),
+    printf(report_sumcnt_bw_pps_enhanced_format, stats->threadcnt,
 	    stats->ts.iStart, stats->ts.iEnd,
 	    outbuffer, outbufferext,
 	    stats->sock_callstats.write.WriteCnt,
@@ -1358,7 +1358,7 @@ void tcp_output_sum_read_enhanced (struct TransferInfo *stats) {
 void tcp_output_sumcnt_read (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_sumcnt_bw);
     _print_stats_common(stats);
-    printf(report_sumcnt_bw_format, (stats->final ? stats->threadcntfinal : stats->threadcnt),
+    printf(report_sumcnt_bw_format, stats->threadcnt,
 	   stats->ts.iStart, stats->ts.iEnd,
 	   outbuffer, outbufferext, (stats->common->Omit ? report_omitted : ""));
     cond_flush(stats);
@@ -1366,7 +1366,7 @@ void tcp_output_sumcnt_read (struct TransferInfo *stats) {
 void tcp_output_sumcnt_read_enhanced (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_sumcnt_bw_read_enhanced);
     _print_stats_common(stats);
-    printf(report_sumcnt_bw_read_enhanced_format, (stats->final ? stats->threadcntfinal : stats->threadcnt),
+    printf(report_sumcnt_bw_read_enhanced_format, stats->threadcnt,
 	   stats->ts.iStart, stats->ts.iEnd,
 	   outbuffer, outbufferext,
 	   stats->sock_callstats.read.cntRead,
@@ -1385,7 +1385,7 @@ void tcp_output_sumcnt_read_triptime (struct TransferInfo *stats) {
     _print_stats_common(stats);
     char llaw_bufstr[LLAWBUFSIZE];
     human_format_llawbuf(llaw_bufstr, sizeof(llaw_bufstr), ((stats->final) ? stats->fInP : stats->iInP));
-    printf(report_sumcnt_bw_read_triptime_format, (stats->final ? stats->threadcntfinal : stats->threadcnt),
+    printf(report_sumcnt_bw_read_triptime_format, stats->threadcnt,
 	   stats->ts.iStart, stats->ts.iEnd,
 	   outbuffer, outbufferext,
 	   llaw_bufstr,
@@ -1412,7 +1412,7 @@ void tcp_output_sum_write (struct TransferInfo *stats) {
 void tcp_output_sumcnt_write (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_sumcnt_bw);
     _print_stats_common(stats);
-    printf(report_sumcnt_bw_format, (stats->final ? stats->threadcntfinal : stats->threadcnt),
+    printf(report_sumcnt_bw_format, stats->threadcnt,
 	   stats->ts.iStart, stats->ts.iEnd,
 	   outbuffer, outbufferext, (stats->common->Omit ? report_omitted : ""));
     cond_flush(stats);
@@ -1434,7 +1434,7 @@ void tcp_output_sum_write_enhanced (struct TransferInfo *stats) {
 void tcp_output_sumcnt_write_enhanced (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_sumcnt_bw_write_enhanced);
     _print_stats_common(stats);
-    printf(report_sumcnt_bw_write_enhanced_format, (stats->final ? stats->threadcntfinal : stats->threadcnt),
+    printf(report_sumcnt_bw_write_enhanced_format, stats->threadcnt,
 	   stats->ts.iStart, stats->ts.iEnd,
 	   outbuffer, outbufferext,
 	   stats->sock_callstats.write.WriteCnt,
