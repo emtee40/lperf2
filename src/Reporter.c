@@ -1718,8 +1718,10 @@ void reporter_transfer_protocol_sum_client_tcp (struct TransferInfo *stats, int 
 	if (final) {
 	    if ((stats->output_handler) && !(stats->isMaskOutput)) {
 		reporter_set_timestamps_time(stats, FINALPARTIAL);
-		if ((stats->ts.iEnd - stats->ts.iStart) > stats->ts.significant_partial)
+		if ((stats->ts.iEnd - stats->ts.iStart) > stats->ts.significant_partial) {
 		    (*stats->output_handler)(stats);
+		    stats->threadcnt = 0;
+		}
 		reporter_reset_transfer_stats_client_tcp(stats);
 	    }
 	} else if ((stats->output_handler) && !(stats->isMaskOutput)) {
@@ -1803,8 +1805,10 @@ void reporter_transfer_protocol_sum_server_tcp (struct TransferInfo *stats, int 
 	if (final) {
 	    if ((stats->output_handler) && !(stats->isMaskOutput)) {
 		reporter_set_timestamps_time(stats, FINALPARTIAL);
-		if ((stats->ts.iEnd - stats->ts.iStart) > stats->ts.significant_partial)
+		if ((stats->ts.iEnd - stats->ts.iStart) > stats->ts.significant_partial) {
 		    (*stats->output_handler)(stats);
+		    stats->threadcnt = 0;
+		}
 	    }
 	} else if ((stats->output_handler) && !(stats->isMaskOutput)) {
 	    (*stats->output_handler)(stats);
