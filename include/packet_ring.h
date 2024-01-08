@@ -118,6 +118,7 @@ struct PacketRing {
     int bytes;
     int interval_blocking;
     bool retryfinal;
+    bool signalevents;
 
     // Use a condition variables
     // o) awake_producer - producer waits for the consumer thread to
@@ -129,7 +130,7 @@ struct PacketRing {
     struct ReportStruct *data;
 };
 
-extern struct PacketRing * packetring_init(int count, struct Condition *awake_consumer, struct Condition *awake_producer);
+extern struct PacketRing * packetring_init(int count, struct Condition *awake_consumer, struct Condition *awake_producer, bool finalretry);
 extern void packetring_enqueue(struct PacketRing *pr, struct ReportStruct *metapacket);
 extern struct ReportStruct *packetring_dequeue(struct PacketRing * pr, struct timeval *nextsum);
 extern void enqueue_ackring(struct PacketRing *pr, struct ReportStruct *metapacket);

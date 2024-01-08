@@ -55,7 +55,7 @@ static int totalpacketringcount = 0;
 Mutex packetringdebug_mutex;
 #endif
 
-struct PacketRing * packetring_init (int count, struct Condition *awake_consumer, struct Condition *awake_producer) {
+struct PacketRing * packetring_init (int count, struct Condition *awake_consumer, struct Condition *awake_producer, bool signalevents) {
     assert(awake_consumer != NULL);
     struct PacketRing *pr = NULL;
     if ((pr = (struct PacketRing *) calloc(1, sizeof(struct PacketRing)))) {
@@ -78,8 +78,9 @@ struct PacketRing * packetring_init (int count, struct Condition *awake_consumer
 	pr->mutex_enable=1;
     pr->consumerdone = 0;
     pr->awaitcounter = 0;
-    pr->interval_blocking = 1;
-    pr->retryfinal = true;
+    pr->interval_blocking = (signalevents ? 1 : 0);
+    pr->retryfinal = signalevents;
+    pr->signalevents = signalevents;
 #ifdef HAVE_THREAD_DEBUG
     Mutex_Lock(&packetringdebug_mutex);
     totalpacketringcount++;
@@ -140,29 +141,30 @@ inline struct ReportStruct *packetring_dequeue (struct PacketRing *pr, struct ti
 
     packet = (pr->data + readindex);
 
-    //
-    //  signal the reporter to advance to the next packet ring by returning a null per
-    //  a first final dequeue attempt or a first edge dequeue event
-    //
-    bool final = ((packet->packetID < 0) ? true : false);
-    if (final && pr->retryfinal) {
-	pr->retryfinal = false;
-	return NULL;
-    }
-    if (!final && interval_end) {
-	struct timeval pt = packet->packetTime;
-	struct timeval edge = *interval_end;
+    if (pr->signalevents) {
+	//
+	//  signal the reporter to advance to the next packet ring by returning a null per
+	//  a first final dequeue attempt or a first edge dequeue event
+	//
+	bool final = ((packet->packetID < 0) ? true : false);
+	if (final && pr->retryfinal) {
+	    pr->retryfinal = false;
+	    return NULL;
+	}
+	if (!final && interval_end) {
+	    struct timeval pt = packet->packetTime;
+	    struct timeval edge = *interval_end;
 //	printf("**** diff %f %d\n", TimeDifference(pt, edge), pr->interval_blocking);
-	if (TimeDifference(pt, edge) > 0) {
-	    if (pr->interval_blocking > 0) {
-		pr->interval_blocking--;
-		return NULL;
-	    } else {
-		pr->interval_blocking = 1;
+	    if (TimeDifference(pt, edge) > 0) {
+		if (pr->interval_blocking > 0) {
+		    pr->interval_blocking--;
+		    return NULL;
+		} else {
+		    pr->interval_blocking = 1;
+		}
 	    }
 	}
     }
-
     // advance the consumer pointer last
     pr->consumer = readindex;
     if (pr->mutex_enable) {
