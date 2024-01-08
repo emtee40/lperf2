@@ -603,7 +603,7 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
     // Create a new packet ring which is used to communicate
     // packet stats from the traffic thread to the reporter
     // thread.  The reporter thread does all packet accounting
-    bool enable_signalevents = !(!isUDP(inSettings) && (inSettings->mIntervalMode != kInterval_Time));
+    bool enable_signalevents = !(inSettings->mIntervalMode != kInterval_Time);
     ireport->packetring = packetring_init((inSettings->numreportstructs ? inSettings->numreportstructs : (isSingleUDP(inSettings) ? 40 : NUM_REPORT_STRUCTS)), \
 					  &ReportCond, (isSingleUDP(inSettings) ? NULL : &inSettings->awake_me), enable_signalevents);
 #ifdef HAVE_THREAD_DEBUG
