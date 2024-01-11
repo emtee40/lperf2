@@ -148,7 +148,7 @@ static inline struct Iperf_ListEntry *flowkey_insert (iperf_sockaddr *host) {
 }
 
 static inline iperf_sockaddr *active_table_get_host_key (struct thread_Settings *agent) {
-    iperf_sockaddr *key = (isSumServerDstIP(agent) ? &agent->local : &agent->peer);
+    iperf_sockaddr *key = ((isIncrDstIP(agent) || isSumServerDstIP(agent)) ? &agent->local : &agent->peer);
     return key;
 }
 
