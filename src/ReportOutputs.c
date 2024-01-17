@@ -143,10 +143,10 @@ void reporter_default_heading_flags (int flag) {
 // o) this is the sum report (all preceding interval reports need flush)
 // o) below the flush rate limiter
 //
-#define FLUSH_RATE_LIMITER 5000 //units is microseconds
+#define FLUSH_RATE_LIMITER 1000 //units is microseconds
 static inline void cond_flush (struct TransferInfo *stats) {
     static struct timeval prev={0,0};
-    struct timeval now={0,0};
+    struct timeval now;
 #ifdef HAVE_CLOCK_GETTIME
     struct timespec t1;
     clock_gettime(CLOCK_REALTIME, &t1);
