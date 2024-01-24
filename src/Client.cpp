@@ -975,7 +975,7 @@ void Client::RunRateLimitedTCP () {
 		reportstruct->packetTime.tv_sec = now.getSecs();
 		reportstruct->packetTime.tv_usec = now.getUsecs();
 		reportstruct->sentTime = reportstruct->packetTime;
-		WriteTcpTxHdr(reportstruct, static_cast<int>(sizeof(struct TCP_burst_payload)), burst_id++);
+		WriteTcpTxHdr(reportstruct, write_remaining, burst_id++);
 		// perform write
 		// perform write, full header must succeed
 		if (isTcpWriteTimes(mSettings)) {
