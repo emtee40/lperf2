@@ -111,7 +111,7 @@ inline void packetring_enqueue (struct PacketRing *pr, struct ReportStruct *meta
 	    {
 		struct timeval now;
 		static struct timeval prev={0, 0};
-		gettimeofday( &now, NULL );
+		TimeGetNow(now);
 		if (!prev.tv_sec || (TimeDifference(now, prev) > 1.0)) {
 		    prev = now;
 		    thread_debug( "Not good, traffic's packet ring %p stalled per %p", (void *)pr, (void *)&pr->awake_producer);

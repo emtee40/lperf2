@@ -147,14 +147,7 @@ void reporter_default_heading_flags (int flag) {
 static inline void cond_flush (struct TransferInfo *stats) {
     static struct timeval prev={0,0};
     struct timeval now;
-#ifdef HAVE_CLOCK_GETTIME
-    struct timespec t1;
-    clock_gettime(CLOCK_REALTIME, &t1);
-    now.tv_sec  = t1.tv_sec;
-    now.tv_usec = t1.tv_nsec / 1000;
-#else
-    gettimeofday(&now, NULL);
-#endif
+    TimeGetNow(now);
     if (stats->final || (stats->type == SUM_REPORT) || !(TimeDifferenceUsec(now, prev) < FLUSH_RATE_LIMITER)) {
 	fflush(stdout);
 	prev = now;
@@ -2322,14 +2315,7 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
     if ((report->common->ThreadMode == kMode_Client) && !isServerReverse(report->common)) {
 	if (isTxHoldback(report->common) || isTxStartTime(report->common)) {
 	    struct timeval now;
-#ifdef HAVE_CLOCK_GETTIME
-	    struct timespec t1;
-	    clock_gettime(CLOCK_REALTIME, &t1);
-	    now.tv_sec  = t1.tv_sec;
-	    now.tv_usec = t1.tv_nsec / 1000;
-#else
-	    gettimeofday(&now, NULL);
-#endif
+	    TimeGetNow(now);
 	    int seconds_from_now;
 	    if (isTxHoldback(report->common)) {
 		seconds_from_now = report->txholdbacktime.tv_sec;

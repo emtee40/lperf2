@@ -140,14 +140,7 @@ int clock_usleep (struct timeval *request) {
 #else
     struct timeval now;
     struct timeval next = *request;
-#ifdef HAVE_CLOCK_GETTIME
-    struct timespec t1;
-    clock_gettime(CLOCK_REALTIME, &t1);
-    now.tv_sec  = t1.tv_sec;
-    now.tv_usec = t1.tv_nsec / 1000;
-#else
-    gettimeofday(&now, NULL);
-#endif
+    TimeGetNow(now);
     double delta_usecs;
     if ((delta_usecs = TimeDifference(next, now)) > 0.0) {
 	delay_loop(delta_usecs);

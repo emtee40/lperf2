@@ -198,6 +198,21 @@ void make_lower(char *s);
  */
 #define rMillion 1000000
 
+
+#ifdef HAVE_CLOCK_GETTIME
+#define TimeGetNow(timeval) do { \
+    struct timespec t1;			\
+    clock_gettime(CLOCK_REALTIME, &t1); \
+    timeval.tv_sec  = t1.tv_sec; \
+    timeval.tv_usec = t1.tv_nsec / 1000; \
+} while (0)
+#else
+#define TimeGetNow(timeval) do { \
+    gettimeofday(&timeval, NULL); \
+} while (0)
+#endif
+
+
 #define TimeZero(timeval) ((timeval.tv_sec == 0) && (timeval.tv_usec == 0))
 
 #define TimeDifference(left, right) ((left.tv_sec  - right.tv_sec) +	\
