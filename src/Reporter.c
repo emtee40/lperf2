@@ -625,7 +625,6 @@ inline int reporter_process_report (struct ReportHeader *reporthdr) {
     switch (reporthdr->type) {
     case DATA_REPORT:
 	done = reporter_process_transfer_report((struct ReporterData *)reporthdr->this_report);
-	fflush(stdout);
 	if (done) {
 	    struct ReporterData *tmp = (struct ReporterData *)reporthdr->this_report;
 	    struct PacketRing *pr = tmp->packetring;
@@ -647,18 +646,15 @@ inline int reporter_process_report (struct ReportHeader *reporthdr) {
 	    }
 	}
 	reporter_print_connection_report(creport);
-	fflush(stdout);
 	FreeReport(reporthdr);
     }
 	break;
     case SETTINGS_REPORT:
 	reporter_print_settings_report((struct ReportSettings *)reporthdr->this_report);
-	fflush(stdout);
 	FreeReport(reporthdr);
 	break;
     case SERVER_RELAY_REPORT:
 	reporter_print_server_relay_report((struct ServerRelay *)reporthdr->this_report);
-	fflush(stdout);
 	FreeReport(reporthdr);
 	break;
     default:
