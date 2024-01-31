@@ -72,6 +72,14 @@ enum ReadWriteExtReturnVals {
     NullEvent
 };
 
+enum QueueEvent {
+    NONE = 0,
+    ADVANCED,
+    AFTER_TIMESTAMP,
+    BEFORE_TIMESTAMP,
+    EMPTY
+};
+
 struct ReportStruct {
     intmax_t packetID;
     intmax_t packetLen;
@@ -116,9 +124,10 @@ struct PacketRing {
     int awaitcounter;
     int mutex_enable;
     int bytes;
-    int interval_blocking;
-    bool retryfinal;
-    bool enable_dequeue_events;
+    bool interval_barrier;
+    enum QueueEvent q_event;
+    bool enable_queue_events;
+    struct timeval finaltime;
 
     // Use a condition variables
     // o) awake_producer - producer waits for the consumer thread to

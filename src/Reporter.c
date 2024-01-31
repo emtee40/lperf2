@@ -1717,7 +1717,7 @@ void reporter_transfer_protocol_sum_client_tcp (struct TransferInfo *stats, int 
 		reporter_set_timestamps_time(stats, FINALPARTIAL);
 		if ((stats->ts.iEnd - stats->ts.iStart) > stats->ts.significant_partial) {
 		    (*stats->output_handler)(stats);
-		    stats->threadcnt = 0;
+		    // stats->threadcnt = 0;
 		}
 		reporter_reset_transfer_stats_client_tcp(stats);
 	    }
@@ -1804,7 +1804,7 @@ void reporter_transfer_protocol_sum_server_tcp (struct TransferInfo *stats, int 
 		reporter_set_timestamps_time(stats, FINALPARTIAL);
 		if ((stats->ts.iEnd - stats->ts.iStart) > stats->ts.significant_partial) {
 		    (*stats->output_handler)(stats);
-		    stats->threadcnt = 0;
+		    // stats->threadcnt = 0;
 		}
 	    }
 	} else if ((stats->output_handler) && !(stats->isMaskOutput)) {
