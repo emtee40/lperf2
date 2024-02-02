@@ -189,17 +189,14 @@ class ssh_node:
 
         ssh_node.instances.add(self)
 
-    def rexec(self, cmd='pwd', IO_TIMEOUT=DEFAULT_IO_TIMEOUT, CMD_TIMEOUT=DEFAULT_CMD_TIMEOUT, CONNECT_TIMEOUT=DEFAULT_CONNECT_TIMEOUT, run_now=True) :
+    def rexec(self, cmd='pwd', IO_TIMEOUT=DEFAULT_IO_TIMEOUT, CMD_TIMEOUT=DEFAULT_CMD_TIMEOUT, CONNECT_TIMEOUT=DEFAULT_CONNECT_TIMEOUT, run_now=True, repeat = None) :
         io_timer = IO_TIMEOUT
         cmd_timer = CMD_TIMEOUT
         connect_timer = CONNECT_TIMEOUT
         this_session = ssh_session(name=self.name, hostname=self.ipaddr, CONNECT_TIMEOUT=connect_timer, node=self, ssh_speedups=True)
-        this_future = asyncio.ensure_future(this_session.post_cmd(cmd=cmd, IO_TIMEOUT=io_timer, CMD_TIMEOUT=cmd_timer), loop=ssh_node.loop)
+        this_future = asyncio.ensure_future(this_session.post_cmd(cmd=cmd, IO_TIMEOUT=io_timer, CMD_TIMEOUT=cmd_timer, repeat = repeat), loop=ssh_node.loop)
         if run_now:
             ssh_node.loop.run_until_complete(asyncio.wait([this_future], timeout=CMD_TIMEOUT))
-            if this_future.done() :
-                return this_future.result()
-
         else:
             ssh_node.rexec_tasks.append(this_future)
             self.my_futures.append(this_future)
@@ -217,7 +214,7 @@ class ssh_node:
         if self.ssh_console_session:
             self.ssh_console_session.close()
 
-    async def repeat(self,interval, func, *args, **kwargs):
+    async def repeat(self, interval, func, *args, **kwargs):
         """
         Run func every interval seconds.
         If func has not finished before *interval*, will run again
@@ -386,7 +383,6 @@ class ssh_session:
             logging.debug('{} subprocess with pid={} closed'.format(self._session.name, self._mypid))
             self._exited = True
             self._mypid = None
-            self.setresult(self._stdout_buffer)
             self.signal_exit()
 
         def wd_timer(self, type=None):
@@ -464,12 +460,13 @@ class ssh_session:
             self.sshpipe.terminate()
             await self.closed.wait()
 
-    async def post_cmd(self, cmd=None, IO_TIMEOUT=None, CMD_TIMEOUT=None, ssh_speedups=True) :
+    async def post_cmd(self, cmd=None, IO_TIMEOUT=None, CMD_TIMEOUT=None, ssh_speedups=True, repeat=None) :
         logging.debug("{} Post command {}".format(self.name, cmd))
         self.opened.clear()
         self.cmd = cmd
         self.IO_TIMEOUT = IO_TIMEOUT
         self.CMD_TIMEOUT = CMD_TIMEOUT
+        self.repeatcmd = None
         sshcmd = self.ssh.copy()
         if self.control_master :
             try:
@@ -485,15 +482,18 @@ class ssh_session:
             sshcmd.extend(['{}'.format(self.hostname), cmd])
         s = " "
         logging.info('{} {}'.format(self.name, s.join(sshcmd)))
-        # self in the ReaderProtocol() is this ssh_session instance
-        self._transport, self._protocol = await ssh_node.loop.subprocess_exec(lambda: self.SSHReaderProtocol(self, self.silent_mode), *sshcmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
-        # self.sshpipe = self._transport.get_extra_info('subprocess')
-        # Establish the remote command
-        await self.connected.wait()
-        logging.debug("post_cmd connected")
-        # u = '{}\n'.format(cmd)
-        # self.sshpipe.stdin.write(u.encode())
-        # Wait for the command to complete
-        if not self.control_master :
-            await self.closed.wait()
-            return self.results
+        while True :
+            # self in the ReaderProtocol() is this ssh_session instance
+            self._transport, self._protocol = await ssh_node.loop.subprocess_exec(lambda: self.SSHReaderProtocol(self, self.silent_mode), *sshcmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=None)
+            # self.sshpipe = self._transport.get_extra_info('subprocess')
+            # Establish the remote command
+            await self.connected.wait()
+            logging.debug("post_cmd connected")
+            # u = '{}\n'.format(cmd)
+            # self.sshpipe.stdin.write(u.encode())
+            # Wait for the command to complete
+            if not self.control_master :
+                await self.closed.wait()
+            if not repeat :
+                break
+        return self.results

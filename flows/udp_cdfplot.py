@@ -25,7 +25,7 @@
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 # Author Robert J. McMahon, Broadcom LTD
-# Date Dec 2023
+# Date Sept 2023
 import shutil
 import logging
 import flows
@@ -34,6 +34,7 @@ import time, datetime
 import os,sys
 import asyncio, sys
 import ssh_nodes
+import re
 
 from datetime import datetime as datetime, timezone
 from flows import *
@@ -53,7 +54,7 @@ parser.add_argument('-i','--interval', type=float, required=False, default=1, he
 parser.add_argument('-l','--length', type=int, required=False, default=1470, help='udp payload size')
 parser.add_argument('-n','--runcount', type=int, required=False, default=5, help='number of runs')
 parser.add_argument('-t','--time', type=float, default=10, required=False, help='time or duration to run traffic')
-parser.add_argument('-w','--window', type=str, default=None, required=False, help='socket window size')
+parser.add_argument('-w','--window', type=str, default='128K', required=False, help='socket window size')
 parser.add_argument('-O','--offered_load', type=str, default="10mpps", required=False, help='offered load; <fps>:<mean>,<variance>')
 parser.add_argument('-T','--title', type=str, default="UDP Single Flow", required=False, help='title for graphs')
 parser.add_argument('-S','--tos', type=str, default='ac_be', required=False, help='type of service or access class; BE, VI, VO or BK')
@@ -84,7 +85,7 @@ else :
 
 logfilename='test.log'
 separator = '_'
-datapath = separator.join([args.output_directory, args.srclinkspeed, args.dsttype, "<", args.srctype])
+datapath = separator.join([args.output_directory, args.srclinkspeed, args.dsttype, ">", args.srctype])
 if not os.path.exists(datapath):
     print('Making log directory {}'.format(datapath))
     os.makedirs(datapath)
@@ -92,10 +93,12 @@ if not os.path.exists(datapath):
 fqlogfilename = os.path.join(datapath, logfilename)
 print('Writing log to {}'.format(fqlogfilename))
 
-logging.basicConfig(filename=fqlogfilename, level=logging.INFO, format='%(asctime)s %(levelname)-8s %(module)-9s  %(message)s')
-
+FORMAT = '%(asctime)s %(levelname)-8s %(module)-9s  %(message)s'
+formatter = logging.Formatter(FORMAT)
+logger = logging.getLogger()
+logging.basicConfig(filename=fqlogfilename, level=logging.INFO, format=FORMAT)
 logging.getLogger('asyncio').setLevel(logging.INFO)
-root = logging.getLogger(__name__)
+
 loop = asyncio.get_event_loop()
 loop.set_debug(False)
 ssh_node.loop.set_debug(False)
@@ -103,9 +106,9 @@ loop = asyncio.get_event_loop()
 
 plottitle='{} {} {} {} {} bytes qdisc={} {}'.format(args.title, args.dsttype, args.offered_load, args.tos, args.length, args.qdisc, datapath)
 
+
 duta = ssh_node(name='DUTA', ipaddr=args.client, device='enp2s0', console=True, ssh_speedups=False)
 dutb = ssh_node(name='DUTB', ipaddr=args.server, device='eth1', console=True, ssh_speedups=False)
-ap = ssh_node(name='AP', ipaddr='192.168.1.1', relay='10.19.85.202', sshtype = 'ush', ssh_speedups=False)
 duts = [duta, dutb]
 ssh_node.open_consoles()
 
@@ -127,7 +130,12 @@ duta.rexec(cmd='/usr/sbin/ethtool {}'.format(args.srcdev))
 flows = [iperf_flow(name="UDP", user='root', server=dutb, client=duta, proto='UDP', offered_load=args.offered_load, interval=args.interval, dstip=args.dstip, tos=args.tos, length=args.length, latency=True, window=args.window)]
 
 for i in range(args.runcount) :
+    print("Running ({}) traffic with load {} for {} seconds".format(str(i), args.offered_load, args.time))
+    runlog = logging.FileHandler(os.path.join(datapath,'run_{}.log'.format(i)))
+    runlog.setFormatter(formatter)
+    logger.addHandler(runlog)
     iperf_flow.run(time=args.time, flows='all', preclean=False)
+    logger.removeHandler(runlog)
 
 ssh_node.close_consoles()
 
