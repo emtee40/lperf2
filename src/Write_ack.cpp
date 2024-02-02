@@ -112,7 +112,7 @@ void WriteAck::RunServer(void) {
   thread_debug("Write ack got final packet %p so signal cond %p (%p)", (void *) packet, \
 	       (void *) mSettings->ackring->awake_producer, (void *) mSettings);
 #endif
-  mSettings->ackring->consumerdone = 1;
+  mSettings->ackring->consumerdone = true;
   Condition_Signal(mSettings->ackring->awake_producer);
 };
 

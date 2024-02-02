@@ -55,7 +55,7 @@ struct histogram {
     unsigned int binwidth;
     unsigned int populationcnt;
     bool Omit;
-    int final;
+    bool final;
     int maxbin;
     int fmaxbin;
     double maxval;

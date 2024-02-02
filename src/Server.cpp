@@ -164,7 +164,7 @@ void Server::RunTCP () {
     reportstruct->packetTime.tv_usec = now.getUsecs();
     while (InProgress()) {
 //	printf("***** bid expect = %u\n", burstid_expect);
-	reportstruct->emptyreport=1;
+	reportstruct->emptyreport = true;
 	currLen = 0;
 	// perform read
 	if (isBWSet(mSettings)) {
@@ -172,13 +172,13 @@ void Server::RunTCP () {
 	    tokens += time2.subSec(time1) * (mSettings->mAppRate / 8.0);
 	    time1 = time2;
 	}
-	reportstruct->transit_ready = 0;
+	reportstruct->transit_ready = false;
 	if (tokens >= 0.0) {
 	    int n = 0;
 	    int readLen = mSettings->mBufLen;
 	    if (burst_nleft > 0)
 		readLen = (mSettings->mBufLen < burst_nleft) ? mSettings->mBufLen : burst_nleft;
-	    reportstruct->emptyreport=1;
+	    reportstruct->emptyreport = true;
 #if HAVE_DECL_TCP_QUICKACK
 		if (isTcpQuickAck(mSettings)) {
 		    int opt = 1;
@@ -217,7 +217,7 @@ void Server::RunTCP () {
 		    burst_nleft = burst_info.burst_size - n;
 		    if (burst_nleft == 0) {
 			reportstruct->prevSentTime = myReport->info.ts.prevsendTime;
-			reportstruct->transit_ready = 1;
+			reportstruct->transit_ready = true;
 			reportstruct->burstperiod = burst_info.burst_period_us;
 		    }
 		    currLen += n;
@@ -239,7 +239,7 @@ void Server::RunTCP () {
 	    if (!reportstruct->transit_ready) {
 		n = recv(mSettings->mSock, mSettings->mBuf, readLen, 0);
 		if (n > 0) {
-		    reportstruct->emptyreport = 0;
+		    reportstruct->emptyreport = false;
 		    if (isburst) {
 			burst_nleft -= n;
 			if (burst_nleft == 0) {
@@ -249,7 +249,7 @@ void Server::RunTCP () {
 				reportstruct->isochStartTime.tv_usec = burst_info.send_tt.write_tv_usec;
 				reportstruct->burstperiod = burst_info.burst_period_us;
 			    }
-			    reportstruct->transit_ready = 1;
+			    reportstruct->transit_ready = true;
 			}
 		    }
 		} else if (n == 0) {
@@ -312,7 +312,7 @@ void Server::PostNullEvent () {
     now.setnow();
     report_nopacket.packetTime.tv_sec = now.getSecs();
     report_nopacket.packetTime.tv_usec = now.getUsecs();
-    report_nopacket.emptyreport=1;
+    report_nopacket.emptyreport = true;
     report_nopacket.err_readwrite = WriteNoAccount;
     ReportPacket(myReport, &report_nopacket);
 }
@@ -332,7 +332,7 @@ inline bool Server::ReadBBWithRXTimestamp () {
 		now.setnow();
 		reportstruct->packetTime.tv_sec = now.getSecs();
 		reportstruct->packetTime.tv_usec = now.getUsecs();
-		reportstruct->emptyreport=0;
+		reportstruct->emptyreport = false;
 		reportstruct->packetLen = mSettings->mBounceBackBytes;
 		// write the rx timestamp back into the payload
 		bbhdr->bbserverRx_ts.sec = htonl(reportstruct->packetTime.tv_sec);
@@ -399,7 +399,7 @@ inline bool Server::WriteBB () {
 	    PostNullEvent();
 	    continue;
 	}
-	reportstruct->emptyreport = 0;
+	reportstruct->emptyreport = false;
 	reportstruct->err_readwrite=WriteSuccess;
 	reportstruct->packetLen = writelen;
 	return true;
@@ -434,7 +434,7 @@ void Server::RunBounceBackTCP () {
     reportstruct->packetTime.tv_sec = now.getSecs();
     reportstruct->packetTime.tv_usec = now.getUsecs();
     reportstruct->packetLen = mSettings->mBounceBackBytes;
-    reportstruct->emptyreport=0;
+    reportstruct->emptyreport = false;
     ReportPacket(myReport, reportstruct);
 
     int rc;
@@ -762,7 +762,7 @@ inline int Server::ReadWithRxTimestamp () {
 #endif
     if (currLen <=0) {
 	// Socket read timeout or read error
-	reportstruct->emptyreport=1;
+	reportstruct->emptyreport = true;
 	if (currLen == 0) {
 	    peerclose = true;
 	} else if (FATALUDPREADERR(errno)) {
@@ -835,7 +835,7 @@ void Server::L2_processing () {
 	if (L2_quintuple_filter() != 0) {
 	    reportstruct->l2errors |= L2UNKNOWN;
 	    reportstruct->l2errors |= L2CSUMERR;
-	    reportstruct->emptyreport = 1;
+	    reportstruct->emptyreport = true;
 	}
     }
     if (!(reportstruct->l2errors & L2UNKNOWN)) {
@@ -845,7 +845,7 @@ void Server::L2_processing () {
 	if (rc) {
 	    reportstruct->l2errors |= L2CSUMERR;
 	    if ((!(reportstruct->l2errors & L2LENERR)) && (L2_quintuple_filter() != 0)) {
-		reportstruct->emptyreport = 1;
+		reportstruct->emptyreport = true;
 		reportstruct->l2errors |= L2UNKNOWN;
 	    }
 	}
@@ -934,7 +934,7 @@ int Server::L2_quintuple_filter () {
 }
 
 inline void Server::udp_isoch_processing (int rxlen) {
-    reportstruct->transit_ready = 0;
+    reportstruct->transit_ready = false;
     // Ignore runt sized isoch packets
     if (rxlen < static_cast<int>(sizeof(struct UDP_datagram) +  sizeof(struct client_hdr_v1) + sizeof(struct client_hdrext) + sizeof(struct isoch_payload))) {
 	reportstruct->burstsize = 0;
@@ -951,7 +951,7 @@ inline void Server::udp_isoch_processing (int rxlen) {
 	reportstruct->burstperiod = ntohl(udp_pkt->isoch.burstperiod);
 	reportstruct->remaining = ntohl(udp_pkt->isoch.remaining);
 	if ((reportstruct->remaining == (uint32_t) rxlen) && ((reportstruct->frameID - reportstruct->prevframeID) == 1)) {
-	    reportstruct->transit_ready = 1;
+	    reportstruct->transit_ready = true;
 	}
     }
 }
@@ -977,13 +977,13 @@ void Server::RunUDP () {
 	    // bandwidth accounting, basically it's indicating
 	    // that the reportstruct itself couldn't be
 	    // completely filled out.
-	    reportstruct->emptyreport=1;
+	    reportstruct->emptyreport = true;
 	    reportstruct->packetLen=0;
 	    // read the next packet with timestamp
 	    // will also set empty report or not
 	    rxlen=ReadWithRxTimestamp();
 	    if (!peerclose && (rxlen > 0)) {
-	        reportstruct->emptyreport = 0;
+	        reportstruct->emptyreport = false;
 	        reportstruct->packetLen = rxlen;
 	        if (isL2LengthCheck(mSettings)) {
 	            reportstruct->l2len = rxlen;
@@ -1010,7 +1010,7 @@ void Server::RunUDP () {
         }
     }
     disarm_itimer();
-    int do_close = EndJob(myJob, reportstruct);
+    bool do_close = EndJob(myJob, reportstruct);
     if (!isMulticast(mSettings) && !isNoUDPfin(mSettings)) {
 	// send a UDP acknowledgement back except when:
 	// 1) we're NOT receiving multicast

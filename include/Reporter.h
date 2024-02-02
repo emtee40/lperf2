@@ -400,7 +400,7 @@ struct SumReport {
     int threads;
     int threads_cntr_fsum;
     struct TransferInfo info;
-    void (*transfer_protocol_sum_handler) (struct TransferInfo *stats, int final);
+    void (*transfer_protocol_sum_handler) (struct TransferInfo *stats, bool final);
     struct BarrierMutex fullduplex_barrier;
     int sum_fd_set;
     bool sum_reverse_set;
@@ -410,8 +410,8 @@ struct ReporterData {
     // function pointer for per packet processing
     void (*packet_handler_pre_report) (struct ReporterData *data, struct ReportStruct *packet);
     void (*packet_handler_post_report) (struct ReporterData *data, struct ReportStruct *packet);
-    void (*transfer_protocol_handler) (struct ReporterData *data, int final);
-    int (*transfer_interval_handler) (struct ReporterData *data, struct ReportStruct *packet);
+    void (*transfer_protocol_handler) (struct ReporterData *data, bool final);
+    bool (*transfer_interval_handler) (struct ReporterData *data, struct ReportStruct *packet);
 
     struct PacketRing *packetring;
     int reporter_thread_suspends; // used to detect CPU bound systems
@@ -451,7 +451,7 @@ struct ReportHeader *InitSettingsReport(struct thread_Settings *inSettings);
 struct ReportHeader* InitServerRelayUDPReport(struct thread_Settings *inSettings, struct server_hdr *server);
 void PostReport(struct ReportHeader *reporthdr);
 bool ReportPacket (struct ReporterData* data, struct ReportStruct *packet);
-int EndJob(struct ReportHeader *reporthdr,  struct ReportStruct *packet);
+bool EndJob(struct ReportHeader *reporthdr,  struct ReportStruct *packet);
 void FreeReport(struct ReportHeader *reporthdr);
 void FreeSumReport (struct SumReport *sumreport);
 void FreeConnectionReport(struct ConnectionInfo *reporthdr);
@@ -487,34 +487,34 @@ void reporter_handle_packet_bb_server(struct ReporterData *data, struct ReportSt
 // Invoked from the Reporter thread per function vector this_ireport->transfer_interval_handler
 // This is set during Report instantiation (found in Reports.c)
 // These conditionally, e.g per a sample interval, invoke the transfer protocol handlers
-int reporter_condprint_time_interval_report(struct ReporterData *data, struct ReportStruct *packet);
-int reporter_condprint_frame_interval_report_client_udp(struct ReporterData *data, struct ReportStruct *packet);
-int reporter_condprint_frame_interval_report_server_udp(struct ReporterData *data, struct ReportStruct *packet);
-int reporter_condprint_frame_interval_report_server_tcp(struct ReporterData *data, struct ReportStruct *packet);
-int reporter_condprint_frame_interval_report_client_tcp(struct ReporterData *data, struct ReportStruct *packet);
-int reporter_condprint_burst_interval_report_client_udp(struct ReporterData *data, struct ReportStruct *packet);
-int reporter_condprint_burst_interval_report_server_udp(struct ReporterData *data, struct ReportStruct *packet);
-int reporter_condprint_burst_interval_report_server_tcp(struct ReporterData *data, struct ReportStruct *packet);
-int reporter_condprint_burst_interval_report_client_tcp(struct ReporterData *data, struct ReportStruct *packet);
+bool reporter_condprint_time_interval_report(struct ReporterData *data, struct ReportStruct *packet);
+bool reporter_condprint_frame_interval_report_client_udp(struct ReporterData *data, struct ReportStruct *packet);
+bool reporter_condprint_frame_interval_report_server_udp(struct ReporterData *data, struct ReportStruct *packet);
+bool reporter_condprint_frame_interval_report_server_tcp(struct ReporterData *data, struct ReportStruct *packet);
+bool reporter_condprint_frame_interval_report_client_tcp(struct ReporterData *data, struct ReportStruct *packet);
+bool reporter_condprint_burst_interval_report_client_udp(struct ReporterData *data, struct ReportStruct *packet);
+bool reporter_condprint_burst_interval_report_server_udp(struct ReporterData *data, struct ReportStruct *packet);
+bool reporter_condprint_burst_interval_report_server_tcp(struct ReporterData *data, struct ReportStruct *packet);
+bool reporter_condprint_burst_interval_report_client_tcp(struct ReporterData *data, struct ReportStruct *packet);
 
 // Each report type needs specialized updating prior to printing its report
 // These functions realize that updating. They are called by the transfer protocol handler,
 // e.g. (*data->transfer_protocol_handler)(data, 0) found in src/Reporter.c
 // These update the TransferInfo stats struct which is used during output (e.g. the output handler)
-void reporter_transfer_protocol_null(struct ReporterData *data, int final);
-void reporter_transfer_protocol_client_tcp(struct ReporterData *data, int final);
-void reporter_transfer_protocol_client_bb_tcp(struct ReporterData *data, int final);
-void reporter_transfer_protocol_client_udp(struct ReporterData *data, int final);
-void reporter_transfer_protocol_server_tcp(struct ReporterData *data, int final);
-void reporter_transfer_protocol_server_bb_tcp(struct ReporterData *data, int final);
-void reporter_transfer_protocol_server_udp(struct ReporterData *data, int final);
+void reporter_transfer_protocol_null(struct ReporterData *data, bool final);
+void reporter_transfer_protocol_client_tcp(struct ReporterData *data, bool final);
+void reporter_transfer_protocol_client_bb_tcp(struct ReporterData *data, bool final);
+void reporter_transfer_protocol_client_udp(struct ReporterData *data, bool final);
+void reporter_transfer_protocol_server_tcp(struct ReporterData *data, bool final);
+void reporter_transfer_protocol_server_bb_tcp(struct ReporterData *data, bool final);
+void reporter_transfer_protocol_server_udp(struct ReporterData *data, bool final);
 // Function vectors to suppport sum reports
-void reporter_transfer_protocol_sum_client_tcp(struct TransferInfo *stats, int final);
-void reporter_transfer_protocol_sum_server_tcp(struct TransferInfo *stats, int final);
-void reporter_transfer_protocol_sum_client_udp(struct TransferInfo *stats, int final);
-void reporter_transfer_protocol_sum_server_udp(struct TransferInfo *stats, int final);
-void reporter_transfer_protocol_fullduplex_tcp(struct TransferInfo *stats, int final);
-void reporter_transfer_protocol_fullduplex_udp(struct TransferInfo *stats, int final);
+void reporter_transfer_protocol_sum_client_tcp(struct TransferInfo *stats, bool final);
+void reporter_transfer_protocol_sum_server_tcp(struct TransferInfo *stats, bool final);
+void reporter_transfer_protocol_sum_client_udp(struct TransferInfo *stats, bool final);
+void reporter_transfer_protocol_sum_server_udp(struct TransferInfo *stats, bool final);
+void reporter_transfer_protocol_fullduplex_tcp(struct TransferInfo *stats, bool final);
+void reporter_transfer_protocol_fullduplex_udp(struct TransferInfo *stats, bool final);
 
 // Report output print routines invoked by the transfer_protocol handler
 // Bound in Report instantiation and invoked by the transfer protocol
@@ -591,8 +591,8 @@ void reporter_connect_printf_tcp_final(struct ConnectionInfo *report);
 
 void write_UDP_AckFIN(struct TransferInfo *stats, int len);
 
-int reporter_process_transfer_report (struct ReporterData *this_ireport);
-int reporter_process_report (struct ReportHeader *reporthdr);
+bool reporter_process_transfer_report (struct ReporterData *this_ireport);
+bool reporter_process_report (struct ReportHeader *reporthdr);
 
 void setTransferID(struct thread_Settings *inSettings, enum TansferIDType traffic_direction);
 void format_ips_port_string (struct TransferInfo *stats, bool sum);

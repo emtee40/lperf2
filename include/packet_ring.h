@@ -88,7 +88,7 @@ struct ReportStruct {
     struct timeval sentTime;
     struct timeval prevSentTime;
     enum ReadWriteExtReturnVals err_readwrite;
-    int emptyreport;
+    bool emptyreport;
     int l2errors;
     int l2len;
     int expected_l2len;
@@ -100,7 +100,7 @@ struct ReportStruct {
     uint32_t burstsize;
     uint32_t burstperiod;
     uint32_t remaining;
-    int transit_ready;
+    bool transit_ready;
     int writecnt;
     long write_time;
     bool scheduled;
@@ -120,9 +120,9 @@ struct PacketRing {
     int producer;
     int consumer;
     int maxcount;
-    int consumerdone;
+    bool consumerdone;
     int awaitcounter;
-    int mutex_enable;
+    bool mutex_enable;
     int bytes;
     bool interval_barrier;
     enum QueueEvent q_event;

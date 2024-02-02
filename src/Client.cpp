@@ -569,7 +569,7 @@ void Client::InitTrafficLoop () {
     readAt = mSettings->mBuf;
     lastPacketTime.set(myReport->info.ts.startTime.tv_sec, myReport->info.ts.startTime.tv_usec);
     reportstruct->err_readwrite=WriteSuccess;
-    reportstruct->emptyreport=0;
+    reportstruct->emptyreport = false;
     reportstruct->packetLen = 0;
     // Finally, post this thread's "job report" which the reporter thread
     // will continuously process as long as there are packets flowing
@@ -723,7 +723,7 @@ void Client::RunTCP () {
 		    reportstruct->packetTime.tv_usec = now.getUsecs();
 		    if (!InProgress()) {
 			reportstruct->packetLen = 0;
-			reportstruct->emptyreport = 1;
+			reportstruct->emptyreport = true;
 			// wait may have crossed the termination boundry
 			break;
 		    } else {
@@ -792,17 +792,17 @@ void Client::RunTCP () {
 		reportstruct->err_readwrite=WriteNoAccount;
 	    }
 	    reportstruct->packetLen = 0;
-	    reportstruct->emptyreport = 1;
+	    reportstruct->emptyreport = true;
 	} else {
-	    reportstruct->emptyreport = 0;
+	    reportstruct->emptyreport = false;
 	    totLen += reportstruct->packetLen;
 	    reportstruct->err_readwrite=WriteSuccess;
 	    if (isburst) {
 		burst_remaining -= reportstruct->packetLen;
 		if (burst_remaining > 0) {
-		    reportstruct->transit_ready = 0;
+		    reportstruct->transit_ready = false;
 		} else {
-		    reportstruct->transit_ready = 1;
+		    reportstruct->transit_ready = true;
 		    reportstruct->prevSentTime = myReport->info.ts.prevsendTime;
 		}
 	    }
@@ -879,7 +879,7 @@ void Client::RunNearCongestionTCP () {
 	reportstruct->packetTime.tv_usec = now.getUsecs();
 	reportstruct->sentTime = reportstruct->packetTime;
       ReportNow:
-	reportstruct->transit_ready = 0;
+	reportstruct->transit_ready = false;
 	if (reportstruct->packetLen < 0) {
 	    if (NONFATALTCPWRITERR(errno)) {
 		reportstruct->err_readwrite=WriteErrAccount;
@@ -891,14 +891,14 @@ void Client::RunNearCongestionTCP () {
 		reportstruct->err_readwrite=WriteNoAccount;
 	    }
 	    reportstruct->packetLen = 0;
-	    reportstruct->emptyreport = 1;
+	    reportstruct->emptyreport = true;
 	} else {
-	    reportstruct->emptyreport = 0;
+	    reportstruct->emptyreport = false;
 	    totLen += reportstruct->packetLen;
 	    reportstruct->err_readwrite=WriteSuccess;
 	    burst_remaining -= reportstruct->packetLen;
 	    if (burst_remaining <= 0) {
-		reportstruct->transit_ready = 1;
+		reportstruct->transit_ready = true;
 	    }
 	}
 	if (isModeAmount(mSettings) && !reportstruct->emptyreport) {
@@ -1135,9 +1135,8 @@ void Client::RunWriteEventsTCP () {
 	if (isTcpWriteTimes(mSettings)) {
 	    write_start = now;
 	}
-	bool rc = AwaitSelectWrite();
-	reportstruct->emptyreport = (rc == false) ? 1 : 0;
-        if (rc) {
+	reportstruct->emptyreport = !AwaitSelectWrite();
+        if (!reportstruct->emptyreport) {
 	    now.setnow();
 	    reportstruct->packetTime.tv_sec = now.getSecs();
 	    reportstruct->packetTime.tv_usec = now.getUsecs();
@@ -1150,7 +1149,7 @@ void Client::RunWriteEventsTCP () {
 		    peerclose = true;
 		}
 		reportstruct->packetLen = 0;
-		reportstruct->emptyreport = 1;
+		reportstruct->emptyreport = true;
 	    } else if (isTcpWriteTimes(mSettings)) {
 		write_end.setnow();
 		reportstruct->write_time = write_end.subUsec(write_start);
@@ -1254,7 +1253,7 @@ void Client::RunBounceBackTCP () {
 		goto RETRY_WRITE;
 	    }
 	    if (write_offset == writelen) {
-		reportstruct->emptyreport = 0;
+		reportstruct->emptyreport = false;
 		totLen += writelen;
 		reportstruct->err_readwrite=WriteSuccess;
 #if HAVE_DECL_TCP_QUICKACK
@@ -1281,7 +1280,7 @@ void Client::RunBounceBackTCP () {
 			reportstruct->packetTime.tv_sec = now.getSecs();
 			reportstruct->packetTime.tv_usec = now.getUsecs();
 			reportstruct->packetLen += n;
-			reportstruct->emptyreport = 0;
+			reportstruct->emptyreport = false;
 			reportstruct->packetID = burst_id;
 			myReportPacket();
 		    } else if (InProgress()) {
@@ -1407,7 +1406,7 @@ void Client::RunUDP () {
 	}
 
 	reportstruct->err_readwrite = WriteSuccess;
-	reportstruct->emptyreport = 0;
+	reportstruct->emptyreport = false;
 	// perform write
 	if (isModeAmount(mSettings)) {
 	    currLen = write(mySocket, mSettings->mBuf, (mSettings->mAmount < static_cast<unsigned>(mSettings->mBufLen)) ? mSettings->mAmount : mSettings->mBufLen);
@@ -1449,7 +1448,7 @@ void Client::RunUDP () {
 	        currLen = 0;
 	        reportstruct->err_readwrite = WriteErrAccount;
 	    }
-	    reportstruct->emptyreport = 1;
+	    reportstruct->emptyreport = true;
 	}
 
 	if (isModeAmount(mSettings)) {
@@ -1558,7 +1557,7 @@ void Client::RunUDPIsochronous () {
 	    // }
 
 	    reportstruct->err_readwrite = WriteSuccess;
-	    reportstruct->emptyreport = 0;
+	    reportstruct->emptyreport = false;
 	    reportstruct->writecnt = 1;
 
 	    // perform write
@@ -1574,7 +1573,7 @@ void Client::RunUDPIsochronous () {
 
 	    if (currLen < 0) {
 	        reportstruct->packetID--;
-		reportstruct->emptyreport = 1;
+		reportstruct->emptyreport = true;
 		if (FATALUDPWRITERR(errno)) {
 	            reportstruct->err_readwrite = WriteErrFatal;
 	            WARN_errno(1, "write");
@@ -1587,9 +1586,9 @@ void Client::RunUDPIsochronous () {
 	    } else {
 		bytecnt -= currLen;
 		if (!bytecnt)
-		    reportstruct->transit_ready = 1;
+		    reportstruct->transit_ready = true;
 		else
-		    reportstruct->transit_ready = 0;
+		    reportstruct->transit_ready = false;
 		// adjust bytecnt so last packet of burst is greater or equal to min packet
 		if ((bytecnt > 0) && (bytecnt < udp_payload_minimum)) {
 		    bytecnt = udp_payload_minimum;
@@ -1801,7 +1800,7 @@ void Client::FinishTrafficActions () {
 	}
 	reportstruct->packetLen = 0;
     }
-    int do_close = EndJob(myJob, reportstruct);
+    bool do_close = EndJob(myJob, reportstruct);
     if (isIsochronous(mSettings) && (myReport->info.schedule_error.cnt > 2)) {
 	fprintf(stderr,"%sIsoch schedule errors (mean/min/max/stdev) = %0.3f/%0.3f/%0.3f/%0.3f ms\n",mSettings->mTransferIDStr, \
 		((myReport->info.schedule_error.sum /  myReport->info.schedule_error.cnt) * 1e-3), (myReport->info.schedule_error.min * 1e-3), \
@@ -1910,7 +1909,7 @@ void Client::PostNullEvent (bool isFirst) {
     now.setnow();
     report_nopacket.packetTime.tv_sec = now.getSecs();
     report_nopacket.packetTime.tv_usec = now.getUsecs();
-    report_nopacket.emptyreport=1;
+    report_nopacket.emptyreport = true;
     report_nopacket.scheduled = isFirst;
     report_nopacket.err_readwrite = WriteNoAccount;
     myReportPacket(&report_nopacket);
