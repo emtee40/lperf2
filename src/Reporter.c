@@ -590,7 +590,7 @@ bool reporter_process_transfer_report (struct ReporterData *this_ireport) {
 		}
 		if (DecrSumReportRefCounter(this_ireport->FullDuplexReport) == 0) {
 		    if (this_ireport->FullDuplexReport->transfer_protocol_sum_handler) {
-			(*this_ireport->FullDuplexReport->transfer_protocol_sum_handler)(fullduplexstats, 1);
+			(*this_ireport->FullDuplexReport->transfer_protocol_sum_handler)(fullduplexstats, true);
 		    }
 		    // FullDuplex report gets freed by a traffic thread (per its barrier)
 		}
@@ -604,7 +604,7 @@ bool reporter_process_transfer_report (struct ReporterData *this_ireport) {
 		if (this_ireport->GroupSumReport->transfer_protocol_sum_handler && \
 		    ((--this_ireport->GroupSumReport->threads_cntr_fsum == 0) && \
 		     ((this_ireport->GroupSumReport->reference.maxcount > 1) || isSumOnly(this_ireport->info.common)))) {
-		    (*this_ireport->GroupSumReport->transfer_protocol_sum_handler)(&this_ireport->GroupSumReport->info, 1);
+		    (*this_ireport->GroupSumReport->transfer_protocol_sum_handler)(&this_ireport->GroupSumReport->info, true);
 		}
 	    }
 	}
@@ -1905,7 +1905,7 @@ bool reporter_condprint_time_interval_report (struct ReporterData *data, struct 
 	if (fullduplexstats && ((++data->FullDuplexReport->threads) == 2) && isEnhanced(stats->common)) {
 	    data->FullDuplexReport->threads = 0;
 	    assert(data->FullDuplexReport->transfer_protocol_sum_handler != NULL);
-	    (*data->FullDuplexReport->transfer_protocol_sum_handler)(fullduplexstats, 0);
+	    (*data->FullDuplexReport->transfer_protocol_sum_handler)(fullduplexstats, false);
 	}
 	if (sumstats) {
 	    if ((++data->GroupSumReport->threads) == data->GroupSumReport->reference.count)   {
@@ -1918,7 +1918,7 @@ bool reporter_condprint_time_interval_report (struct ReporterData *data, struct 
 		}
 		reporter_set_timestamps_time(sumstats, INTERVAL);
 		assert(data->GroupSumReport->transfer_protocol_sum_handler != NULL);
-		(*data->GroupSumReport->transfer_protocol_sum_handler)(sumstats, 0);
+		(*data->GroupSumReport->transfer_protocol_sum_handler)(sumstats, false);
 	    }
 	}
         // In the (hopefully unlikely event) the reporter fell behind
