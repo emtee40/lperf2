@@ -534,7 +534,7 @@ bool reporter_process_transfer_report (struct ReporterData *this_ireport) {
     // If there are more packets to process then handle them
     struct ReportStruct *packet = NULL;
     bool advance_jobq = false;
-    while (!advance_jobq && (packet = packetring_dequeue(this_ireport->packetring, (sumstats ? &(sumstats->ts.nextTime): NULL)))) {
+    while (!advance_jobq && (packet = packetring_dequeue(this_ireport->packetring))) {
 	// Increment the total packet count processed by this thread
 	// this will be used to make decisions on if the reporter
 	// thread should add some delay to eliminate cpu thread
