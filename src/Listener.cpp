@@ -312,7 +312,7 @@ void Listener::Run () {
 	}
 	setTransferID(server, NORMAL);
 	if ((mSettings->mReportMode == kReport_CSV) && server->mSumReport && !server->mSumReport->sum_reverse_set) {
-	    format_ips_port_string(&server->mSumReport->info, 1);
+	    format_ips_port_string(server->mSumReport->admit_info, 1);
 	    server->mSumReport->sum_reverse_set = true;
 	} else if (isTripTime(server) && server->mSumReport) {
 	    SetSumHandlers(server, server->mSumReport); // this needs to be done again after first read
@@ -964,8 +964,8 @@ bool Listener::apply_client_settings_udp (thread_Settings *server) {
 		server->mThreadMode=kMode_Client;
 		setServerReverse(server);
 		if (server->mSumReport != NULL) {
-		    server->mSumReport->info.common->ThreadMode=kMode_Client;
-		    setServerReverse(server->mSumReport->info.common);
+		    server->mSumReport->admit_info->common->ThreadMode=kMode_Client;
+		    setServerReverse(server->mSumReport->admit_info->common);
 		}
 		setNoUDPfin(server);
 		unsetReport(server);
@@ -1180,8 +1180,8 @@ bool Listener::apply_client_settings_tcp (thread_Settings *server) {
 			    server->mThreadMode=kMode_Client;
 			    setServerReverse(server);
 			    if (server->mSumReport != NULL) {
-				server->mSumReport->info.common->ThreadMode=kMode_Client;
-				setServerReverse(server->mSumReport->info.common);
+				server->mSumReport->admit_info->common->ThreadMode=kMode_Client;
+				setServerReverse(server->mSumReport->admit_info->common);
 			    }
 			}
 		    }

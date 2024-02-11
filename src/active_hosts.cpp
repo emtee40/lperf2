@@ -181,7 +181,8 @@ bool Iperf_push_host (struct thread_Settings *agent) {
 	this_host = hostkey_insert(active_table_get_host_key(agent));
 	active_table.groupid++;
 	this_host->sumreport = InitSumReport(agent, -active_table.groupid, 0);
-	this_host->sumreport->info.common->transferID = -active_table.groupid;
+	this_host->sumreport->admit_info->common->transferID = -active_table.groupid;
+	this_host->sumreport->omit_info->common->transferID = -active_table.groupid;
 #if HAVE_THREAD_DEBUG
 	active_table_show_entry("new sum report", this_host , 0);
 #endif

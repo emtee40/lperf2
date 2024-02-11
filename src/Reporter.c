@@ -149,19 +149,19 @@ bool ReportPacket (struct ReporterData* data, struct ReportStruct *packet) {
     bool rc = false;
   #ifdef HAVE_THREAD_DEBUG
     if (packet->packetID < 0) {
-	thread_debug("Reporting last packet for %p  qdepth=%d sock=%d", (void *) data, packetring_getcount(data->packetring), data->info.common->socket);
+	thread_debug("Reporting last packet for %p  qdepth=%d sock=%d", (void *) data, packetring_getcount(data->packetring), data->producer_info->common->socket);
     }
   #endif
 #if HAVE_TCP_STATS
-    struct TransferInfo *stats = &data->info;
+    struct TransferInfo *stats = data->consumer_info;
     packet->tcpstats.isValid = false;
     if (stats->isEnableTcpInfo) {
 	if (!TimeZero(stats->ts.nextTCPSampleTime) && (TimeDifference(stats->ts.nextTCPSampleTime, packet->packetTime) < 0)) {
-	    gettcpinfo(data->info.common->socket, &packet->tcpstats);
+	    gettcpinfo(data->producer_info->common->socket, &packet->tcpstats);
 	    TimeAdd(stats->ts.nextTCPSampleTime, stats->ts.intervalTime);
 	    rc = true;
 	} else {
-	    gettcpinfo(data->info.common->socket, &packet->tcpstats);
+	    gettcpinfo(data->consumer_info->common->socket, &packet->tcpstats);
 	    rc = true;
 	}
     }
@@ -178,7 +178,7 @@ bool ReportPacket (struct ReporterData* data, struct ReportStruct *packet) {
     // should be avoided.
   #ifdef HAVE_THREAD
     // bypass the reporter thread here for single UDP
-    if (isSingleUDP(data->info.common))
+    if (isSingleUDP(data->producer_info->common))
         reporter_process_transfer_report(data);
   #else
     /*
@@ -212,9 +212,9 @@ bool EndJob (struct ReportHeader *reporthdr, struct ReportStruct *finalpacket) {
      */
 #if HAVE_TCP_STATS
     // tcpi stats are sampled on a final packet
-    struct TransferInfo *stats = &report->info;
+    struct TransferInfo *stats = report->producer_info;
     if (stats->isEnableTcpInfo) {
-	gettcpinfo(report->info.common->socket, &finalpacket->tcpstats);
+	gettcpinfo(report->producer_info->common->socket, &finalpacket->tcpstats);
     }
 #endif
     // clear the reporter done predicate
@@ -224,7 +224,7 @@ bool EndJob (struct ReportHeader *reporthdr, struct ReportStruct *finalpacket) {
     packet.packetLen = finalpacket->packetLen;
     packet.packetTime = finalpacket->packetTime;
     packet.err_readwrite = NullEvent; // this is not a real event
-    if (isSingleUDP(report->info.common)) {
+    if (isSingleUDP(report->producer_info->common)) {
 	packetring_enqueue(report->packetring, &packet);
 	reporter_process_transfer_report(report);
     } else {
@@ -242,12 +242,12 @@ bool EndJob (struct ReportHeader *reporthdr, struct ReportStruct *finalpacket) {
 	}
 	Condition_Unlock((*(report->packetring->awake_producer)));
     }
-    if (report->FullDuplexReport && isFullDuplex(report->FullDuplexReport->info.common)) {
+    if (report->FullDuplexReport && isFullDuplex(report->FullDuplexReport->consumer_info->common)) {
 	if (fullduplex_stop_barrier(&report->FullDuplexReport->fullduplex_barrier)) {
 	    struct Condition *tmp = &report->FullDuplexReport->fullduplex_barrier.await;
 	    Condition_Destroy(tmp);
 #if HAVE_THREAD_DEBUG
-	    thread_debug("Socket fullduplex close sock=%d", report->FullDuplexReport->info.common->socket);
+	    thread_debug("Socket fullduplex close sock=%d", report->FullDuplexReport->producer_info->common->socket);
 #endif
 	    FreeSumReport(report->FullDuplexReport);
 	} else {
@@ -515,9 +515,10 @@ void reporter_spawn (struct thread_Settings *thread) {
 // The Transfer or Data report is by far the most complicated report
 bool reporter_process_transfer_report (struct ReporterData *this_ireport) {
     assert(this_ireport != NULL);
-    struct TransferInfo *sumstats = (this_ireport->GroupSumReport ? &this_ireport->GroupSumReport->info : NULL);
-    struct TransferInfo *fullduplexstats = (this_ireport->FullDuplexReport ? &this_ireport->FullDuplexReport->info : NULL);
+    struct TransferInfo *sumstats = (this_ireport->GroupSumReport ? this_ireport->GroupSumReport->consumer_info : NULL);
+    struct TransferInfo *fullduplexstats = (this_ireport->FullDuplexReport ? this_ireport->FullDuplexReport->consumer_info : NULL);
     bool need_free = false;
+
     // The consumption detector applies delay to the reporter
     // thread when its consumption rate is too low.   This allows
     // the traffic threads to send aggregates vs thrash
@@ -529,7 +530,7 @@ bool reporter_process_transfer_report (struct ReporterData *this_ireport) {
     // Note: If this detection is not going off it means
     // the system is likely CPU bound and iperf is now likely
     // becoming a CPU bound test vs a network i/o bound test
-    if (!isSingleUDP(this_ireport->info.common))
+    if (!isSingleUDP(this_ireport->consumer_info->common))
 	apply_consumption_detector();
     // If there are more packets to process then handle them
     struct ReportStruct *packet = NULL;
@@ -542,7 +543,7 @@ bool reporter_process_transfer_report (struct ReporterData *this_ireport) {
 	consumption_detector.accounted_packets--;
 	// Check against a final packet event on this packet ring
 #if HAVE_TCP_STATS
-	if (this_ireport->info.isEnableTcpInfo && packet->tcpstats.isValid) {
+	if (this_ireport->consumer_info->isEnableTcpInfo && packet->tcpstats.isValid) {
 	    reporter_handle_packet_tcpistats(this_ireport, packet);
 	}
 #endif
@@ -578,12 +579,12 @@ bool reporter_process_transfer_report (struct ReporterData *this_ireport) {
 	    if (this_ireport->packet_handler_post_report) {
 		(*this_ireport->packet_handler_post_report)(this_ireport, packet);
 	    }
-	    this_ireport->info.ts.packetTime = packet->packetTime;
+	    this_ireport->consumer_info->ts.packetTime = packet->packetTime;
 	    assert(this_ireport->transfer_protocol_handler != NULL);
 	    (*this_ireport->transfer_protocol_handler)(this_ireport, 1);
 	    // This is a final report so set the sum report header's packet time
 	    // Note, the thread with the max value will set this
-	    if (fullduplexstats && isEnhanced(this_ireport->info.common)) {
+	    if (fullduplexstats && isEnhanced(this_ireport->consumer_info->common)) {
 		// The largest packet timestamp sets the sum report final time
 		if (TimeDifference(fullduplexstats->ts.packetTime, packet->packetTime) > 0) {
 		    fullduplexstats->ts.packetTime = packet->packetTime;
@@ -602,9 +603,9 @@ bool reporter_process_transfer_report (struct ReporterData *this_ireport) {
 		    sumstats->ts.packetTime = packet->packetTime;
 		}
 		if (this_ireport->GroupSumReport->transfer_protocol_sum_handler && \
-		    ((--this_ireport->GroupSumReport->threads_cntr_fsum == 0) && \
-		     ((this_ireport->GroupSumReport->reference.maxcount > 1) || isSumOnly(this_ireport->info.common)))) {
-		    (*this_ireport->GroupSumReport->transfer_protocol_sum_handler)(&this_ireport->GroupSumReport->info, true);
+		    (--this_ireport->GroupSumReport->threads_cntr_fsum == 0) && \
+		    ((this_ireport->GroupSumReport->reference.maxcount > 1) || isSumOnly(this_ireport->consumer_info->common))) {
+		    (*this_ireport->GroupSumReport->transfer_protocol_sum_handler)(this_ireport->GroupSumReport->consumer_info, true);
 		}
 	    }
 	}
@@ -905,7 +906,7 @@ static void reporter_handle_frame_isoch_oneway_transit (struct TransferInfo *sta
 
 // This is done in reporter thread context
 void reporter_handle_packet_client (struct ReporterData *data, struct ReportStruct *packet) {
-    struct TransferInfo *stats = &data->info;
+    struct TransferInfo *stats = data->consumer_info;
     stats->ts.packetTime = packet->packetTime;
     switch (packet->err_readwrite) {
     case WriteSelectRetry :
@@ -950,7 +951,7 @@ void reporter_handle_packet_client (struct ReporterData *data, struct ReportStru
 
 #define DEBUG_BB_TIMESTAMPS 0
 void reporter_handle_packet_bb_client (struct ReporterData *data, struct ReportStruct *packet) {
-    struct TransferInfo *stats = &data->info;
+    struct TransferInfo *stats = data->consumer_info;
     if (packet->scheduled) {
 	reporter_update_mmm(&stats->schedule_error, (double)(packet->sched_err));
     }
@@ -1002,7 +1003,7 @@ void reporter_handle_packet_bb_client (struct ReporterData *data, struct ReportS
 }
 
 void reporter_handle_packet_bb_server (struct ReporterData *data, struct ReportStruct *packet) {
-    struct TransferInfo *stats = &data->info;
+    struct TransferInfo *stats = data->consumer_info;
     stats->ts.packetTime = packet->packetTime;
     if (!packet->emptyreport && (packet->packetLen > 0)) {
 	stats->total.Bytes.current += packet->packetLen;
@@ -1010,7 +1011,7 @@ void reporter_handle_packet_bb_server (struct ReporterData *data, struct ReportS
 }
 
 inline void reporter_handle_packet_server_tcp (struct ReporterData *data, struct ReportStruct *packet) {
-    struct TransferInfo *stats = &data->info;
+    struct TransferInfo *stats = data->consumer_info;
     if (packet->packetLen > 0) {
 	int bin;
 	stats->total.Bytes.current += packet->packetLen;
@@ -1032,7 +1033,7 @@ inline void reporter_handle_packet_server_tcp (struct ReporterData *data, struct
 }
 
 inline void reporter_handle_packet_server_udp (struct ReporterData *data, struct ReportStruct *packet) {
-    struct TransferInfo *stats = &data->info;
+    struct TransferInfo *stats = data->consumer_info;
     stats->ts.packetTime = packet->packetTime;
     if (packet->emptyreport && (stats->transit.current.cnt == 0)) {
 	// This is the case when empty reports
@@ -1103,7 +1104,7 @@ inline void reporter_handle_packet_server_udp (struct ReporterData *data, struct
 #if HAVE_TCP_STATS
 static inline void reporter_handle_packet_tcpistats (struct ReporterData *data, struct ReportStruct *packet) {
     assert(data!=NULL);
-    struct TransferInfo *stats = &data->info;
+    struct TransferInfo *stats = data->consumer_info;
     stats->sock_callstats.write.tcpstats.retry += (packet->tcpstats.retry_tot - stats->sock_callstats.write.tcpstats.retry_prev);
     stats->sock_callstats.write.tcpstats.retry_prev = packet->tcpstats.retry_tot;
     stats->sock_callstats.write.tcpstats.retry_tot = packet->tcpstats.retry_tot;
@@ -1259,9 +1260,10 @@ static inline void reporter_reset_transfer_stats_server_udp (struct TransferInfo
 // o) updates the sum and fullduplex reports
 //
 void reporter_transfer_protocol_server_udp (struct ReporterData *data, bool final) {
-    struct TransferInfo *stats = &data->info;
-    struct TransferInfo *sumstats = (data->GroupSumReport != NULL) ? &data->GroupSumReport->info : NULL;
-    struct TransferInfo *fullduplexstats = (data->FullDuplexReport != NULL) ? &data->FullDuplexReport->info : NULL;
+    struct TransferInfo *stats = data->consumer_info;
+    struct TransferInfo *sumstats = (data->GroupSumReport != NULL) ? data->GroupSumReport->consumer_info : NULL;
+    struct TransferInfo *fullduplexstats = (data->FullDuplexReport != NULL) ? data->FullDuplexReport->consumer_info : NULL;
+
     // print a interval report and possibly a partial interval report if this a final
     stats->cntBytes = stats->total.Bytes.current - stats->total.Bytes.prev;
     stats->cntOutofOrder = stats->total.OutofOrder.current - stats->total.OutofOrder.prev;
@@ -1461,9 +1463,10 @@ void reporter_transfer_protocol_sum_client_udp (struct TransferInfo *stats, bool
 }
 
 void reporter_transfer_protocol_client_udp (struct ReporterData *data, bool final) {
-    struct TransferInfo *stats = &data->info;
-    struct TransferInfo *sumstats = (data->GroupSumReport != NULL) ? &data->GroupSumReport->info : NULL;
-    struct TransferInfo *fullduplexstats = (data->FullDuplexReport != NULL) ? &data->FullDuplexReport->info : NULL;
+    struct TransferInfo *stats = data->consumer_info;
+    struct TransferInfo *sumstats = (data->GroupSumReport != NULL) ? data->GroupSumReport->consumer_info : NULL;
+    struct TransferInfo *fullduplexstats = (data->FullDuplexReport != NULL) ? data->FullDuplexReport->consumer_info : NULL;
+
     stats->cntBytes = stats->total.Bytes.current - stats->total.Bytes.prev;
     stats->cntDatagrams = stats->total.Datagrams.current - stats->total.Datagrams.prev;
     stats->cntIPG = stats->total.IPG.current - stats->total.IPG.prev;
@@ -1525,9 +1528,9 @@ void reporter_transfer_protocol_client_udp (struct ReporterData *data, bool fina
 }
 
 void reporter_transfer_protocol_server_tcp (struct ReporterData *data, bool final) {
-    struct TransferInfo *stats = &data->info;
-    struct TransferInfo *sumstats = (data->GroupSumReport != NULL) ? &data->GroupSumReport->info : NULL;
-    struct TransferInfo *fullduplexstats = (data->FullDuplexReport != NULL) ? &data->FullDuplexReport->info : NULL;
+    struct TransferInfo *stats = data->consumer_info;
+    struct TransferInfo *sumstats = (data->GroupSumReport != NULL) ? data->GroupSumReport->consumer_info : NULL;
+    struct TransferInfo *fullduplexstats = (data->FullDuplexReport != NULL) ? data->FullDuplexReport->consumer_info : NULL;
     stats->cntBytes = stats->total.Bytes.current - stats->total.Bytes.prev;
     int ix;
     if (stats->framelatency_histogram) {
@@ -1620,9 +1623,10 @@ void reporter_transfer_protocol_server_tcp (struct ReporterData *data, bool fina
 }
 
 void reporter_transfer_protocol_client_tcp (struct ReporterData *data, bool final) {
-    struct TransferInfo *stats = &data->info;
-    struct TransferInfo *sumstats = (data->GroupSumReport != NULL) ? &data->GroupSumReport->info : NULL;
-    struct TransferInfo *fullduplexstats = (data->FullDuplexReport != NULL) ? &data->FullDuplexReport->info : NULL;
+    struct TransferInfo *stats = data->consumer_info;
+    struct TransferInfo *sumstats = (data->GroupSumReport != NULL) ? data->GroupSumReport->consumer_info : NULL;
+    struct TransferInfo *fullduplexstats = (data->FullDuplexReport != NULL) ? data->FullDuplexReport->consumer_info : NULL;
+
     stats->cntBytes = stats->total.Bytes.current - stats->total.Bytes.prev;
     if (stats->latency_histogram) {
         stats->latency_histogram->final = final;
@@ -1740,7 +1744,7 @@ void reporter_transfer_protocol_sum_client_tcp (struct TransferInfo *stats, bool
 }
 
 void reporter_transfer_protocol_client_bb_tcp (struct ReporterData *data, bool final) {
-    struct TransferInfo *stats = &data->info;
+    struct TransferInfo *stats = data->consumer_info;
 
     if (final) {
 	if ((stats->cntBytes > 0) && stats->output_handler && !TimeZero(stats->ts.intervalTime)) {
@@ -1768,7 +1772,7 @@ void reporter_transfer_protocol_client_bb_tcp (struct ReporterData *data, bool f
 }
 
 void reporter_transfer_protocol_server_bb_tcp (struct ReporterData *data, bool final) {
-    struct TransferInfo *stats = &data->info;
+    struct TransferInfo *stats = data->consumer_info;
     if (final) {
 	if ((stats->cntBytes > 0) && stats->output_handler && !TimeZero(stats->ts.intervalTime)) {
 	    // print a partial interval report if enable and this a final
@@ -1882,7 +1886,7 @@ void reporter_transfer_protocol_fullduplex_udp (struct TransferInfo *stats, bool
 
 // Conditional print based on time
 bool reporter_condprint_time_interval_report (struct ReporterData *data, struct ReportStruct *packet) {
-    struct TransferInfo *stats = &data->info;
+    struct TransferInfo *stats = data->consumer_info;
     assert(stats!=NULL);
     //   printf("***sum handler = %p\n", (void *) data->GroupSumReport->transfer_protocol_sum_handler);
     bool advance_jobq = false;
@@ -1894,8 +1898,8 @@ bool reporter_condprint_time_interval_report (struct ReporterData *data, struct 
     if (TimeDifference(stats->ts.nextTime, packet->packetTime) < 0) {
 	assert(data->transfer_protocol_handler!=NULL);
 	advance_jobq = true;
-	struct TransferInfo *sumstats = (data->GroupSumReport ? &data->GroupSumReport->info : NULL);
-	struct TransferInfo *fullduplexstats = (data->FullDuplexReport ? &data->FullDuplexReport->info : NULL);
+	struct TransferInfo *sumstats = (data->GroupSumReport ? data->GroupSumReport->consumer_info : NULL);
+	struct TransferInfo *fullduplexstats = (data->FullDuplexReport ? data->FullDuplexReport->consumer_info : NULL);
 	stats->ts.packetTime = packet->packetTime;
 #ifdef DEBUG_PPS
 	printf("*** packetID TRIGGER = %ld pt=%ld.%ld empty=%d nt=%ld.%ld\n",packet->packetID, packet->packetTime.tv_sec, packet->packetTime.tv_usec, packet->emptyreport, stats->ts.nextTime.tv_sec, stats->ts.nextTime.tv_usec);
@@ -1911,7 +1915,7 @@ bool reporter_condprint_time_interval_report (struct ReporterData *data, struct 
 	    if ((++data->GroupSumReport->threads) == data->GroupSumReport->reference.count)   {
 		data->GroupSumReport->threads = 0;
 		if ((data->GroupSumReport->reference.count > (fullduplexstats ? 2 : 1)) || \
-		    isSumOnly(data->info.common)) {
+		    isSumOnly(data->consumer_info->common)) {
 		    sumstats->isMaskOutput = false;
 		} else {
 		    sumstats->isMaskOutput = true;
@@ -1931,7 +1935,7 @@ bool reporter_condprint_time_interval_report (struct ReporterData *data, struct 
 
 // Conditional print based on bursts or frames
 bool reporter_condprint_frame_interval_report_server_udp (struct ReporterData *data, struct ReportStruct *packet) {
-    struct TransferInfo *stats = &data->info;
+    struct TransferInfo *stats = data->consumer_info;
     bool advance_jobq = false;
     // first packet of a burst and not a duplicate
     if ((packet->burstsize == (packet->remaining + packet->packetLen)) && (stats->matchframeID != packet->frameID)) {
@@ -1965,8 +1969,8 @@ bool reporter_condprint_frame_interval_report_server_tcp (struct ReporterData *d
 }
 
 bool reporter_condprint_burst_interval_report_server_tcp (struct ReporterData *data, struct ReportStruct *packet) {
-    struct TransferInfo *stats = &data->info;
-    int advance_jobq = false;
+    struct TransferInfo *stats = data->consumer_info;
+    bool advance_jobq = false;
     if (packet->transit_ready) {
 	stats->ts.prevpacketTime = packet->sentTime;
 	stats->ts.packetTime = packet->packetTime;
@@ -1982,8 +1986,8 @@ bool reporter_condprint_burst_interval_report_server_tcp (struct ReporterData *d
 }
 
 bool reporter_condprint_burst_interval_report_client_tcp (struct ReporterData *data, struct ReportStruct *packet) {
-    struct TransferInfo *stats = &data->info;
-    int advance_jobq = false;
+    struct TransferInfo *stats = data->consumer_info;
+    bool advance_jobq = false;
     // first packet of a burst and not a duplicate
     if (packet->transit_ready) {
         reporter_handle_packet_oneway_transit(stats, packet);

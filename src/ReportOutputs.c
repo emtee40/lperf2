@@ -2394,11 +2394,11 @@ void reporter_peerversion (struct ConnectionInfo *report, uint32_t upper, uint32
 }
 
 void reporter_print_server_relay_report (struct ServerRelay *report) {
-    printf(server_reporting, report->info.common->transferID);
-    if (isTripTime(report->info.common) || isEnhanced(report->info.common)) {
-	udp_output_read_triptime(&report->info);
+    printf(server_reporting, report->admit_info->common->transferID);
+    if (isTripTime(report->admit_info->common) || isEnhanced(report->admit_info->common)) {
+	udp_output_read_triptime(report->admit_info);
     } else {
-	udp_output_read(&report->info);
+	udp_output_read(report->admit_info);
     }
     fflush(stdout);
 }

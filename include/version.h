@@ -3,7 +3,7 @@
 #define IPERF_VERSION_DATE "31 January 2024"
 #define IPERF_VERSION_MAJORHEX 0x00020001
 #define IPERF_VERSION_MINORHEX 0x000A0000
-#define IPERF_BRANCH ""
+#define IPERF_BRANCH "omit"	   
 
 /*
  * 	case 0:
