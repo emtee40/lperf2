@@ -60,7 +60,7 @@ Mutex packetringdebug_mutex;
 // Note: enable dequeue events will have the dequeue return null on an event relevant to
 // the reporter thread moving to the next ring. This is needed for proper summing
 //
-struct PacketRing * packetring_init (int count, struct Condition *awake_consumer, struct Condition *awake_producer, bool enable_queue_events) {
+struct PacketRing * packetring_init (int count, struct Condition *awake_consumer, struct Condition *awake_producer) {
     assert(awake_consumer != NULL);
     struct PacketRing *pr = NULL;
     if ((pr = (struct PacketRing *) calloc(1, sizeof(struct PacketRing)))) {
@@ -83,7 +83,6 @@ struct PacketRing * packetring_init (int count, struct Condition *awake_consumer
 	pr->mutex_enable=1;
     pr->consumerdone = 0;
     pr->awaitcounter = 0;
-    pr->interval_barrier = enable_queue_events;
 #ifdef HAVE_THREAD_DEBUG
     Mutex_Lock(&packetringdebug_mutex);
     totalpacketringcount++;
@@ -135,11 +134,9 @@ inline void packetring_enqueue (struct PacketRing *pr, struct ReportStruct *meta
     pr->producer = writeindex;
 }
 
-inline struct ReportStruct *packetring_dequeue (struct PacketRing *pr, struct timeval *interval_end) {
+inline struct ReportStruct *packetring_dequeue (struct PacketRing *pr) {
     struct ReportStruct *packet = NULL;
-    pr->q_event = NONE;
     if (pr->producer == pr->consumer) {
-	pr->q_event = EMPTY;
 	return NULL;
     }
     int readindex;
@@ -151,32 +148,6 @@ inline struct ReportStruct *packetring_dequeue (struct PacketRing *pr, struct ti
     packet = (pr->data + readindex);
     // See if the dequeue needs to detect an event so the reporter
     // can move to the next packet ring
-    if (pr->enable_queue_events) {
-	if (interval_end) {
-	    struct timeval pt = packet->packetTime;
-	    struct timeval edge = *interval_end;
-            //	printf("**** diff %f %d\n", TimeDifference(pt, edge), pr->interval_blocking);
-	    if (TimeDifference(pt, edge) > 0) {
-		pr->q_event = AFTER_TIMESTAMP;
-		if (pr->interval_barrier) {
-		    pr->interval_barrier = false;
-		    packet = NULL;
-		    goto SKIP_ADVANCE_QUEUE;
-		} else {
-		    pr->interval_barrier = true;
-		    goto ADVANCE_QUEUE;
-		}
-	    } else {
-		pr->q_event = BEFORE_TIMESTAMP;
-		if (!TimeZero(pr->finaltime)) {
-		    goto ADVANCE_QUEUE;
-		}
-	    }
-	}
-    }
-
-  ADVANCE_QUEUE:
-    // advance the consumer pointer last
     pr->consumer = readindex;
     if (pr->mutex_enable) {
 	// Signal the traffic thread assigned to this ring
@@ -189,7 +160,6 @@ inline struct ReportStruct *packetring_dequeue (struct PacketRing *pr, struct ti
 	    Condition_Signal(pr->awake_producer);
 	}
     }
-  SKIP_ADVANCE_QUEUE:
     return packet;
 }
 
@@ -206,7 +176,7 @@ inline void enqueue_ackring (struct PacketRing *pr, struct ReportStruct *metapac
 inline struct ReportStruct *dequeue_ackring (struct PacketRing *pr) {
     struct ReportStruct *packet = NULL;
     Condition_Lock((*(pr->awake_consumer)));
-    while ((packet = packetring_dequeue(pr, NULL)) == NULL) {
+    while ((packet = packetring_dequeue(pr)) == NULL) {
 	Condition_TimedWait(pr->awake_consumer, 1);
     }
     Condition_Unlock((*(pr->awake_consumer)));

@@ -72,14 +72,6 @@ enum ReadWriteExtReturnVals {
     NullEvent
 };
 
-enum QueueEvent {
-    NONE = 0,
-    ADVANCED,
-    AFTER_TIMESTAMP,
-    BEFORE_TIMESTAMP,
-    EMPTY
-};
-
 struct ReportStruct {
     intmax_t packetID;
     intmax_t packetLen;
@@ -124,9 +116,6 @@ struct PacketRing {
     int awaitcounter;
     bool mutex_enable;
     int bytes;
-    bool interval_barrier;
-    enum QueueEvent q_event;
-    bool enable_queue_events;
     struct timeval finaltime;
 
     // Use a condition variables
@@ -139,9 +128,9 @@ struct PacketRing {
     struct ReportStruct *data;
 };
 
-extern struct PacketRing * packetring_init(int count, struct Condition *awake_consumer, struct Condition *awake_producer, bool enable_dequeue_events);
+extern struct PacketRing * packetring_init(int count, struct Condition *awake_consumer, struct Condition *awake_producer);
 extern void packetring_enqueue(struct PacketRing *pr, struct ReportStruct *metapacket);
-extern struct ReportStruct *packetring_dequeue(struct PacketRing * pr, struct timeval *nextsum);
+extern struct ReportStruct *packetring_dequeue(struct PacketRing * pr);
 extern void enqueue_ackring(struct PacketRing *pr, struct ReportStruct *metapacket);
 extern struct ReportStruct *dequeue_ackring(struct PacketRing * pr);
 extern void packetring_free(struct PacketRing *pr);
