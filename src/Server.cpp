@@ -103,7 +103,7 @@ Server::Server (thread_Settings *inSettings) {
     // minterval double, units seconds
     // mAmount integer, units 10 milliseconds
     // divide by two so timeout is 1/2 the interval
-    if (mSettings->mInterval && (mSettings->mIntervalMode == kInterval_Time)) {
+    if ((mSettings->mInterval > 0) && (mSettings->mIntervalMode == kInterval_Time)) {
 	sorcvtimer = static_cast<int>(round(mSettings->mInterval / 2.0));
     } else if (isServerModeTime(mSettings)) {
 	sorcvtimer = static_cast<int>(round(mSettings->mAmount * 10000) / 2);
@@ -111,6 +111,12 @@ Server::Server (thread_Settings *inSettings) {
     isburst = (isIsochronous(mSettings) || isPeriodicBurst(mSettings));
     if (isburst && (mSettings->mFPS > 0.0)) {
 	sorcvtimer = static_cast<int>(round(2000000.0 / mSettings->mFPS));
+    }
+    if ((mSettings->mInterval > 0) && (mSettings->mIntervalMode == kInterval_Time)) {
+	int interval_half = static_cast<int>(round(mSettings->mAmount * 10000) / 2);
+	if (sorcvtimer > interval_half) {
+	    sorcvtimer = interval_half;
+	}
     }
     if (sorcvtimer > 0) {
 	SetSocketOptionsReceiveTimeout(mSettings, sorcvtimer);
