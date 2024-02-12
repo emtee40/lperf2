@@ -393,6 +393,7 @@ struct TransferInfo {
     double iInPVar;
     double fInPVar;
     intmax_t FQPacingRateCurrent;
+    struct TransferInfo *next;
 };
 
 struct SumReport {
