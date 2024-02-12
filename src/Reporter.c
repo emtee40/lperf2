@@ -1161,11 +1161,13 @@ static inline void reporter_set_timestamps_time (struct TransferInfo *stats, enu
     }
 }
 
+#if DEBUG_INTERVAL_SUM
 static void reporter_dump_timestamps (struct ReportStruct *packet, struct TransferInfo *stats, struct TransferInfo *sumstats) {
     printf("**** pkt      =%ld.%ld\n", packet->packetTime.tv_sec, packet->packetTime.tv_usec);
     printf("**** stats    =%ld.%ld next=%ld.%ld prev=%ld.%ld\n", stats->ts.packetTime.tv_sec, stats->ts.packetTime.tv_usec, stats->ts.nextTime.tv_sec, stats->ts.nextTime.tv_usec, stats->ts.prevpacketTime.tv_sec, stats->ts.prevpacketTime.tv_usec);
     printf("**** sum stats=%ld.%ld next=%ld.%ld prev=%ld.%ld \n", sumstats->ts.packetTime.tv_sec, sumstats->ts.packetTime.tv_usec, sumstats->ts.nextTime.tv_sec, sumstats->ts.nextTime.tv_usec, sumstats->ts.prevpacketTime.tv_sec, sumstats->ts.prevpacketTime.tv_usec);
 }
+#endif
 
 // If reports were missed, catch up now
 static inline void reporter_transfer_protocol_missed_reports (struct TransferInfo *stats, struct ReportStruct *packet) {
@@ -1918,7 +1920,9 @@ bool reporter_condprint_time_interval_report (struct ReporterData *data, struct 
 	    (*data->FullDuplexReport->transfer_protocol_sum_handler)(fullduplexstats, false);
 	}
 	if (sumstats) {
+#if DEBUG_INTERVAL_SUM
 	    reporter_dump_timestamps(packet, stats, sumstats);
+#endif
 	    if ((++data->GroupSumReport->threads) == data->GroupSumReport->reference.count)   {
 		data->GroupSumReport->threads = 0;
 		if ((data->GroupSumReport->reference.count > (fullduplexstats ? 2 : 1)) || \
