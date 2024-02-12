@@ -541,6 +541,12 @@ void Client::InitTrafficLoop () {
     if ((sosndtimer < 0) || (sosndtimer > 1000000)) {
 	sosndtimer = 1000000;
     }
+    if ((mSettings->mInterval > 0) && (mSettings->mIntervalMode == kInterval_Time)) {
+	int interval_half = static_cast<int>(round(mSettings->mAmount * 10000) / 2);
+	if (sosndtimer > interval_half) {
+	    sosndtimer = interval_half;
+	}
+    }
     if (!isUDP(mSettings)) {
 	SetSocketOptionsSendTimeout(mSettings, sosndtimer);
     }
