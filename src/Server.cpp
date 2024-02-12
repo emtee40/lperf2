@@ -108,7 +108,7 @@ Server::Server (thread_Settings *inSettings) {
     } else if (isServerModeTime(mSettings)) {
 	sorcvtimer = static_cast<int>(round(mSettings->mAmount * 10000) / 2);
     }
-    isburst = (isIsochronous(mSettings) || isPeriodicBurst(mSettings) || (isTripTime(mSettings) && !isUDP(mSettings)));
+    isburst = (isIsochronous(mSettings) || isPeriodicBurst(mSettings));
     if (isburst && (mSettings->mFPS > 0.0)) {
 	sorcvtimer = static_cast<int>(round(2000000.0 / mSettings->mFPS));
     }
