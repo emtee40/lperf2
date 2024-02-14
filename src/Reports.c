@@ -328,7 +328,7 @@ void SetSumHandlers (struct thread_Settings *inSettings, struct SumReport* sumre
     }
 }
 
-struct SumReport* InitSumReport(struct thread_Settings *inSettings, int inID, int fullduplex_report) {
+struct SumReport* InitSumReport(struct thread_Settings *inSettings, int inID, bool fullduplex_report) {
     struct SumReport *sumreport = (struct SumReport *) calloc(1, sizeof(struct SumReport));
     if (sumreport == NULL) {
 	FAIL(1, "Out of Memory!!\n", inSettings);

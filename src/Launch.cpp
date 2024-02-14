@@ -222,7 +222,7 @@ static void clientside_client_fullduplex (struct thread_Settings *thread, \
     setTransferID(thread, NORMAL);
     SockAddr_remoteAddr(thread);
     if (!isBounceBack(thread)) {
-        thread->mFullDuplexReport = InitSumReport(thread, -1, 1);
+        thread->mFullDuplexReport = InitSumReport(thread, -1, true);
     }
     Settings_Copy(thread, &reverse_client, SHALLOW_COPY);
     if ((thread->mThreads > 1) || isSumOnly(thread) || \

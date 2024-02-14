@@ -345,9 +345,9 @@ void Listener::Run () {
 			// now that it's know to be full duplex. This wasn't known
 			// during accept()
 			SetSumHandlers(server, server->mSumReport);
-			server->mSumReport->sum_fd_set = 1;
+			server->mSumReport->sum_fd_set = true;
 		    }
-		    server->mFullDuplexReport = InitSumReport(server, server->mSock, 1);
+		    server->mFullDuplexReport = InitSumReport(server, server->mSock, true);
 		    listener_client_settings->mFullDuplexReport = server->mFullDuplexReport;
 #if HAVE_THREAD_DEBUG
 		    thread_debug("FullDuplex report client=%p/%p server=%p/%p", (void *) listener_client_settings, (void *) listener_client_settings->mFullDuplexReport, (void *) server, (void *) server->mFullDuplexReport);

@@ -402,7 +402,7 @@ struct SumReport {
     struct TransferInfo info;
     void (*transfer_protocol_sum_handler) (struct TransferInfo *stats, bool final);
     struct BarrierMutex fullduplex_barrier;
-    int sum_fd_set;
+    bool sum_fd_set;
     bool sum_reverse_set;
 };
 
@@ -443,7 +443,7 @@ typedef void (* report_statistics)( struct TransferInfo* );
 typedef void (* report_serverstatistics)( struct ConnectionInfo *, struct TransferInfo* );
 
 void SetSumHandlers (struct thread_Settings *inSettings, struct SumReport* sumreport);
-struct SumReport* InitSumReport(struct thread_Settings *inSettings, int inID, int fullduplex);
+struct SumReport* InitSumReport(struct thread_Settings *inSettings, int inID, bool fullduplex);
 struct ReportHeader* InitIndividualReport(struct thread_Settings *inSettings);
 struct ReportHeader* InitConnectionReport(struct thread_Settings *inSettings);
 struct ConnectionInfo* InitConnectOnlyReport(struct thread_Settings *thread);
