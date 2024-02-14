@@ -131,7 +131,7 @@ inline void packetring_enqueue (struct PacketRing *pr, struct ReportStruct *meta
     pr->producer = writeindex;
 }
 
-inline struct ReportStruct *packetring_dequeue (struct PacketRing *pr, struct timeval *slottime) {
+inline struct ReportStruct *packetring_dequeue (struct PacketRing *pr) {
     struct ReportStruct *packet = NULL;
     if (pr->producer == pr->consumer) {
 	return NULL;
@@ -157,7 +157,6 @@ inline struct ReportStruct *packetring_dequeue (struct PacketRing *pr, struct ti
 	    Condition_Signal(pr->awake_producer);
 	}
     }
-    pr->lastslottime = *slottime;
     return packet;
 }
 
@@ -178,7 +177,7 @@ inline void enqueue_ackring (struct PacketRing *pr, struct ReportStruct *metapac
 inline struct ReportStruct *dequeue_ackring (struct PacketRing *pr) {
     struct ReportStruct *packet = NULL;
     Condition_Lock((*(pr->awake_consumer)));
-    while ((packet = packetring_dequeue(pr, NULL)) == NULL) {
+    while ((packet = packetring_dequeue(pr)) == NULL) {
 	Condition_TimedWait(pr->awake_consumer, 1);
     }
     Condition_Unlock((*(pr->awake_consumer)));

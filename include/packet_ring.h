@@ -121,7 +121,6 @@ struct PacketRing {
     int awaitcounter;
     bool mutex_enable;
     int bytes;
-    struct timeval lastslottime;  // passed by reporter to hold the slottime for the last pr read
     enum edgeLevel level;
 
     // Use a condition variables
@@ -136,7 +135,7 @@ struct PacketRing {
 
 extern struct PacketRing * packetring_init(int count, struct Condition *awake_consumer, struct Condition *awake_producer);
 extern void packetring_enqueue(struct PacketRing *pr, struct ReportStruct *metapacket);
-extern struct ReportStruct *packetring_dequeue(struct PacketRing * pr, struct timeval *slottime);
+extern struct ReportStruct *packetring_dequeue(struct PacketRing * pr);
 extern void enqueue_ackring(struct PacketRing *pr, struct ReportStruct *metapacket);
 extern struct ReportStruct *dequeue_ackring(struct PacketRing * pr);
 extern void packetring_free(struct PacketRing *pr);

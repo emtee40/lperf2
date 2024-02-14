@@ -537,7 +537,7 @@ bool reporter_process_transfer_report (struct ReporterData *this_ireport) {
     // If there are more packets to process then handle them
     struct ReportStruct *packet = NULL;
     bool advance_jobq = false;
-    while (!advance_jobq && (packet = packetring_dequeue(this_ireport->packetring, (sumstats ? &sumstats->ts.nextTime : NULL)))) {
+    while (!advance_jobq && (packet = packetring_dequeue(this_ireport->packetring))) {
 	// Increment the total packet count processed by this thread
 	// this will be used to make decisions on if the reporter
 	// thread should add some delay to eliminate cpu thread
@@ -1201,7 +1201,6 @@ static inline void reporter_reset_transfer_stats_sum (struct TransferInfo *sumst
 #endif
     sumstats->slot_thread_upcount -= sumstats->slot_thread_downcount;
     sumstats->slot_thread_downcount = 0;
-    sumstats->threadcnt = 0;
     sumstats->ts.prevTime = sumstats->ts.nextTime;
     sumstats->iInP = 0;
     sumstats->level = toggleLevel(sumstats->level);
@@ -1341,7 +1340,6 @@ void reporter_transfer_protocol_server_udp (struct ReporterData *data, bool fina
 	sumstats->total.IPG.current += stats->cntIPG;
 	if (sumstats->IPGsum < stats->IPGsum)
 	    sumstats->IPGsum = stats->IPGsum;
-	sumstats->threadcnt++;
 	sumstats->iInP += stats->iInP;
 	sumstats->sock_callstats.read.cntRead += stats->sock_callstats.read.cntRead;
 	sumstats->sock_callstats.read.cntReadTimeo += stats->sock_callstats.read.cntReadTimeo;
@@ -1486,7 +1484,7 @@ void reporter_transfer_protocol_sum_client_udp (struct TransferInfo *stats, bool
     if (!final) {
 	reporter_reset_transfer_stats_client_udp(stats);
     } else if ((stats->common->ReportMode != kReport_CSV) && !(stats->isMaskOutput)) {
-	printf(report_sumcnt_datagrams, stats->threadcnt, stats->total.Datagrams.current);
+	printf(report_sumcnt_datagrams, stats->threadcnt_final, stats->total.Datagrams.current);
 	fflush(stdout);
     }
 }
@@ -1515,7 +1513,6 @@ void reporter_transfer_protocol_client_udp (struct ReporterData *data, bool fina
 	if (sumstats->IPGsum < stats->IPGsum)
 	    sumstats->IPGsum = stats->IPGsum;
 	sumstats->total.IPG.current += stats->cntIPG;
-	sumstats->threadcnt++;
     }
     if (fullduplexstats) {
 	fullduplexstats->total.Bytes.current += stats->cntBytes;
@@ -1581,7 +1578,6 @@ void reporter_transfer_protocol_server_tcp (struct ReporterData *data, bool fina
         stats->sock_callstats.read.cntRead = stats->sock_callstats.read.ReadCnt.current;
     }
     if (sumstats) {
-	sumstats->threadcnt++;
 	sumstats->total.Bytes.current += stats->cntBytes;
         sumstats->sock_callstats.read.ReadCnt.current += stats->sock_callstats.read.cntRead;
         for (ix = 0; ix < TCPREADBINCOUNT; ix++) {
@@ -1680,19 +1676,6 @@ void reporter_transfer_protocol_client_tcp (struct ReporterData *data, bool fina
 	sumstats->sock_callstats.write.totWriteCnt += stats->sock_callstats.write.WriteCnt;
 	if (final) {
 	    sumstats->threadcnt_final++;
-#if DEBUG_INTERVAL_SUM
-	    printf("**** %s final ts  =%ld.%ld last=%ld.%ld\n", stats->common->transferIDStr, sumstats->ts.nextTime.tv_sec, sumstats->ts.nextTime.tv_usec, data->packetring->lastslottime.tv_sec, data->packetring->lastslottime.tv_usec);
-#endif
-	    if (TimeDifference(sumstats->ts.prevTime, data->packetring->lastslottime) != 0) {
-		sumstats->threadcnt++;
-	    }
-#if DEBUG_INTERVAL_SUM
-	    else {
-		printf("**** IGNORE\n");
-	    }
-#endif
-	} else {
-	    sumstats->threadcnt++;
 	}
 #if DEBUG_INTERVAL_SUM
 	reporter_dump_timestamps(NULL, stats, sumstats);
@@ -1858,7 +1841,6 @@ void reporter_transfer_protocol_sum_server_tcp (struct TransferInfo *stats, bool
 	} else if ((stats->output_handler) && !(stats->isMaskOutput)) {
 	    (*stats->output_handler)(stats);
 	    reporter_reset_transfer_stats_sum(stats);
-	    stats->threadcnt = 0;
 	}
 	reporter_reset_transfer_stats_server_tcp(stats);
     }

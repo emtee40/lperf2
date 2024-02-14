@@ -336,16 +336,15 @@ struct SumReport* InitSumReport(struct thread_Settings *inSettings, int inID, bo
     sumreport->reference.count = 0;
     sumreport->reference.maxcount = 0;
     Mutex_Initialize(&sumreport->reference.lock);
-    sumreport->threads = 0;
     common_copy(&sumreport->info.common, inSettings);
     // sumreport->info.common->transferID = inID; // this is now set in the active code
-    sumreport->info.threadcnt = 0;
     sumreport->info.isMaskOutput = false;
     sumreport->info.sumreport = sumreport;
     sumreport->info.type = SUM_REPORT;
     sumreport->info.level = LOW;
     sumreport->info.slot_thread_upcount = 0;
     sumreport->info.slot_thread_downcount = 0;
+
     if (inSettings->mReportMode == kReport_CSV) {
         format_ips_port_string(&sumreport->info, 1);
     }

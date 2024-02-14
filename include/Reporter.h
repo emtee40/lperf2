@@ -350,9 +350,8 @@ struct TransferInfo {
     enum ReportType type;
     enum edgeLevel level;
     int groupID;
-    int threadcnt;
-    int slot_thread_upcount;
-    int slot_thread_downcount;
+    int slot_thread_upcount;  // increments on a thread's first sample into a report interval
+    int slot_thread_downcount; // increments on a thread's interval sum output
     bool isMaskOutput;
     uintmax_t cntBytes;
     intmax_t cntError;
