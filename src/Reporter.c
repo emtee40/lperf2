@@ -1679,7 +1679,6 @@ void reporter_transfer_protocol_client_tcp (struct ReporterData *data, bool fina
 	}
 #if DEBUG_INTERVAL_SUM
 	reporter_dump_timestamps(NULL, stats, sumstats);
-	printf("**** %s sum threadcnt = %d stats threadcnt = %d final = %d\n", stats->common->transferIDStr, sumstats->threadcnt, stats->threadcnt, final);
 #endif
 
 #if HAVE_TCP_STATS
