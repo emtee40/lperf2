@@ -83,6 +83,7 @@ struct PacketRing * packetring_init (int count, struct Condition *awake_consumer
 	pr->mutex_enable=1;
     pr->consumerdone = 0;
     pr->awaitcounter = 0;
+    pr->level = HIGH;
 #ifdef HAVE_THREAD_DEBUG
     Mutex_Lock(&packetringdebug_mutex);
     totalpacketringcount++;
@@ -125,16 +126,12 @@ inline void packetring_enqueue (struct PacketRing *pr, struct ReportStruct *meta
     else
 	writeindex = (pr->producer  + 1);
 
-    bool final = ((metapacket->packetID < 0) ? true : false);
-    if (final) {
-	pr->finaltime = metapacket->packetTime;
-    }
     /* Next two lines must be maintained as is */
     memcpy((pr->data + writeindex), metapacket, sizeof(struct ReportStruct));
     pr->producer = writeindex;
 }
 
-inline struct ReportStruct *packetring_dequeue (struct PacketRing *pr) {
+inline struct ReportStruct *packetring_dequeue (struct PacketRing *pr, struct timeval *slottime) {
     struct ReportStruct *packet = NULL;
     if (pr->producer == pr->consumer) {
 	return NULL;
@@ -160,7 +157,12 @@ inline struct ReportStruct *packetring_dequeue (struct PacketRing *pr) {
 	    Condition_Signal(pr->awake_producer);
 	}
     }
+    pr->lastslottime = *slottime;
     return packet;
+}
+
+inline enum edgeLevel toggleLevel(enum edgeLevel level) {
+    return ((level == HIGH) ? LOW : HIGH);
 }
 
 inline void enqueue_ackring (struct PacketRing *pr, struct ReportStruct *metapacket) {
@@ -176,7 +178,7 @@ inline void enqueue_ackring (struct PacketRing *pr, struct ReportStruct *metapac
 inline struct ReportStruct *dequeue_ackring (struct PacketRing *pr) {
     struct ReportStruct *packet = NULL;
     Condition_Lock((*(pr->awake_consumer)));
-    while ((packet = packetring_dequeue(pr)) == NULL) {
+    while ((packet = packetring_dequeue(pr, NULL)) == NULL) {
 	Condition_TimedWait(pr->awake_consumer, 1);
     }
     Condition_Unlock((*(pr->awake_consumer)));

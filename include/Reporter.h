@@ -335,6 +335,7 @@ struct ReportTimeStamps {
     struct timeval packetTime;
     struct timeval prevpacketTime;
     struct timeval prevsendTime;
+    struct timeval prevTime;
     struct timeval nextTime;
     struct timeval intervalTime;
     struct timeval IPGstart;
@@ -347,8 +348,11 @@ struct TransferInfo {
     void (*output_handler) (struct TransferInfo *stats);
     struct SumReport *sumreport;
     enum ReportType type;
+    enum edgeLevel level;
     int groupID;
     int threadcnt;
+    int slot_thread_upcount;
+    int slot_thread_downcount;
     bool isMaskOutput;
     uintmax_t cntBytes;
     intmax_t cntError;
@@ -393,6 +397,7 @@ struct TransferInfo {
     double iInPVar;
     double fInPVar;
     intmax_t FQPacingRateCurrent;
+    int threadcnt_final;
 };
 
 struct SumReport {

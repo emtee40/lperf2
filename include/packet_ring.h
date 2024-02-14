@@ -72,6 +72,11 @@ enum ReadWriteExtReturnVals {
     NullEvent
 };
 
+enum edgeLevel {
+    LOW = 0,
+    HIGH = 1
+};
+
 struct ReportStruct {
     intmax_t packetID;
     intmax_t packetLen;
@@ -116,7 +121,8 @@ struct PacketRing {
     int awaitcounter;
     bool mutex_enable;
     int bytes;
-    struct timeval finaltime;
+    struct timeval lastslottime;  // passed by reporter to hold the slottime for the last pr read
+    enum edgeLevel level;
 
     // Use a condition variables
     // o) awake_producer - producer waits for the consumer thread to
@@ -130,11 +136,12 @@ struct PacketRing {
 
 extern struct PacketRing * packetring_init(int count, struct Condition *awake_consumer, struct Condition *awake_producer);
 extern void packetring_enqueue(struct PacketRing *pr, struct ReportStruct *metapacket);
-extern struct ReportStruct *packetring_dequeue(struct PacketRing * pr);
+extern struct ReportStruct *packetring_dequeue(struct PacketRing * pr, struct timeval *slottime);
 extern void enqueue_ackring(struct PacketRing *pr, struct ReportStruct *metapacket);
 extern struct ReportStruct *dequeue_ackring(struct PacketRing * pr);
 extern void packetring_free(struct PacketRing *pr);
 extern void free_ackring(struct PacketRing *pr);
+extern enum edgeLevel toggleLevel(enum edgeLevel level);
 #ifdef HAVE_THREAD_DEBUG
 extern int packetring_getcount(struct PacketRing *pr);
 #endif
