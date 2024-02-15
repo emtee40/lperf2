@@ -1344,6 +1344,8 @@ void reporter_transfer_protocol_server_udp (struct ReporterData *data, bool fina
 	sumstats->sock_callstats.read.cntRead += stats->sock_callstats.read.cntRead;
 	sumstats->sock_callstats.read.cntReadTimeo += stats->sock_callstats.read.cntReadTimeo;
 	sumstats->sock_callstats.read.cntReadErrLen += stats->sock_callstats.read.cntReadErrLen;
+	if (final)
+	    sumstats->threadcnt_final++;
     }
     if (fullduplexstats) {
 	fullduplexstats->total.Bytes.current += stats->cntBytes;
@@ -1513,6 +1515,8 @@ void reporter_transfer_protocol_client_udp (struct ReporterData *data, bool fina
 	if (sumstats->IPGsum < stats->IPGsum)
 	    sumstats->IPGsum = stats->IPGsum;
 	sumstats->total.IPG.current += stats->cntIPG;
+	if (final)
+	    sumstats->threadcnt_final++;
     }
     if (fullduplexstats) {
 	fullduplexstats->total.Bytes.current += stats->cntBytes;
@@ -1588,6 +1592,7 @@ void reporter_transfer_protocol_server_tcp (struct ReporterData *data, bool fina
 	    sumstats->iInP += thisInP;
 	} else {
 	    sumstats->fInP += thisInP;
+	    sumstats->threadcnt_final++;
 	}
     }
     if (fullduplexstats) {
