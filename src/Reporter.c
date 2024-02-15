@@ -1344,8 +1344,10 @@ void reporter_transfer_protocol_server_udp (struct ReporterData *data, bool fina
 	sumstats->sock_callstats.read.cntRead += stats->sock_callstats.read.cntRead;
 	sumstats->sock_callstats.read.cntReadTimeo += stats->sock_callstats.read.cntReadTimeo;
 	sumstats->sock_callstats.read.cntReadErrLen += stats->sock_callstats.read.cntReadErrLen;
-	if (final)
+	if (final) {
 	    sumstats->threadcnt_final++;
+	    sumstats->slot_thread_downcount++;
+	}
     }
     if (fullduplexstats) {
 	fullduplexstats->total.Bytes.current += stats->cntBytes;
@@ -1515,8 +1517,10 @@ void reporter_transfer_protocol_client_udp (struct ReporterData *data, bool fina
 	if (sumstats->IPGsum < stats->IPGsum)
 	    sumstats->IPGsum = stats->IPGsum;
 	sumstats->total.IPG.current += stats->cntIPG;
-	if (final)
+	if (final) {
 	    sumstats->threadcnt_final++;
+	    sumstats->slot_thread_downcount++;
+	}
     }
     if (fullduplexstats) {
 	fullduplexstats->total.Bytes.current += stats->cntBytes;
@@ -1593,6 +1597,7 @@ void reporter_transfer_protocol_server_tcp (struct ReporterData *data, bool fina
 	} else {
 	    sumstats->fInP += thisInP;
 	    sumstats->threadcnt_final++;
+	    sumstats->slot_thread_downcount++;
 	}
     }
     if (fullduplexstats) {
@@ -1681,6 +1686,7 @@ void reporter_transfer_protocol_client_tcp (struct ReporterData *data, bool fina
 	sumstats->sock_callstats.write.totWriteCnt += stats->sock_callstats.write.WriteCnt;
 	if (final) {
 	    sumstats->threadcnt_final++;
+	    sumstats->slot_thread_downcount++;
 	}
 #if DEBUG_INTERVAL_SUM
 	reporter_dump_timestamps(NULL, stats, sumstats);
@@ -1946,7 +1952,7 @@ bool reporter_condprint_time_interval_report (struct ReporterData *data, struct 
 #if DEBUG_INTERVAL_SUM
 	    printf("***** HERE down=%d up=%d\n", sumstats->slot_thread_downcount, sumstats->slot_thread_upcount);
 #endif
-	    if ((++sumstats->slot_thread_downcount) == sumstats->slot_thread_upcount)   {
+	    if ((++sumstats->slot_thread_downcount) == sumstats->slot_thread_upcount) {
 		data->GroupSumReport->threads = 0;
 		if ((data->GroupSumReport->reference.count > (fullduplexstats ? 2 : 1)) || \
 		    isSumOnly(data->info.common)) {
