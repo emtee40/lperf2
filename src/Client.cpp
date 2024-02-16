@@ -1746,7 +1746,10 @@ inline void Client::tcp_shutdown (void) {
 #ifdef HAVE_THREAD_DEBUG
 	thread_debug("Client calls shutdown() SHUTW_WR on tcp socket %d", mySocket);
 #endif
-	WARN_errno(rc == SOCKET_ERROR, "shutdown");
+	char warnbuf[256];
+	snprintf(warnbuf, sizeof(warnbuf), "%sshutdown", mSettings->mTransferIDStr);
+	warnbuf[sizeof(warnbuf)-1] = '\0';
+	WARN_errno(rc == SOCKET_ERROR, warnbuf);
 	if (!rc && !isFullDuplex(mSettings))
 	    AwaitServerCloseEvent();
     }

@@ -554,7 +554,7 @@ bool reporter_process_transfer_report (struct ReporterData *this_ireport) {
 		&& (TimeDifference(sumstats->ts.nextTime, packet->packetTime) > 0)) {
 		sumstats->slot_thread_upcount++;
 #if DEBUG_INTERVAL_SUM
-		printf("**** %s upcnt   (%p) pkt=%ld.%ld up=%d down=%d level (sum/pkt)=%d/%d\n", this_ireport->info.common->transferIDStr, (void *)this_ireport->packetring, \
+		printf("**** %s upcnt   (%p) pkt=%ld.%ld (up/down)=%d/%d level (sum/pkt)=%d/%d\n", this_ireport->info.common->transferIDStr, (void *)this_ireport->packetring, \
 		       packet->packetTime.tv_sec, packet->packetTime.tv_usec, sumstats->slot_thread_upcount, sumstats->slot_thread_downcount, \
 		       sumstats->level, this_ireport->packetring->level);
 #endif
@@ -1178,9 +1178,9 @@ static inline void reporter_set_timestamps_time (struct TransferInfo *stats, enu
 #if DEBUG_INTERVAL_SUM
 static void reporter_dump_timestamps (struct ReportStruct *packet, struct TransferInfo *stats, struct TransferInfo *sumstats) {
     if (packet)
-	printf("**** %s pkt      =%ld.%ld up=%d down=%d\n", stats->common->transferIDStr, packet->packetTime.tv_sec, packet->packetTime.tv_usec, sumstats->slot_thread_upcount, sumstats->slot_thread_downcount);
+	printf("**** %s pkt      =%ld.%ld (up/down)=%d/%d\n", stats->common->transferIDStr, packet->packetTime.tv_sec, packet->packetTime.tv_usec, sumstats->slot_thread_upcount, sumstats->slot_thread_downcount);
     else {
-	printf("**** %s pkt ts   =%ld.%ld prev=%ld.%ld up=%d down=%d\n", stats->common->transferIDStr, stats->ts.packetTime.tv_sec, stats->ts.packetTime.tv_usec, stats->ts.prevpacketTime.tv_sec, stats->ts.prevpacketTime.tv_usec, sumstats->slot_thread_upcount, sumstats->slot_thread_downcount);
+	printf("**** %s pkt ts   =%ld.%ld prev=%ld.%ld (up/down)=%d/%d\n", stats->common->transferIDStr, stats->ts.packetTime.tv_sec, stats->ts.packetTime.tv_usec, stats->ts.prevpacketTime.tv_sec, stats->ts.prevpacketTime.tv_usec, sumstats->slot_thread_upcount, sumstats->slot_thread_downcount);
     }
     printf("**** %s stats    =%ld.%ld next=%ld.%ld prev=%ld.%ld\n", stats->common->transferIDStr, stats->ts.packetTime.tv_sec, stats->ts.packetTime.tv_usec, stats->ts.nextTime.tv_sec, stats->ts.nextTime.tv_usec, stats->ts.prevpacketTime.tv_sec, stats->ts.prevpacketTime.tv_usec);
     printf("**** %s sum stats=%ld.%ld next=%ld.%ld prev=%ld.%ld \n", stats->common->transferIDStr, sumstats->ts.packetTime.tv_sec, sumstats->ts.packetTime.tv_usec, sumstats->ts.nextTime.tv_sec, sumstats->ts.nextTime.tv_usec, sumstats->ts.prevTime.tv_sec, sumstats->ts.prevTime.tv_usec);
@@ -1355,7 +1355,7 @@ void reporter_transfer_protocol_server_udp (struct ReporterData *data, bool fina
 	    sumstats->threadcnt_final++;
 	    sumstats->slot_thread_downcount++;
 #if DEBUG_INTERVAL_SUM
-	    printf("**** %s downcnt (%p) up=%d down=%d final true level (sum/pkt)=%d/%d\n", stats->common->transferIDStr, (void *)data->packetring, \
+	    printf("**** %s downcnt (%p) (up/down)=%d/%d final true level (sum/pkt)=%d/%d\n", stats->common->transferIDStr, (void *)data->packetring, \
 		   sumstats->slot_thread_upcount, sumstats->slot_thread_downcount, \
 		   sumstats->level, data->packetring->level);
 #endif
@@ -1533,7 +1533,7 @@ void reporter_transfer_protocol_client_udp (struct ReporterData *data, bool fina
 	    sumstats->threadcnt_final++;
 	    sumstats->slot_thread_downcount++;
 #if DEBUG_INTERVAL_SUM
-	    printf("**** %s downcnt (%p) up=%d down=%d final true level (sum/pkt)=%d/%d\n", stats->common->transferIDStr, (void *)data->packetring, \
+	    printf("**** %s downcnt (%p) (up/down)=%d/%d final true level (sum/pkt)=%d/%d\n", stats->common->transferIDStr, (void *)data->packetring, \
 		   sumstats->slot_thread_upcount, sumstats->slot_thread_downcount, \
 		   sumstats->level, data->packetring->level);
 #endif
@@ -1616,7 +1616,7 @@ void reporter_transfer_protocol_server_tcp (struct ReporterData *data, bool fina
 	    sumstats->threadcnt_final++;
 	    sumstats->slot_thread_downcount++;
 #if DEBUG_INTERVAL_SUM
-	    printf("**** %s downcnt (%p) up=%d down=%d final true level (sum/pkt)=%d/%d\n", stats->common->transferIDStr, (void *)data->packetring, \
+	    printf("**** %s downcnt (%p) (up/down)=%d/%d final true level (sum/pkt)=%d/%d\n", stats->common->transferIDStr, (void *)data->packetring, \
 		   sumstats->slot_thread_upcount, sumstats->slot_thread_downcount, \
 		   sumstats->level, data->packetring->level);
 #endif
@@ -1710,7 +1710,7 @@ void reporter_transfer_protocol_client_tcp (struct ReporterData *data, bool fina
 	    sumstats->threadcnt_final++;
 	    sumstats->slot_thread_downcount++;
 #if DEBUG_INTERVAL_SUM
-	    printf("**** %s downcnt (%p) up=%d down=%d final true level (sum/pkt)=%d/%d\n", stats->common->transferIDStr, (void *)data->packetring, \
+	    printf("**** %s downcnt (%p) (up/down)=%d/%d final true level (sum/pkt)=%d/%d\n", stats->common->transferIDStr, (void *)data->packetring, \
 		   sumstats->slot_thread_upcount, sumstats->slot_thread_downcount, \
 		   sumstats->level, data->packetring->level);
 #endif
@@ -1978,7 +1978,7 @@ bool reporter_condprint_time_interval_report (struct ReporterData *data, struct 
 	if (sumstats && sumstats->slot_thread_upcount) {
 	    sumstats->slot_thread_downcount++;
 #if DEBUG_INTERVAL_SUM
-	    printf("**** %s downcnt (%p) pkt=%ld.%ld up=%d down=%d final false level (sum/pkt)=%d/%d\n", stats->common->transferIDStr, (void *)data->packetring, \
+	    printf("**** %s downcnt (%p) pkt=%ld.%ld (up/down)=%d/%d final false level (sum/pkt)=%d/%d\n", stats->common->transferIDStr, (void *)data->packetring, \
 		   packet->packetTime.tv_sec, packet->packetTime.tv_usec, sumstats->slot_thread_upcount, sumstats->slot_thread_downcount, \
 		   sumstats->level, data->packetring->level);
 #endif
