@@ -552,7 +552,12 @@ bool reporter_process_transfer_report (struct ReporterData *this_ireport) {
 	if (sumstats && (this_ireport->packetring->level != sumstats->level) \
 	    && (TimeDifference(sumstats->ts.nextTime, packet->packetTime) > 0)) {
 	    sumstats->slot_thread_upcount++;
-	    this_ireport->packetring->level = toggleLevel(this_ireport->packetring->level);
+#if DEBUG_INTERVAL_SUM
+	    printf("**** %s upcnt   (%p) pkt=%ld.%ld up=%d down=%d level (sum/pkt)=%d/%d\n", this_ireport->info.common->transferIDStr, (void *)this_ireport->packetring, \
+		   packet->packetTime.tv_sec, packet->packetTime.tv_usec, sumstats->slot_thread_upcount, sumstats->slot_thread_downcount, \
+		   sumstats->level, this_ireport->packetring->level);
+#endif
+    this_ireport->packetring->level = toggleLevel(this_ireport->packetring->level);
 	}
 	if (!(packet->packetID < 0)) {
 	    // Check to output any interval reports,
@@ -1197,7 +1202,7 @@ static inline void reporter_transfer_protocol_missed_reports (struct TransferInf
 
 static inline void reporter_reset_transfer_stats_sum (struct TransferInfo *sumstats) {
 #if DEBUG_INTERVAL_SUM
-    printf("***** RESET down=%d up=%d\n", sumstats->slot_thread_downcount, sumstats->slot_thread_upcount);
+    printf("***** [SUM] RESET %ld.%ld nxt %ld.%ld down=%d up=%d\n", sumstats->ts.prevTime.tv_sec, sumstats->ts.prevTime.tv_usec, sumstats->ts.nextTime.tv_sec, sumstats->ts.nextTime.tv_usec, sumstats->slot_thread_downcount, sumstats->slot_thread_upcount);
 #endif
     sumstats->slot_thread_upcount -= sumstats->slot_thread_downcount;
     sumstats->slot_thread_downcount = 0;
@@ -1949,10 +1954,13 @@ bool reporter_condprint_time_interval_report (struct ReporterData *data, struct 
 	    (*data->FullDuplexReport->transfer_protocol_sum_handler)(fullduplexstats, false);
 	}
 	if (sumstats && sumstats->slot_thread_upcount) {
+	    sumstats->slot_thread_downcount++;
 #if DEBUG_INTERVAL_SUM
-	    printf("***** HERE down=%d up=%d\n", sumstats->slot_thread_downcount, sumstats->slot_thread_upcount);
+	    printf("**** %s downcnt (%p) pkt=%ld.%ld up=%d down=%d level (sum/pkt)=%d/%d\n", stats->common->transferIDStr, (void *)data->packetring, \
+		   packet->packetTime.tv_sec, packet->packetTime.tv_usec, sumstats->slot_thread_upcount, sumstats->slot_thread_downcount, \
+		   sumstats->level, data->packetring->level);
 #endif
-	    if ((++sumstats->slot_thread_downcount) == sumstats->slot_thread_upcount) {
+	    if ((sumstats->slot_thread_downcount) == sumstats->slot_thread_upcount) {
 		data->GroupSumReport->threads = 0;
 		if ((data->GroupSumReport->reference.count > (fullduplexstats ? 2 : 1)) || \
 		    isSumOnly(data->info.common)) {

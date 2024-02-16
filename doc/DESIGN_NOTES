@@ -260,6 +260,14 @@ client will trigger a new sum report.
 The active hosts also contains port information.  This is needed to simulate
 a UDP accept.
 
+Interval summing has the following:
+
+o) Interval slots (start & stop)
+o) Multiple packet rings for an interval slot, not known ahead of samples
+o) A slot edge up counter to determine the number of pr's in a slot
+o) A slot edge down counter to determing when to output the interval report
+o) Packet rings that have enqueued one or more samples for a slight, including null samples, must be a minimum of two pwer slot
+o) A separate final counter that can come in at any slot for a traffic thread
 
 Function vectors (src/Reports.c src/Reporter.c src/ReportOutputs.c)
 -------------------------------------------------------------------
@@ -312,6 +320,8 @@ Thread interactions:
 There are a fair amount of non obvious thread interactions. To be filled out
 
 Mutexes and Condition variables
+
+
 
 Client startups (see launch.cpp)
 --------------------------------
