@@ -1329,10 +1329,11 @@ double Client::get_delay_target () {
 	// compute delay target in units of nanoseconds
 	if (mSettings->mAppRateUnits == kRate_BW) {
 	    // compute delay for bandwidth restriction, constrained to [0,1] seconds
-	    delay_target = (mSettings->mBufLen * ((kSecs_to_nsecs * kBytes_to_Bits)
-							   / mSettings->mAppRate));
+	  delay_target = ((mSettings->mAppRate > 0) ? \
+			  (mSettings->mBufLen * ((kSecs_to_nsecs * kBytes_to_Bits) / mSettings->mAppRate)) \
+			  : 0);
 	} else {
-	    delay_target = 1e9 / mSettings->mAppRate;
+	    delay_target = (mSettings->mAppRate > 0) ? (1e9 / mSettings->mAppRate) : 0;
 	}
     }
     return delay_target;
@@ -1383,34 +1384,37 @@ void Client::RunUDP () {
 	mBuf_UDP->tv_sec  = htonl(reportstruct->packetTime.tv_sec);
 	mBuf_UDP->tv_usec = htonl(reportstruct->packetTime.tv_usec);
 
-	// Adjustment for the running delay
-	// o measure how long the last loop iteration took
-	// o calculate the delay adjust
-	//   - If write succeeded, adjust = target IPG - the loop time
-	//   - If write failed, adjust = the loop time
-	// o then adjust the overall running delay
-	// Note: adjust units are nanoseconds,
-	//       packet timestamps are microseconds
-	if (currLen > 0)
-	    adjust = delay_target + \
-		(1000.0 * lastPacketTime.subUsec(reportstruct->packetTime));
-	else
-	    adjust = 1000.0 * lastPacketTime.subUsec(reportstruct->packetTime);
+	if (delay_target > 0) {
+	    // Adjustment for the running delay
+	    // o measure how long the last loop iteration took
+	    // o calculate the delay adjust
+	    //   - If write succeeded, adjust = target IPG - the loop time
+	    //   - If write failed, adjust = the loop time
+	    // o then adjust the overall running delay
+	    // Note: adjust units are nanoseconds,
+	    //       packet timestamps are microseconds
+	    if (currLen > 0)
+		adjust = delay_target + \
+		    (1000.0 * lastPacketTime.subUsec(reportstruct->packetTime));
+	    else
+		adjust = 1000.0 * lastPacketTime.subUsec(reportstruct->packetTime);
 
-	lastPacketTime.set(reportstruct->packetTime.tv_sec, reportstruct->packetTime.tv_usec);
-	// Since linux nanosleep/busyloop can exceed delay
-	// there are two possible equilibriums
-	//  1)  Try to perserve inter packet gap
-	//  2)  Try to perserve requested transmit rate
-	// The latter seems preferred, hence use a running delay
-	// that spans the life of the thread and constantly adjust.
-	// A negative delay means the iperf app is behind.
-	delay += adjust;
-	// Don't let delay grow unbounded
-	if (delay < delay_lower_bounds) {
-	    delay = delay_target;
+	    lastPacketTime.set(reportstruct->packetTime.tv_sec, reportstruct->packetTime.tv_usec);
+	    // Since linux nanosleep/busyloop can exceed delay
+	    // there are two possible equilibriums
+	    //  1)  Try to perserve inter packet gap
+	    //  2)  Try to perserve requested transmit rate
+	    // The latter seems preferred, hence use a running delay
+	    // that spans the life of the thread and constantly adjust.
+	    // A negative delay means the iperf app is behind.
+	    delay += adjust;
+	    // Don't let delay grow unbounded
+	    if (delay < delay_lower_bounds) {
+		delay = delay_target;
+	    }
+	} else {
+	    lastPacketTime.set(reportstruct->packetTime.tv_sec, reportstruct->packetTime.tv_usec);
 	}
-
 	reportstruct->err_readwrite = WriteSuccess;
 	reportstruct->emptyreport = false;
 	// perform write

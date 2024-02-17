@@ -1795,14 +1795,14 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	    {
 		double delay_target;
 		if (isIPG(mExtSettings)) {
-		    delay_target = mExtSettings->mBurstIPG * 1e9;  // convert from seconds to nanoseconds
+		    delay_target = ((mExtSettings->mBurstIPG > 0) ?  mExtSettings->mBurstIPG * 1e9 : 0);  // convert from seconds to nanoseconds
 		} else {
 		    // compute delay target in units of nanoseconds
 		    if (mExtSettings->mAppRateUnits == kRate_BW) {
 			// compute delay for bandwidth restriction, constrained to [0,max] seconds
-			delay_target = (mExtSettings->mBufLen * 8e9) / mExtSettings->mAppRate;
+			delay_target = ((mExtSettings->mAppRate > 0) ? ((mExtSettings->mBufLen * 8e9) / mExtSettings->mAppRate) : 0);
 		    } else {
-			delay_target = 1e9 / mExtSettings->mAppRate;
+			delay_target = ((mExtSettings->mAppRate > 0) ? (1e9 / mExtSettings->mAppRate) : 0);
 		    }
 		}
 		if (delay_target < 0  ||
