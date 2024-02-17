@@ -1412,8 +1412,6 @@ void Client::RunUDP () {
 	    if (delay < delay_lower_bounds) {
 		delay = delay_target;
 	    }
-	} else {
-	    lastPacketTime.set(reportstruct->packetTime.tv_sec, reportstruct->packetTime.tv_usec);
 	}
 	reportstruct->err_readwrite = WriteSuccess;
 	reportstruct->emptyreport = false;
