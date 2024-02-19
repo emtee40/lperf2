@@ -1354,6 +1354,9 @@ void reporter_transfer_protocol_server_udp (struct ReporterData *data, bool fina
 	if (final) {
 	    sumstats->threadcnt_final++;
 	    sumstats->slot_thread_downcount++;
+	    if (data->packetring->level != sumstats->level){
+		sumstats->slot_thread_upcount++;
+	    }
 #if DEBUG_INTERVAL_SUM
 	    printf("**** %s downcnt (%p) (up/down)=%d/%d final true level (sum/pkt)=%d/%d\n", stats->common->transferIDStr, (void *)data->packetring, \
 		   sumstats->slot_thread_upcount, sumstats->slot_thread_downcount, \
@@ -1532,6 +1535,9 @@ void reporter_transfer_protocol_client_udp (struct ReporterData *data, bool fina
 	if (final) {
 	    sumstats->threadcnt_final++;
 	    sumstats->slot_thread_downcount++;
+	    if (data->packetring->level != sumstats->level){
+		sumstats->slot_thread_upcount++;
+	    }
 #if DEBUG_INTERVAL_SUM
 	    printf("**** %s downcnt (%p) (up/down)=%d/%d final true level (sum/pkt)=%d/%d\n", stats->common->transferIDStr, (void *)data->packetring, \
 		   sumstats->slot_thread_upcount, sumstats->slot_thread_downcount, \
@@ -1615,6 +1621,9 @@ void reporter_transfer_protocol_server_tcp (struct ReporterData *data, bool fina
 	    sumstats->fInP += thisInP;
 	    sumstats->threadcnt_final++;
 	    sumstats->slot_thread_downcount++;
+	    if (data->packetring->level != sumstats->level){
+		sumstats->slot_thread_upcount++;
+	    }
 #if DEBUG_INTERVAL_SUM
 	    printf("**** %s downcnt (%p) (up/down)=%d/%d final true level (sum/pkt)=%d/%d\n", stats->common->transferIDStr, (void *)data->packetring, \
 		   sumstats->slot_thread_upcount, sumstats->slot_thread_downcount, \
@@ -1709,6 +1718,9 @@ void reporter_transfer_protocol_client_tcp (struct ReporterData *data, bool fina
 	if (final) {
 	    sumstats->threadcnt_final++;
 	    sumstats->slot_thread_downcount++;
+	    if (data->packetring->level != sumstats->level){
+		sumstats->slot_thread_upcount++;
+	    }
 #if DEBUG_INTERVAL_SUM
 	    printf("**** %s downcnt (%p) (up/down)=%d/%d final true level (sum/pkt)=%d/%d\n", stats->common->transferIDStr, (void *)data->packetring, \
 		   sumstats->slot_thread_upcount, sumstats->slot_thread_downcount, \
