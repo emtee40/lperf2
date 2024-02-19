@@ -1105,9 +1105,13 @@ inline bool Client::AwaitSelectWrite (void) {
 
     if ((rc = select(mySocket + 1, NULL, &writeset, NULL, &timeout)) <= 0) {
 	WARN_errno((rc < 0), "select");
-#ifdef HAVE_THREAD_DEBUG
-	if (rc == 0)
-	    thread_debug("AwaitWrite timeout");
+#if DEBUG_INTERVAL_SUM
+	if (rc == 0) {
+	    char warnbuf[256];
+	    snprintf(warnbuf, sizeof(warnbuf), "%sTimeout: write select", mSettings->mTransferIDStr);
+	    warnbuf[sizeof(warnbuf)-1] = '\0';
+	    WARN(1, warnbuf);
+	}
 #endif
 	return false;
     }

@@ -60,6 +60,8 @@
 #include "gettcpinfo.h"
 #include "payloads.h"
 
+#define DEBUG_INTERVAL_SUM 0
+
 // forward declarations found in Settings.hpp
 struct thread_Settings;
 struct server_hdr;

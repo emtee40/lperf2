@@ -73,8 +73,6 @@ extern "C" {
 # define INITIAL_PACKETID 0
 #endif
 
-#define DEBUG_INTERVAL_SUM 0
-
 struct ReportHeader *ReportRoot = NULL;
 struct ReportHeader *ReportPendingHead = NULL;
 struct ReportHeader *ReportPendingTail = NULL;
