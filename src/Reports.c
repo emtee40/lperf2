@@ -282,7 +282,7 @@ void SetSumHandlers (struct thread_Settings *inSettings, struct SumReport* sumre
 		} else if (isFullDuplex(inSettings)) {
 		    sumreport->info.output_handler = tcp_output_sum_read;
 		} else {
-		    sumreport->info.output_handler =  (isEnhanced(inSettings) ? tcp_output_sum_read_enhanced : tcp_output_sum_read);
+		    sumreport->info.output_handler =  (isEnhanced(inSettings) ? tcp_output_sumcnt_read_enhanced : tcp_output_sum_read);
 		}
 	    }
 	}
@@ -318,7 +318,7 @@ void SetSumHandlers (struct thread_Settings *inSettings, struct SumReport* sumre
 		} else if (isFullDuplex(inSettings)) {
 		    sumreport->info.output_handler = tcp_output_fullduplex_sum;
 		} else {
-		    sumreport->info.output_handler = (isEnhanced(inSettings) ? tcp_output_sum_write_enhanced : tcp_output_sum_write);
+		    sumreport->info.output_handler = (isEnhanced(inSettings) ? tcp_output_sumcnt_write_enhanced : tcp_output_sum_write);
 		}
 	    }
 	}
