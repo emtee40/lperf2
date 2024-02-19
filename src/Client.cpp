@@ -739,8 +739,9 @@ void Client::RunTCP () {
 		    }
 		}
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
-		if (isWritePrefetch(mSettings)) {
-		    AwaitSelectWrite();
+		if (isWritePrefetch(mSettings) && !AwaitSelectWrite()) {
+		    PostNullEvent(false);
+		    continue;
 		}
 #endif
 	    }
@@ -1091,9 +1092,9 @@ inline bool Client::AwaitSelectWrite (void) {
     if (isModeTime(mSettings)) {
         Timestamp write_event_timeout(0,0);
 	if (mSettings->mInterval && (mSettings->mIntervalMode == kInterval_Time)) {
-	    write_event_timeout.add((double) mSettings->mInterval / 1e6 * 2.0);
+	    write_event_timeout.add((double) mSettings->mInterval / 2e6);
 	} else {
-	    write_event_timeout.add((double) mSettings->mAmount / 1e2 * 4.0);
+	    write_event_timeout.add((double) mSettings->mAmount / 4e2);
 	}
 	timeout.tv_sec = write_event_timeout.getSecs();
         timeout.tv_usec = write_event_timeout.getUsecs();
@@ -1922,6 +1923,7 @@ void Client::PostNullEvent (bool isFirst) {
     report_nopacket.packetTime.tv_usec = now.getUsecs();
     report_nopacket.emptyreport = true;
     report_nopacket.scheduled = isFirst;
+    report_nopacket.packetID = 0;
     report_nopacket.err_readwrite = WriteNoAccount;
     myReportPacket(&report_nopacket);
 }
