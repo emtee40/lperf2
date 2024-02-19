@@ -121,7 +121,8 @@ struct PacketRing {
     int awaitcounter;
     bool mutex_enable;
     int bytes;
-    enum edgeLevel level;
+    enum edgeLevel uplevel;
+    enum edgeLevel downlevel;
 
     // Use a condition variables
     // o) awake_producer - producer waits for the consumer thread to

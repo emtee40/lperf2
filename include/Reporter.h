@@ -348,7 +348,8 @@ struct TransferInfo {
     void (*output_handler) (struct TransferInfo *stats);
     struct SumReport *sumreport;
     enum ReportType type;
-    enum edgeLevel level;
+    enum edgeLevel uplevel;
+    enum edgeLevel downlevel;
     int groupID;
     int slot_thread_upcount;  // increments on a thread's first sample into a report interval
     int slot_thread_downcount; // increments on a thread's interval sum output
