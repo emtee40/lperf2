@@ -739,9 +739,8 @@ void Client::RunTCP () {
 		    }
 		}
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
-		if (isWritePrefetch(mSettings) && !AwaitSelectWrite()) {
+		while (isWritePrefetch(mSettings) && !AwaitSelectWrite() && InProgress()) {
 		    PostNullEvent(false);
-		    continue;
 		}
 #endif
 	    }
@@ -771,9 +770,8 @@ void Client::RunTCP () {
 		write_start.setnow();
 	    }
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
-	    if (isWritePrefetch(mSettings) && !AwaitSelectWrite()) {
+	    while (isWritePrefetch(mSettings) && !AwaitSelectWrite() && InProgress()) {
 		PostNullEvent(false);
-		continue;
 	    }
 #endif
 	    reportstruct->packetLen = write(mySocket, mSettings->mBuf, writelen);
@@ -990,9 +988,8 @@ void Client::RunRateLimitedTCP () {
 		    write_start.setnow();
 		}
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
-		if (isWritePrefetch(mSettings) && !AwaitSelectWrite()) {
+		while (isWritePrefetch(mSettings) && !AwaitSelectWrite() && InProgress()) {
 		    PostNullEvent(false);
-		    continue;
 		}
 #endif
 		len = writen(mySocket, mSettings->mBuf, write_remaining, &reportstruct->writecnt);
@@ -1025,9 +1022,8 @@ void Client::RunRateLimitedTCP () {
 		    write_start.setnow();
 		}
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
-		if (isWritePrefetch(mSettings) && !AwaitSelectWrite()) {
+		while (isWritePrefetch(mSettings) && !AwaitSelectWrite() && InProgress()) {
 		    PostNullEvent(false);
-		    continue;
 		}
 #endif
 		len2 = write(mySocket, mSettings->mBuf, write_remaining);
@@ -1075,7 +1071,8 @@ void Client::RunRateLimitedTCP () {
 	    // Use a 4 usec delay to fill tokens
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
 	    if (isWritePrefetch(mSettings)) {
-		AwaitSelectWrite();
+		if (!AwaitSelectWrite())
+		    PostNullEvent(false);
 	    } else
 #endif
 	    {
