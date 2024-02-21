@@ -633,6 +633,18 @@ void Server::ClientReverseFirstRead (void) {
 
 bool Server::InitTrafficLoop (void) {
     bool UDPReady = true;
+    if (isSyncTransferID(mSettings)) {
+        if (mSettings->mPeerTransferID != mSettings->mTransferID) {
+	    int len = snprintf(NULL, 0, "%sTransfer ID %d remapped to %d\n", \
+			   mSettings->mTransferIDStr, mSettings->mTransferID, mSettings->mPeerTransferID);
+	    char *text = (char *) calloc(len+1, sizeof(char));
+	    if (text) {
+	        PostReport(InitStringReport(text));
+		FREE_ARRAY(text);
+	    }
+	    updateTransferIDPeer(mSettings);
+	}
+    }
     myJob = InitIndividualReport(mSettings);
     myReport = static_cast<struct ReporterData *>(myJob->this_report);
     assert(myJob != NULL);

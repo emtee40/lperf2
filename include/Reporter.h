@@ -176,7 +176,8 @@ enum ReportType {
     SUM_REPORT,
     SETTINGS_REPORT,
     CONNECTION_REPORT,
-    SERVER_RELAY_REPORT
+    SERVER_RELAY_REPORT,
+    STRING_REPORT
 };
 
 enum ReportSubType {
@@ -252,6 +253,7 @@ struct ReportCommon {
     char* transferIDStr;
     char* PermitKey;
     int transferID;
+    int peertransferID;
     double rtt_weight;
     double ListenerTimeout;
     double FPS;
@@ -456,6 +458,7 @@ struct ReportHeader* InitConnectionReport(struct thread_Settings *inSettings);
 struct ConnectionInfo* InitConnectOnlyReport(struct thread_Settings *thread);
 struct ReportHeader *InitSettingsReport(struct thread_Settings *inSettings);
 struct ReportHeader* InitServerRelayUDPReport(struct thread_Settings *inSettings, struct server_hdr *server);
+struct ReportHeader* InitStringReport (char *textoutput);
 void PostReport(struct ReportHeader *reporthdr);
 bool ReportPacket (struct ReporterData* data, struct ReportStruct *packet);
 bool EndJob(struct ReportHeader *reporthdr,  struct ReportStruct *packet);
@@ -602,6 +605,7 @@ bool reporter_process_transfer_report (struct ReporterData *this_ireport);
 bool reporter_process_report (struct ReportHeader *reporthdr);
 
 void setTransferID(struct thread_Settings *inSettings, enum TansferIDType traffic_direction);
+void updateTransferIDPeer(struct thread_Settings *inSettings);
 void format_ips_port_string (struct TransferInfo *stats, bool sum);
 
 #ifdef __cplusplus

@@ -121,6 +121,7 @@ static void common_copy (struct ReportCommon **common, struct thread_Settings *i
     (*common)->AppRateUnits = inSettings->mAppRateUnits;
     (*common)->socket = inSettings->mSock;
     (*common)->transferID = inSettings->mTransferID;
+    (*common)->peertransferID = inSettings->mPeerTransferID;
     (*common)->threads = inSettings->mThreads;
     (*common)->working_load_threads = inSettings->mWorkingLoadThreads;
     (*common)->winsize_requested = inSettings->mTCPWin;
@@ -232,6 +233,18 @@ void setTransferID (struct thread_Settings *inSettings, enum TansferIDType traff
     }
 }
 
+void updateTransferIDPeer (struct thread_Settings *inSettings) {
+    if (inSettings->mPeerTransferID && (inSettings->mPeerTransferID != inSettings->mTransferID)) {
+        fprintf(stdout,"%s", inSettings->mTransferIDStr);
+        if (inSettings->mTransferIDStr)
+	    FREE_ARRAY(inSettings->mTransferIDStr);
+        int len = snprintf(NULL, 0, "[%3d] ", inSettings->mPeerTransferID);
+        inSettings->mTransferIDStr = (char *) calloc(len+1, sizeof(char));
+	if (inSettings->mTransferIDStr) {
+	    len = sprintf(inSettings->mTransferIDStr, "[%3d] ", inSettings->mPeerTransferID);
+	}
+    }
+}
 void SetFullDuplexHandlers (struct thread_Settings *inSettings, struct SumReport* sumreport) {
     if (isUDP(inSettings)) {
 	sumreport->transfer_protocol_sum_handler = reporter_transfer_protocol_fullduplex_udp;
@@ -520,6 +533,12 @@ void FreeReport (struct ReportHeader *reporthdr) {
 	break;
     case SERVER_RELAY_REPORT:
 	Free_srReport((struct TransferInfo *)reporthdr->this_report);
+	break;
+    case STRING_REPORT:
+        if (reporthdr->this_report) {
+	    printf("%s", (char *)reporthdr->this_report);
+	    free((char *)reporthdr->this_report);
+	}
 	break;
     default:
 	fprintf(stderr, "Invalid report type in free (%x)\n", reporthdr->type);
@@ -1024,6 +1043,18 @@ struct ReportHeader* InitServerRelayUDPReport(struct thread_Settings *inSettings
     sr_report->size_peer = inSettings->size_local;
     sr_report->local = inSettings->peer;
     sr_report->size_local = inSettings->size_peer;
+    return reporthdr;
+}
+
+struct ReportHeader* InitStringReport (char *textoutput) {
+    assert(inSettings != NULL);
+    struct ReportHeader *reporthdr = (struct ReportHeader *) calloc(1, sizeof(struct ReportHeader));
+    if (reporthdr == NULL) {
+	WARN_errno(1, "Out of Memory!!\n");
+    }
+    reporthdr->type = STRING_REPORT;
+    my_str_copy((char **)&reporthdr->this_report, textoutput);
+    printf("**** string %s\n", textoutput);
     return reporthdr;
 }
 
