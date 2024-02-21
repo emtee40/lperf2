@@ -902,7 +902,7 @@ bool Listener::apply_client_settings_udp (thread_Settings *server) {
 	}
 	setEnhanced(server);
     } else if ((flags & HEADER_VERSION1) || (flags & HEADER_VERSION2) || (flags & HEADER_EXTEND)) {
-	if ((flags & HEADER_VERSION1)) {
+	if (flags & HEADER_VERSION1) {
 	    uint32_t tidthreads = ntohl(hdr->base.numThreads);
 	    if (tidthreads & HEADER_HASTRANSFERID) {
 		tidthreads &= (~HEADER_HASTRANSFERID & HEADER_TRANSFERIDMASK);
@@ -1103,7 +1103,7 @@ bool Listener::apply_client_settings_tcp (thread_Settings *server) {
 		}
 		server->firstreadbytes = nread;
 		struct client_tcp_testhdr *hdr = reinterpret_cast<struct client_tcp_testhdr*>(server->mBuf);
-		if ((flags & HEADER_VERSION1)) {
+		if (flags & HEADER_VERSION1) {
 		    uint32_t tidthreads = ntohl(hdr->base.numThreads);
 		    if (tidthreads & HEADER_HASTRANSFERID) {
 			tidthreads &= (~HEADER_HASTRANSFERID & HEADER_TRANSFERIDMASK);
