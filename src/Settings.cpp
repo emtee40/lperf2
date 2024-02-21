@@ -2464,11 +2464,11 @@ int Settings_GenerateClientHdrV1 (struct thread_Settings *client, struct client_
 	hdr->mPort  = htonl(client->mPort);
     }
     if (isSyncTransferID(client)) {
-	uint32_t tidthreads = (((client->mTransferID << HEADER_TRANSFERIDSHIFT) | HEADER_HASTRANSFERID) & (~HEADER_TRANSFERIDMASK | HEADER_HASTRANSFERID));
-	tidthreads = (client->mTransferID & ~HEADER_TRANSFERIDMASK);
-	hdr->numThreads = htonl(tidthreads);
-	if (client->mThreads & HEADER_TRANSFERIDMASK) {
+	if (client->mTransferID & (HEADER_HASTRANSFERID | HEADER_TRANSFERIDMASK)) {
 	    fprintf(stderr, "WARN: num threads too large for --sync-transfer-id\n");
+	} else {
+	    uint32_t tidthreads = (HEADER_HASTRANSFERID | ((client->mTransferID << HEADER_TRANSFERIDSHIFT) & HEADER_TRANSFERIDMASK) | client->mThreads);
+	    hdr->numThreads = htonl(tidthreads);
 	}
     } else {
 	hdr->numThreads = htonl(client->mThreads);
