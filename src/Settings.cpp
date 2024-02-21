@@ -2464,8 +2464,8 @@ int Settings_GenerateClientHdrV1 (struct thread_Settings *client, struct client_
 	hdr->mPort  = htonl(client->mPort);
     }
     if (isSyncTransferID(client)) {
-	uint32_t tidthreads = (((client->mTransferID << HEADER_TRANSFERIDSHIFT) | HEADER_HASTRANSFERID) & ~HEADER_TRANSFERIDMASK);
-	tidthreads = (client->mThreads & ~HEADER_TRANSFERIDMASK);
+	uint32_t tidthreads = (((client->mTransferID << HEADER_TRANSFERIDSHIFT) | HEADER_HASTRANSFERID) & (~HEADER_TRANSFERIDMASK | HEADER_HASTRANSFERID));
+	tidthreads = (client->mTransferID & ~HEADER_TRANSFERIDMASK);
 	hdr->numThreads = htonl(tidthreads);
 	if (client->mThreads & HEADER_TRANSFERIDMASK) {
 	    fprintf(stderr, "WARN: num threads too large for --sync-transfer-id\n");
@@ -2657,7 +2657,7 @@ int Settings_GenerateClientHdr (struct thread_Settings *client, void *testhdr, s
 	    }
 	    len += sizeof(struct client_hdrext);
 	    len += Settings_GenerateClientHdrV1(client, &hdr->base);
-	    if (!isCompat(client) && (client->mMode != kTest_Normal)) {
+	    if ((!isCompat(client) && (client->mMode != kTest_Normal)) || isSyncTransferID(client)) {
 		flags |= HEADER_VERSION1;
 		if (client->mMode == kTest_DualTest)
 		    flags |= RUN_NOW;

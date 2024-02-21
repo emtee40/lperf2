@@ -182,6 +182,7 @@ struct thread_Settings {
     int mTOS;                       // -S
     int mRTOS;                      // reflected TOS
     int mTransferID;
+    int mPeerTransferID;
     int mConnectRetries;
 #if WIN32
     SOCKET mSock;

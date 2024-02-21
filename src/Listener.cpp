@@ -903,16 +903,16 @@ bool Listener::apply_client_settings_udp (thread_Settings *server) {
 	setEnhanced(server);
     } else if ((flags & HEADER_VERSION1) || (flags & HEADER_VERSION2) || (flags & HEADER_EXTEND)) {
 	if ((flags & HEADER_VERSION1)) {
-	    if (!(flags & HEADER_VERSION2)) {
+	    uint32_t tidthreads = ntohl(hdr->base.numThreads);
+	    if (tidthreads & HEADER_HASTRANSFERID) {
+		tidthreads &= (~HEADER_HASTRANSFERID & HEADER_TRANSFERIDMASK);
+		server->mPeerTransferID = tidthreads >> HEADER_TRANSFERIDSHIFT;
+		setSyncTransferID(server);
+	    } else if (!(flags & HEADER_VERSION2)) {
 		if (flags & RUN_NOW)
 		    server->mMode = kTest_DualTest;
 		else
 		    server->mMode = kTest_TradeOff;
-	    }
-	    uint32_t tidthreads = ntohl(hdr->base.numThreads);
-	    if (tidthreads & HEADER_HASTRANSFERID) {
-		tidthreads &= (~HEADER_HASTRANSFERID & HEADER_TRANSFERIDMASK);
-		server->mTransferID = tidthreads >> HEADER_TRANSFERIDSHIFT;
 	    }
 	}
 	if (flags & HEADER_EXTEND) {
@@ -1103,23 +1103,17 @@ bool Listener::apply_client_settings_tcp (thread_Settings *server) {
 		}
 		server->firstreadbytes = nread;
 		struct client_tcp_testhdr *hdr = reinterpret_cast<struct client_tcp_testhdr*>(server->mBuf);
-		if ((flags & HEADER_VERSION1) && !(flags & HEADER_VERSION2)) {
-		    if (flags & RUN_NOW)
-			server->mMode = kTest_DualTest;
-		    else
-			server->mMode = kTest_TradeOff;
-		}
 		if ((flags & HEADER_VERSION1)) {
-		    if (!(flags & HEADER_VERSION2)) {
+		    uint32_t tidthreads = ntohl(hdr->base.numThreads);
+		    if (tidthreads & HEADER_HASTRANSFERID) {
+			tidthreads &= (~HEADER_HASTRANSFERID & HEADER_TRANSFERIDMASK);
+			server->mPeerTransferID = tidthreads >> HEADER_TRANSFERIDSHIFT;
+			setSyncTransferID(server);
+		    } else if (!(flags & HEADER_VERSION2)) {
 			if (flags & RUN_NOW)
 			    server->mMode = kTest_DualTest;
 			else
 			    server->mMode = kTest_TradeOff;
-		    }
-		    uint32_t tidthreads = ntohl(hdr->base.numThreads);
-		    if (tidthreads & HEADER_HASTRANSFERID) {
-			tidthreads &= (~HEADER_HASTRANSFERID & HEADER_TRANSFERIDMASK);
-			server->mTransferID = tidthreads >> HEADER_TRANSFERIDSHIFT;
 		    }
 		}
 		if (flags & HEADER_EXTEND) {
