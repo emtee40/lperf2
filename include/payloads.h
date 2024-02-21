@@ -89,6 +89,11 @@ extern "C" {
 #define RUN_NOW              0x00000001
 #define HEADER16_SMALL_TRIPTIMES 0x0002 // use is 16 bits and not 32 bits
 
+// Num threads highest bit indicates sync id
+#define HEADER_HASTRANSFERID   0x80000000
+#define HEADER_TRANSFERIDMASK  0xFFF00000
+#define HEADER_TRANSFERIDSHIFT 20
+
 // Bounceback flag
 #define HEADER_BBQUICKACK    0x8000
 #define HEADER_BBCLOCKSYNCED 0x4000 // used in the bb header only

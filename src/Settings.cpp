@@ -129,6 +129,7 @@ static int primarycca = 0;
 static int loadcca = 0;
 static int tcptxdelay = 0;
 static int testxchangetimeout = 0;
+static int synctransferid = 0;
 
 void Settings_Interpret(char option, const char *optarg, struct thread_Settings *mExtSettings);
 // apply compound settings after the command line has been fully parsed
@@ -197,6 +198,7 @@ const struct option long_options[] =
 #else
 {"reverse",          no_argument, NULL, 'R'},
 #endif
+{"sync-transfer-id", no_argument, &synctransferid, 1},
 {"tos",        required_argument, NULL, 'S'},
 {"ttl",        required_argument, NULL, 'T'},
 {"single_udp",       no_argument, NULL, 'U'},
@@ -988,6 +990,10 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	if (sumdstip) {
 	    sumdstip = 0;
 	    setSumServerDstIP(mExtSettings);
+	}
+	if (synctransferid) {
+	    synctransferid = 0;
+	    setSyncTransferID(mExtSettings);
 	}
 	if (txstarttime) {
 	    long seconds;
@@ -1953,6 +1959,9 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	if (isNearCongest(mExtSettings)) {
 	    fprintf(stderr, "WARN: option of --near-congestion not supported on the server\n");
 	}
+	if (isSyncTransferID(mExtSettings)) {
+	    fprintf(stderr, "WARN: option of --sync-transfer-id is not supported on the server\n");
+	}
 	if (isPeriodicBurst(mExtSettings)) {
 	    fprintf(stderr, "WARN: option of --burst-period can only be set on the client\n");
 	}
@@ -2454,7 +2463,16 @@ int Settings_GenerateClientHdrV1 (struct thread_Settings *client, struct client_
     } else {
 	hdr->mPort  = htonl(client->mPort);
     }
-    hdr->numThreads = htonl(client->mThreads);
+    if (isSyncTransferID(client)) {
+	uint32_t tidthreads = (((client->mTransferID << HEADER_TRANSFERIDSHIFT) | HEADER_HASTRANSFERID) & ~HEADER_TRANSFERIDMASK);
+	tidthreads = (client->mThreads & ~HEADER_TRANSFERIDMASK);
+	hdr->numThreads = htonl(tidthreads);
+	if (client->mThreads & HEADER_TRANSFERIDMASK) {
+	    fprintf(stderr, "WARN: num threads too large for --sync-transfer-id\n");
+	}
+    } else {
+	hdr->numThreads = htonl(client->mThreads);
+    }
     if (isModeTime(client)) {
 	hdr->mAmount = htonl(-(long)client->mAmount);
     } else {

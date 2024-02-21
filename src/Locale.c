@@ -146,6 +146,7 @@ Client specific:\n\
       --no-connect-sync    No sychronization after connect when -P or parallel traffic threads\n\
       --no-udp-fin         No final server to client stats at end of UDP test\n\
   -n, --num       #[kmgKMG]    number of bytes to transmit (instead of -t)\n\
+      --sync-transfer-id   pass the clients' transfer id(s) to the server so both will use the same id in their respective outputs\n\
   -r, --tradeoff           Do a fullduplexectional test individually\n\
       --tcp-quickack       set the socket's TCP_QUICKACK option (off by default)\n\
       --tcp-write-prefetch set the socket's TCP_NOTSENT_LOWAT value in bytes and use event based writes\n\

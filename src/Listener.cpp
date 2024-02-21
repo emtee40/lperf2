@@ -902,11 +902,18 @@ bool Listener::apply_client_settings_udp (thread_Settings *server) {
 	}
 	setEnhanced(server);
     } else if ((flags & HEADER_VERSION1) || (flags & HEADER_VERSION2) || (flags & HEADER_EXTEND)) {
-	if ((flags & HEADER_VERSION1) && !(flags & HEADER_VERSION2)) {
-	    if (flags & RUN_NOW)
-		server->mMode = kTest_DualTest;
-	    else
-		server->mMode = kTest_TradeOff;
+	if ((flags & HEADER_VERSION1)) {
+	    if (!(flags & HEADER_VERSION2)) {
+		if (flags & RUN_NOW)
+		    server->mMode = kTest_DualTest;
+		else
+		    server->mMode = kTest_TradeOff;
+	    }
+	    uint32_t tidthreads = ntohl(hdr->base.numThreads);
+	    if (tidthreads & HEADER_HASTRANSFERID) {
+		tidthreads &= (~HEADER_HASTRANSFERID & HEADER_TRANSFERIDMASK);
+		server->mTransferID = tidthreads >> HEADER_TRANSFERIDSHIFT;
+	    }
 	}
 	if (flags & HEADER_EXTEND) {
 	    upperflags = htons(hdr->extend.upperflags);
@@ -1101,6 +1108,19 @@ bool Listener::apply_client_settings_tcp (thread_Settings *server) {
 			server->mMode = kTest_DualTest;
 		    else
 			server->mMode = kTest_TradeOff;
+		}
+		if ((flags & HEADER_VERSION1)) {
+		    if (!(flags & HEADER_VERSION2)) {
+			if (flags & RUN_NOW)
+			    server->mMode = kTest_DualTest;
+			else
+			    server->mMode = kTest_TradeOff;
+		    }
+		    uint32_t tidthreads = ntohl(hdr->base.numThreads);
+		    if (tidthreads & HEADER_HASTRANSFERID) {
+			tidthreads &= (~HEADER_HASTRANSFERID & HEADER_TRANSFERIDMASK);
+			server->mTransferID = tidthreads >> HEADER_TRANSFERIDSHIFT;
+		    }
 		}
 		if (flags & HEADER_EXTEND) {
 		    upperflags = htons(hdr->extend.upperflags);

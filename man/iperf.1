@@ -291,6 +291,9 @@ number of bytes to transmit (instead of -t)
 .BR "    --permit-key [=" \fI<value>\fR "]"
 Set a key value that must match the server's value (also set with --permit-key) in order for the server to accept traffic from the client. TCP only, no UDP support.
 .TP
+.BR "    --sync-transfer-id"
+Pass the clients' transfer id(s) to the server so both will use the same id in their respective outputs
+.TP
 .BR -r ", " --tradeoff " "
 Do a bidirectional test individually - client-to-server, followed by
 a reversed test, server-to-client
