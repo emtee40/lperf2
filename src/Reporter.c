@@ -669,6 +669,12 @@ inline bool reporter_process_report (struct ReportHeader *reporthdr) {
 	reporter_print_server_relay_report((struct ServerRelay *)reporthdr->this_report);
 	FreeReport(reporthdr);
 	break;
+    case STRING_REPORT:
+        if (reporthdr->this_report) {
+	    printf("%s\n", (char *)reporthdr->this_report);
+	    free((char *)reporthdr->this_report);
+	}
+	break;
     default:
 	fprintf(stderr,"Invalid report type in process report %p\n", reporthdr->this_report);
 	assert(0);

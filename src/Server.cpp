@@ -639,6 +639,8 @@ bool Server::InitTrafficLoop (void) {
 			   mSettings->mTransferIDStr, mSettings->mTransferID, mSettings->mPeerTransferID);
 	    char *text = (char *) calloc(len+1, sizeof(char));
 	    if (text) {
+	        snprintf(text, len, "%sTransfer ID %d remapped to %d\n", \
+			   mSettings->mTransferIDStr, mSettings->mTransferID, mSettings->mPeerTransferID);
 	        PostReport(InitStringReport(text));
 		FREE_ARRAY(text);
 	    }

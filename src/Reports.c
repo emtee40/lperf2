@@ -235,7 +235,6 @@ void setTransferID (struct thread_Settings *inSettings, enum TansferIDType traff
 
 void updateTransferIDPeer (struct thread_Settings *inSettings) {
     if (inSettings->mPeerTransferID && (inSettings->mPeerTransferID != inSettings->mTransferID)) {
-        fprintf(stdout,"%s", inSettings->mTransferIDStr);
         if (inSettings->mTransferIDStr)
 	    FREE_ARRAY(inSettings->mTransferIDStr);
         int len = snprintf(NULL, 0, "[%3d] ", inSettings->mPeerTransferID);
@@ -533,12 +532,6 @@ void FreeReport (struct ReportHeader *reporthdr) {
 	break;
     case SERVER_RELAY_REPORT:
 	Free_srReport((struct TransferInfo *)reporthdr->this_report);
-	break;
-    case STRING_REPORT:
-        if (reporthdr->this_report) {
-	    printf("%s", (char *)reporthdr->this_report);
-	    free((char *)reporthdr->this_report);
-	}
 	break;
     default:
 	fprintf(stderr, "Invalid report type in free (%x)\n", reporthdr->type);
@@ -1053,8 +1046,10 @@ struct ReportHeader* InitStringReport (char *textoutput) {
 	WARN_errno(1, "Out of Memory!!\n");
     }
     reporthdr->type = STRING_REPORT;
-    my_str_copy((char **)&reporthdr->this_report, textoutput);
-    printf("**** string %s\n", textoutput);
+
+    reporthdr->this_report = (void *) calloc((strlen(textoutput) + 1), sizeof(char));
+    char *dst = (char *)(reporthdr->this_report);
+    strcpy(dst, textoutput);
     return reporthdr;
 }
 
