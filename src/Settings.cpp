@@ -1630,10 +1630,6 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	    fprintf(stderr, "ERROR: option of --permit-key requires a value on the client\n");
 	    bail = true;
 	}
-	if (isSyncTransferID(mExtSettings) && isMulticast(mExtSettings)) {
-	    fprintf(stderr, "ERROR: option of --sync-transfer-id incompatibile with multicast\n");
-	    bail = true;
-	}
 #if (HAVE_DECL_SO_MAX_PACING_RATE)
 	if (isFQPacingStep(mExtSettings)) {
 	    if (!isFQPacing(mExtSettings)) {
@@ -2171,6 +2167,9 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	    bail = false;
 	    if (isFullDuplex(mExtSettings) || isReverse(mExtSettings) || (mExtSettings->mMode != kTest_Normal)) {
 		fprintf(stderr, "ERROR: options of --full-duplex, --reverse, -d and -r not supported with multicast addresses\n");
+		bail = true;
+	    } else if (isSyncTransferID(mExtSettings)) {
+		fprintf(stderr, "ERROR: option of --sync-transfer-id incompatibile with multicast\n");
 		bail = true;
 	    }
 	    if (bail)
