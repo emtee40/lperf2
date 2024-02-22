@@ -1630,6 +1630,10 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	    fprintf(stderr, "ERROR: option of --permit-key requires a value on the client\n");
 	    bail = true;
 	}
+	if (isSyncTransferID(mExtSettings) && isMulticast(mExtSettings)) {
+	    fprintf(stderr, "ERROR: option of --sync-transfer-id incompatibile with multicast\n");
+	    bail = true;
+	}
 #if (HAVE_DECL_SO_MAX_PACING_RATE)
 	if (isFQPacingStep(mExtSettings)) {
 	    if (!isFQPacing(mExtSettings)) {
