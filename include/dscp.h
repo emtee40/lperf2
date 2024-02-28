@@ -44,6 +44,14 @@
  * by Robert J. McMahon (rjmcmahon@rjmcmahon.com, bob.mcmahon@broadcom.com)
  * ------------------------------------------------------------------- */
 
+/*
+ *      7  6  5  4  3  2  1  0
+ *    +--+--+--+--+--+--+--+--+
+ *    |     DSCP        | ECN |
+ *    +--+--+--+--+--+--+--+--+
+ *
+ */
+
 #ifndef DSCP_H
 #define DSCP_H
 #ifdef __cplusplus
