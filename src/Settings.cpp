@@ -118,6 +118,7 @@ static int bouncebackperiod = 0;
 static int bouncebackrequest = 0;
 static int bouncebackreply = 0;
 static int overridetos = 0;
+static int dscp = 0;
 static int notcpbbquickack = 0;
 static int tcpquickack = 0;
 static int notcpbbquickack_cliset = 0;
@@ -186,6 +187,7 @@ const struct option long_options[] =
 {"bounceback-reply", required_argument, &bouncebackreply, 1},
 {"compatibility",    no_argument, NULL, 'C'},
 {"daemon",           no_argument, NULL, 'D'},
+{"dscp", required_argument, &dscp, 1},
 {"file_input", required_argument, NULL, 'F'},
 {"ssm-host", required_argument, NULL, 'H'},
 {"stdin_input",      no_argument, NULL, 'I'},
@@ -1142,6 +1144,11 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	    } else {
 		setOverrideTOS(mExtSettings);
 	    }
+	}
+	if (dscp) {
+	    dscp = 0;
+	    // dscp needs to shifted by 2 and the ECN bits masked off to map to a TOS byte
+	    mExtSettings->mTOS = (atoi(optarg) << 2) & 0xFC;
 	}
 	if (fqrate) {
 #if (HAVE_DECL_SO_MAX_PACING_RATE)

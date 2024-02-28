@@ -129,6 +129,7 @@ Client specific:\n\
   -c, --client    <host>   run in client mode, connecting to <host>\n\
       --connect-only       run a connect only test\n\
       --connect-retries #  number of times to retry tcp connect\n\
+      --dscp               set the DSCP field (masking ECN bits) in TOS byte\n\
   -d, --dualtest           Do a bidirectional test simultaneously (multiple sockets)\n\
       --fq-rate #[kmgKMG]  bandwidth to socket pacing\n\
       --fq-rate-step #[kmgKMG]  step value to socket pacing\n\

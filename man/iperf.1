@@ -233,6 +233,10 @@ only perform a TCP connect (or 3WHS) without any data transfer, useful to measur
 .BR "    --connect-retries[= " \fIn\fR "]"
 number of times to retry a TCP connect at the application level.  See operating system information on the details of TCP connect related settings.
 .TP
+.BR "    --dscp"
+set the DSCP field (masking ECN bits) in the TOS byte (used by IP_TOS & setsockopt)
+.TP
+.TP
 .BR -d ", " --dualtest " "
 Do a bidirectional test simultaneous test using two unidirectional sockets
 .TP
