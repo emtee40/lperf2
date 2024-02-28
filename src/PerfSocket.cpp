@@ -128,7 +128,7 @@ void SetSocketOptions (struct thread_Settings *inSettings) {
 #else
     if (isCongestionControl(inSettings) || isLoadCCA(inSettings)) {
 	fprintf(stderr, "TCP congestion control not supported\n");
-	thread_stop(inSettings);	
+	thread_stop(inSettings);
     }
 #endif
 
@@ -406,7 +406,8 @@ void SetSocketOptionsIPTos (struct thread_Settings *mSettings, int tos) {
  * [root@rjm-nas rjmcmahon]# tc qdisc replace dev enp2s0 root fq
  */
 void SetSocketTcpTxDelay(struct thread_Settings *mSettings, int delay) {
-#if HAVE_DECL_TCP_TX_DELAY
+#ifdef TCP_TX_DELAY
+#if HAVE_DECL_TCP_TX_DELAY defined(TCP_TX_DELAY)
     int rc = setsockopt(mSettings->mSock, IPPROTO_TCP, TCP_TX_DELAY, &delay, sizeof(delay));
     if (rc == SOCKET_ERROR) {
 	fprintf(stderr, "Fail on TCP_TX_DELAY for sock %d\n", mSettings->mSock);
@@ -417,6 +418,7 @@ void SetSocketTcpTxDelay(struct thread_Settings *mSettings, int delay) {
 	rc = getsockopt(mSettings->mSock, IPPROTO_TCP, TCP_TX_DELAY, reinterpret_cast<char*>(&delay), &len);
 	thread_debug("TCP_TX_DELAY set to %d for sock %d", (int) delay, mSettings->mSock);
     }
+#endif
 #endif
 #endif
 }
