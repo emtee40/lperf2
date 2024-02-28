@@ -248,7 +248,7 @@ SPECIAL_OSF1_EXTERN_C_START
     #include <arpa/inet.h>   /* netinet/in.h must be before this on SunOS */
 SPECIAL_OSF1_EXTERN_C_STOP
 #endif
-#if HAVE_LINUX_TCP_H
+#if HAVE_LINUX_TCP_H && HAVE_DECL_TCP_TX_DELAY
 #include <linux/tcp.h>
 #elif HAVE_NETINET_TCP_H
 #include <netinet/tcp.h>
