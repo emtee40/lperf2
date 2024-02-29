@@ -1320,7 +1320,6 @@ void Client::RunBounceBackTCP () {
     }
     if (!peerclose)
 	WriteTcpTxBBHdr(reportstruct, 0x0, 1); // Signal end of BB test
-    disarm_itimer();
     FinishTrafficActions();
 }
 /*
