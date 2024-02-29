@@ -739,8 +739,11 @@ void Client::RunTCP () {
 		    }
 		}
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
-		while (isWritePrefetch(mSettings) && !AwaitSelectWrite() && InProgress()) {
-		    PostNullEvent(false);
+		while (isWritePrefetch(mSettings) && InProgress()) {
+		    if (AwaitSelectWrite())
+			break;
+		    else
+			PostNullEvent(false);
 		}
 #endif
 	    }
@@ -770,8 +773,11 @@ void Client::RunTCP () {
 		write_start.setnow();
 	    }
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
-	    while (isWritePrefetch(mSettings) && !AwaitSelectWrite() && InProgress()) {
-		PostNullEvent(false);
+	    while (isWritePrefetch(mSettings) && InProgress()) {
+		if (AwaitSelectWrite())
+		    break;
+		else
+		    PostNullEvent(false);
 	    }
 #endif
 	    reportstruct->packetLen = write(mySocket, mSettings->mBuf, writelen);
@@ -988,8 +994,11 @@ void Client::RunRateLimitedTCP () {
 		    write_start.setnow();
 		}
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
-		while (isWritePrefetch(mSettings) && !AwaitSelectWrite() && InProgress()) {
-		    PostNullEvent(false);
+		while (isWritePrefetch(mSettings) && InProgress()) {
+		    if (AwaitSelectWrite())
+			break;
+		    else
+			PostNullEvent(false);
 		}
 #endif
 		len = writen(mySocket, mSettings->mBuf, write_remaining, &reportstruct->writecnt);
@@ -1022,8 +1031,11 @@ void Client::RunRateLimitedTCP () {
 		    write_start.setnow();
 		}
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
-		while (isWritePrefetch(mSettings) && !AwaitSelectWrite() && InProgress()) {
-		    PostNullEvent(false);
+		while (isWritePrefetch(mSettings) && InProgress()) {
+		    if (AwaitSelectWrite())
+			break;
+		    else
+			PostNullEvent(false);
 		}
 #endif
 		len2 = write(mySocket, mSettings->mBuf, write_remaining);
