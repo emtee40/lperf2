@@ -256,7 +256,7 @@ run a full duplex test, i.e. traffic in both transmit and receive directions usi
 enable select()/write() histograms with --tcp-write-times or --bounceback (these options are mutually exclusive.) The binning can be modified. Bin widths (default 100 microseconds, append u for microseconds, m for milliseconds) bincount is total bins (default 10000), ci is confidence interval between 0-100% (default lower 5%, upper 95%, 3 stdev 99.7%)
 .TP
 .BR "    --ignore-shutdown"
-don't wait on the TCP shutdown or three way handshake (3WHS) rather use the final write as the ending event
+don't wait on the TCP shutdown or close (fin & finack) rather use the final write as the ending event
 .TP
 .BR "    --incr-dstip"
 increment the destination ip address when using the parallel (-P) or port range option

@@ -136,7 +136,7 @@ Client specific:\n\
       --fq-rate-step-interval #[kmgKMG]  step interval (in seconds) for socket pacing\n\
       --full-duplex        run full duplex test using same socket\n\
       --histograms         enable histograms for --tcp-write-times\n\
-      --ignore-shutdown    don't wait on the TCP shutdown or three way handshake (3WHS) rather use the final write as the ending event\n\
+      --ignore-shutdown    don't wait on the TCP shutdown or close (fin & finack) rather use the final write as the ending event\n\
       --incr-dstip         Increment the destination ip with parallel (-P) traffic threads\n\
       --incr-dstport       Increment the destination port with parallel (-P) traffic threads\n\
       --incr-srcip         Increment the source ip with parallel (-P) traffic threads\n\
