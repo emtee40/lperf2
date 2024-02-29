@@ -533,7 +533,7 @@ void Client::InitTrafficLoop () {
     if (isPeriodicBurst(mSettings) && (mSettings->mFPS > 0.0)) {
 	sosndtimer = static_cast<int>(round(250000.0 / mSettings->mFPS));
     } else if (mSettings->mInterval > 0) {
-        sosndtimer = static_cast<int>(round(0.5 * mSettings->mInterval));
+        sosndtimer = static_cast<int>(round(((mSettings->mThreads > 1) ? 0.25 : 0.5) * mSettings->mInterval));
     } else {
 	sosndtimer = static_cast<int>(mSettings->mAmount * 5e3);
     }

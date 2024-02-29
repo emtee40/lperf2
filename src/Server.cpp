@@ -113,9 +113,9 @@ Server::Server (thread_Settings *inSettings) {
 	sorcvtimer = static_cast<int>(round(2000000.0 / mSettings->mFPS));
     }
     if ((mSettings->mInterval > 0) && (mSettings->mIntervalMode == kInterval_Time)) {
-	int interval_half = static_cast<int>(round(mSettings->mAmount * 10000) / 2);
-	if (sorcvtimer > interval_half) {
-	    sorcvtimer = interval_half;
+	int interval_quarter = static_cast<int>(round(mSettings->mAmount * 10000) / 4);
+	if (sorcvtimer > interval_quarter) {
+	    sorcvtimer = interval_quarter;
 	}
     }
     if (sorcvtimer > 0) {
