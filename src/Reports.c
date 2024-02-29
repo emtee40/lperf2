@@ -1040,7 +1040,6 @@ struct ReportHeader* InitServerRelayUDPReport(struct thread_Settings *inSettings
 }
 
 struct ReportHeader* InitStringReport (char *textoutput) {
-    assert(inSettings != NULL);
     struct ReportHeader *reporthdr = (struct ReportHeader *) calloc(1, sizeof(struct ReportHeader));
     if (reporthdr == NULL) {
 	WARN_errno(1, "Out of Memory!!\n");
