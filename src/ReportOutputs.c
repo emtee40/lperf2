@@ -2212,7 +2212,7 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
 		     report->common->RTOS, \
 		     DSCP_VALUE(report->common->RTOS), ECN_VALUE(report->common->RTOS));
 	} else if (isReverse(report->common)) {
-	    snprintf(b, SNBUFFERSIZE-strlen(b), " (tos tx=0x%x,dscp=%d,ecn=%d)", report->common->TOS,  \
+	    snprintf(b, SNBUFFERSIZE-strlen(b), " (tos rx=0x%x,dscp=%d,ecn=%d)", report->common->TOS,  \
 		     DSCP_VALUE(report->common->TOS), ECN_VALUE(report->common->TOS));
 	}
 	b += strlen(b);
@@ -2223,10 +2223,10 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
 		     report->common->TOS, \
 		     DSCP_VALUE(report->common->TOS), ECN_VALUE(report->common->TOS));
 	} else if (isReverse(report->common)) {
-	    snprintf(b, SNBUFFERSIZE-strlen(b), " (tos tx=0x%x,dscp=%d,ecn=%d)", report->common->TOS, \
+	    snprintf(b, SNBUFFERSIZE-strlen(b), " (tos rx=0x%x,dscp=%d,ecn=%d)", report->common->TOS, \
 		     DSCP_VALUE(report->common->TOS), ECN_VALUE(report->common->TOS));
 	} else {
-	    snprintf(b, SNBUFFERSIZE-strlen(b), " (tos rx=0x%x,dscp=%d,ecn=%d)", report->common->TOS, \
+	    snprintf(b, SNBUFFERSIZE-strlen(b), " (tos tx=0x%x,dscp=%d,ecn=%d)", report->common->TOS, \
 		     DSCP_VALUE(report->common->TOS), ECN_VALUE(report->common->TOS));
 	}
 	b += strlen(b);
