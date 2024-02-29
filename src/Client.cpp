@@ -1928,6 +1928,7 @@ void Client::PostNullEvent (bool isFirst) {
     report_nopacket.scheduled = isFirst;
     report_nopacket.packetID = 0;
     report_nopacket.err_readwrite = WriteNoAccount;
+    reportstruct->packetTime = report_nopacket.packetTime; // needed for the InProgress loop test
     myReportPacket(&report_nopacket);
 }
 

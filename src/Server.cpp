@@ -320,6 +320,7 @@ void Server::PostNullEvent () {
     report_nopacket.packetTime.tv_usec = now.getUsecs();
     report_nopacket.emptyreport = true;
     report_nopacket.err_readwrite = WriteNoAccount;
+    reportstruct->packetTime = report_nopacket.packetTime; // needed for the InProgress loop test
     ReportPacket(myReport, &report_nopacket);
 }
 
