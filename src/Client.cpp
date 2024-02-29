@@ -2084,7 +2084,14 @@ bool Client::BarrierClient (struct BarrierMutex *barrier) {
 #ifdef HAVE_THREAD_DEBUG
         thread_debug("Barrier WAIT on condition %p count=%d", (void *)&barrier->await, barrier->count);
 #endif
-        Condition_Wait(&barrier->await);
+	if (isModeTime(mSettings)) {
+	    int barrier_wait_secs = int(mSettings->mAmount / 100);  // convert from 10 ms to seconds
+	    if (barrier_wait_secs <= 0)
+		barrier_wait_secs = 1;
+	    Condition_TimedWait(&barrier->await, barrier_wait_secs);
+	} else {
+	    Condition_Wait(&barrier->await);
+	}
     }
     Condition_Unlock(barrier->await);
 #ifdef HAVE_THREAD_DEBUG
