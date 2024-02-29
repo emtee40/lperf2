@@ -1104,7 +1104,7 @@ inline bool Client::AwaitSelectWrite (void) {
     if (isModeTime(mSettings)) {
         Timestamp write_event_timeout(0,0);
 	if (mSettings->mInterval && (mSettings->mIntervalMode == kInterval_Time)) {
-	    write_event_timeout.add((double) mSettings->mInterval / 2e6);
+	    write_event_timeout.add((double) mSettings->mInterval / ((mSettings->mThreads > 1) ? 4e6 : 2e6));
 	} else {
 	    write_event_timeout.add((double) mSettings->mAmount / 4e2);
 	}
@@ -1789,7 +1789,9 @@ void Client::FinishTrafficActions () {
     disarm_itimer();
     // Shutdown the TCP socket's writes as the event for the server to end its traffic loop
     if (!isUDP(mSettings)) {
-	tcp_shutdown();
+	if (!isIgnoreShutdown(mSettings)) {
+	    tcp_shutdown();
+	}
 	now.setnow();
 	reportstruct->packetTime.tv_sec = now.getSecs();
 	reportstruct->packetTime.tv_usec = now.getUsecs();

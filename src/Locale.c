@@ -136,12 +136,13 @@ Client specific:\n\
       --fq-rate-step-interval #[kmgKMG]  step interval (in seconds) for socket pacing\n\
       --full-duplex        run full duplex test using same socket\n\
       --histograms         enable histograms for --tcp-write-times\n\
-      --ipg                set the the interpacket gap (milliseconds) for packets within an isochronous frame\n\
-      --isochronous <frames-per-second>:<mean>,<stddev> send traffic in bursts (frames - emulate video traffic)\n\
+      --ignore-shutdown    don't wait on the TCP shutdown or three way handshake (3WHS) rather use the final write as the ending event\n\
       --incr-dstip         Increment the destination ip with parallel (-P) traffic threads\n\
       --incr-dstport       Increment the destination port with parallel (-P) traffic threads\n\
       --incr-srcip         Increment the source ip with parallel (-P) traffic threads\n\
       --incr-srcport       Increment the source port with parallel (-P) traffic threads\n\
+      --ipg                set the the interpacket gap (milliseconds) for packets within an isochronous frame\n\
+      --isochronous <frames-per-second>:<mean>,<stddev> send traffic in bursts (frames - emulate video traffic)\n\
       --local-only         Set don't route on socket\n\
       --near-congestion=[w] Use a weighted write delay per the sampled TCP RTT (experimental)\n\
       --no-connect-sync    No sychronization after connect when -P or parallel traffic threads\n\

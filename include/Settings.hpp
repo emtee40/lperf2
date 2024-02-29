@@ -422,6 +422,7 @@ struct thread_Settings {
 #define FLAG_FQPACINGSTEP     0x00200000
 #define FLAG_FQPACINGSTEPINTERVAL 0x00400000
 #define FLAG_SYNCTRANSFERID 0x00800000
+#define FLAG_IGNORESHUTDOWN  0x01000000
 
 #define isBuflenSet(settings)      ((settings->flags & FLAG_BUFLENSET) != 0)
 #define isCompat(settings)         ((settings->flags & FLAG_COMPAT) != 0)
@@ -506,6 +507,7 @@ struct thread_Settings {
 #define isFQPacingStep(settings)       ((settings->flags_extend2 & FLAG_FQPACINGSTEP) != 0)
 #define isFQPacingStepInterval(settings) ((settings->flags_extend2 & FLAG_FQPACINGSTEPINTERVAL) != 0)
 #define isSyncTransferID(settings) ((settings->flags_extend2 & FLAG_SYNCTRANSFERID) != 0)
+#define isIgnoreShutdown(settings) ((settings->flags_extend2 & FLAG_IGNORESHUTDOWN) != 0)
 
 #define setBuflenSet(settings)     settings->flags |= FLAG_BUFLENSET
 #define setCompat(settings)        settings->flags |= FLAG_COMPAT
@@ -587,6 +589,7 @@ struct thread_Settings {
 #define setFQPacingStep(settings) settings->flags_extend2 |= FLAG_FQPACINGSTEP
 #define setFQPacingStepInterval(settings) settings->flags_extend2 |= FLAG_FQPACINGSTEPINTERVAL
 #define setSyncTransferID(settings) settings->flags_extend2 |= FLAG_SYNCTRANSFERID
+#define setIgnoreShutdown(settings) settings->flags_extend2 |= FLAG_IGNORESHUTDOWN
 
 #define unsetBuflenSet(settings)   settings->flags &= ~FLAG_BUFLENSET
 #define unsetCompat(settings)      settings->flags &= ~FLAG_COMPAT
@@ -667,6 +670,7 @@ struct thread_Settings {
 #define unsetFQPacingStep(settings)  settings->flags_extend2 &= ~FLAG_FQPACINGSTEP
 #define unsetFQPacingStepInterval(settings) settings->flags_extend2 &= ~FLAG_FQPACINGSTEPINTERVAL
 #define unsetSyncTransferID(settings) settings->flags_extend2 &= ~FLAG_SYNCTRANSFERID
+#define unsetIgnoreShutdown(settings) settings->flags_extend2 &= ~FLAG_IGNORESHUTDOWN
 
 // set to defaults
 void Settings_Initialize(struct thread_Settings* main);

@@ -131,6 +131,7 @@ static int loadcca = 0;
 static int tcptxdelay = 0;
 static int testxchangetimeout = 0;
 static int synctransferid = 0;
+static int ignoreshutdown = 0;
 
 void Settings_Interpret(char option, const char *optarg, struct thread_Settings *mExtSettings);
 // apply compound settings after the command line has been fully parsed
@@ -213,6 +214,7 @@ const struct option long_options[] =
 {"jitter-histograms", optional_argument, &jitter_histogram, 1},
 {"udp-histograms", optional_argument, &histogram, 1}, // keep support per 2.0.13 usage
 {"l2checks", no_argument, &l2checks, 1},
+{"ignore-shutdown", no_argument, &ignoreshutdown, 1},
 {"incr-dstip", no_argument, &incrdstip, 1},
 {"incr-srcip", no_argument, &incrsrcip, 1},
 {"incr-dstport", no_argument, &incrdstport, 1},
@@ -988,6 +990,10 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	if (incrsrcport) {
 	    incrsrcport = 0;
 	    setIncrSrcPort(mExtSettings);
+	}
+	if (ignoreshutdown) {
+	    ignoreshutdown = 0;
+	    setIgnoreShutdown(mExtSettings);
 	}
 	if (sumdstip) {
 	    sumdstip = 0;
@@ -1950,6 +1956,9 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	}
 	if (isIncrDstIP(mExtSettings)) {
 	    fprintf(stderr, "WARN: option of --incr-dstip is not supported on the server\n");
+	}
+	if (isIgnoreShutdown(mExtSettings)) {
+	    fprintf(stderr, "WARN: option of --ignore-shutdown is not supported on the server\n");
 	}
 	if (isFQPacing(mExtSettings)) {
 	    fprintf(stderr, "WARN: option of --fq-rate is not supported on the server\n");
