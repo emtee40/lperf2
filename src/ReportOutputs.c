@@ -51,6 +51,7 @@
 #include "Locale.h"
 #include "SocketAddr.h"
 #include "iperf_formattime.h"
+#include "dscp.h"
 
 // These static variables are not thread safe but ok to use becase only
 // the repoter thread usses them
@@ -1880,7 +1881,8 @@ static void reporter_output_listener_settings (struct ReportSettings *report) {
     }
 #endif
     if (isOverrideTOS(report->common)) {
-	fprintf(stdout, "Reflected TOS will be set to 0x%x\n", report->common->RTOS);
+	fprintf(stdout, "Reflected TOS will be set to 0x%x (dscp=%d,ecn=%d)\n", report->common->RTOS, \
+		DSCP_VALUE(report->common->RTOS), ECN_VALUE(report->common->RTOS));
     }
     if (isPrintMSS(report->common)) {
         if (isTCPMSS(report->common)) {
@@ -1890,7 +1892,8 @@ static void reporter_output_listener_settings (struct ReportSettings *report) {
 	}
     }
     if (report->common->TOS) {
-	fprintf(stdout, "TOS will be set to 0x%x\n", report->common->TOS);
+	fprintf(stdout, "TOS will be set to 0x%x (dscp=%d,ecn=%d)\n", report->common->TOS, \
+	    DSCP_VALUE(report->common->RTOS), ECN_VALUE(report->common->RTOS));
     }
     if (isUDP(report->common)) {
 	if (isSingleClient(report->common)) {
@@ -2037,11 +2040,17 @@ static void reporter_output_client_settings (struct ReportSettings *report) {
     }
 #endif
     if (isEnhanced(report->common)) {
-        if (isNoDelay(report->common)) {
-	    fprintf(stdout, "TOS set to 0x%x and nodelay (Nagle off)\n", report->common->TOS);
-	} else {
-	    fprintf(stdout, "TOS set to 0x%x (Nagle on)\n", report->common->TOS);
+	fprintf(stdout, "TOS set to 0x%x (dscp=%d,ecn=%d)", report->common->TOS, \
+		DSCP_VALUE(report->common->TOS), ECN_VALUE(report->common->TOS));
+	if (ECN_VALUE(report->common->TOS)) {
+	    fprintf(stdout, " (warn ecn bits set)");
 	}
+        if (isNoDelay(report->common)) {
+	    fprintf(stdout," and nodelay (Nagle off)");
+	} else {
+	    fprintf(stdout," (Nagle on)");
+	}
+	fprintf(stdout, "\n");
     }
     if (isNearCongest(report->common)) {
 	if (report->common->rtt_weight == NEARCONGEST_DEFAULT) {
@@ -2198,18 +2207,27 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
     }
     if (isOverrideTOS(report->common)) {
 	if (isFullDuplex(report->common)) {
-	    snprintf(b, SNBUFFERSIZE-strlen(b), " (tos rx/tx=0x%x/0x%x)", report->common->TOS, report->common->RTOS);
+	    snprintf(b, SNBUFFERSIZE-strlen(b), " (tos rx/tx=0x%x,dscp=%d,ecn=%d, /0x%x,dscp=%d,ecn=%d)", report->common->TOS, \
+		     DSCP_VALUE(report->common->TOS), ECN_VALUE(report->common->TOS), \
+		     report->common->RTOS, \
+		     DSCP_VALUE(report->common->RTOS), ECN_VALUE(report->common->RTOS));
 	} else if (isReverse(report->common)) {
-	    snprintf(b, SNBUFFERSIZE-strlen(b), " (tos tx=0x%x)", report->common->TOS);
+	    snprintf(b, SNBUFFERSIZE-strlen(b), " (tos tx=0x%x,dscp=%d,ecn=%d)", report->common->TOS,  \
+		     DSCP_VALUE(report->common->TOS), ECN_VALUE(report->common->TOS));
 	}
 	b += strlen(b);
     } else if (report->common->TOS) {
 	if (isFullDuplex(report->common) || isBounceBack(report->common)) {
-	    snprintf(b, SNBUFFERSIZE-strlen(b), " (tos rx/tx=0x%x/0x%x)", report->common->TOS, report->common->TOS);
+	    snprintf(b, SNBUFFERSIZE-strlen(b), " (tos rx/tx=0x%x,dscp=%d,ecn=%d/0x%x,dscp=%d,ecn=%d)", report->common->TOS, \
+		     DSCP_VALUE(report->common->TOS), ECN_VALUE(report->common->TOS), \
+		     report->common->TOS, \
+		     DSCP_VALUE(report->common->TOS), ECN_VALUE(report->common->TOS));
 	} else if (isReverse(report->common)) {
-	    snprintf(b, SNBUFFERSIZE-strlen(b), " (tos tx=0x%x)", report->common->TOS);
+	    snprintf(b, SNBUFFERSIZE-strlen(b), " (tos tx=0x%x,dscp=%d,ecn=%d)", report->common->TOS, \
+		     DSCP_VALUE(report->common->TOS), ECN_VALUE(report->common->TOS));
 	} else {
-	    snprintf(b, SNBUFFERSIZE-strlen(b), " (tos rx=0x%x)", report->common->TOS);
+	    snprintf(b, SNBUFFERSIZE-strlen(b), " (tos rx=0x%x,dscp=%d,ecn=%d)", report->common->TOS, \
+		     DSCP_VALUE(report->common->TOS), ECN_VALUE(report->common->TOS));
 	}
 	b += strlen(b);
     }

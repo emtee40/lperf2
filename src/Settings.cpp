@@ -1154,7 +1154,7 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	if (dscp) {
 	    dscp = 0;
 	    // dscp needs to shifted by 2 and the ECN bits masked off to map to a TOS byte
-	    mExtSettings->mTOS = (atoi(optarg) << 2) & 0xFC;
+	    mExtSettings->mTOS = (atoi(optarg) << DSCP_SHIFT) & DSCP_BITMASK; //2 & 0xFC
 	}
 	if (fqrate) {
 #if (HAVE_DECL_SO_MAX_PACING_RATE)

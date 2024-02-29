@@ -101,7 +101,7 @@ extern "C" {
 #define DEFAULT_BOUNCEBACK_BYTES 100
 #define SMALL_WRITE_PREFETCH (1024 * 16)
 
-#define SHALLOW_COPY 1
+#define SHALLOW_COPY 1 // This is likley a bug, using a deep copy is safer but overkill
 #define DEEP_COPY 1
 // server/client mode
 enum ThreadMode {

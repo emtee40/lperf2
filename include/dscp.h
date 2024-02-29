@@ -57,6 +57,14 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+// DSCP bits
+#define DSCP_SHIFT 2
+#define DSCP_BITMASK 0xFC
+#define ECN_BITMASK 0x03
+#define DSCP_VALUE(value) (int)((value & DSCP_BITMASK) >> DSCP_SHIFT)
+#define ECN_VALUE(value) (int)(value & ECN_BITMASK)
+
 int parse_ipqos(const char *cp);
 const char * iptos2str(int iptos);
 #ifdef __cplusplus
