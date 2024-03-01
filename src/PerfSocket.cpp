@@ -367,9 +367,10 @@ void SetSocketOptionsIPTos (struct thread_Settings *mSettings, int tos) {
 	    WARN_errno(rc == SOCKET_ERROR, "getsockopt IP_TOS");
 	    if (reqtos != tos) {
 		char warnbuf[256];
-		snprintf(warnbuf, sizeof(warnbuf), "IP_TOS setting to 0x%x failed got 0x%x", tos, reqtos);
+		snprintf(warnbuf, sizeof(warnbuf), "Warning: IP_TOS set to 0x%x, request for setting to 0x%x", reqtos, tos);
 		warnbuf[sizeof(warnbuf)-1] = '\0';
 		WARN(1, warnbuf);
+		mSettings->mTOS = reqtos;
 	    }
 	}
 #endif
