@@ -57,6 +57,9 @@ AM_CONDITIONAL([THREAD_DEBUG], [test "x$enable_thread_debug" = "xyes"])
 AC_ARG_ENABLE(packet_debug, AS_HELP_STRING([--enable-packet-debug],[enable support for packet level debugging (default is disable)]))
 AM_CONDITIONAL([PACKET_DEBUG], [test "x$enable_packet_debug" = "xyes"])
 
+AC_ARG_ENABLE(summing_debug, AS_HELP_STRING([--enable-summing-debug],[enable support for interval summing debugging (default is disable)]))
+AM_CONDITIONAL([SUMMING_DEBUG], [test "x$enable_summing_debug" = "xyes"])
+
 AC_ARG_ENABLE(checkprograms, AS_HELP_STRING([--enable-checkprograms],[enable support for building support programs such as checkdelay, checkpdfs, etc. (default is disable)]))
 AM_CONDITIONAL([CHECKPROGRAMS], [test "x$enable_checkprograms" = "xyes"])
 
@@ -406,14 +409,19 @@ if test "$ac_cv_have_ipv6" = yes; then
 fi
 
 
+if test "$enable_packet_debug" = yes; then
+   AC_DEFINE([HAVE_PACKET_DEBUG], 1, [Define if packet level debugging is desired])
+fi
 if test "$enable_thread_debug" = yes; then
-   AC_DEFINE([HAVE_THREAD_DEBUG], 1, [Define for thread level debugging of the code])
-else
-   if test "$enable_debuginfo" = yes; then
+   AC_DEFINE([HAVE_THREAD_DEBUG], 1, [Define for thread level debugging])
+fi
+if test "$enable_summing_debug" = yes; then
+   AC_DEFINE([HAVE_SUMMING_DEBUG], 1, [Define for interval summing debugging])
+fi
+if test "$enable_debuginfo" = yes; then
    AC_DEFINE([DBG_MJZ], 1, [Define if debugging info is desired])
-   else
+else
    AC_DEFINE([NDEBUG], [1], [Define to disable asserts])
-   fi
 fi
 
 if test "$enable_web100" != no; then
@@ -461,10 +469,6 @@ AC_DEFINE([HAVE_FASTSAMPLING], 1, [Define if fast sampling for report intervals 
 fi
 if test "$enable_discover_defaultlen" = yes; then
 AC_DEFINE([DEFAULT_PAYLOAD_LEN_PER_MTU_DISCOVERY], 1, [Define if default UDP payload length is based on device MTU and socket buffer size])
-fi
-
-if test "$enable_packet_debug" = yes; then
-AC_DEFINE([HAVE_PACKET_DEBUG], 1, [Define if packet level debugging is desired])
 fi
 
 case "$ac_cv_host" in
