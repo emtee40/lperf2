@@ -136,7 +136,13 @@ static int __log(const char *level, const char *format, va_list args) {
     char logformat[]="%s(%ld):[%s] %s\n";
 
     __gettimestamp(timestamp);
-  #if HAVE_GETTID_SYSCALL
+
+  #if HAVE_DECL_PTHREAD_THREADID_NP
+    uint64_t tid;
+    if (pthread_threadid_np(NULL, &tid) != 0) {
+	tid = -1;
+    }
+  #elif HAVE_GETTID_SYSCALL
     unsigned long tid = syscall(SYS_gettid);
   #else
     unsigned long tid = -1;

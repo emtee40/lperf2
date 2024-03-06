@@ -254,7 +254,7 @@ AC_CHECK_DECLS([SIOCGIFMTU],[],[],[
 #include <sys/sockio.h>
 #endif
 ])
-AC_CHECK_DECLS([pthread_cancel],[],[],[#include <pthread.h>])
+AC_CHECK_DECLS([pthread_cancel, pthread_threadid_np],[],[],[#include <pthread.h>])
 AC_CHECK_DECLS([CPU_SET],[],[],[
 	#define _GNU_SOURCE
 	#include <sched.h>

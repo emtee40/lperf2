@@ -133,6 +133,10 @@
    you don't. */
 #undef HAVE_DECL_PTHREAD_CANCEL
 
+/* Define to 1 if you have the declaration of 'pthread_threadid_np', and to 0
+   if you don't. */
+#undef HAVE_DECL_PTHREAD_THREADID_NP
+
 /* Define to 1 if you have the declaration of 'SIGALRM', and to 0 if you
    don't. */
 #undef HAVE_DECL_SIGALRM
@@ -433,7 +437,7 @@
 /* Define to 1 if 'tcpi_total_retrans' is a member of 'struct tcp_info'. */
 #undef HAVE_STRUCT_TCP_INFO_TCPI_TOTAL_RETRANS
 
-/* Define for interval summing debugging of the code */
+/* Define for interval summing debugging */
 #undef HAVE_SUMMING_DEBUG
 
 /* Define to 1 if you have the <syslog.h> header file. */
@@ -463,7 +467,7 @@
 /* Define to enable tcp stats support */
 #undef HAVE_TCP_STATS
 
-/* Define for thread level debugging of the code */
+/* Define for thread level debugging */
 #undef HAVE_THREAD_DEBUG
 
 /* TUNTAP_TAP support is available */

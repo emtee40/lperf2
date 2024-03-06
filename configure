@@ -9782,6 +9782,16 @@ else case e in #(
 esac
 fi
 printf "%s\n" "#define HAVE_DECL_PTHREAD_CANCEL $ac_have_decl" >>confdefs.h
+ac_fn_check_decl "$LINENO" "pthread_threadid_np" "ac_cv_have_decl_pthread_threadid_np" "#include <pthread.h>
+" "$ac_c_undeclared_builtin_options" "CFLAGS"
+if test "x$ac_cv_have_decl_pthread_threadid_np" = xyes
+then :
+  ac_have_decl=1
+else case e in #(
+  e) ac_have_decl=0 ;;
+esac
+fi
+printf "%s\n" "#define HAVE_DECL_PTHREAD_THREADID_NP $ac_have_decl" >>confdefs.h
 
 ac_fn_check_decl "$LINENO" "CPU_SET" "ac_cv_have_decl_CPU_SET" "
 	#define _GNU_SOURCE
