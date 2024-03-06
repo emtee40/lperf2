@@ -798,7 +798,11 @@ void Client::RunTCP () {
 		reportstruct->err_readwrite=WriteErrAccount;
 	    } else if (FATALTCPWRITERR(errno)) {
 		reportstruct->err_readwrite=WriteErrFatal;
-		WARN_errno(1, "tcp write");
+		now.setnow();
+		char warnbuf[WARNBUFSIZE];
+		snprintf(warnbuf, sizeof(warnbuf), "%stcp write (%ld.%ld)", mSettings->mTransferIDStr, now.getSecs(), now.getUsecs());
+		warnbuf[sizeof(warnbuf)-1] = '\0';
+		WARN(1, warnbuf);
 		break;
 	    } else {
 		reportstruct->err_readwrite=WriteNoAccount;

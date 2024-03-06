@@ -266,8 +266,10 @@ void Server::RunTCP () {
 		} else if ((n < 0) && (FATALTCPREADERR(errno))) {
 		    peerclose = true;
 		    n = 0;
+		    now.setnow();
 		    char warnbuf[WARNBUFSIZE];
-		    snprintf(warnbuf, sizeof(warnbuf), "%stcp recv", mSettings->mTransferIDStr);
+		    snprintf(warnbuf, sizeof(warnbuf), "%stcp recv (%ld.%ld)",\
+			     mSettings->mTransferIDStr, now.getSecs(), now.getUsecs());
 		    warnbuf[sizeof(warnbuf)-1] = '\0';
 		    WARN_errno(1, warnbuf);
 		}
