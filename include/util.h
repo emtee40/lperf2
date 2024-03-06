@@ -63,6 +63,8 @@ extern "C" {
 
 extern int sInterupted;
 
+#define WARNBUFSIZE 256
+
 /* -------------------------------------------------------------------
  * set/getsockopt wrappers for SO_RCVBUF and SO_SNDBUF; TCP_MAXSEG
  * socket.c

@@ -264,9 +264,12 @@ void Server::RunTCP () {
 		    thread_debug("Server thread detected EOF on socket %d", mSettings->mSock);
 #endif
 		} else if ((n < 0) && (FATALTCPREADERR(errno))) {
-		    WARN_errno(1, "recv");
 		    peerclose = true;
 		    n = 0;
+		    char warnbuf[WARNBUFSIZE];
+		    snprintf(warnbuf, sizeof(warnbuf), "%stcp recv", mSettings->mTransferIDStr);
+		    warnbuf[sizeof(warnbuf)-1] = '\0';
+		    WARN_errno(1, warnbuf);
 		}
 		currLen += n;
 	    }

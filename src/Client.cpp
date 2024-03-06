@@ -1107,7 +1107,7 @@ inline bool Client::AwaitSelectWrite (void) {
 	WARN_errno((rc < 0), "select");
 #if DEBUG_INTERVAL_SUM
 	if (rc == 0) {
-	    char warnbuf[256];
+	    char warnbuf[WARNBUFSIZE];
 	    snprintf(warnbuf, sizeof(warnbuf), "%sTimeout: write select", mSettings->mTransferIDStr);
 	    warnbuf[sizeof(warnbuf)-1] = '\0';
 	    WARN(1, warnbuf);
