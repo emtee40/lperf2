@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------
- * Copyrightot) 1999,2000,2001,2002,2003
+ * Copyright (c) 1999,2000,2001,2002,2003
  * The Board of Trustees of the University of Illinois
  * All Rights Reserved.
  *---------------------------------------------------------------
@@ -533,7 +533,7 @@ void Client::InitTrafficLoop () {
     if (isPeriodicBurst(mSettings) && (mSettings->mFPS > 0.0)) {
 	sosndtimer = static_cast<int>(round(250000.0 / mSettings->mFPS));
     } else if (mSettings->mInterval > 0) {
-        sosndtimer = static_cast<int>(round(0.5 * mSettings->mInterval));
+        sosndtimer = static_cast<int>(round(((mSettings->mThreads > 1) ? 0.25 : 0.5) * mSettings->mInterval));
     } else {
 	sosndtimer = static_cast<int>(mSettings->mAmount * 5e3);
     }
@@ -739,8 +739,11 @@ void Client::RunTCP () {
 		    }
 		}
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
-		while (isWritePrefetch(mSettings) && !AwaitSelectWrite() && InProgress()) {
-		    PostNullEvent(false);
+		while (isWritePrefetch(mSettings) && InProgress()) {
+		    if (AwaitSelectWrite())
+			break;
+		    else
+			PostNullEvent(false);
 		}
 #endif
 	    }
@@ -770,8 +773,11 @@ void Client::RunTCP () {
 		write_start.setnow();
 	    }
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
-	    while (isWritePrefetch(mSettings) && !AwaitSelectWrite() && InProgress()) {
-		PostNullEvent(false);
+	    while (isWritePrefetch(mSettings) && InProgress()) {
+		if (AwaitSelectWrite())
+		    break;
+		else
+		    PostNullEvent(false);
 	    }
 #endif
 	    reportstruct->packetLen = write(mySocket, mSettings->mBuf, writelen);
@@ -988,8 +994,11 @@ void Client::RunRateLimitedTCP () {
 		    write_start.setnow();
 		}
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
-		while (isWritePrefetch(mSettings) && !AwaitSelectWrite() && InProgress()) {
-		    PostNullEvent(false);
+		while (isWritePrefetch(mSettings) && InProgress()) {
+		    if (AwaitSelectWrite())
+			break;
+		    else
+			PostNullEvent(false);
 		}
 #endif
 		len = writen(mySocket, mSettings->mBuf, write_remaining, &reportstruct->writecnt);
@@ -1022,8 +1031,11 @@ void Client::RunRateLimitedTCP () {
 		    write_start.setnow();
 		}
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
-		while (isWritePrefetch(mSettings) && !AwaitSelectWrite() && InProgress()) {
-		    PostNullEvent(false);
+		while (isWritePrefetch(mSettings) && InProgress()) {
+		    if (AwaitSelectWrite())
+			break;
+		    else
+			PostNullEvent(false);
 		}
 #endif
 		len2 = write(mySocket, mSettings->mBuf, write_remaining);
@@ -1092,7 +1104,7 @@ inline bool Client::AwaitSelectWrite (void) {
     if (isModeTime(mSettings)) {
         Timestamp write_event_timeout(0,0);
 	if (mSettings->mInterval && (mSettings->mIntervalMode == kInterval_Time)) {
-	    write_event_timeout.add((double) mSettings->mInterval / 2e6);
+	    write_event_timeout.add((double) mSettings->mInterval / ((mSettings->mThreads > 1) ? 4e6 : 2e6));
 	} else {
 	    write_event_timeout.add((double) mSettings->mAmount / 4e2);
 	}
@@ -1105,7 +1117,7 @@ inline bool Client::AwaitSelectWrite (void) {
 
     if ((rc = select(mySocket + 1, NULL, &writeset, NULL, &timeout)) <= 0) {
 	WARN_errno((rc < 0), "select");
-#if DEBUG_INTERVAL_SUM
+#if HAVE_SUMMING_DEBUG
 	if (rc == 0) {
 	    char warnbuf[WARNBUFSIZE];
 	    snprintf(warnbuf, sizeof(warnbuf), "%sTimeout: write select", mSettings->mTransferIDStr);
@@ -1320,7 +1332,6 @@ void Client::RunBounceBackTCP () {
     }
     if (!peerclose)
 	WriteTcpTxBBHdr(reportstruct, 0x0, 1); // Signal end of BB test
-    disarm_itimer();
     FinishTrafficActions();
 }
 /*
@@ -1778,7 +1789,9 @@ void Client::FinishTrafficActions () {
     disarm_itimer();
     // Shutdown the TCP socket's writes as the event for the server to end its traffic loop
     if (!isUDP(mSettings)) {
-	tcp_shutdown();
+	if (!isIgnoreShutdown(mSettings)) {
+	    tcp_shutdown();
+	}
 	now.setnow();
 	reportstruct->packetTime.tv_sec = now.getSecs();
 	reportstruct->packetTime.tv_usec = now.getUsecs();
@@ -1929,6 +1942,7 @@ void Client::PostNullEvent (bool isFirst) {
     report_nopacket.scheduled = isFirst;
     report_nopacket.packetID = 0;
     report_nopacket.err_readwrite = WriteNoAccount;
+    reportstruct->packetTime = report_nopacket.packetTime; // needed for the InProgress loop test
     myReportPacket(&report_nopacket);
 }
 
@@ -2085,7 +2099,14 @@ bool Client::BarrierClient (struct BarrierMutex *barrier) {
 #ifdef HAVE_THREAD_DEBUG
         thread_debug("Barrier WAIT on condition %p count=%d", (void *)&barrier->await, barrier->count);
 #endif
-        Condition_Wait(&barrier->await);
+	if (isModeTime(mSettings)) {
+	    int barrier_wait_secs = int(mSettings->mAmount / 100);  // convert from 10 ms to seconds
+	    if (barrier_wait_secs <= 0)
+		barrier_wait_secs = 1;
+	    Condition_TimedWait(&barrier->await, barrier_wait_secs);
+	} else {
+	    Condition_Wait(&barrier->await);
+	}
     }
     Condition_Unlock(barrier->await);
 #ifdef HAVE_THREAD_DEBUG

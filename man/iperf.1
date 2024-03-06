@@ -1,4 +1,4 @@
-.TH IPERF 1 "Nov 2023" NLANR/DAST "User Manuals"
+.TH IPERF 1 "Feb 2024" NLANR/DAST "User Manuals"
 .SH NAME
 iperf \- perform network traffic tests using network sockets. Metrics include throughput and latency or link capacity and responsiveness.
 .SH SYNOPSIS
@@ -254,6 +254,9 @@ run a full duplex test, i.e. traffic in both transmit and receive directions usi
 .TP
 .BR "    --histograms[="\fIbinwidth\fR[u],\fIbincount\fR,[\fIlowerci\fR],[\fIupperci\fR] "]"
 enable select()/write() histograms with --tcp-write-times or --bounceback (these options are mutually exclusive.) The binning can be modified. Bin widths (default 100 microseconds, append u for microseconds, m for milliseconds) bincount is total bins (default 10000), ci is confidence interval between 0-100% (default lower 5%, upper 95%, 3 stdev 99.7%)
+.TP
+.BR "    --ignore-shutdown"
+don't wait on the TCP shutdown or close (fin & finack) rather use the final write as the ending event
 .TP
 .BR "    --incr-dstip"
 increment the destination ip address when using the parallel (-P) or port range option

@@ -122,15 +122,16 @@ OpenWRT cross compile (example only)
 ---
 Other configure and compile options
 
-      ./configure --enable-thread-debug - used for tool debug
-      ./configure --enable-fastsampling - sub millisecond timestamping
+      ./configure --enable-debuginfo - enable asserts
+      ./configure --enable-thread-debug - enable thread level debugging
+      ./configure --enable-summing-debug - enable summing level debugging
       ./configure --enable-packet-debug - show packet sequence numbers - very chatty
+      ./configure --enable-fastsampling - sub millisecond timestamping
       ./configure --enable-checkprograms - compile supplmentary test programs
       ./configure --disable-ipv6
       ./configure --disable-multicast
       ./configure --disable-threads
       ./configure --disable-write-select
-      ./configure --enable-debuginfo
       ./configure --enable-debug-symbols - enable debugging with symbols
       ./configure --enable-default-localonly - limit test traffic to the local network (off by default)
 ---
