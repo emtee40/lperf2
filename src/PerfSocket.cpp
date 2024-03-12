@@ -347,24 +347,22 @@ void SetSocketOptionsIPTos (struct thread_Settings *mSettings, int tos) {
 #ifdef HAVE_THREAD_DEBUG
     thread_debug("Set socket IP_TOS to 0x%x", tos);
 #endif
-#if HAVE_DECL_IPV6_TCLASS && ! defined HAVE_WINSOCK2_H
-    // IPV6_TCLASS is defined on Windows but not implemented.
-    if (isIPV6(mSettings)) {
-	const int dscp = tos;
-	int rc = setsockopt(mSettings->mSock, IPPROTO_IPV6, IPV6_TCLASS, (char*) &dscp, sizeof(dscp));
-        WARN_errno(rc == SOCKET_ERROR, "setsockopt IPV6_TCLASS");
-    } else
+    // set IP TOS (type-of-service) field
+    if (isOverrideTOS(mSettings) || (tos > 0)) {
+	if (isIPV6(mSettings)) {
+	    // IPV6_TCLASS is defined on Windows but not implemented.
+#if !HAVE_DECL_IPV6_TCLASS || defined HAVE_WINSOCK2_H
+	    WARN_errno(1, "IPV6_TCLASS not supported");
 #endif
-	// set IP TOS (type-of-service) field
-	if (isOverrideTOS(mSettings) || (tos > 0)) {
+	} else {
 	    int reqtos = tos;
 	    Socklen_t len = sizeof(reqtos);
-	    int rc = setsockopt(mSettings->mSock, IPPROTO_IP, IP_TOS,
-				reinterpret_cast<char*>(&reqtos), len);
-	    WARN_errno(rc == SOCKET_ERROR, "setsockopt IP_TOS");
-	    rc = getsockopt(mSettings->mSock, IPPROTO_IP, IP_TOS,
-				reinterpret_cast<char*>(&reqtos), &len);
-	    WARN_errno(rc == SOCKET_ERROR, "getsockopt IP_TOS");
+	    int rc = setsockopt(mSettings->mSock, (isIPV6(mSettings) ? IPPROTO_IPV6 : IPPROTO_IP), \
+				(isIPV6(mSettings) ? IPV6_TCLASS : IP_TOS), reinterpret_cast<char*>(&reqtos), len);
+	    WARN_errno(rc == SOCKET_ERROR, (isIPV6(mSettings) ? "setsockopt IPV6_TCLASS" : "setsockopt IP_TOS"));
+	    rc = getsockopt(mSettings->mSock, (isIPV6(mSettings) ? IPPROTO_IPV6 : IPPROTO_IP), \
+			    (isIPV6(mSettings) ? IPV6_TCLASS : IP_TOS), reinterpret_cast<char*>(&reqtos), &len);
+	    WARN_errno(rc == SOCKET_ERROR, (isIPV6(mSettings) ? "getsockopt IPV6_TCLASS" : "getsockopt IP_TOS"));
 	    if (reqtos != tos) {
 		char warnbuf[256];
 		snprintf(warnbuf, sizeof(warnbuf), "Warning: IP_TOS set to 0x%x, request for setting to 0x%x", reqtos, tos);
@@ -373,6 +371,7 @@ void SetSocketOptionsIPTos (struct thread_Settings *mSettings, int tos) {
 		mSettings->mTOS = reqtos;
 	    }
 	}
+    }
 #endif
 }
 
