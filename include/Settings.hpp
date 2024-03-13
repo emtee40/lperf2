@@ -178,6 +178,7 @@ struct thread_Settings {
     struct thread_Settings *runNow;
     struct thread_Settings *runNext;
     // int's
+    int sosndtimer;
     int mThreads;                   // -P
     int mTOS;                       // -S
     int mRTOS;                      // reflected TOS

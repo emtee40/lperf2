@@ -243,8 +243,6 @@ bool Client::my_connect (bool close_on_fail) {
 	}
 #endif
 	// Set the send timeout for the very first write which has the test exchange
-	int sosndtimer = DEFAULT_TESTEXCHANGETIMEOUT; //in usecs
-	SetSocketOptionsSendTimeout(mSettings, sosndtimer);
 	getsockname(mySocket, reinterpret_cast<sockaddr*>(&mSettings->local), &mSettings->size_local);
 	getpeername(mySocket, reinterpret_cast<sockaddr*>(&mSettings->peer), &mSettings->size_peer);
 	SockAddr_Ifrname(mSettings);
@@ -548,6 +546,7 @@ void Client::InitTrafficLoop () {
 	}
     }
     if (!isUDP(mSettings)) {
+	mSettings->sosndtimer = sosndtimer;
 	SetSocketOptionsSendTimeout(mSettings, sosndtimer);
     }
     // set the lower bounds delay based of the socket timeout timer
@@ -739,12 +738,7 @@ void Client::RunTCP () {
 		    }
 		}
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
-		while (isWritePrefetch(mSettings) && InProgress()) {
-		    if (AwaitSelectWrite())
-			break;
-		    else
-			PostNullEvent(false);
-		}
+		while (isWritePrefetch(mSettings) && InProgress() && !AwaitSelectWrite()) {}
 #endif
 	    }
 	    now.setnow();
@@ -773,12 +767,7 @@ void Client::RunTCP () {
 		write_start.setnow();
 	    }
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
-	    while (isWritePrefetch(mSettings) && InProgress()) {
-		if (AwaitSelectWrite())
-		    break;
-		else
-		    PostNullEvent(false);
-	    }
+	    while (isWritePrefetch(mSettings) && InProgress() && !AwaitSelectWrite()) {}
 #endif
 	    reportstruct->packetLen = write(mySocket, mSettings->mBuf, writelen);
 	    now.setnow();
@@ -998,12 +987,7 @@ void Client::RunRateLimitedTCP () {
 		    write_start.setnow();
 		}
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
-		while (isWritePrefetch(mSettings) && InProgress()) {
-		    if (AwaitSelectWrite())
-			break;
-		    else
-			PostNullEvent(false);
-		}
+		while (isWritePrefetch(mSettings) && InProgress() && !AwaitSelectWrite()) {}
 #endif
 		len = writen(mySocket, mSettings->mBuf, write_remaining, &reportstruct->writecnt);
 		WARN((len < static_cast<int> (sizeof(struct TCP_burst_payload))), "burst hdr write failed");
@@ -1035,12 +1019,7 @@ void Client::RunRateLimitedTCP () {
 		    write_start.setnow();
 		}
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
-		while (isWritePrefetch(mSettings) && InProgress()) {
-		    if (AwaitSelectWrite())
-			break;
-		    else
-			PostNullEvent(false);
-		}
+		while (isWritePrefetch(mSettings) && InProgress() && !AwaitSelectWrite()) {}
 #endif
 		len2 = write(mySocket, mSettings->mBuf, write_remaining);
 		if (isTcpWriteTimes(mSettings)) {
@@ -1087,8 +1066,7 @@ void Client::RunRateLimitedTCP () {
 	    // Use a 4 usec delay to fill tokens
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
 	    if (isWritePrefetch(mSettings)) {
-		if (!AwaitSelectWrite())
-		    PostNullEvent(false);
+		AwaitSelectWrite();
 	    } else
 #endif
 	    {
@@ -1121,6 +1099,8 @@ inline bool Client::AwaitSelectWrite (void) {
 
     if ((rc = select(mySocket + 1, NULL, &writeset, NULL, &timeout)) <= 0) {
 	WARN_errno((rc < 0), "select");
+	if (rc <= 0)
+	    PostNullEvent(false);
 #if HAVE_SUMMING_DEBUG
 	if (rc == 0) {
 	    char warnbuf[WARNBUFSIZE];
@@ -2009,6 +1989,9 @@ int Client::SendFirstPayload () {
 #endif
 		apply_first_udppkt_delay = true;
 	    } else {
+		// Set the send timeout for the very first write which has the test exchange
+		int sosndtimer = DEFAULT_TESTEXCHANGETIMEOUT; //in usecs
+		SetSocketOptionsSendTimeout(mSettings, sosndtimer);
 #if HAVE_DECL_TCP_NODELAY
 		if (!isNoDelay(mSettings) && isPeerVerDetect(mSettings) && isTripTime(mSettings)) {
 		    int optflag=1;
@@ -2024,6 +2007,7 @@ int Client::SendFirstPayload () {
 #else
 		pktlen = send(mySocket, mSettings->mBuf, pktlen, 0);
 #endif
+		SetSocketOptionsSendTimeout(mSettings, mSettings->sosndtimer);
 		if (isPeerVerDetect(mSettings) && !isServerReverse(mSettings)) {
 		    PeerXchange();
 		}
