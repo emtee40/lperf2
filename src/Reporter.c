@@ -612,10 +612,10 @@ bool reporter_process_transfer_report (struct ReporterData *this_ireport) {
 		if (TimeDifference(sumstats->ts.packetTime, packet->packetTime) > 0) {
 		    sumstats->ts.packetTime = packet->packetTime;
 		}
-		if (this_ireport->GroupSumReport->transfer_protocol_sum_handler && \
-		    ((this_ireport->GroupSumReport->reference.maxcount > 1) || isSumOnly(this_ireport->info.common))) {
+		if (this_ireport->GroupSumReport->transfer_protocol_sum_handler) {
 		    Mutex_Lock(&this_ireport->GroupSumReport->reference.lock);
-		    if (++this_ireport->GroupSumReport->final_thread_upcount == this_ireport->GroupSumReport->reference.maxcount) {
+		    if ((++this_ireport->GroupSumReport->final_thread_upcount == this_ireport->GroupSumReport->reference.maxcount) && \
+			((this_ireport->GroupSumReport->reference.maxcount > 1) || isSumOnly(this_ireport->info.common))) {
 			(*this_ireport->GroupSumReport->transfer_protocol_sum_handler)(&this_ireport->GroupSumReport->info, true);
 		    }
 		    Mutex_Unlock(&this_ireport->GroupSumReport->reference.lock);
