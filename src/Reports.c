@@ -357,6 +357,7 @@ struct SumReport* InitSumReport(struct thread_Settings *inSettings, int inID, bo
     sumreport->info.downlevel = LOW;
     sumreport->info.slot_thread_upcount = 0;
     sumreport->info.slot_thread_downcount = 0;
+    sumreport->final_thread_upcount = 0;
 
     if (inSettings->mReportMode == kReport_CSV) {
         format_ips_port_string(&sumreport->info, 1);

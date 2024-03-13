@@ -405,7 +405,7 @@ struct TransferInfo {
 struct SumReport {
     struct ReferenceMutex reference;
     int threads;
-    int threads_cntr_fsum;
+    int final_thread_upcount;
     struct TransferInfo info;
     void (*transfer_protocol_sum_handler) (struct TransferInfo *stats, bool final);
     struct BarrierMutex fullduplex_barrier;
