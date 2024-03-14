@@ -181,8 +181,7 @@ static void clientside_client_basic (struct thread_Settings *thread, Client *the
 	// When -P > 1 then all threads finish connect before starting traffic
 	theClient->BarrierClient(thread->connects_done);
     if (theClient->isConnected()) {
-        if ((thread->mThreads > 1) || isSumOnly(thread))
-	    Iperf_push_host(thread);
+	Iperf_push_host(thread);
 	theClient->StartSynch();
 	theClient->Run();
     }
@@ -209,8 +208,7 @@ static void clientside_client_reverse (struct thread_Settings *thread,  \
 	setNoUDPfin(reverse_client); // disable the fin report - no need
 	reverse_client->size_local = sizeof(iperf_sockaddr);
 	getsockname(reverse_client->mSock, reinterpret_cast<sockaddr*>(&reverse_client->local), &reverse_client->size_local);
-        if ((thread->mThreads > 1) || isSumOnly(thread))
-	    Iperf_push_host(reverse_client);
+	Iperf_push_host(reverse_client);
 	thread_start(reverse_client);
 	if (theClient->myJob)
 	    FreeReport(theClient->myJob);
@@ -225,11 +223,8 @@ static void clientside_client_fullduplex (struct thread_Settings *thread, \
         thread->mFullDuplexReport = InitSumReport(thread, -1, true);
     }
     Settings_Copy(thread, &reverse_client, SHALLOW_COPY);
-    if ((thread->mThreads > 1) || isSumOnly(thread) || \
-	(!(thread->mThreads > 1) && !isEnhanced(thread))) {
-	Iperf_push_host(thread);
-	Iperf_push_host(reverse_client);
-    }
+    Iperf_push_host(thread);
+    Iperf_push_host(reverse_client);
     assert(reverse_client != NULL);
     setTransferID(reverse_client, REVERSED);
     theClient->my_connect(true);
@@ -449,9 +444,7 @@ void client_init(struct thread_Settings *clients) {
 		} else if (isWorkingLoadDown(clients)) {
 		    setReverse(next);
 		}
-		if (isBounceBack(clients) && (clients->mWorkingLoadThreads > 1)) {
-		    Iperf_push_host(clients);
-		}
+		Iperf_push_host(clients);
 		// Bump the bounceback time to include the delay time
 		if (next->txholdback_timer.tv_sec || next->txholdback_timer.tv_usec) {
 		    // mAmount units are 10 ms

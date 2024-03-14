@@ -642,6 +642,10 @@ inline bool reporter_process_report (struct ReportHeader *reporthdr) {
 	    struct ReporterData *tmp = (struct ReporterData *)reporthdr->this_report;
 	    struct PacketRing *pr = tmp->packetring;
 	    pr->consumerdone = true;
+# ifdef HAVE_THREAD_DEBUG
+	    struct ReporterData *report = (struct ReporterData *) reporthdr->this_report;
+	    thread_debug( "Reporter thread signal traffic thread %p %p", (void *)report, (void *) report->packetring->awake_producer);
+#endif
 	    // Data Reports are special because the traffic thread needs to free them, just signal
 	    Condition_Signal(pr->awake_producer);
 	}
