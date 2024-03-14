@@ -38,6 +38,12 @@ o add support for omit string (omit code not ready for this release)
 o pyflows qdisc settings and outputs
 o add first send pacing with --tx-starttime so listener threads udp_accept has time to perform udp_accept() between the client threads
 o adjust the sender time per the client delay and the client first write, i.e. subtract out this delay in the calculations
+o fixes for small packets and --tx-starttime
+o use more modern multicast socket options (now in src/iperf_multicast_api.c)
+o warn on bind port not sent with --incr-srcport
+o support for --fq-rate-step and --fq-rate-step-interval
+o display fq-rate values in outputs when --fq-rate is used
+
 
 2.1.9 (as of February 13th, 2023)
 ------------------------------

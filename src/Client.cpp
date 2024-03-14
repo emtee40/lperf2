@@ -386,7 +386,7 @@ int Client::StartSynch () {
     SetReportStartTime();
 #if HAVE_TCP_STATS
     if (!isUDP(mSettings)) {
-	// Near congestion and peridiodic need sampling on every report packet
+	// Near congestion and periodic need sampling on every report packet
 	if (isNearCongest(mSettings) || isPeriodicBurst(mSettings)) {
 	    myReport->info.isEnableTcpInfo = true;
 	    myReport->info.ts.nextTCPSampleTime.tv_sec = 0;
@@ -814,18 +814,16 @@ void Client::RunTCP () {
 	    }
 	}
 	if (!one_report) {
+	    if (isFQPacing(mSettings))
+		reportstruct->FQPacingRate = mSettings->mFQPacingRateCurrent;
 	    myReportPacket();
 #if (HAVE_DECL_SO_MAX_PACING_RATE)
-	    if (isFQPacingStep(mSettings)) {
-		if (PacingStepTime.before(now)) {
-		    mSettings->mFQPacingRateCurrent += mSettings->mFQPacingRateStep;
-		    setsockopt(mSettings->mSock, SOL_SOCKET, SO_MAX_PACING_RATE, &mSettings->mFQPacingRateCurrent, sizeof(mSettings->mFQPacingRateCurrent));
-		    PacingStepTime.add(mSettings->mFQPacingRateStepInterval);
-		    socklen_t len = sizeof(reportstruct->FQPacingRate);
-		    getsockopt(mSettings->mSock, SOL_SOCKET, SO_MAX_PACING_RATE, &reportstruct->FQPacingRate, &len);
-		} else {
-		    reportstruct->FQPacingRate = mSettings->mFQPacingRateCurrent;
-		}
+	    if (isFQPacingStep(mSettings) && PacingStepTime.before(now)) {
+		mSettings->mFQPacingRateCurrent += mSettings->mFQPacingRateStep;
+		setsockopt(mSettings->mSock, SOL_SOCKET, SO_MAX_PACING_RATE, &mSettings->mFQPacingRateCurrent, sizeof(mSettings->mFQPacingRateCurrent));
+		PacingStepTime.add(mSettings->mFQPacingRateStepInterval);
+		socklen_t len = sizeof(reportstruct->FQPacingRate);
+		getsockopt(mSettings->mSock, SOL_SOCKET, SO_MAX_PACING_RATE, &reportstruct->FQPacingRate, &len);
 	    }
 #endif
 	}
@@ -1166,18 +1164,16 @@ void Client::RunWriteEventsTCP () {
 	    }
 	}
 	if (!one_report) {
+	    if (isFQPacing(mSettings))
+		reportstruct->FQPacingRate = mSettings->mFQPacingRateCurrent;
 	    myReportPacket();
 #if (HAVE_DECL_SO_MAX_PACING_RATE)
-	    if (isFQPacingStep(mSettings)) {
-		if (PacingStepTime.before(now)) {
-		    mSettings->mFQPacingRateCurrent += mSettings->mFQPacingRateStep;
-		    setsockopt(mSettings->mSock, SOL_SOCKET, SO_MAX_PACING_RATE, &mSettings->mFQPacingRateCurrent, sizeof(mSettings->mFQPacingRateCurrent));
-		    PacingStepTime.add(mSettings->mFQPacingRateStepInterval);
-		    socklen_t len = sizeof(reportstruct->FQPacingRate);
-		    getsockopt(mSettings->mSock, SOL_SOCKET, SO_MAX_PACING_RATE, &reportstruct->FQPacingRate, &len);
-		} else {
-		    reportstruct->FQPacingRate = mSettings->mFQPacingRateCurrent;
-		}
+	    if (isFQPacingStep(mSettings) && PacingStepTime.before(now)) {
+		mSettings->mFQPacingRateCurrent += mSettings->mFQPacingRateStep;
+		setsockopt(mSettings->mSock, SOL_SOCKET, SO_MAX_PACING_RATE, &mSettings->mFQPacingRateCurrent, sizeof(mSettings->mFQPacingRateCurrent));
+		PacingStepTime.add(mSettings->mFQPacingRateStepInterval);
+		socklen_t len = sizeof(reportstruct->FQPacingRate);
+		getsockopt(mSettings->mSock, SOL_SOCKET, SO_MAX_PACING_RATE, &reportstruct->FQPacingRate, &len);
 	    }
 #endif
 	}
