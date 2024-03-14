@@ -98,7 +98,7 @@ private:
     void FinishTrafficActions(void);
     void AwaitServerFinPacket(void);
     bool InProgress(void);
-    void PostNullEvent(bool isFirst);
+    void PostNullEvent(bool isFirst, bool select_retry);
     void AwaitServerCloseEvent(void);
     inline void tcp_shutdown(void);
     bool connected;

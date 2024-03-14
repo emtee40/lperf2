@@ -734,12 +734,11 @@ void Client::RunTCP () {
 		    } else {
 			//time interval crossings may have occurred during the wait
 			//post a null event to cause the report to flush the packet ring
-			PostNullEvent(false);
+			PostNullEvent(false, false);
 		    }
 		}
-#if HAVE_DECL_TCP_NOTSENT_LOWAT
-		while (isWritePrefetch(mSettings) && InProgress() && !AwaitSelectWrite()) {}
-#endif
+		if (isWritePrefetch(mSettings) && !AwaitSelectWrite())
+		    continue;
 	    }
 	    now.setnow();
 	    reportstruct->packetTime.tv_sec = now.getSecs();
@@ -766,9 +765,8 @@ void Client::RunTCP () {
 	    if (isTcpWriteTimes(mSettings)) {
 		write_start.setnow();
 	    }
-#if HAVE_DECL_TCP_NOTSENT_LOWAT
-	    while (isWritePrefetch(mSettings) && InProgress() && !AwaitSelectWrite()) {}
-#endif
+	    if (isWritePrefetch(mSettings) && !AwaitSelectWrite())
+		continue;
 	    reportstruct->packetLen = write(mySocket, mSettings->mBuf, writelen);
 	    now.setnow();
 	    reportstruct->writecnt++;
@@ -972,6 +970,8 @@ void Client::RunRateLimitedTCP () {
 	    int len2 = 0;
 
 	    if (isburst && !(write_remaining > 0)) {
+		if (isWritePrefetch(mSettings) && !AwaitSelectWrite())
+		    continue;
 		write_remaining = mSettings->mBufLen;
 		// check for TCP minimum payload
 		if (write_remaining < static_cast<int>(sizeof(struct TCP_burst_payload)))
@@ -986,9 +986,6 @@ void Client::RunRateLimitedTCP () {
 		if (isTcpWriteTimes(mSettings)) {
 		    write_start.setnow();
 		}
-#if HAVE_DECL_TCP_NOTSENT_LOWAT
-		while (isWritePrefetch(mSettings) && InProgress() && !AwaitSelectWrite()) {}
-#endif
 		len = writen(mySocket, mSettings->mBuf, write_remaining, &reportstruct->writecnt);
 		WARN((len < static_cast<int> (sizeof(struct TCP_burst_payload))), "burst hdr write failed");
 		if (isTcpWriteTimes(mSettings)) {
@@ -1018,9 +1015,8 @@ void Client::RunRateLimitedTCP () {
 		if (isTcpWriteTimes(mSettings)) {
 		    write_start.setnow();
 		}
-#if HAVE_DECL_TCP_NOTSENT_LOWAT
-		while (isWritePrefetch(mSettings) && InProgress() && !AwaitSelectWrite()) {}
-#endif
+		if (isWritePrefetch(mSettings) && !AwaitSelectWrite())
+		    continue;
 		len2 = write(mySocket, mSettings->mBuf, write_remaining);
 		if (isTcpWriteTimes(mSettings)) {
 		    now.setnow();
@@ -1064,13 +1060,9 @@ void Client::RunRateLimitedTCP () {
 	    }
         } else {
 	    // Use a 4 usec delay to fill tokens
-#if HAVE_DECL_TCP_NOTSENT_LOWAT
-	    if (isWritePrefetch(mSettings)) {
-		AwaitSelectWrite();
-	    } else
-#endif
-	    {
-		delay_loop(4);
+	    delay_loop(4);
+	    if (isWritePrefetch(mSettings) && !AwaitSelectWrite()) {
+		continue;
 	    }
 	}
     }
@@ -1078,40 +1070,47 @@ void Client::RunRateLimitedTCP () {
 }
 
 inline bool Client::AwaitSelectWrite (void) {
-    int rc;
-    struct timeval timeout;
-    fd_set writeset;
-    FD_ZERO(&writeset);
-    FD_SET(mySocket, &writeset);
-    if (isModeTime(mSettings)) {
-        Timestamp write_event_timeout(0,0);
-	if (mSettings->mInterval && (mSettings->mIntervalMode == kInterval_Time)) {
-	    write_event_timeout.add((double) mSettings->mInterval / ((mSettings->mThreads > 1) ? 4e6 : 2e6));
+#if HAVE_DECL_TCP_NOTSENT_LOWAT
+    do {
+	int rc;
+	struct timeval timeout;
+	fd_set writeset;
+	FD_ZERO(&writeset);
+	FD_SET(mySocket, &writeset);
+	if (isModeTime(mSettings)) {
+	    Timestamp write_event_timeout(0,0);
+	    if (mSettings->mInterval && (mSettings->mIntervalMode == kInterval_Time)) {
+		write_event_timeout.add((double) mSettings->mInterval / ((mSettings->mThreads > 1) ? 4e6 : 2e6));
+	    } else {
+		write_event_timeout.add((double) mSettings->mAmount / 4e2);
+	    }
+	    timeout.tv_sec = write_event_timeout.getSecs();
+	    timeout.tv_usec = write_event_timeout.getUsecs();
 	} else {
-	    write_event_timeout.add((double) mSettings->mAmount / 4e2);
+	    timeout.tv_sec = 1; // longest is 1 seconds
+	    timeout.tv_usec = 0;
 	}
-	timeout.tv_sec = write_event_timeout.getSecs();
-        timeout.tv_usec = write_event_timeout.getUsecs();
-    } else {
-	timeout.tv_sec = 1; // longest is 1 seconds
-	timeout.tv_usec = 0;
-    }
 
-    if ((rc = select(mySocket + 1, NULL, &writeset, NULL, &timeout)) <= 0) {
-	WARN_errno((rc < 0), "select");
-	if (rc <= 0)
-	    PostNullEvent(false);
+	if ((rc = select(mySocket + 1, NULL, &writeset, NULL, &timeout)) <= 0) {
+	    WARN_errno((rc < 0), "select");
+	    if (rc <= 0)
+		PostNullEvent(false, true);
 #if HAVE_SUMMING_DEBUG
-	if (rc == 0) {
-	    char warnbuf[WARNBUFSIZE];
-	    snprintf(warnbuf, sizeof(warnbuf), "%sTimeout: write select", mSettings->mTransferIDStr);
-	    warnbuf[sizeof(warnbuf)-1] = '\0';
-	    WARN(1, warnbuf);
-	}
+	    if (rc == 0) {
+		char warnbuf[WARNBUFSIZE];
+		snprintf(warnbuf, sizeof(warnbuf), "%sTimeout: write select", mSettings->mTransferIDStr);
+		warnbuf[sizeof(warnbuf)-1] = '\0';
+		WARN(1, warnbuf);
+	    }
 #endif
-	return false;
-    }
+	} else {
+	    return true;
+	}
+    } while (InProgress());
+    return false;
+#else
     return true;
+#endif
 }
 
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
@@ -1142,7 +1141,8 @@ void Client::RunWriteEventsTCP () {
 	if (isTcpWriteTimes(mSettings)) {
 	    write_start = now;
 	}
-	reportstruct->emptyreport = !AwaitSelectWrite();
+	if (isWritePrefetch(mSettings) && !AwaitSelectWrite())
+	    continue;
         if (!reportstruct->emptyreport) {
 	    now.setnow();
 	    reportstruct->packetTime.tv_sec = now.getSecs();
@@ -1219,7 +1219,7 @@ void Client::RunBounceBackTCP () {
 	bool isFirst;
 	if (framecounter) {
 	    burst_id = framecounter->wait_tick(&reportstruct->sched_err, false);
-	    PostNullEvent(true); // now is set in this call
+	    PostNullEvent(true, false); // now is set in this call
 	    reportstruct->sentTime.tv_sec = now.getSecs();
 	    reportstruct->sentTime.tv_usec = now.getUsecs();
 	    isFirst = true;
@@ -1249,14 +1249,14 @@ void Client::RunBounceBackTCP () {
 		    peerclose = true;
 		    break;
 		} else if (InProgress()) {
-		    PostNullEvent(false);
+		    PostNullEvent(false,false);
 		    goto RETRY_WRITE;
 		}
 	    }
 	    write_offset += n;
 	    if ((write_offset < writelen) && InProgress()) {
 		WARN_errno(1, "tcp bounceback writen incomplete");
-		PostNullEvent(false);
+		PostNullEvent(false,false);
 		goto RETRY_WRITE;
 	    }
 	    if (write_offset == writelen) {
@@ -1291,7 +1291,7 @@ void Client::RunBounceBackTCP () {
 			reportstruct->packetID = burst_id;
 			myReportPacket();
 		    } else if (InProgress()) {
-			PostNullEvent(false);
+			PostNullEvent(false,false);
 			goto RETRY_READ;
 		    } else {
 			break;
@@ -1306,7 +1306,7 @@ void Client::RunBounceBackTCP () {
 			break;
 		    } else {
 			WARN_errno(1, "timeout: bounceback read");
-			PostNullEvent(false);
+			PostNullEvent(false,false);
 			if (InProgress())
 			    goto RETRY_READ;
 		    }
@@ -1425,7 +1425,6 @@ void Client::RunUDP () {
 	    currLen = send(mySocket, mSettings->mBuf, mSettings->mBufLen, MSG_DONTWAIT);
 	    if ((currLen < 0) && !FATALUDPWRITERR(errno)) {
 		if (AwaitSelectWrite()) {
-		    // WARN_errno(1, "write select");
 		    currLen = write(mySocket, mSettings->mBuf, mSettings->mBufLen);
 		    reportstruct->err_readwrite = WriteSelectRetry;
 		} else {
@@ -1434,7 +1433,6 @@ void Client::RunUDP () {
 	    }
 #else
 	    if (AwaitSelectWrite()) {
-		// WARN_errno(1, "write select");
 		currLen = write(mySocket, mSettings->mBuf, mSettings->mBufLen);
 	    } else {
 		reportstruct->err_readwrite = WriteTimeo;
@@ -1912,7 +1910,7 @@ void Client::AwaitServerFinPacket () {
 }
 
 // isFirst indicates first event occurred per wait_tick
-void Client::PostNullEvent (bool isFirst) {
+void Client::PostNullEvent (bool isFirst, bool select_retry) {
     assert(myReport!=NULL);
     // push a nonevent into the packet ring
     // this will cause the reporter to process
@@ -1925,7 +1923,7 @@ void Client::PostNullEvent (bool isFirst) {
     report_nopacket.emptyreport = true;
     report_nopacket.scheduled = isFirst;
     report_nopacket.packetID = 0;
-    report_nopacket.err_readwrite = WriteNoAccount;
+    report_nopacket.err_readwrite = (select_retry ? WriteSelectRetry : WriteNoAccount);
     reportstruct->packetTime = report_nopacket.packetTime; // needed for the InProgress loop test
     myReportPacket(&report_nopacket);
 }
@@ -1937,7 +1935,7 @@ void Client::PostNullEvent (bool isFirst) {
 #define MINAWAITCLOSEUSECS 2000000
 void Client::AwaitServerCloseEvent () {
     // the await detection can take awhile so post a non event ahead of it
-    PostNullEvent(false);
+    PostNullEvent(false,false);
     unsigned int amount_usec = \
 	(isModeTime(mSettings) ? static_cast<int>(mSettings->mAmount * 10000) : MINAWAITCLOSEUSECS);
     if (amount_usec < MINAWAITCLOSEUSECS)
