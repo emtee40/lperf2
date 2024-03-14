@@ -1170,6 +1170,7 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	    fqratestep=0;
 	    setFQPacingStep(mExtSettings);
 	    mExtSettings->mFQPacingRateStep = static_cast<uintmax_t>(bitorbyte_atoi(optarg) / 8);
+	    setEnhanced(mExtSettings);
 	}
 	if (fqratestepinterval) {
 	    fqratestepinterval=0;
@@ -1188,6 +1189,7 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	    if (val > 0.0) {
 		mExtSettings->mFQPacingRateStepInterval = val;
 		setFQPacingStepInterval(mExtSettings);
+		setEnhanced(mExtSettings);
 	    }
 	}
 #endif
