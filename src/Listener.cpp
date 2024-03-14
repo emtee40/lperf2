@@ -465,14 +465,9 @@ bool Listener::my_listen () {
     }
     // update the reporter thread
     if (isSettingsReport(mSettings)) {
-	Mutex_Lock(&mSettings->settings_done->lock);
-	if (mSettings->settings_done->count < 1) {
-	    struct ReportHeader *tmp = InitSettingsReport(mSettings);
-	    assert(tmp!=NULL);
-	    PostReport(tmp);
-	    mSettings->settings_done->count++;
-	}
-	Mutex_Unlock(&mSettings->settings_done->lock);
+	struct ReportHeader *tmp = InitSettingsReport(mSettings);
+	assert(tmp!=NULL);
+	PostReport(tmp);
     }
 
     // listen for connections (TCP only).

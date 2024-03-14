@@ -287,7 +287,6 @@ struct thread_Settings {
     struct Condition awake_me;
     struct PacketRing *ackring;
     struct BarrierMutex *connects_done;
-    struct ReferenceMutex *settings_done;
     int numreportstructs;
     int32_t peer_version_u;
     int32_t peer_version_l;

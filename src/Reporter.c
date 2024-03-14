@@ -230,14 +230,14 @@ bool EndJob (struct ReportHeader *reporthdr, struct ReportStruct *finalpacket) {
 	reporter_process_transfer_report(report);
     } else {
 	ReportPacket(report, &packet);
-#ifdef HAVE_THREAD_DEBUG
-	thread_debug( "Traffic thread awaiting reporter to be done with %p and cond %p", (void *)report, (void *) report->packetring->awake_producer);
-#endif
 	Condition_Lock((*(report->packetring->awake_producer)));
 	while (!report->packetring->consumerdone) {
 	    // This wait time is the lag between the reporter thread
 	    // and the traffic thread, a reporter thread with lots of
 	    // reports (e.g. fastsampling) can lag per the i/o
+#ifdef HAVE_THREAD_DEBUG
+	    thread_debug( "Traffic thread awaiting reporter to be done with %p and cond %p", (void *)report, (void *) report->packetring->awake_producer);
+#endif
 	    Condition_TimedWait(report->packetring->awake_producer, 1);
 	    // printf("Consumer done may be stuck\n");
 	}
