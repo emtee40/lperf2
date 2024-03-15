@@ -173,7 +173,8 @@ void Client::mySockInit (void) {
 		SetSocketBindToDevice(mSettings, mSettings->mIfrnametx);
 	    }
 	}
-    } else if (mSettings->mLocalhost != NULL) { // unicast bind
+    }
+    if (mSettings->mLocalhost != NULL) { // bind src ip
 	// bind socket to local address
 	int rc = bind(mySocket, reinterpret_cast<sockaddr*>(&mSettings->local),
 		      SockAddr_get_sizeof_sockaddr(&mSettings->local));
