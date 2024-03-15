@@ -174,20 +174,13 @@ void Client::mySockInit (void) {
 	    }
 	}
     }
+#endif
     if (mSettings->mLocalhost != NULL) { // bind src ip
 	// bind socket to local address
 	int rc = bind(mySocket, reinterpret_cast<sockaddr*>(&mSettings->local),
 		      SockAddr_get_sizeof_sockaddr(&mSettings->local));
 	WARN_errno(rc == SOCKET_ERROR, "bind");
     }
-#else
-    if (mSettings->mLocalhost != NULL) {
-	// bind socket to local address
-	int rc = bind(mySocket, reinterpret_cast<sockaddr*>(&mSettings->local),
-		      SockAddr_get_sizeof_sockaddr(&mSettings->local));
-	WARN_errno(rc == SOCKET_ERROR, "bind");
-    }
-#endif
     mysock_init_done = true;
 }
 
