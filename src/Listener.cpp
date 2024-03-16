@@ -441,13 +441,10 @@ bool Listener::my_listen () {
 #if HAVE_MULTICAST
 #ifdef WIN32
 	    // Multicast on Win32 requires special handling
-	    rc = WSAJoinLeaf(ListenSocket, (sockaddr*) &mSettings->local, mSettings->size_local,0,0,0,0,JL_BOTH);
+	    rc = WSAJoinLeaf(ListenSocket, reinterpret_cast<sockaddr*> (&mSettings->local), mSettings->size_local,0,0,0,0,JL_BOTH);
 	    WARN_errno(rc == SOCKET_ERROR, "WSAJoinLeaf (aka bind)");
 #else
-	    iperf_sockaddr tmp;
-	    memcpy(&tmp, &mSettings->local, sizeof(tmp));
-	    SockAddr_setAddressAny(&tmp); // the multicast join will take care of this
-	    rc = bind(ListenSocket, reinterpret_cast<sockaddr*>(&tmp), mSettings->size_local);
+	    rc = bind(ListenSocket, reinterpret_cast<sockaddr*> (&mSettings->local), mSettings->size_local);
 	    FAIL_errno(rc == SOCKET_ERROR, "listener bind", mSettings);
 	    // if UDP and multicast, join the group
 	    if (iperf_multicast_join(mSettings) != IPERF_MULTICAST_JOIN_SUCCESS) {
