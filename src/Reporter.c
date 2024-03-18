@@ -425,7 +425,7 @@ void reporter_spawn (struct thread_Settings *thread) {
 #ifdef HAVE_THREAD_DEBUG
     thread_debug( "Reporter thread started");
 #endif
-    if (isEnhanced(thread)) {
+    if (isEnhanced(thread) && (thread->mThreadMode == kMode_Client)) {
         myConnectionReport = InitConnectOnlyReport(thread);
     }
     /*

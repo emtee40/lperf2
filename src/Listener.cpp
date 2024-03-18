@@ -726,7 +726,7 @@ int Listener::udp_accept (thread_Settings *server) {
 		size_t len=200;
 		SockAddr_getHostAddress(&sent_dstaddr, joinaddr, len);
 		SockAddr_getHostAddress(&server->multicast_group, pktaddr, len);
-		int join_send_match = SockAddr_are_Equal(&sent_dstaddr, &server->multicast_group);
+		int join_send_match = SockAddr_Hostare_Equal(&sent_dstaddr, &server->multicast_group);
 		printf("mcast(%d): join addr %s pkt group addr %s\n", join_send_match, joinaddr, pktaddr);
 		WARN(!join_send_match, "mcast group addr mismatch");
 		// RJM - use a cmesg to read the interface name
