@@ -74,6 +74,7 @@
 #include "PerfSocket.hpp"
 #include "SocketAddr.h"
 #include "util.h"
+#include "iperf_multicast_api.h"
 
 /* -------------------------------------------------------------------
  * Set socket options before the listen() or connect() calls.
@@ -183,12 +184,6 @@ void SetSocketOptions (struct thread_Settings *inSettings) {
 #endif
     } else
 #endif
-	if (!isMulticast(inSettings)) {
-	    char **device = (inSettings->mThreadMode == kMode_Client) ? &inSettings->mIfrnametx : &inSettings->mIfrname;
-	    if (*device) {
-		SetSocketBindToDevice(inSettings, *device);
-	    }
-	}
 
     // check if we're sending multicast
     if (isMulticast(inSettings)) {
@@ -423,24 +418,62 @@ void SetSocketTcpTxDelay(struct thread_Settings *mSettings, int delay) {
 #endif
 }
 
+void sol_bindtodevice (struct thread_Settings *inSettings) {
 
-void SetSocketBindToDevice (struct thread_Settings *inSettings, char *device) {
+    char *device = (inSettings->mThreadMode == kMode_Client) ? inSettings->mIfrnametx : inSettings->mIfrname;
+    if (device) {
 #if (HAVE_DECL_SO_BINDTODEVICE)
-    struct ifreq ifr;
-    memset(&ifr, 0, sizeof(ifr));
-    snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "%s", device);
-    if (setsockopt(inSettings->mSock, SOL_SOCKET, SO_BINDTODEVICE, (void *)&ifr, sizeof(ifr)) < 0) {
-	char *buf;
-	int len = snprintf(NULL, 0, "%s %s", "bind to device", device);
-	len++;  // Trailing null byte + extra
-	buf = static_cast<char *>(malloc(len));
-	len = snprintf(buf, len, "%s %s", "bind to device", device);
-	WARN_errno(1, buf);
-	free(buf);
-	free(device);
-	device = NULL;
-	FAIL(1, "setsockopt() SO_BINDTODEVICE", inSettings);
+	struct ifreq ifr;
+	memset(&ifr, 0, sizeof(ifr));
+	snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "%s", device);
+	if (setsockopt(inSettings->mSock, SOL_SOCKET, SO_BINDTODEVICE, (void *)&ifr, sizeof(ifr)) < 0) {
+	    char *buf;
+	    int len = snprintf(NULL, 0, "%s %s", "bind to device", device);
+	    len++;  // Trailing null byte + extra
+	    buf = static_cast<char *>(malloc(len));
+	    len = snprintf(buf, len, "%s %s", "bind to device", device);
+	    WARN_errno(1, buf);
+	    free(buf);
+	    free(device);
+	    device = NULL;
+	}
+#else
+	fprintf(stderr, "bind to device not supported\n");
+#endif
+
     }
+
+}
+
+void SetSocketBindToDeviceIfNeeded (struct thread_Settings *inSettings) {
+    printf ("*********************** bind to device if needed\n");
+    if (!isMulticast(inSettings)) {
+	// typically requires root privileges for unicast bind to device
+	sol_bindtodevice(inSettings);
+    } else
+#ifndef WIN32
+	{ // multicast bind below
+	    if (inSettings->mThreadMode != kMode_Client) {
+		// multicast on the server uses iperf_multicast_join for device binding
+		// found in listener code, do nothing and return
+		return;
+	    }
+	    // Handle client side bind to device for multicast
+	    if (!isIPV6(inSettings)) {
+		// v4 tries with the -B ip first, then legacy socket bind
+		if (!((inSettings->mLocalhost != NULL) && iperf_multicast_sendif_v4(inSettings))) {
+		    if (inSettings->mIfrnametx != NULL) {
+			sol_bindtodevice(inSettings);
+		    }
+		}
+	    } else {
+		if (!((inSettings->mIfrnametx != NULL) && iperf_multicast_sendif_v6(inSettings))) {
+		    if (inSettings->mIfrnametx != NULL) {
+			sol_bindtodevice(inSettings);
+		    }
+		}
+	    }
+	}
 #endif
 }
 

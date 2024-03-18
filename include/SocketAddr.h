@@ -60,6 +60,7 @@
 extern "C" {
 #endif
 /* ------------------------------------------------------------------- */
+int SockAddr_getAFdomain(iperf_sockaddr *inSockAddr);
 void SockAddr_localAddr(struct thread_Settings *inSettings);
 void SockAddr_remoteAddr(struct thread_Settings *inSettings);
 

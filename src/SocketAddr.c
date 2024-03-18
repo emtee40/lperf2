@@ -62,6 +62,16 @@
 extern "C" {
 #endif
 
+int SockAddr_getAFdomain (iperf_sockaddr *inSockAddr) {
+    return (SockAddr_isIPv6(inSockAddr) ?
+#if HAVE_IPV6
+		  AF_INET6
+#else
+		  AF_INET
+#endif
+		  : AF_INET);
+}
+
 /* -------------------------------------------------------------------
  * Create a socket address. If inHostname is not null, resolve that
  * address and fill it in. Fill in the port number. Use IPv6 ADDR_ANY
