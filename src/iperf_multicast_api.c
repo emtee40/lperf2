@@ -239,7 +239,7 @@ static int iperf_multicast_ssm_join_v4 (struct thread_Settings *inSettings) {
 #endif
     source->sin_family = AF_INET;
     group->sin_family = AF_INET;
-    /* Set the group */
+    /* Set the group and SSM source*/
     memcpy(group, (struct sockaddr_in *)(&inSettings->multicast_group), sizeof(struct sockaddr_in));
     memcpy(source, (struct sockaddr_in *)(&inSettings->multicast_group_source), sizeof(struct sockaddr_in));
 #if HAVE_STRUCT_SOCKADDR_IN_SIN_LEN
@@ -281,7 +281,6 @@ static int iperf_multicast_ssm_join_v6 (struct thread_Settings *inSettings) {
 
     // Here it's either an SSM S,G multicast join or a *,G with an interface specifier
     // Use the newer socket options when these are specified
-    socklen_t socklen = sizeof(struct sockaddr_storage);
     struct group_source_req group_source_req;
     struct sockaddr_in6 *group;
     struct sockaddr_in6 *source;
@@ -293,15 +292,10 @@ static int iperf_multicast_ssm_join_v6 (struct thread_Settings *inSettings) {
     source=(struct sockaddr_in6*)(&group_source_req.gsr_source);
     source->sin6_family = AF_INET6;
     group->sin6_family = AF_INET6;
-    /* Set the group */
-    rc=getsockname(inSettings->mSock,(struct sockaddr *)(group), &socklen);
-    FAIL_errno(rc == SOCKET_ERROR, "mcast join source group getsockname", inSettings);
+    /* Set the group and SSM source*/
+    memcpy(group, (struct sockaddr_in *)(&inSettings->multicast_group), sizeof(struct sockaddr_in6));
+    memcpy(source, (struct sockaddr_in *)(&inSettings->multicast_group_source), sizeof(struct sockaddr_in6));
     group->sin6_port = 0;    /* Ignored */
-
-    /* Set the source, apply the S,G */
-    rc=inet_pton(AF_INET6, inSettings->mSSMMulticastStr,&source->sin6_addr);
-    FAIL_errno(rc != 1, "mcast v6 join source group pton", inSettings);
-    source->sin6_port = 0;    /* Ignored */
 #if HAVE_STRUCT_SOCKADDR_IN6_SIN6_LEN
     source->sin6_len = group->sin6_len;
 #endif

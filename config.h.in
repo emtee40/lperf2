@@ -57,6 +57,10 @@
    you don't. */
 #undef HAVE_DECL_IPV6_JOIN_GROUP
 
+/* Define to 1 if you have the declaration of 'IPV6_LEAVE_GROUP', and to 0 if
+   you don't. */
+#undef HAVE_DECL_IPV6_LEAVE_GROUP
+
 /* Define to 1 if you have the declaration of 'IPV6_MULTICAST_HOPS', and to 0
    if you don't. */
 #undef HAVE_DECL_IPV6_MULTICAST_HOPS
@@ -81,6 +85,18 @@
    to 0 if you don't. */
 #undef HAVE_DECL_IP_ADD_SOURCE_MEMBERSHIP
 
+/* Define to 1 if you have the declaration of 'IP_BLOCK_SOURCE', and to 0 if
+   you don't. */
+#undef HAVE_DECL_IP_BLOCK_SOURCE
+
+/* Define to 1 if you have the declaration of 'IP_DROP_MEMBERSHIP', and to 0
+   if you don't. */
+#undef HAVE_DECL_IP_DROP_MEMBERSHIP
+
+/* Define to 1 if you have the declaration of 'IP_DROP_SOURCE_MEMBERSHIP', and
+   to 0 if you don't. */
+#undef HAVE_DECL_IP_DROP_SOURCE_MEMBERSHIP
+
 /* Define to 1 if you have the declaration of 'IP_MULTICAST_ALL', and to 0 if
    you don't. */
 #undef HAVE_DECL_IP_MULTICAST_ALL
@@ -93,6 +109,14 @@
    */
 #undef HAVE_DECL_IP_TOS
 
+/* Define to 1 if you have the declaration of 'IP_UNBLOCK_SOURCE', and to 0 if
+   you don't. */
+#undef HAVE_DECL_IP_UNBLOCK_SOURCE
+
+/* Define to 1 if you have the declaration of 'MCAST_BLOCK_SOURCE', and to 0
+   if you don't. */
+#undef HAVE_DECL_MCAST_BLOCK_SOURCE
+
 /* Define to 1 if you have the declaration of 'MCAST_JOIN_GROUP', and to 0 if
    you don't. */
 #undef HAVE_DECL_MCAST_JOIN_GROUP
@@ -100,6 +124,18 @@
 /* Define to 1 if you have the declaration of 'MCAST_JOIN_SOURCE_GROUP', and
    to 0 if you don't. */
 #undef HAVE_DECL_MCAST_JOIN_SOURCE_GROUP
+
+/* Define to 1 if you have the declaration of 'MCAST_LEAVE_GROUP', and to 0 if
+   you don't. */
+#undef HAVE_DECL_MCAST_LEAVE_GROUP
+
+/* Define to 1 if you have the declaration of 'MCAST_LEAVE_SOURCE_GROUP', and
+   to 0 if you don't. */
+#undef HAVE_DECL_MCAST_LEAVE_SOURCE_GROUP
+
+/* Define to 1 if you have the declaration of 'MCAST_UNBLOCK_SOURCE', and to 0
+   if you don't. */
+#undef HAVE_DECL_MCAST_UNBLOCK_SOURCE
 
 /* Define to 1 if you have the declaration of 'MSG_CTRUNC', and to 0 if you
    don't. */

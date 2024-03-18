@@ -446,7 +446,6 @@ void sol_bindtodevice (struct thread_Settings *inSettings) {
 }
 
 void SetSocketBindToDeviceIfNeeded (struct thread_Settings *inSettings) {
-    printf ("*********************** bind to device if needed\n");
     if (!isMulticast(inSettings)) {
 	// typically requires root privileges for unicast bind to device
 	sol_bindtodevice(inSettings);

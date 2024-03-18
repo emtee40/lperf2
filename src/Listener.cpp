@@ -447,7 +447,7 @@ bool Listener::my_listen () {
 	    printf("***** any bind\n");
 #else
 	    rc = bind(ListenSocket, reinterpret_cast<sockaddr*> (&mSettings->local), mSettings->size_local);
-	    printf("***** single bind\n");
+//	    printf("***** single bind\n");
 #endif
 	    FAIL_errno(rc == SOCKET_ERROR, "listener bind", mSettings);
 	    // if UDP and multicast, join the group
@@ -717,18 +717,19 @@ int Listener::udp_accept (thread_Settings *server) {
 		getsockname(server->mSock, reinterpret_cast<sockaddr*>(&server->local), &server->size_local);
 		SockAddr_Ifrname(server);
 	    } else {
-		printf("**** get sockname\n");
 		server->size_multicast_group = sizeof(iperf_sockaddr);
 		iperf_sockaddr sent_dstaddr;
 		getsockname(server->mSock, reinterpret_cast<sockaddr*>(&sent_dstaddr), &server->size_multicast_group);
+		int join_send_match = SockAddr_Hostare_Equal(&sent_dstaddr, &server->multicast_group);
+#if DEBUG_MCAST
 		char joinaddr[200];
 		char pktaddr[200];
 		size_t len=200;
 		SockAddr_getHostAddress(&sent_dstaddr, joinaddr, len);
 		SockAddr_getHostAddress(&server->multicast_group, pktaddr, len);
-		int join_send_match = SockAddr_Hostare_Equal(&sent_dstaddr, &server->multicast_group);
 		printf("mcast(%d): join addr %s pkt group addr %s\n", join_send_match, joinaddr, pktaddr);
-		WARN(!join_send_match, "mcast group addr mismatch");
+#endif
+		WARN(!join_send_match, "mcast join and packet group addr");
 		// RJM - use a cmesg to read the interface name
 	    }
 	    server->firstreadbytes = nread;
