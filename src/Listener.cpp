@@ -415,13 +415,7 @@ bool Listener::my_listen () {
 	// for the case of L2 testing and UDP, a new AF_PACKET
 	// will be created to supercede this one
 	type = (isUDP(mSettings)  ?  SOCK_DGRAM  :  SOCK_STREAM);
-	domain = (SockAddr_isIPv6(&mSettings->local) ?
-#if HAVE_IPV6
-		  AF_INET6
-#else
-		  AF_INET
-#endif
-		  : AF_INET);
+	domain = SockAddr_getAFdomain(&mSettings->local);
 
 #ifdef WIN32
 	if (SockAddr_isMulticast(&mSettings->multicast)) {
@@ -436,15 +430,25 @@ bool Listener::my_listen () {
 	    }
 	mSettings->mSock = ListenSocket;
 	SetSocketOptions(mSettings);
+	SetSocketBindToDeviceIfNeeded(mSettings);
 	rc = SOCKET_ERROR;
-	if (isUDP(mSettings) && SockAddr_isMulticast(&mSettings->multicast)) {
+	if (isUDP(mSettings) && SockAddr_isMulticast(&mSettings->multicast_group)) {
 #if HAVE_MULTICAST
 #ifdef WIN32
 	    // Multicast on Win32 requires special handling
 	    rc = WSAJoinLeaf(ListenSocket, reinterpret_cast<sockaddr*> (&mSettings->local), mSettings->size_local,0,0,0,0,JL_BOTH);
 	    WARN_errno(rc == SOCKET_ERROR, "WSAJoinLeaf (aka bind)");
 #else
+#if 0 && (HAVE_DECL_IP_ADD_MEMBERSHIP || HAVE_DECL_MCAST_JOIN_GROUP)
+	    iperf_sockaddr tmp;
+	    memcpy(&tmp, &mSettings->local, sizeof(tmp));
+	    SockAddr_setAddressAny(&tmp); // the multicast join will take care of this
+	    rc = bind(ListenSocket, reinterpret_cast<sockaddr*>(&tmp), mSettings->size_local);
+	    printf("***** any bind\n");
+#else
 	    rc = bind(ListenSocket, reinterpret_cast<sockaddr*> (&mSettings->local), mSettings->size_local);
+	    printf("***** single bind\n");
+#endif
 	    FAIL_errno(rc == SOCKET_ERROR, "listener bind", mSettings);
 	    // if UDP and multicast, join the group
 	    if (iperf_multicast_join(mSettings) != IPERF_MULTICAST_JOIN_SUCCESS) {
@@ -713,8 +717,18 @@ int Listener::udp_accept (thread_Settings *server) {
 		getsockname(server->mSock, reinterpret_cast<sockaddr*>(&server->local), &server->size_local);
 		SockAddr_Ifrname(server);
 	    } else {
-		server->size_multicast = sizeof(iperf_sockaddr);
-		getsockname(server->mSock, reinterpret_cast<sockaddr*>(&server->multicast), &server->size_multicast);
+		printf("**** get sockname\n");
+		server->size_multicast_group = sizeof(iperf_sockaddr);
+		iperf_sockaddr sent_dstaddr;
+		getsockname(server->mSock, reinterpret_cast<sockaddr*>(&sent_dstaddr), &server->size_multicast_group);
+		char joinaddr[200];
+		char pktaddr[200];
+		size_t len=200;
+		SockAddr_getHostAddress(&sent_dstaddr, joinaddr, len);
+		SockAddr_getHostAddress(&server->multicast_group, pktaddr, len);
+		int join_send_match = SockAddr_are_Equal(&sent_dstaddr, &server->multicast_group);
+		printf("mcast(%d): join addr %s pkt group addr %s\n", join_send_match, joinaddr, pktaddr);
+		WARN(!join_send_match, "mcast group addr mismatch");
 		// RJM - use a cmesg to read the interface name
 	    }
 	    server->firstreadbytes = nread;

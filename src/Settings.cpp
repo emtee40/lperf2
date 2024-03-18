@@ -2129,18 +2129,26 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 		fprintf(stderr, "WARNING: port %s ignored - set receive port on server via -p or -L\n", results);
 	    }
 	}
-	// Check for multicast per the -B
-	SockAddr_setHostname(mExtSettings->mLocalhost, &mExtSettings->multicast, &mExtSettings->size_multicast,
-			     (isIPV6(mExtSettings) ? 1 : 0));
-	if (SockAddr_isMulticast(&mExtSettings->multicast)) {
+	// Do multicast address checking and processing
+	SockAddr_setHostname(mExtSettings->mLocalhost, &mExtSettings->multicast_group, \
+			     &mExtSettings->size_multicast_group, (isIPV6(mExtSettings) ? 1 : 0));
+	if (SockAddr_isMulticast(&mExtSettings->multicast_group)) {
 	    if (mExtSettings->mThreadMode == kMode_Client) {
 		fprintf(stderr, "WARNING: Client src addr (per -B) must be ip unicast\n");
 		exit(1);
 	    } else {
 		setMulticast(mExtSettings);
+		if (isSSMMulticast(mExtSettings)) {
+		    SockAddr_setHostname(mExtSettings->mSSMMulticastStr, &mExtSettings->multicast_group_source, \
+					 &mExtSettings->size_multicast_group, (isIPV6(mExtSettings) ? 1 : 0));
+		    if (SockAddr_isMulticast(&mExtSettings->multicast_group_source)) {
+			fprintf(stderr, "WARNING: SSM host src address (-H or --ssm-host) must be ip unicast\n");
+			exit(1);
+		    }
+		}
 	    }
 	} else {
-	    SockAddr_zeroAddress(&mExtSettings->multicast); // Zero out multicast sockaddr
+	    SockAddr_zeroAddress(&mExtSettings->multicast_group); // Zero out multicast sockaddr
 	}
     }
     // Parse client (-c) addresses for multicast, link-local and bind to device, port incr

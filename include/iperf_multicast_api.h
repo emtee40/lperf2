@@ -54,15 +54,17 @@
 extern "C" {
 #endif
 
-#define IPERF_MULTICAST_JOIN_SUCCESS 1
-#define IPERF_MULTICAST_SENDIF_SUCCESS 1
-#define IPERF_MULTICAST_JOIN_FAIL -2
-#define IPERF_MULTICAST_JOIN_UNSUPPORTED -3
-#define IPERF_MULTICAST_SENDIF_FAIL -4
+enum McastJoinResponse {
+    IPERF_MULTICAST_JOIN_SUCCESS = 1,
+    IPERF_MULTICAST_JOIN_FAIL,
+    IPERF_MULTICAST_JOIN_UNSUPPORTED
+};
 
-int iperf_multicast_join (struct thread_Settings *inSettings);
-int iperf_multicast_sendif_v4 (struct thread_Settings *inSettings);
-int iperf_multicast_sendif_v6 (struct thread_Settings *inSettings);
+#define IPERF_MULTICAST_JOIN_SUCCESS 1
+
+enum McastJoinResponse iperf_multicast_join (struct thread_Settings *inSettings);
+bool iperf_multicast_sendif_v4 (struct thread_Settings *inSettings);
+bool iperf_multicast_sendif_v6 (struct thread_Settings *inSettings);
 
 #ifdef __cplusplus
 } /* end extern "C" */

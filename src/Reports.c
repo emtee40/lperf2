@@ -133,8 +133,8 @@ static void common_copy (struct ReportCommon **common, struct thread_Settings *i
     (*common)->jitter_binwidth = inSettings->jitter_binwidth;
     (*common)->local = inSettings->local;
     (*common)->size_local = inSettings->size_local;
-    (*common)->multicast = inSettings->multicast;
-    (*common)->size_multicast = inSettings->size_multicast;
+    (*common)->multicast_group = inSettings->multicast_group;
+    (*common)->size_multicast_group = inSettings->size_multicast_group;
     (*common)->HistBins =inSettings->mHistBins;
     (*common)->HistBinsize =inSettings->mHistBinsize;
     (*common)->HistUnits =inSettings->mHistUnits;
@@ -422,6 +422,7 @@ struct ConnectionInfo * InitConnectOnlyReport (struct thread_Settings *thread) {
     if (!creport) {
 	FAIL(1, "Out of Memory!!\n", thread);
     }
+    printf("*** init connection report\n");
     common_copy(&creport->common, thread);
     creport->connect_times.min = FLT_MAX;
     creport->connect_times.max = FLT_MIN;
