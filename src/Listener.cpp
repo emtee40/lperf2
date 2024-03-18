@@ -463,6 +463,7 @@ bool Listener::my_listen () {
     // update the reporter thread
     if (isSettingsReport(mSettings)) {
 	struct ReportHeader *tmp = InitSettingsReport(mSettings);
+	setNoSettReport(mSettings);
 	assert(tmp!=NULL);
 	PostReport(tmp);
     }
