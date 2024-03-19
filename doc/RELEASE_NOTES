@@ -49,7 +49,6 @@ o fixes around wait_tick
 o add support for TCP_TX_DELAY via --tcp-tx-delay <val ms> option on both client and server
 o pass the CCA from client to server
 o support burst-size with different write sizes and don't require --burst-period
-o multicast doesn't need SO_BINDTODEVICE to join to an interface. SO_BINDTODEVICE requires root priviliges so don't use it w/multicast
 o output traffic thread send scheduling error stats in final ouput
 o output clock unsync stats with --bounceback
 o add warn message on MSG_CTRUNC
