@@ -350,7 +350,6 @@ static void iperf_multicast_sync_ifrname (struct thread_Settings *inSettings) {
 	    strncpy(inSettings->mIfrname, inSettings->mIfrnametx, len+1);
 	}
     }
-
 }
 
 bool iperf_multicast_sendif_v4 (struct thread_Settings *inSettings) {
