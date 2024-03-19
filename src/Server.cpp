@@ -118,7 +118,7 @@ Server::Server (thread_Settings *inSettings) {
 	    sorcvtimer = interval_quarter;
 	}
 	if (sorcvtimer < 1000) {
-	    sorcvtimer = 1000;
+	    sorcvtimer = 1000; // lower bound of 1 ms
 	}
     }
     if (sorcvtimer > 0) {

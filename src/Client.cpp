@@ -502,7 +502,7 @@ void Client::InitTrafficLoop () {
 	sosndtimer = 1000000;
     }
     if (sosndtimer < 1000) {
-	sosndtimer = 1000;
+	sosndtimer = 1000; //lower bound of 1 ms
     }
     if ((mSettings->mInterval > 0) && (mSettings->mIntervalMode == kInterval_Time)) {
 	int interval_half = static_cast<int>(round(mSettings->mAmount * 10000) / 2);
