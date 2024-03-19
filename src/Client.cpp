@@ -1133,8 +1133,10 @@ void Client::RunWriteEventsTCP () {
 	    }
 	}
 	if (!one_report) {
+#if (HAVE_DECL_SO_MAX_PACING_RATE)
 	    if (isFQPacing(mSettings))
 		reportstruct->FQPacingRate = mSettings->mFQPacingRateCurrent;
+#endif
 	    myReportPacket();
 #if (HAVE_DECL_SO_MAX_PACING_RATE)
 	    if (isFQPacingStep(mSettings) && PacingStepTime.before(now)) {
