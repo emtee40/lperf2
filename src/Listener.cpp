@@ -418,7 +418,7 @@ bool Listener::my_listen () {
 	domain = SockAddr_getAFdomain(&mSettings->local);
 
 #ifdef WIN32
-	if (SockAddr_isMulticast(&mSettings->multicast)) {
+	if (SockAddr_isMulticast(&mSettings->multicast_group)) {
 	    // Multicast on Win32 requires special handling
 	    ListenSocket = WSASocket(domain, type, 0, 0, 0, WSA_FLAG_MULTIPOINT_C_LEAF | WSA_FLAG_MULTIPOINT_D_LEAF);
 	    WARN_errno(ListenSocket == INVALID_SOCKET, "socket");

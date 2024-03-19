@@ -449,30 +449,30 @@ void SetSocketBindToDeviceIfNeeded (struct thread_Settings *inSettings) {
     if (!isMulticast(inSettings)) {
 	// typically requires root privileges for unicast bind to device
 	sol_bindtodevice(inSettings);
-    } else
+    }
 #ifndef WIN32
-	{ // multicast bind below
-	    if (inSettings->mThreadMode != kMode_Client) {
-		// multicast on the server uses iperf_multicast_join for device binding
-		// found in listener code, do nothing and return
-		return;
-	    }
-	    // Handle client side bind to device for multicast
-	    if (!isIPV6(inSettings)) {
-		// v4 tries with the -B ip first, then legacy socket bind
-		if (!((inSettings->mLocalhost != NULL) && iperf_multicast_sendif_v4(inSettings))) {
-		    if (inSettings->mIfrnametx != NULL) {
-			sol_bindtodevice(inSettings);
-		    }
+    else { // multicast bind below
+	if (inSettings->mThreadMode != kMode_Client) {
+	    // multicast on the server uses iperf_multicast_join for device binding
+	    // found in listener code, do nothing and return
+	    return;
+	}
+	// Handle client side bind to device for multicast
+	if (!isIPV6(inSettings)) {
+	    // v4 tries with the -B ip first, then legacy socket bind
+	    if (!((inSettings->mLocalhost != NULL) && iperf_multicast_sendif_v4(inSettings))) {
+		if (inSettings->mIfrnametx != NULL) {
+		    sol_bindtodevice(inSettings);
 		}
-	    } else {
-		if (!((inSettings->mIfrnametx != NULL) && iperf_multicast_sendif_v6(inSettings))) {
-		    if (inSettings->mIfrnametx != NULL) {
-			sol_bindtodevice(inSettings);
-		    }
+	    }
+	} else {
+	    if (!((inSettings->mIfrnametx != NULL) && iperf_multicast_sendif_v6(inSettings))) {
+		if (inSettings->mIfrnametx != NULL) {
+		    sol_bindtodevice(inSettings);
 		}
 	    }
 	}
+    }
 #endif
 }
 
