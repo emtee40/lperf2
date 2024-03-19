@@ -439,7 +439,7 @@ bool Listener::my_listen () {
 	    rc = WSAJoinLeaf(ListenSocket, reinterpret_cast<sockaddr*> (&mSettings->local), mSettings->size_local,0,0,0,0,JL_BOTH);
 	    WARN_errno(rc == SOCKET_ERROR, "WSAJoinLeaf (aka bind)");
 #else
-#if 0 && (HAVE_DECL_IP_ADD_MEMBERSHIP || HAVE_DECL_MCAST_JOIN_GROUP)
+#if 0 && (HAVE_DECL_IP_ADD_MEMBERSHIP || HAVE_DECL_MCAST_JOIN_GROUP) // possible future, bind to all including unicast
 	    iperf_sockaddr tmp;
 	    memcpy(&tmp, &mSettings->local, sizeof(tmp));
 	    SockAddr_setAddressAny(&tmp); // the multicast join will take care of this
