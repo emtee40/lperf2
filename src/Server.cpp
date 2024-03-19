@@ -117,6 +117,9 @@ Server::Server (thread_Settings *inSettings) {
 	if (sorcvtimer > interval_quarter) {
 	    sorcvtimer = interval_quarter;
 	}
+	if (sorcvtimer < 1000) {
+	    sorcvtimer = 1000;
+	}
     }
     if (sorcvtimer > 0) {
 	SetSocketOptionsReceiveTimeout(mSettings, sorcvtimer);
