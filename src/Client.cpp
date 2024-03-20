@@ -179,14 +179,14 @@ bool Client::my_connect (bool close_on_fail) {
 			 SockAddr_get_sizeof_sockaddr(&mSettings->peer));
 	    WARN_errno((rc == SOCKET_ERROR), "tcp connect");
 	    if (rc == SOCKET_ERROR) {
-		if ((--trycnt) <= 0) {
-		    if (close_on_fail) {
+		if ((--trycnt) >= 0) {
+		    if (close_on_fail || (errno == EINVAL)) {
 			close(mySocket);
 			mySocket = INVALID_SOCKET;
+			mySockInit();
 		   }
-		} else {
-		    delay_loop(200000);
 		}
+		delay_loop(200000);
 	    } else {
 		connect_done.setnow();
 		mSettings->tcpinitstats.connecttime = 1e3 * connect_done.subSec(connect_start);
