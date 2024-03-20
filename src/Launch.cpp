@@ -176,7 +176,7 @@ static void clientside_client_basic (struct thread_Settings *thread, Client *the
     }
 #endif
     SockAddr_remoteAddr(thread);
-    theClient->my_connect(true);
+    theClient->my_connect(false);
     if ((thread->mThreads > 1) && !isNoConnectSync(thread) && !isCompat(thread))
 	// When -P > 1 then all threads finish connect before starting traffic
 	theClient->BarrierClient(thread->connects_done);
@@ -191,7 +191,7 @@ static void clientside_client_reverse (struct thread_Settings *thread,  \
 				       struct thread_Settings *reverse_client, Client *theClient) {
     setTransferID(thread, NORMAL);
     SockAddr_remoteAddr(thread);
-    theClient->my_connect(true);
+    theClient->my_connect(false);
 #ifdef HAVE_THREAD_DEBUG
     thread_debug("Launch: client spawn thread reverse (sock=%d)", thread->mSock);
 #endif
@@ -227,7 +227,7 @@ static void clientside_client_fullduplex (struct thread_Settings *thread, \
     Iperf_push_host(reverse_client);
     assert(reverse_client != NULL);
     setTransferID(reverse_client, REVERSED);
-    theClient->my_connect(true);
+    theClient->my_connect(false);
 #ifdef HAVE_THREAD_DEBUG
     thread_debug("Launch: client spawn thread fullduplex (sock=%d)", thread->mSock);
 #endif
