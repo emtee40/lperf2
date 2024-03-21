@@ -128,7 +128,8 @@ Client specific:\n\
       --bounceback-txdelay  request the bounceback server delay n seconds between the request and the reply\n \
   -c, --client    <host>   run in client mode, connecting to <host>\n\
       --connect-only       run a connect only test\n\
-      --connect-retries #  number of times to retry tcp connect\n\
+      --connect-retry-timer minimum time interval in seconds between application level connect retries\n\
+      --connect-retry-time time interval in seconds to attempt application level connect retries \n\
       --dscp               set the DSCP field (masking ECN bits) in TOS byte\n\
   -d, --dualtest           Do a bidirectional test simultaneously (multiple sockets)\n\
       --fq-rate #[kmgKMG]  bandwidth to socket pacing\n\

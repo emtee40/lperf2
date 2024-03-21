@@ -121,6 +121,7 @@ BOOL WINAPI sig_dispatcher(DWORD type);
  * ------------------------------------------------------------------- */
 void warn      (const char *inMessage, const char *inFile, int inLine);
 void warn_errno(const char *inMessage, const char *inFile, int inLine);
+void errno_decode (char *decoded_text, size_t len);
 
 #define FAIL_exit(cond, msg)       \
   do {                                          \
@@ -287,6 +288,8 @@ void redirect(const char *inOutputFileName);
 #define NONFATALTCPWRITERR(errno) ((errno = WSAGetLastError()) == WSAETIMEDOUT)
 #define FATALUDPWRITERR(errno)  (((errno = WSAGetLastError()) != WSAETIMEDOUT) \
 				 && (errno != WSAECONNREFUSED))
+#define FATALTCPCONNECTERR(errno)  (((errno = WSAGetLastError()) != WSAETIMEDOUT) && \
+				    (errno != WSAECONNREFUSED) && (errno != WSAEWOULDBLOCK))
 #else
 #define FATALTCPREADERR(errno) ((errno != EAGAIN) && (errno != EWOULDBLOCK) && (errno != EINTR))
 #define FATALUDPREADERR(errno) ((errno != EAGAIN) && (errno != EWOULDBLOCK) && \
@@ -295,6 +298,8 @@ void redirect(const char *inOutputFileName);
 #define NONFATALTCPWRITERR(errno)  (errno == EAGAIN || errno == EWOULDBLOCK || errno == EINTR)
 #define FATALUDPWRITERR(errno) 	((errno != EAGAIN) && (errno != EWOULDBLOCK) && (errno != EINTR) \
 				 && (errno != ECONNREFUSED) && (errno != ENOBUFS))
+#define FATALTCPCONNECTERR(errno)  ((errno != EAGAIN) && (errno != EWOULDBLOCK) && (errno != EINTR) \
+				   && (errno != ECONNREFUSED))
 #endif
 
 #define IPERF_SOCKET_ERROR_NONFATAL   -2

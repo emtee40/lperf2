@@ -346,6 +346,20 @@ void warn_errno( const char *inMessage, const char *inFile, int inLine ) {
 #endif
 } /* end warn_errno */
 
+void errno_decode (char *text, size_t len) {
+    int my_err;
+    const char* my_str;
+    /* get platform's errno and error message */
+#ifdef WIN32
+    my_err = WSAGetLastError();
+    my_str = winsock_strerror( my_err );
+#else
+    my_err = errno;
+    my_str = strerror( my_err );
+#endif
+    strncpy(text, my_str, len);
+}
+
 #ifdef __cplusplus
 } /* end extern "C" */
 #endif

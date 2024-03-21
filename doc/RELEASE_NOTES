@@ -8,6 +8,7 @@ o select ahead of writes slow down UDP performance. support ./configure --disabl
 o support fo -b 0 with UDP, unlimited load or no delay between writes
 o support for --sync-transfer-id so client and server will match the ids and give a remap message
 o support --dscp command line option
+o support for application level retries and minimum retry interval of the TCP connect() syscall via --connect-retry-time and --connect-retry-timer, repsectively
 o support for --ignore-shutdown so test will end on writes vs the BDP drain and TCP close/shutdown, recommended not to use this but in rare cases
 o support for --fq-rate-step and --fq-rate-step-interval
 o CCAs per --tcp-cca, --tcp-congestion, etc neeed to be case sensitive

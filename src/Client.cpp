@@ -67,6 +67,7 @@
 #include "payloads.h"
 #include "active_hosts.h"
 #include "gettcpinfo.h"
+#include "iperf_formattime.h"
 
 // const double kSecs_to_usecs = 1e6;
 const double kSecs_to_nsecs = 1e9;
@@ -172,26 +173,65 @@ bool Client::my_connect (bool close_on_fail) {
     connected = false;
     mSettings->tcpinitstats.connecttime = -1;
     if (!isUDP(mSettings)) {
-	int trycnt = mSettings->mConnectRetries + 1;
-	while (trycnt > 0) {
+	Timestamp end_connect_retry;
+	end_connect_retry.add(mSettings->connect_retry_timer);
+	do {
 	    connect_start.setnow();
 	    rc = connect(mySocket, reinterpret_cast<sockaddr*>(&mSettings->peer),
 			 SockAddr_get_sizeof_sockaddr(&mSettings->peer));
-	    WARN_errno((rc == SOCKET_ERROR), "tcp connect");
+	    connect_done.setnow();
 	    if (rc == SOCKET_ERROR) {
-		if ((--trycnt) >= 0) {
-		    if (close_on_fail || (errno == EINVAL)) {
-			close(mySocket);
-			mySocket = INVALID_SOCKET;
-			mySockInit();
-		   }
+		char timestr[120];
+		char tmpaddr[200];
+		char errtext[50];
+		errno_decode(errtext, sizeof(errtext));
+		unsigned short port = SockAddr_getPort(&mSettings->peer);
+		SockAddr_getHostAddress(&mSettings->peer, tmpaddr, sizeof(tmpaddr));
+		struct timeval t;
+		t.tv_sec = connect_done.getSecs();
+		t.tv_usec = connect_done.getUsecs();
+		iperf_formattime(timestr, sizeof(timestr), t, isEnhanced(mSettings), isUTC(mSettings), YearThruSecTZ);
+		int slen = snprintf(NULL, 0, "%stcp connect to %s port %d failed (%s) on %s", \
+				    mSettings->mTransferIDStr, tmpaddr, port, errtext, timestr);
+		char *text = (char *) calloc((slen+1), sizeof(char));
+		if (text) {
+		    snprintf(text, (slen+1), "%stcp connect to %s port %d failed (%s) on %s", \
+			     mSettings->mTransferIDStr, tmpaddr, port, errtext, timestr);
+		    PostReport(InitStringReport(text));
+		    FREE_ARRAY(text);
 		}
-		delay_loop(200000);
+		bool need_open = false;
+		if (close_on_fail || FATALTCPCONNECTERR(errno)) { // MAC OS kicks out invalid argument at times, not sure why
+		    close(mySocket);
+		    mySockInit();
+		    delay_loop(10000); // delay the minimum of 10ms
+		    need_open = true;
+		}
+		if (!need_open && connect_done.before(end_connect_retry)) {
+		    int delay = mSettings->connect_retry_delay - (connect_done.subUsec(connect_start));
+		    delay_loop((delay < 10000) ? 10000 : delay); // minimum of 10ms
+		}
 	    } else {
-		connect_done.setnow();
 		mSettings->tcpinitstats.connecttime = 1e3 * connect_done.subSec(connect_start);
 		connected = true;
 		break;
+	    }
+	} while (connect_done.before(end_connect_retry));
+	if (!connected) {
+	    char timestr[120];
+	    struct timeval t;
+	    t.tv_sec = end_connect_retry.getSecs();
+	    t.tv_usec = end_connect_retry.getUsecs();
+	    iperf_formattime(timestr, sizeof(timestr), t, isEnhanced(mSettings), isUTC(mSettings), YearThruSecTZ);
+	    int len = snprintf(NULL, 0, "%stcp connect attempt timer expired on %s\n", \
+			       mSettings->mTransferIDStr, timestr);
+	    char *text = (char *) calloc(len+1, sizeof(char));
+	    if (text) {
+		snprintf(text, len, "%stcp connect attempt timer expried on %s\n", \
+			 mSettings->mTransferIDStr, timestr);
+		PostReport(InitStringReport(text));
+		FREE_ARRAY(text);
+		return false;
 	    }
 	}
     } else {

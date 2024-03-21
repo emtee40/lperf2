@@ -184,7 +184,6 @@ struct thread_Settings {
     int mRTOS;                      // reflected TOS
     int mTransferID;
     int mPeerTransferID;
-    int mConnectRetries;
 #if WIN32
     SOCKET mSock;
 #else
@@ -291,7 +290,6 @@ struct thread_Settings {
     int numreportstructs;
     int32_t peer_version_u;
     int32_t peer_version_l;
-    double connecttime;
     long barrier_time; // wait in units of microseconds
     double rtt_nearcongest_weight_factor;
     char mPermitKey[MAX_PERMITKEY_LEN + 1]; //add some space for timestamp
@@ -319,6 +317,9 @@ struct thread_Settings {
 #endif
     bool mOmit;
     int sendfirst_pacing;
+    double connecttime;
+    double connect_retry_timer;    // units in seconds
+    unsigned int connect_retry_delay; // units in usecs
 };
 
 /*

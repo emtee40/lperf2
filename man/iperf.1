@@ -1,4 +1,4 @@
-.TH IPERF 1 "Feb 2024" NLANR/DAST "User Manuals"
+.TH IPERF 1 "March 2024" NLANR/DAST "User Manuals"
 .SH NAME
 iperf \- perform network traffic tests using network sockets. Metrics include throughput and latency or link capacity and responsiveness.
 .SH SYNOPSIS
@@ -230,8 +230,12 @@ run in client mode, connecting to \fIhost\fR  where the optional %dev will SO_BI
 .BR "    --connect-only[=" \fIn\fR "]"
 only perform a TCP connect (or 3WHS) without any data transfer, useful to measure TCP connect() times. Optional value of n is the total number of connects to do (zero is run forever.) Note that -i will rate limit the connects where -P will create bursts and -t will end the client and hence end its connect attempts.
 .TP
-.BR "    --connect-retries[= " \fIn\fR "]"
-number of times to retry a TCP connect at the application level.  See operating system information on the details of TCP connect related settings.
+.BR "    --connect-retry-time " \fIn\fR
+time value in seconds for application level retries of TCP connect(s). See --connect-retry-timer for the retry time interval. See operating system information for the details of system or kernel TCP connect related settings. This is an application level retry of the connect() call and not the system level connect.
+.TP
+.TP
+.BR "    --connect-retry-timer " \fIn\fR
+The minimum time value in seconds to wait before retrying the connect. Note: This a minimum time to  wait between retries and can be longer dependent upon the system connect time taken. See operating system information for the details of system or kernel TCP connect related settings.
 .TP
 .BR "    --dscp"
 set the DSCP field (masking ECN bits) in the TOS byte (used by IP_TOS & setsockopt)

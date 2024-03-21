@@ -422,7 +422,6 @@ struct ConnectionInfo * InitConnectOnlyReport (struct thread_Settings *thread) {
     if (!creport) {
 	FAIL(1, "Out of Memory!!\n", thread);
     }
-    printf("*** init connection report\n");
     common_copy(&creport->common, thread);
     creport->connect_times.min = FLT_MAX;
     creport->connect_times.max = FLT_MIN;

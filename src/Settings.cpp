@@ -95,7 +95,8 @@ static int fqratestepinterval = 0;
 static int triptime = 0;
 static int infinitetime = 0;
 static int connectonly = 0;
-static int connectretry = 0;
+static int connectretrytimer = 0;
+static int connectretrydelay = 0;
 static int burstipg = 0;
 static int burstsize = 0;
 static int burstperiodic = 0;
@@ -228,7 +229,8 @@ const struct option long_options[] =
 {"trip-times", no_argument, &triptime, 1},
 {"no-udp-fin", no_argument, &noudpfin, 1},
 {"connect-only", optional_argument, &connectonly, 1},
-{"connect-retries", required_argument, &connectretry, 1},
+{"connect-retry-time", required_argument, &connectretrytimer, 1},
+{"connect-retry-timer", required_argument, &connectretrydelay, 1},
 {"no-connect-sync", no_argument, &noconnectsync, 1},
 {"full-duplex", no_argument, &fullduplextest, 1},
 {"ipg", required_argument, &burstipg, 1},
@@ -1063,9 +1065,30 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 		mExtSettings->connectonly_count = -1;
 	    }
 	}
-	if (connectretry) {
-	    connectretry = 0;
-	    mExtSettings->mConnectRetries = atoi(optarg);
+	if (connectretrydelay) {
+	    connectretrydelay = 0;
+	    char *end;
+	    double period = strtof(optarg, &end);
+	    if ((*end != '\0') || (period <=0 ))  {
+		fprintf (stderr, "Invalid value of '%s' for --connect-retry-period\n", optarg);
+		exit(1);
+	    }
+	    if (period > (UINT_MAX / 1e6)) {
+		fprintf (stderr, "Too large value of '%s' for --connect-retry-period, max is %f\n", optarg, (UINT_MAX / 1e6));
+		exit(1);
+	    }
+	    mExtSettings->connect_retry_delay =	static_cast<unsigned int>(ceil(period * 1e6));
+	}
+	if (connectretrytimer) {
+	    connectretrytimer = 0;
+	    char *end;
+	    double timer = strtof(optarg, &end);
+	    if (*end != '\0') {
+		fprintf (stderr, "Invalid value of '%s' for --connect-retry-timer\n", optarg);
+		exit(1);
+	    } else {
+		mExtSettings->connect_retry_timer = timer;
+	    }
 	}
 	if (sumonly) {
 	    sumonly = 0;
@@ -1771,6 +1794,9 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 		bail = true;
 	    }
 	}
+	if ((mExtSettings->connect_retry_timer > 0) && !mExtSettings->connect_retry_delay) {
+	    mExtSettings->connect_retry_delay = 1000000;
+	}
 	if (isUDP(mExtSettings)) {
 	    if (isPeerVerDetect(mExtSettings)) {
 		fprintf(stderr, "ERROR: option of -X or --peer-detect not supported with -u UDP\n");
@@ -1796,7 +1822,7 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 		fprintf(stderr, "ERROR: option --ipg must be a positive value\n");
 		bail = true;
 	    }
-	    if (mExtSettings->mConnectRetries > 0) {
+	    if (mExtSettings->connect_retry_timer > 0) {
 		fprintf(stderr, "ERROR: option --connect-retries not supported with -u UDP\n");
 		bail = true;
 	    }
@@ -1971,7 +1997,7 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	if (isPeerVerDetect(mExtSettings)) {
 	    fprintf(stderr, "WARN: option of -X or --peer-detect not supported on the server\n");
 	}
-	if (mExtSettings->mConnectRetries > 0) {
+	if (mExtSettings->connect_retry_timer > 0) {
 	    fprintf(stderr, "WARN: option --connect-retries not supported on the server\n");
 	}
 	if (isNearCongest(mExtSettings)) {
