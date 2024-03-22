@@ -144,7 +144,7 @@ static const struct {
 	{ "ac_be", IPTOS_DSCP_CS0 },
 	{ "ac_bk", IPTOS_DSCP_CS1 },
 	{ "ac_vi", IPTOS_DSCP_CS5 },
-	{ "ac_vo", IPTOS_DSCP_EF },
+	{ "ac_vo", IPTOS_DSCP_CS6 },
 	{ "lowdelay", IPTOS_LOWDELAY },
 	{ "throughput", IPTOS_THROUGHPUT },
 	{ "reliability", IPTOS_RELIABILITY },
