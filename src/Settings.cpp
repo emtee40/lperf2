@@ -95,8 +95,8 @@ static int fqratestepinterval = 0;
 static int triptime = 0;
 static int infinitetime = 0;
 static int connectonly = 0;
-static int connectretrytimer = 0;
-static int connectretrydelay = 0;
+static int connectretrytime = 0;
+static int connectretryinterval = 0;
 static int burstipg = 0;
 static int burstsize = 0;
 static int burstperiodic = 0;
@@ -229,8 +229,8 @@ const struct option long_options[] =
 {"trip-times", no_argument, &triptime, 1},
 {"no-udp-fin", no_argument, &noudpfin, 1},
 {"connect-only", optional_argument, &connectonly, 1},
-{"connect-retry-time", required_argument, &connectretrytimer, 1},
-{"connect-retry-timer", required_argument, &connectretrydelay, 1},
+{"connect-retry-time", required_argument, &connectretrytime, 1},
+{"connect-retry-timer", required_argument, &connectretryinterval, 1},
 {"no-connect-sync", no_argument, &noconnectsync, 1},
 {"full-duplex", no_argument, &fullduplextest, 1},
 {"ipg", required_argument, &burstipg, 1},
@@ -1065,30 +1065,33 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 		mExtSettings->connectonly_count = -1;
 	    }
 	}
-	if (connectretrydelay) {
-	    connectretrydelay = 0;
+	if (connectretryinterval) {
+	    connectretryinterval = 0;
 	    char *end;
 	    double period = strtof(optarg, &end);
 	    if ((*end != '\0') || (period <=0 ))  {
-		fprintf (stderr, "Invalid value of '%s' for --connect-retry-period\n", optarg);
+		fprintf (stderr, "Invalid value of '%s' for --connect-retry-timer\n", optarg);
 		exit(1);
 	    }
 	    if (period > (UINT_MAX / 1e6)) {
-		fprintf (stderr, "Too large value of '%s' for --connect-retry-period, max is %f\n", optarg, (UINT_MAX / 1e6));
+		fprintf (stderr, "Too large value of '%s' for --connect-retry-timer, max is %f\n", optarg, (UINT_MAX / 1e6));
 		exit(1);
 	    }
-	    mExtSettings->connect_retry_delay =	static_cast<unsigned int>(ceil(period * 1e6));
+	    mExtSettings->connect_retry_timer =	static_cast<unsigned int>(ceil(period * 1e6));
 	}
-	if (connectretrytimer) {
-	    connectretrytimer = 0;
+	if (connectretrytime) {
+	    connectretrytime = 0;
 	    char *end;
 	    double timer = strtof(optarg, &end);
 	    if (*end != '\0') {
-		fprintf (stderr, "Invalid value of '%s' for --connect-retry-timer\n", optarg);
+		fprintf (stderr, "Invalid value of '%s' for --connect-retry-time\n", optarg);
 		exit(1);
-	    } else {
-		mExtSettings->connect_retry_timer = timer;
 	    }
+	    if (timer > (UINT_MAX / 1e6)) {
+		fprintf (stderr, "Too large value of '%s' for --connect-retry-time, max is %f\n", optarg, (UINT_MAX / 1e6));
+		exit(1);
+	    }
+	    mExtSettings->connect_retry_timer = timer;
 	}
 	if (sumonly) {
 	    sumonly = 0;
@@ -1794,8 +1797,11 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 		bail = true;
 	    }
 	}
-	if ((mExtSettings->connect_retry_timer > 0) && !mExtSettings->connect_retry_delay) {
-	    mExtSettings->connect_retry_delay = 1000000;
+	if ((mExtSettings->connect_retry_timer > 0) && (mExtSettings->connect_retry_time <= 0)) {
+	    fprintf(stderr, "WARN: option of --connect-retry-timer requires --connect-retry-time set to value greater than zero\n");
+	}
+	if ((mExtSettings->connect_retry_time > 0) &&!mExtSettings->connect_retry_timer) {
+	    mExtSettings->connect_retry_timer = 1000000; // 1 sec in units usecs
 	}
 	if (isUDP(mExtSettings)) {
 	    if (isPeerVerDetect(mExtSettings)) {

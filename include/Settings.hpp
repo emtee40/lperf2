@@ -318,8 +318,8 @@ struct thread_Settings {
     bool mOmit;
     int sendfirst_pacing;
     double connecttime;
-    double connect_retry_timer;    // units in seconds
-    unsigned int connect_retry_delay; // units in usecs
+    double connect_retry_time;    // units in seconds
+    unsigned int connect_retry_timer; // units in usecs
 };
 
 /*
