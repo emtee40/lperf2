@@ -143,7 +143,7 @@ static const struct {
 	{ "nqb2", IPTOS_DSCP_NQB2 },
 	{ "ac_be", IPTOS_DSCP_CS0 },
 	{ "ac_bk", IPTOS_DSCP_CS1 },
-	{ "ac_vi", IPTOS_DSCP_CS4 },
+	{ "ac_vi", IPTOS_DSCP_CS5 },
 	{ "ac_vo", IPTOS_DSCP_EF },
 	{ "lowdelay", IPTOS_LOWDELAY },
 	{ "throughput", IPTOS_THROUGHPUT },
