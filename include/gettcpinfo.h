@@ -50,6 +50,8 @@
 
 #include "headers.h"
 
+#define HAVE_TCP_INFLIGHT (HAVE_STRUCT_TCP_INFO_TCPI_DSACK_DUPS && HAVE_STRUCT_TCP_INFO_TCPI_LOST && HAVE_STRUCT_TCP_INFO_TCPI_SACKED && HAVE_STRUCT_TCP_INFO_TCPI_UNACKED)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -65,6 +67,7 @@ struct iperf_tcpstats {
     intmax_t retry_prev;
     intmax_t retry_tot;
     int mss_negotiated;
+    intmax_t packets_in_flight;
 #endif
 };
 

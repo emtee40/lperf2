@@ -470,8 +470,20 @@
 /* Define to 1 if 'tcpi_dsack_dups' is a member of 'struct tcp_info'. */
 #undef HAVE_STRUCT_TCP_INFO_TCPI_DSACK_DUPS
 
+/* Define to 1 if 'tcpi_lost' is a member of 'struct tcp_info'. */
+#undef HAVE_STRUCT_TCP_INFO_TCPI_LOST
+
+/* Define to 1 if 'tcpi_retrans' is a member of 'struct tcp_info'. */
+#undef HAVE_STRUCT_TCP_INFO_TCPI_RETRANS
+
+/* Define to 1 if 'tcpi_sacked' is a member of 'struct tcp_info'. */
+#undef HAVE_STRUCT_TCP_INFO_TCPI_SACKED
+
 /* Define to 1 if 'tcpi_total_retrans' is a member of 'struct tcp_info'. */
 #undef HAVE_STRUCT_TCP_INFO_TCPI_TOTAL_RETRANS
+
+/* Define to 1 if 'tcpi_unacked' is a member of 'struct tcp_info'. */
+#undef HAVE_STRUCT_TCP_INFO_TCPI_UNACKED
 
 /* Define for interval summing debugging */
 #undef HAVE_SUMMING_DEBUG

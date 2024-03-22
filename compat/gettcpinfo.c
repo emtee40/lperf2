@@ -74,6 +74,10 @@ inline void gettcpinfo (int sock, struct iperf_tcpstats *stats) {
 	stats->rttvar = tcp_info_buf.tcpi_rttvar;
 	stats->retry_tot = tcp_info_buf.tcpi_total_retrans;
 	stats->mss_negotiated = tcp_info_buf.tcpi_snd_mss;
+#if HAVE_TCP_INFLIGHT
+	stats->packets_in_flight = (tcp_info_buf.tcpi_unacked - tcp_info_buf.tcpi_sacked - \
+				    tcp_info_buf.tcpi_lost + tcp_info_buf.tcpi_retrans);
+#endif
 	stats->isValid  = true;
 #elif HAVE_DECL_TCP_CONNECTION_INFO
     struct tcp_connection_info tcp_info_buf;
