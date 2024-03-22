@@ -208,7 +208,7 @@ bool Client::my_connect (bool close_on_fail) {
 		    need_open = true;
 		}
 		if (!need_open && connect_done.before(end_connect_retry)) {
-		    int delay = mSettings->connect_retry_delay - (connect_done.subUsec(connect_start));
+		    int delay = mSettings->connect_retry_timer - (connect_done.subUsec(connect_start));
 		    delay_loop((delay < 10000) ? 10000 : delay); // minimum of 10ms
 		}
 	    } else {
