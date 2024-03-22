@@ -77,6 +77,7 @@ inline void gettcpinfo (int sock, struct iperf_tcpstats *stats) {
 #if HAVE_TCP_INFLIGHT
 	stats->packets_in_flight = (tcp_info_buf.tcpi_unacked - tcp_info_buf.tcpi_sacked - \
 				    tcp_info_buf.tcpi_lost + tcp_info_buf.tcpi_retrans);
+	stats->bytes_in_flight	= stats->packets_in_flight * tcp_info_buf.tcpi_snd_mss / 1024;
 #endif
 	stats->isValid  = true;
 #elif HAVE_DECL_TCP_CONNECTION_INFO

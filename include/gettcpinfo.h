@@ -68,6 +68,7 @@ struct iperf_tcpstats {
     intmax_t retry_tot;
     int mss_negotiated;
     intmax_t packets_in_flight;
+    intmax_t bytes_in_flight;
 #endif
 };
 
