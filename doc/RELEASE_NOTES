@@ -12,6 +12,7 @@ o support for application level retries and minimum retry interval of the TCP co
 o support for --ignore-shutdown so test will end on writes vs the BDP drain and TCP close/shutdown, recommended not to use this but in rare cases
 o support for --fq-rate-step and --fq-rate-step-interval
 o CCAs per --tcp-cca, --tcp-congestion, etc neeed to be case sensitive
+o support for both packets and bytes inflight taken from tcp_info struct amd pkt calc of (tcp_info_buf.tcpi_unacked - tcp_info_buf.tcpi_sacked - tcp_info_buf.tcpi_lost + tcp_info_buf.tcpi_retrans)
 o man page updates and -h to reflect new options, better descriptions
 o lots of work around summing with parallel threads, new implementation based on interval or slot counters, hopefully should work reliably
 o --bounceback tests are much more reliable and robust
