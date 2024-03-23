@@ -108,6 +108,11 @@ inline void tcpstats_copy (struct iperf_tcpstats *stats_dst, struct iperf_tcpsta
     stats_dst->retry_tot = stats_src->retry_tot;
     stats_dst->connecttime = stats_src->connecttime;
     stats_dst->isValid = stats_src->isValid;
+#if HAVE_TCP_INFLIGHT
+    stats_dst->packets_in_flight = stats_src->packets_in_flight;
+    stats_dst->bytes_in_flight	= stats_src->bytes_in_flight;
+#endif
+
 }
 #else
 #if WIN32
