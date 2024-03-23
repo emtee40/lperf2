@@ -74,6 +74,11 @@ inline void gettcpinfo (int sock, struct iperf_tcpstats *stats) {
 	stats->rttvar = tcp_info_buf.tcpi_rttvar;
 	stats->retry_tot = tcp_info_buf.tcpi_total_retrans;
 	stats->mss_negotiated = tcp_info_buf.tcpi_snd_mss;
+#if HAVE_TCP_INFLIGHT
+	stats->packets_in_flight = (tcp_info_buf.tcpi_unacked - tcp_info_buf.tcpi_sacked - \
+				    tcp_info_buf.tcpi_lost + tcp_info_buf.tcpi_retrans);
+	stats->bytes_in_flight	= stats->packets_in_flight * tcp_info_buf.tcpi_snd_mss / 1024;
+#endif
 	stats->isValid  = true;
 #elif HAVE_DECL_TCP_CONNECTION_INFO
     struct tcp_connection_info tcp_info_buf;
@@ -103,6 +108,11 @@ inline void tcpstats_copy (struct iperf_tcpstats *stats_dst, struct iperf_tcpsta
     stats_dst->retry_tot = stats_src->retry_tot;
     stats_dst->connecttime = stats_src->connecttime;
     stats_dst->isValid = stats_src->isValid;
+#if HAVE_TCP_INFLIGHT
+    stats_dst->packets_in_flight = stats_src->packets_in_flight;
+    stats_dst->bytes_in_flight	= stats_src->bytes_in_flight;
+#endif
+
 }
 #else
 #if WIN32

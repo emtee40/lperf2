@@ -294,26 +294,15 @@ AC_CHECK_TYPES([struct sockaddr_storage, struct sockaddr_in6,
 AC_CHECK_MEMBERS([struct sockaddr_in6.sin6_len,
 			 struct ip_mreq_source.imr_multiaddr.s_addr], [], [],[$in_h])
 
-AC_CHECK_MEMBER([struct tcp_info.tcpi_total_retrans], [], [],[
+AC_CHECK_MEMBERS([struct tcp_info.tcpi_total_retrans, struct tcp_info.tcpi_unacked, struct tcp_info.tcpi_sacked,
+			 struct tcp_info.tcpi_lost, struct tcp_info.tcpi_retrans], [], [],[
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 ])
 
-AC_CHECK_MEMBERS([struct tcp_info.tcpi_delivered], [], [],[
+AC_CHECK_MEMBERS([struct tcp_info.tcpi_delivered, struct tcp_info.tcpi_delivered_ce, struct tcp_info.tcpi_dsack_dups,
+			 struct tcp_info.tcpi_data_segs_out], [], [],[
 #include <linux/tcp.h>
-])
-AC_CHECK_MEMBERS([struct tcp_info.tcpi_delivered_ce], [], [],[
-#include <linux/tcp.h>
-])
-AC_CHECK_MEMBERS([struct tcp_info.tcpi_dsack_dups], [], [],[
-#include <linux/tcp.h>
-])
-AC_CHECK_MEMBERS([struct tcp_info.tcpi_data_segs_out], [], [],[
-#include <linux/tcp.h>
-])
-AC_CHECK_MEMBERS([struct tcp_info.tcpi_total_retrans], [], [],[
-#include <netinet/in.h>
-#include <netinet/tcp.h>
 ])
 
 dnl ===================================================================

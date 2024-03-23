@@ -1134,6 +1134,13 @@ static inline void reporter_handle_packet_tcpistats (struct ReporterData *data, 
     stats->sock_callstats.write.tcpstats.cwnd = packet->tcpstats.cwnd;
     stats->sock_callstats.write.tcpstats.rtt = packet->tcpstats.rtt;
     stats->sock_callstats.write.tcpstats.rttvar = packet->tcpstats.rttvar;
+#if HAVE_TCP_INFLIGHT
+    stats->sock_callstats.write.tcpstats.packets_in_flight = packet->tcpstats.packets_in_flight;
+    stats->sock_callstats.write.tcpstats.bytes_in_flight = packet->tcpstats.bytes_in_flight;
+#else
+    stats->sock_callstats.write.tcpstats.bytes_in_flight = -1;
+    stats->sock_callstats.write.tcpstats.packets_in_flight = -1;
+#endif
 #if (HAVE_DECL_SO_MAX_PACING_RATE)
     stats->FQPacingRateCurrent = packet->FQPacingRate;
 #endif

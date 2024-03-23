@@ -52,6 +52,7 @@
  * ------------------------------------------------------------------- */
 #include "headers.h"
 #include "version.h"
+#include "gettcpinfo.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -425,16 +426,22 @@ const char report_write_enhanced_write_format[] =
 const char report_write_enhanced_nocwnd_write_format[] =
 "%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %10" PRIdMAX "       NA/%u us  %s  %.3f/%.3f/%.3f/%.3f ms (%" PRIdMAX ")%s\n";
 
-
 #if HAVE_TCP_STATS
+#if HAVE_TCP_INFLIGHT
+const char report_bw_write_enhanced_header[] =
+"[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth       Write/Err  Rtry     InF(pkts)/Cwnd/RTT(var)        NetPwr\n";
+
+const char report_bw_write_enhanced_format[] =
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX " %8dK(%d)/%dK/%u(%u) us  %s\n";
+#else
 const char report_bw_write_enhanced_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth       Write/Err  Rtry     Cwnd/RTT(var)        NetPwr\n";
 
-const char report_sum_bw_write_enhanced_format[] =
-"[SUM] " IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX " %s\n";
-
 const char report_bw_write_enhanced_format[] =
 "%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX " %8dK/%u(%u) us  %s\n";
+#endif
+const char report_sum_bw_write_enhanced_format[] =
+"[SUM] " IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX " %s\n";
 
 const char report_bw_write_enhanced_fq_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth       Write/Err  Rtry     Cwnd/RTT(var)  fq-rate  NetPwr\n";
