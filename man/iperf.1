@@ -379,39 +379,44 @@ set TCP congestion control algorithm (Linux only)
 .br
 ------------------------------------------------------------
 .br
-Client connecting to <host>, TCP port 5001 with pid 5149
+Client connecting to 192.168.1.35, TCP port 5001 with pid 216994 (1/0 flows/load)
 .br
-Write buffer size:  128 KByte
+Write buffer size: 131072 Byte
 .br
-TCP window size:  340 KByte (default)
+TCP congestion control using cubic
+.br
+TOS set to 0x0 (dscp=0,ecn=0) (Nagle on)
+.br
+TCP window size: 85.0 KByte (default)
 .br
 ------------------------------------------------------------
 .br
-[  3] local 45.56.85.133 port 49960 connected with 45.33.58.123 port 5001 (ct=3.23 ms)
+[  1] local 192.168.1.103%enp4s0 port 56092 connected with 192.168.1.35 port 5001 (sock=3) (icwnd/mss/irtt=14/1448/339) (ct=0.40 ms) on 2024-03-25 11:07:13.810 (PDT)
 .br
-[ ID] Interval        Transfer    Bandwidth       Write/Err  Rtry     Cwnd/RTT        NetPwr
+[ ID] Interval        Transfer    Bandwidth       Write/Err  Rtry     InF(pkts)/Cwnd/RTT(var)        NetPwr
 .br
-[  3] 0.00-1.00 sec   126 MBytes  1.05 Gbits/sec  1006/0          0       56K/626 us  210636.47
+[  1] 0.00-1.00 sec   116 MBytes   973 Mbits/sec  928/0        73     1538K(1088)/1538K/13135(106) us  9260
 .br
-[  3] 1.00-2.00 sec   138 MBytes  1.15 Gbits/sec  1100/0        299      483K/3884 us  37121.32
+[  1] 1.00-2.00 sec   112 MBytes   941 Mbits/sec  897/0         0     1657K(1172)/1679K/14390(121) us  8170
 .br
-[  3] 2.00-3.00 sec   137 MBytes  1.15 Gbits/sec  1093/0         24      657K/5087 us  28162.31
+[  1] 2.00-3.00 sec   112 MBytes   941 Mbits/sec  897/0         0     1737K(1229)/1791K/15358(81) us  7655
 .br
-[  3] 3.00-4.00 sec   126 MBytes  1.06 Gbits/sec  1010/0        284      294K/2528 us  52366.58
+[  1] 3.00-4.00 sec   112 MBytes   941 Mbits/sec  897/0         0     1853K(1311)/1879K/16082(103) us  7311
 .br
-[  3] 4.00-5.00 sec   117 MBytes   980 Mbits/sec  935/0        373      487K/2025 us  60519.66
+[  1] 4.00-5.00 sec   112 MBytes   940 Mbits/sec  896/0         1     1353K(957)/1365K/11629(129) us  10099
 .br
-[  3] 5.00-6.00 sec   144 MBytes  1.20 Gbits/sec  1149/0          2      644K/3570 us  42185.36
+[  1] 5.00-6.00 sec   112 MBytes   941 Mbits/sec  897/0         0     1412K(999)/1459K/12477(96) us  9423
 .br
-[  3] 6.00-7.00 sec   126 MBytes  1.06 Gbits/sec  1011/0        112      582K/5281 us  25092.56
+[  1] 6.00-7.00 sec   112 MBytes   941 Mbits/sec  897/0         0     1479K(1046)/1530K/13026(93) us  9026
 .br
-[  3] 7.00-8.00 sec   110 MBytes   922 Mbits/sec  879/0         56      279K/1957 us  58871.89
+[  1] 7.00-8.00 sec   112 MBytes   941 Mbits/sec  897/0         0     1537K(1087)/1579K/13509(97) us  8703
 .br
-[  3] 8.00-9.00 sec   127 MBytes  1.06 Gbits/sec  1014/0         46      483K/3372 us  39414.89
+[  1] 8.00-9.00 sec   112 MBytes   941 Mbits/sec  897/0         0     1600K(1132)/1612K/13774(97) us  8536
 .br
-[  3] 9.00-10.00 sec   132 MBytes  1.11 Gbits/sec  1054/0          0      654K/3380 us  40872.75
+[  1] 9.00-10.00 sec   112 MBytes   941 Mbits/sec  897/0         0     1602K(1133)/1643K/14007(130) us  8394
 .br
-[  3] 0.00-10.00 sec  1.25 GBytes  1.07 Gbits/sec  10251/0       1196       -1K/3170 us  42382.03
+[  1] 0.00-10.03 sec  1.10 GBytes   941 Mbits/sec  9001/0        74        0K(0)/1644K/14103(152) us  8339
+.br
 
 .TP
 .B where (per -e,)
@@ -424,8 +429,8 @@ Total number of successful socket writes. Total number of non-fatal socket write
 .B Rtry
 Total number of TCP retries
 .br
-.B Cwnd/RTT (*nix only)
-TCP congestion window and round trip time (sampled where NA indicates no value)
+.B Inf(pkts)/Cwnd/RTT(var) (*nix only)
+TCP byes and packets inflight, congestion window and round trip time (sampled where NA indicates no value). Infight is in units of Kbytes and packets where packets_in_flight = (tcp_info_buf.tcpi_unacked - tcp_info_buf.tcpi_sacked - tcp_info_buf.tcpi_lost + tcp_info_buf.tcpi_retrans) RTT (var) is RTT variance. 
 .br
 .B NetPwr (*nix only)
 Network power defined as (throughput / RTT)
