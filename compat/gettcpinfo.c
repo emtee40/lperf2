@@ -70,6 +70,7 @@ inline void gettcpinfo (int sock, struct iperf_tcpstats *stats) {
     socklen_t tcp_info_length = sizeof(struct tcp_info);
     if ((sock > 0) && !(getsockopt(sock, IPPROTO_TCP, TCP_INFO, &tcp_info_buf, &tcp_info_length) < 0)) {
         stats->cwnd = tcp_info_buf.tcpi_snd_cwnd * tcp_info_buf.tcpi_snd_mss / 1024;
+        stats->cwnd_packets = tcp_info_buf.tcpi_snd_cwnd;
 	stats->rtt = tcp_info_buf.tcpi_rtt;
 	stats->rttvar = tcp_info_buf.tcpi_rttvar;
 	stats->retry_tot = tcp_info_buf.tcpi_total_retrans;
@@ -102,6 +103,7 @@ inline void gettcpinfo (int sock, struct iperf_tcpstats *stats) {
 }
 inline void tcpstats_copy (struct iperf_tcpstats *stats_dst, struct iperf_tcpstats *stats_src) {
     stats_dst->cwnd = stats_src->cwnd;
+    stats_dst->cwnd_packets = stats_src->cwnd_packets;
     stats_dst->rtt = stats_src->rtt;
     stats_dst->rttvar = stats_src->rttvar;
     stats_dst->mss_negotiated = stats_src->mss_negotiated;
