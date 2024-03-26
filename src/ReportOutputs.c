@@ -659,10 +659,14 @@ void tcp_output_write_enhanced (struct TransferInfo *stats) {
 	       stats->sock_callstats.write.WriteCnt,
 	       stats->sock_callstats.write.WriteErr,
 	       stats->sock_callstats.write.tcpstats.retry,
+#if HAVE_TCP_INFLIGHT
 	       stats->sock_callstats.write.tcpstats.bytes_in_flight,
 	       stats->sock_callstats.write.tcpstats.packets_in_flight,
+#endif
 	       stats->sock_callstats.write.tcpstats.cwnd,
+#if HAVE_TCP_INFLIGHT
 	       stats->sock_callstats.write.tcpstats.cwnd_packets,
+#endif
 	       stats->sock_callstats.write.tcpstats.rtt,
 	       stats->sock_callstats.write.tcpstats.rttvar,
 	       netpower_buf,
