@@ -1132,6 +1132,7 @@ static inline void reporter_handle_packet_tcpistats (struct ReporterData *data, 
     stats->sock_callstats.write.tcpstats.retry_prev = packet->tcpstats.retry_tot;
     stats->sock_callstats.write.tcpstats.retry_tot = packet->tcpstats.retry_tot;
     stats->sock_callstats.write.tcpstats.cwnd = packet->tcpstats.cwnd;
+    stats->sock_callstats.write.tcpstats.cwnd_packets = packet->tcpstats.cwnd_packets;
     stats->sock_callstats.write.tcpstats.rtt = packet->tcpstats.rtt;
     stats->sock_callstats.write.tcpstats.rttvar = packet->tcpstats.rttvar;
 #if HAVE_TCP_INFLIGHT

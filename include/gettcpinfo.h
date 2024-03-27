@@ -64,6 +64,7 @@ struct iperf_tcpstats {
     double connecttime;
 #if HAVE_TCP_STATS
     int cwnd;
+    intmax_t cwnd_packets;
     int rttvar;
     intmax_t retry;
     intmax_t retry_prev;
