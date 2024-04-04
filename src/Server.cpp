@@ -819,29 +819,45 @@ inline bool Server::ReadPacketID (int offset_adjust) {
     // terminate when datagram begins with negative index
     // the datagram ID should be correct, just negated
 
-    if (isSeqNo64b(mSettings)) {
-      // New client - Signed PacketID packed into unsigned id2,id
-      reportstruct->packetID = (static_cast<uint32_t>(ntohl(mBuf_UDP->id))) | (static_cast<uintmax_t>(ntohl(mBuf_UDP->id2)) << 32);
-
-#ifdef HAVE_PACKET_DEBUG
-      printf("id 0x%x, 0x%x -> %" PRIdMAX " (0x%" PRIxMAX ")\n",
-	     ntohl(mBuf_UDP->id), ntohl(mBuf_UDP->id2), reportstruct->packetID, reportstruct->packetID);
-#endif
-    } else {
-      // Old client - Signed PacketID in Signed id
-      reportstruct->packetID = static_cast<int32_t>(ntohl(mBuf_UDP->id));
-#ifdef HAVE_PACKET_DEBUG
-      printf("id 0x%x -> %" PRIdMAX " (0x%" PRIxMAX ")\n",
-	     ntohl(mBuf_UDP->id), reportstruct->packetID, reportstruct->packetID);
-#endif
-    }
-    if (reportstruct->packetID < 0) {
-      reportstruct->packetID = -reportstruct->packetID;
-      terminate = true;
-    }
     // read the sent timestamp from the rx packet
     reportstruct->sentTime.tv_sec = ntohl(mBuf_UDP->tv_sec);
     reportstruct->sentTime.tv_usec = ntohl(mBuf_UDP->tv_usec);
+    if (isSeqNo64b(mSettings)) {
+	// New client - Signed PacketID packed into unsigned id2,id
+	reportstruct->packetID = (static_cast<uint32_t>(ntohl(mBuf_UDP->id))) | (static_cast<uintmax_t>(ntohl(mBuf_UDP->id2)) << 32);
+
+#ifdef HAVE_PACKET_DEBUG
+	if (isTripTime(mSettings)) {
+	    int len = snprintf(NULL,0,"%sPacket id 0x%x, 0x%x -> %" PRIdMAX " (0x%" PRIxMAX ") Sent: %ld.%ld6 Received: %ld.%ld6 Delay: %f\n", \
+			       mSettings->mTransferIDStr,ntohl(mBuf_UDP->id), ntohl(mBuf_UDP->id2), reportstruct->packetID, reportstruct->packetID, \
+			       reportstruct->sentTime.tv_sec, reportstruct->sentTime.tv_usec, \
+			       reportstruct->packetTime.tv_sec, reportstruct->packetTime.tv_usec, TimeDifference(reportstruct->packetTime, reportstruct->sentTime));
+	    char *text = (char *) calloc(len+1, sizeof(char));
+	    if (text) {
+		snprintf(text, len,"%sPacket ID id 0x%x, 0x%x -> %" PRIdMAX " (0x%" PRIxMAX ") Sent: %ld.%ld Received: %ld.%ld Delay: %f\n", \
+			 mSettings->mTransferIDStr,ntohl(mBuf_UDP->id), ntohl(mBuf_UDP->id2), reportstruct->packetID, reportstruct->packetID, \
+			 reportstruct->sentTime.tv_sec, reportstruct->sentTime.tv_usec, \
+			 reportstruct->packetTime.tv_sec, reportstruct->packetTime.tv_usec, TimeDifference(reportstruct->packetTime, reportstruct->sentTime));
+		PostReport(InitStringReport(text));
+		FREE_ARRAY(text);
+	    }
+	} else {
+	    printf("id 0x%x, 0x%x -> %" PRIdMAX " (0x%" PRIxMAX ")\n",
+		   ntohl(mBuf_UDP->id), ntohl(mBuf_UDP->id2), reportstruct->packetID, reportstruct->packetID);
+	}
+#endif
+    } else {
+	// Old client - Signed PacketID in Signed id
+	reportstruct->packetID = static_cast<int32_t>(ntohl(mBuf_UDP->id));
+#ifdef HAVE_PACKET_DEBUG
+	printf("id 0x%x -> %" PRIdMAX " (0x%" PRIxMAX ")\n",
+	       ntohl(mBuf_UDP->id), reportstruct->packetID, reportstruct->packetID);
+#endif
+    }
+    if (reportstruct->packetID < 0) {
+	reportstruct->packetID = -reportstruct->packetID;
+	terminate = true;
+    }
     return terminate;
 }
 
