@@ -741,8 +741,8 @@ bool Server::InitTrafficLoop (void) {
 	reportstruct->packetLen = mSettings->firstreadbytes;
 	if (isUDP(mSettings)) {
 	    int offset = 0;
-	    UDPReady = !ReadPacketID(offset);
 	    reportstruct->packetTime = mSettings->accept_time;
+	    UDPReady = !ReadPacketID(offset);
 	} else {
 	    reportstruct->sentTime.tv_sec = myReport->info.ts.startTime.tv_sec;
 	    reportstruct->sentTime.tv_usec = myReport->info.ts.startTime.tv_usec;
