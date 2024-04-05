@@ -174,7 +174,7 @@ bool Client::my_connect (bool close_on_fail) {
     mSettings->tcpinitstats.connecttime = -1;
     if (!isUDP(mSettings)) {
 	Timestamp end_connect_retry;
-	end_connect_retry.add(mSettings->connect_retry_timer);
+	end_connect_retry.add(mSettings->connect_retry_time);
 	do {
 	    connect_start.setnow();
 	    rc = connect(mySocket, reinterpret_cast<sockaddr*>(&mSettings->peer),
