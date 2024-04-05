@@ -346,7 +346,7 @@ void warn_errno( const char *inMessage, const char *inFile, int inLine ) {
 #endif
 } /* end warn_errno */
 
-void errno_decode (char *text, size_t len) {
+int errno_decode (char *text, size_t len) {
     int my_err;
     const char* my_str;
     /* get platform's errno and error message */
@@ -358,6 +358,7 @@ void errno_decode (char *text, size_t len) {
     my_str = strerror( my_err );
 #endif
     strncpy(text, my_str, len);
+    return my_err;
 }
 
 #ifdef __cplusplus

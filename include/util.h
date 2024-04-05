@@ -121,7 +121,7 @@ BOOL WINAPI sig_dispatcher(DWORD type);
  * ------------------------------------------------------------------- */
 void warn      (const char *inMessage, const char *inFile, int inLine);
 void warn_errno(const char *inMessage, const char *inFile, int inLine);
-void errno_decode (char *decoded_text, size_t len);
+int errno_decode (char *decoded_text, size_t len);
 
 #define FAIL_exit(cond, msg)       \
   do {                                          \
