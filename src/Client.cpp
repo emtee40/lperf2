@@ -155,6 +155,11 @@ void Client::mySockInit (void) {
 		      SockAddr_get_sizeof_sockaddr(&mSettings->local));
 	WARN_errno(rc == SOCKET_ERROR, "bind");
     }
+    if (isSettingsReport(mSettings)) {
+	struct ReportHeader *tmp = InitSettingsReport(mSettings);
+	assert(tmp!=NULL);
+	PostReport(tmp);
+    }
     mysock_init_done = true;
 }
 
@@ -171,6 +176,7 @@ bool Client::my_connect (bool close_on_fail) {
     }
     // connect socket
     connected = false;
+    int connect_errno =  0;
     mSettings->tcpinitstats.connecttime = -1;
     if (!isUDP(mSettings)) {
 	Timestamp end_connect_retry;
@@ -184,7 +190,7 @@ bool Client::my_connect (bool close_on_fail) {
 		char timestr[120];
 		char tmpaddr[200];
 		char errtext[50];
-		errno_decode(errtext, sizeof(errtext));
+		connect_errno = errno_decode(errtext, sizeof(errtext));
 		unsigned short port = SockAddr_getPort(&mSettings->peer);
 		SockAddr_getHostAddress(&mSettings->peer, tmpaddr, sizeof(tmpaddr));
 		struct timeval t;
@@ -217,7 +223,7 @@ bool Client::my_connect (bool close_on_fail) {
 		break;
 	    }
 	} while (connect_done.before(end_connect_retry));
-	if (!connected) {
+	if (!connected  && (mSettings->connect_retry_time > 0)) {
 	    char timestr[120];
 	    struct timeval t;
 	    t.tv_sec = end_connect_retry.getSecs();
@@ -268,11 +274,6 @@ bool Client::my_connect (bool close_on_fail) {
 	    mySocket = INVALID_SOCKET;
 	}
     }
-    if (isSettingsReport(mSettings)) {
-	struct ReportHeader *tmp = InitSettingsReport(mSettings);
-	assert(tmp!=NULL);
-	PostReport(tmp);
-    }
     // Post the connect report unless peer version exchange is set
     if (isConnectionReport(mSettings) && !isSumOnly(mSettings)) {
 	if (connected) {
@@ -282,7 +283,7 @@ bool Client::my_connect (bool close_on_fail) {
 	    cr->connect_timestamp.tv_usec = connect_start.getUsecs();
 	    assert(reporthdr);
 	    PostReport(reporthdr);
-	} else {
+	} else if (!connect_errno) {
 	    PostReport(InitConnectionReport(mSettings));
 	}
     }
