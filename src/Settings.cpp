@@ -1069,7 +1069,7 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	    connectretryinterval = 0;
 	    char *end;
 	    double period = strtof(optarg, &end);
-	    if ((*end != '\0') || (period <=0 ))  {
+	    if ((*end != '\0') || (period < 0 ))  {
 		fprintf (stderr, "Invalid value of '%s' for --connect-retry-timer\n", optarg);
 		exit(1);
 	    }
@@ -1078,6 +1078,9 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 		exit(1);
 	    }
 	    mExtSettings->connect_retry_timer =	static_cast<unsigned int>(ceil(period * 1e6));
+	    if (mExtSettings->connect_retry_timer == 0) {
+		mExtSettings->connect_retry_timer = 10000;
+	    }
 	}
 	if (connectretrytime) {
 	    connectretrytime = 0;
@@ -1091,7 +1094,7 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 		fprintf (stderr, "Too large value of '%s' for --connect-retry-time, max is %f\n", optarg, (UINT_MAX / 1e6));
 		exit(1);
 	    }
-	    mExtSettings->connect_retry_timer = timer;
+	    mExtSettings->connect_retry_time = timer;
 	}
 	if (sumonly) {
 	    sumonly = 0;
@@ -1797,11 +1800,13 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 		bail = true;
 	    }
 	}
-	if ((mExtSettings->connect_retry_timer > 0) && (mExtSettings->connect_retry_time <= 0)) {
-	    fprintf(stderr, "WARN: option of --connect-retry-timer requires --connect-retry-time set to value greater than zero\n");
-	}
-	if ((mExtSettings->connect_retry_time > 0) &&!mExtSettings->connect_retry_timer) {
+	if ((mExtSettings->connect_retry_time > 0) && !mExtSettings->connect_retry_timer) {
+	    fprintf(stderr, "WARN: companion option of --connect-retry-timer not set - setting to default value of one second\n");
 	    mExtSettings->connect_retry_timer = 1000000; // 1 sec in units usecs
+	}
+	if ((mExtSettings->connect_retry_timer > 0) && (mExtSettings->connect_retry_time <= 0)) {
+	    fprintf(stderr, "WARN: companion option of --connect-retry-time not set - setting to default value of ten seconds\n");
+	    mExtSettings->connect_retry_time = 10;
 	}
 	if (isUDP(mExtSettings)) {
 	    if (isPeerVerDetect(mExtSettings)) {
