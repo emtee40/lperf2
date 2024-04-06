@@ -338,7 +338,7 @@ void SetSocketOptionsReceiveTimeout (struct thread_Settings *mSettings, int time
 void SetSocketOptionsIPTos (struct thread_Settings *mSettings, int tos) {
     bool supported = true;
     // set IP TOS (type-of-service) field
-    if (isOverrideTOS(mSettings) || (tos > 0)) {
+    if (isOverrideTOS(mSettings) || isSetTOS(mSettings) || (tos > 0)) {
 	// IPV6_TCLASS is defined on Windows but not implemented.
 #if !HAVE_DECL_IPV6_TCLASS || HAVE_WINSOCK2_H
 	if (isIPV6(mSettings)) {
