@@ -709,9 +709,9 @@ const char reportCSV_bw_read_enhanced_format[] =
 "%s,%s,%d,%.1f,%.1f,%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%d,%d,%d,%d,%d,%d,%d,%d\n";
 
 const char reportCSV_bw_write_enhanced_header[] =
-"time,srcaddress,srcport,dstaddr,dstport,transferid,istart,iend,bytes,speed,writecnt,writeerr,tcpretry,tcpcwnd,tcprtt,tcprttvar\n";
+"time,srcaddress,srcport,dstaddr,dstport,transferid,istart,iend,bytes,speed,writecnt,writeerr,tcpretry,tcpcwnd,tcppcwnd,tcprtt,tcprttvar\n";
 const char reportCSV_bw_write_enhanced_format[] =
-"%s,%s,%d,%.1f,%.1f,%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%d,%u,%u\n";
+"%s,%s,%d,%.1f,%.1f,%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%d,%d,%u,%u\n";
 
 const char reportCSV_bw_jitter_loss_format[] =
 "%s,%s,%d,%.1f-%.1f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%" PRIdMAX "\n";
