@@ -2052,7 +2052,13 @@ static void reporter_output_client_settings (struct ReportSettings *report) {
     }
 #endif
     if (isEnhanced(report->common)) {
-	fprintf(stdout, "TOS set to 0x%x (dscp=%d,ecn=%d)", report->common->TOS, \
+	char strtext[10];
+	if (isSetTOS(report->common)) {
+	    strcpy(strtext, "set");
+	} else {
+	    strcpy(strtext, "defaults");
+	}
+	fprintf(stdout, "TOS %s to 0x%x (dscp=%d,ecn=%d)", strtext, report->common->TOS, \
 		DSCP_VALUE(report->common->TOS), ECN_VALUE(report->common->TOS));
 	if (ECN_VALUE(report->common->TOS)) {
 	    fprintf(stdout, " (warn ecn bits set)");

@@ -928,9 +928,12 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	// TODO use a function that understands base-2
 	// the zero base here allows the user to specify
 	// "0x#" hex, "0#" octal, and "#" decimal numbers
-	if ((mExtSettings->mTOS = parse_ipqos(optarg)) == -1) {
-	    fprintf(stderr, "Invalid --tos value of %s\n", optarg);
+	mExtSettings->mTOS = parse_ipqos(optarg);
+	if (mExtSettings->mTOS == -1) {
+	    fprintf(stderr, "WARN: Invalid --tos value of %s ignored\n", optarg);
 	    mExtSettings->mTOS = 0;
+	} else {
+	    setSetTOS(mExtSettings);
 	}
 	break;
 
