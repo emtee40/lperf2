@@ -337,9 +337,6 @@ void SetSocketOptionsReceiveTimeout (struct thread_Settings *mSettings, int time
 
 void SetSocketOptionsIPTos (struct thread_Settings *mSettings, int tos) {
     bool supported = true;
-#ifdef HAVE_THREAD_DEBUG
-    thread_debug("Set socket IP_TOS to 0x%x", tos);
-#endif
     // set IP TOS (type-of-service) field
     if (isOverrideTOS(mSettings) || (tos > 0)) {
 	// IPV6_TCLASS is defined on Windows but not implemented.
