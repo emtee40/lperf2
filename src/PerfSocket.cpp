@@ -346,14 +346,14 @@ void SetSocketOptionsIPTos (struct thread_Settings *mSettings, int tos) {
 #if !HAVE_DECL_IPV6_TCLASS || HAVE_WINSOCK2_H
 	if (isIPV6(mSettings)) {
 	    WARN(1, "WARN: IPV6_TCLASS not supported, setting --tos");
-	    mSettings->mTOS = 0x0;
+	    mSettings->mTOS = 0;
 	    supported = false;
 	}
 #endif
 #if !HAVE_DECL_IP_TOS
 	if (!isIPV6(mSettings)) {
 	    WARN(1, "WARN: IP_TOS not supported, setting --tos");
-	    mSettings->mTOS = 0x0;
+	    mSettings->mTOS = 0;
 	    supported = false;
 	}
 #endif
