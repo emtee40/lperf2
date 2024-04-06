@@ -1644,6 +1644,7 @@ void tcp_output_write_enhanced_csv (struct TransferInfo *stats) {
 	   -1,
 	   -1,
 	   -1,
+	   -1,
 	   0,
 	   0);
 #else
@@ -1661,6 +1662,7 @@ void tcp_output_write_enhanced_csv (struct TransferInfo *stats) {
 	       stats->sock_callstats.write.WriteErr,
 	       stats->sock_callstats.write.tcpstats.retry,
 	       -1,
+	       -1,
 	       0,
 	       0);
     } else if (stats->sock_callstats.write.tcpstats.cwnd > 0) {
@@ -1676,6 +1678,7 @@ void tcp_output_write_enhanced_csv (struct TransferInfo *stats) {
 	       stats->sock_callstats.write.WriteErr,
 	       stats->sock_callstats.write.tcpstats.retry,
 	       stats->sock_callstats.write.tcpstats.cwnd,
+	       stats->sock_callstats.write.tcpstats.cwnd_packets,
 	       stats->sock_callstats.write.tcpstats.rtt,
 	       stats->sock_callstats.write.tcpstats.rttvar);
     } else {
@@ -1690,6 +1693,7 @@ void tcp_output_write_enhanced_csv (struct TransferInfo *stats) {
 	       stats->sock_callstats.write.WriteCnt,
 	       stats->sock_callstats.write.WriteErr,
 	       stats->sock_callstats.write.tcpstats.retry,
+	       -1,
 	       -1,
 	       stats->sock_callstats.write.tcpstats.rtt,
 	       0);
