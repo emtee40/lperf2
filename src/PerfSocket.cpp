@@ -223,9 +223,7 @@ void SetSocketOptions (struct thread_Settings *inSettings) {
 	WARN_errno(rc == SOCKET_ERROR, "v4 ttl");
     }
 
-#if HAVE_DECL_IP_TOS
     SetSocketOptionsIPTos(inSettings, inSettings->mTOS);
-#endif
 
     if (!isUDP(inSettings)) {
 	if (isTCPMSS(inSettings)) {
@@ -338,18 +336,28 @@ void SetSocketOptionsReceiveTimeout (struct thread_Settings *mSettings, int time
 
 
 void SetSocketOptionsIPTos (struct thread_Settings *mSettings, int tos) {
-#if  HAVE_DECL_IP_TOS
+    bool supported = true;
 #ifdef HAVE_THREAD_DEBUG
     thread_debug("Set socket IP_TOS to 0x%x", tos);
 #endif
     // set IP TOS (type-of-service) field
     if (isOverrideTOS(mSettings) || (tos > 0)) {
+	// IPV6_TCLASS is defined on Windows but not implemented.
+#if !HAVE_DECL_IPV6_TCLASS || HAVE_WINSOCK2_H
 	if (isIPV6(mSettings)) {
-	    // IPV6_TCLASS is defined on Windows but not implemented.
-#if !HAVE_DECL_IPV6_TCLASS || defined HAVE_WINSOCK2_H
-	    WARN_errno(1, "IPV6_TCLASS not supported");
+	    WARN(1, "WARN: IPV6_TCLASS not supported, setting --tos");
+	    mSettings->mTOS = 0x0;
+	    supported = false;
+	}
 #endif
-	} else {
+#if !HAVE_DECL_IP_TOS
+	if (!isIPV6(mSettings)) {
+	    WARN(1, "WARN: IP_TOS not supported, setting --tos");
+	    mSettings->mTOS = 0x0;
+	    supported = false;
+	}
+#endif
+	if (supported) {
 	    int reqtos = tos;
 	    Socklen_t len = sizeof(reqtos);
 	    int rc = setsockopt(mSettings->mSock, (isIPV6(mSettings) ? IPPROTO_IPV6 : IPPROTO_IP), \
@@ -367,7 +375,6 @@ void SetSocketOptionsIPTos (struct thread_Settings *mSettings, int tos) {
 	    }
 	}
     }
-#endif
 }
 
 /*

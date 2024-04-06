@@ -1604,12 +1604,6 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	fprintf(stderr, "ERROR: compatibility mode not supported with the requested with options\n");
 	bail = true;
     }
-#if !(HAVE_DECL_IP_TOS)
-    if (isOverrideTOS(mExtSettings) || mExtSettings->mTOS) {
-	unsetOverrideTOS(mExtSettings);
-	fprintf(stderr, "WARN: IP_TOS not supported\n");
-    }
-#endif
     if (isPermitKey(mExtSettings)) {
 	if (isUDP(mExtSettings)) {
 	    fprintf(stderr, "ERROR: Option of --permit-key not supported with UDP\n");
