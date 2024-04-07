@@ -423,7 +423,6 @@ void SetSocketTcpTxDelay(struct thread_Settings *mSettings, int delay) {
 }
 
 void sol_bindtodevice (struct thread_Settings *inSettings) {
-
     char *device = (inSettings->mThreadMode == kMode_Client) ? inSettings->mIfrnametx : inSettings->mIfrname;
     if (device) {
 #if (HAVE_DECL_SO_BINDTODEVICE)
@@ -438,15 +437,12 @@ void sol_bindtodevice (struct thread_Settings *inSettings) {
 	    len = snprintf(buf, len, "%s %s", "bind to device", device);
 	    WARN_errno(1, buf);
 	    free(buf);
-	    free(device);
-	    device = NULL;
 	}
 #else
 	fprintf(stderr, "bind to device not supported\n");
 #endif
 
     }
-
 }
 
 void SetSocketBindToDeviceIfNeeded (struct thread_Settings *inSettings) {
