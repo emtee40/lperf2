@@ -261,8 +261,13 @@ void histogram_print(struct histogram *h, double start, double end) {
 	      h->outbuf, h->ci_lower, h->ci_upper, lowerci, upperci, upper3stdev, outliercnt, oob_l, oob_u);
     if (!h->final && (h->maxval > 0) && ((h->maxts.tv_sec > 0) || h->maxts.tv_usec > 0)) {
 	fprintf(stdout, " (%0.3f ms/%ld.%ld)", (h->maxval * 1e3), (long) h->maxts.tv_sec, (long) h->maxts.tv_usec);
+	if (TimeDifference(h->prev->maxts, h->maxts) > 0) {
+	    fprintf(stout, "(clock_err)");
+	}
       h->maxbin = -1;
       h->maxval = 0;
+      h->prev->maxts.tv_sec = 0;
+      h->prev->maxts.tv_usec = 0;
       h->maxts.tv_sec = 0;
       h->maxts.tv_usec = 0;
     } else if (h->final && (h->fmaxval > 0) && ((h->maxts.tv_sec > 0) || h->maxts.tv_usec > 0)) {
