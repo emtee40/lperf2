@@ -48,6 +48,7 @@
 #include "headers.h"
 #include "histogram.h"
 #include "Locale.h"
+#include "util.h"
 #ifdef HAVE_THREAD_DEBUG
 // needed for thread_debug
 #include "Thread.h"
@@ -262,7 +263,7 @@ void histogram_print(struct histogram *h, double start, double end) {
     if (!h->final && (h->maxval > 0) && ((h->maxts.tv_sec > 0) || h->maxts.tv_usec > 0)) {
 	fprintf(stdout, " (%0.3f ms/%ld.%ld)", (h->maxval * 1e3), (long) h->maxts.tv_sec, (long) h->maxts.tv_usec);
 	if (TimeDifference(h->prev->maxts, h->maxts) > 0) {
-	    fprintf(stout, "(clock_err)");
+	    fprintf(stdout, "(clock_err)");
 	}
       h->maxbin = -1;
       h->maxval = 0;
