@@ -433,21 +433,29 @@ const char report_bw_write_enhanced_header[] =
 
 const char report_bw_write_enhanced_format[] =
 "%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX " %8dK(%d)/%dK(%d)/%u(%u) us  %s\n";
+
+const char report_bw_write_enhanced_fq_header[] =
+"[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth       Write/Err  Rtry     InF(pkts)/Cwnd(pkts)/RTT(var)  fq-rate  NetPwr\n";
+
+const char report_bw_write_enhanced_fq_format[] =
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX " %8dK(%d)/%dK(%d)/%u(%u) us %s/sec %s%s\n";
+
 #else
 const char report_bw_write_enhanced_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth       Write/Err  Rtry     Cwnd/RTT(var)        NetPwr\n";
 
 const char report_bw_write_enhanced_format[] =
 "%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX " %8dK/%u(%u) us  %s\n";
-#endif
-const char report_sum_bw_write_enhanced_format[] =
-"[SUM] " IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX " %s\n";
 
 const char report_bw_write_enhanced_fq_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth       Write/Err  Rtry     Cwnd/RTT(var)  fq-rate  NetPwr\n";
 
 const char report_bw_write_enhanced_fq_format[] =
 "%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX " %8dK/%u(%u) us %s/sec %s%s\n";
+#endif //HAVE_TCP_INFLIGHT
+
+const char report_sum_bw_write_enhanced_format[] =
+"[SUM] " IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX " %s\n";
 
 const char report_bw_write_enhanced_fq_final_format[] =
 "%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX " %8dK/%u(%u) us %s%s\n";
