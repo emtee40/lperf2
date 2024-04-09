@@ -652,36 +652,36 @@ void tcp_output_write_enhanced (struct TransferInfo *stats) {
 	   (stats->common->Omit ? report_omitted : ""));
 #else
     set_netpowerbuf(stats->sock_callstats.write.tcpstats.rtt * 1e-6, stats);
-    if (stats->sock_callstats.write.tcpstats.cwnd > 0) {
-	printf(report_bw_write_enhanced_format,
-	       stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
-	       outbuffer, outbufferext,
-	       stats->sock_callstats.write.WriteCnt,
-	       stats->sock_callstats.write.WriteErr,
-	       stats->sock_callstats.write.tcpstats.retry,
+#if HAVE_STRUCT_TCP_INFO_TCPI_SND_CWND
+    printf(report_bw_write_enhanced_format,
+	   stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
+	   outbuffer, outbufferext,
+	   stats->sock_callstats.write.WriteCnt,
+	   stats->sock_callstats.write.WriteErr,
+	   stats->sock_callstats.write.tcpstats.retry,
 #if HAVE_TCP_INFLIGHT
-	       stats->sock_callstats.write.tcpstats.bytes_in_flight,
-	       stats->sock_callstats.write.tcpstats.packets_in_flight,
+	   stats->sock_callstats.write.tcpstats.bytes_in_flight,
+	   stats->sock_callstats.write.tcpstats.packets_in_flight,
 #endif
-	       stats->sock_callstats.write.tcpstats.cwnd,
+	   stats->sock_callstats.write.tcpstats.cwnd,
 #if HAVE_TCP_INFLIGHT
-	       stats->sock_callstats.write.tcpstats.cwnd_packets,
+	   stats->sock_callstats.write.tcpstats.cwnd_packets,
 #endif
-	       stats->sock_callstats.write.tcpstats.rtt,
-	       stats->sock_callstats.write.tcpstats.rttvar,
-	       netpower_buf,
-	       (stats->common->Omit ? report_omitted : ""));
-    } else {
-	printf(report_bw_write_enhanced_nocwnd_format,
-	       stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
-	       outbuffer, outbufferext,
-	       stats->sock_callstats.write.WriteCnt,
-	       stats->sock_callstats.write.WriteErr,
-	       stats->sock_callstats.write.tcpstats.retry,
-	       stats->sock_callstats.write.tcpstats.rtt,
-	       netpower_buf,
-	       (stats->common->Omit ? report_omitted : ""));
-    }
+	   stats->sock_callstats.write.tcpstats.rtt,
+	   stats->sock_callstats.write.tcpstats.rttvar,
+	   netpower_buf,
+	   (stats->common->Omit ? report_omitted : ""));
+#else
+    printf(report_bw_write_enhanced_nocwnd_format,
+	   stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
+	   outbuffer, outbufferext,
+	   stats->sock_callstats.write.WriteCnt,
+	   stats->sock_callstats.write.WriteErr,
+	   stats->sock_callstats.write.tcpstats.retry,
+	   stats->sock_callstats.write.tcpstats.rtt,
+	   netpower_buf,
+	   (stats->common->Omit ? report_omitted : ""));
+#endif
 #endif
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
     if (stats->latency_histogram) {
@@ -711,50 +711,50 @@ void tcp_output_write_enhanced_fq (struct TransferInfo *stats) {
     } else {
 	pacingrate[0] = '\0';
     }
-    if (stats->sock_callstats.write.tcpstats.cwnd > 0) {
-	if (!stats->final) {
-	    printf(report_bw_write_enhanced_fq_format,
-		   stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
-		   outbuffer, outbufferext,
-		   stats->sock_callstats.write.WriteCnt,
-		   stats->sock_callstats.write.WriteErr,
-		   stats->sock_callstats.write.tcpstats.retry,
-#if HAVE_TCP_INFLIGHT
-		   stats->sock_callstats.write.tcpstats.bytes_in_flight,
-		   stats->sock_callstats.write.tcpstats.packets_in_flight,
-#endif
-		   stats->sock_callstats.write.tcpstats.cwnd,
-#if HAVE_TCP_INFLIGHT
-		   stats->sock_callstats.write.tcpstats.cwnd_packets,
-#endif
-		   stats->sock_callstats.write.tcpstats.rtt,
-		   stats->sock_callstats.write.tcpstats.rttvar,
-		   pacingrate, netpower_buf,
-		   (stats->common->Omit ? report_omitted : ""));
-	} else {
-	    printf(report_bw_write_enhanced_fq_final_format,
-		   stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
-		   outbuffer, outbufferext,
-		   stats->sock_callstats.write.WriteCnt,
-		   stats->sock_callstats.write.WriteErr,
-		   stats->sock_callstats.write.tcpstats.retry,
-		   stats->sock_callstats.write.tcpstats.cwnd,
-		   stats->sock_callstats.write.tcpstats.rtt,
-		   stats->sock_callstats.write.tcpstats.rttvar,
-		   netpower_buf,
-		   (stats->common->Omit ? report_omitted : ""));
-	}
-    } else {
-	printf(report_bw_write_enhanced_nocwnd_format,
+#if HAVE_STRUCT_TCP_INFO_TCPI_SND_CWND
+    if (!stats->final) {
+	printf(report_bw_write_enhanced_fq_format,
 	       stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
 	       outbuffer, outbufferext,
 	       stats->sock_callstats.write.WriteCnt,
 	       stats->sock_callstats.write.WriteErr,
 	       stats->sock_callstats.write.tcpstats.retry,
+#if HAVE_TCP_INFLIGHT
+	       stats->sock_callstats.write.tcpstats.bytes_in_flight,
+	       stats->sock_callstats.write.tcpstats.packets_in_flight,
+#endif
+	       stats->sock_callstats.write.tcpstats.cwnd,
+#if HAVE_TCP_INFLIGHT
+	       stats->sock_callstats.write.tcpstats.cwnd_packets,
+#endif
 	       stats->sock_callstats.write.tcpstats.rtt,
+	       stats->sock_callstats.write.tcpstats.rttvar,
+	       pacingrate, netpower_buf,
+	       (stats->common->Omit ? report_omitted : ""));
+    } else {
+	printf(report_bw_write_enhanced_fq_final_format,
+	       stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
+	       outbuffer, outbufferext,
+	       stats->sock_callstats.write.WriteCnt,
+	       stats->sock_callstats.write.WriteErr,
+	       stats->sock_callstats.write.tcpstats.retry,
+	       stats->sock_callstats.write.tcpstats.cwnd,
+	       stats->sock_callstats.write.tcpstats.rtt,
+	       stats->sock_callstats.write.tcpstats.rttvar,
 	       netpower_buf,
 	       (stats->common->Omit ? report_omitted : ""));
     }
+#else
+    printf(report_bw_write_enhanced_nocwnd_format,
+	   stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
+	   outbuffer, outbufferext,
+	   stats->sock_callstats.write.WriteCnt,
+	   stats->sock_callstats.write.WriteErr,
+	   stats->sock_callstats.write.tcpstats.retry,
+	   stats->sock_callstats.write.tcpstats.rtt,
+	   netpower_buf,
+	   (stats->common->Omit ? report_omitted : ""));
+#endif
 #endif
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
     if (stats->latency_histogram) {
@@ -782,37 +782,37 @@ void tcp_output_write_enhanced_write (struct TransferInfo *stats) {
 	   (stats->common->Omit ? report_omitted : ""));
 #else
     set_netpowerbuf(stats->sock_callstats.write.tcpstats.rtt * 1e-6, stats);
-    if (stats->sock_callstats.write.tcpstats.cwnd > 0) {
-	printf(report_write_enhanced_write_format,
-	       stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
-	       outbuffer, outbufferext,
-	       stats->sock_callstats.write.WriteCnt,
-	       stats->sock_callstats.write.WriteErr,
-	       stats->sock_callstats.write.tcpstats.retry,
-	       stats->sock_callstats.write.tcpstats.cwnd,
-	       stats->sock_callstats.write.tcpstats.rtt,
-	       netpower_buf,
-	       stats->write_mmm.current.mean * 1e-3,
-	       stats->write_mmm.current.min * 1e-3,
-	       stats->write_mmm.current.max * 1e-3,
-	       (stats->write_mmm.current.cnt < 2) ? 0 : (1e-3 * sqrt(stats->write_mmm.current.m2 / (stats->write_mmm.current.cnt - 1))),
-	       stats->write_mmm.current.cnt,
-	       (stats->common->Omit ? report_omitted : ""));
-    } else {
-	printf(report_write_enhanced_nocwnd_write_format,
-	       stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
-	       outbuffer, outbufferext,
-	       stats->sock_callstats.write.WriteCnt,
-	       stats->sock_callstats.write.WriteErr,
-	       stats->sock_callstats.write.tcpstats.retry,
-	       stats->sock_callstats.write.tcpstats.rtt,
-	       netpower_buf,
-	       stats->write_mmm.current.mean * 1e3,
-	       stats->write_mmm.current.min * 1e3,
-	       stats->write_mmm.current.max * 1e3,
-	       (stats->write_mmm.current.cnt < 2) ? 0 : (1e3 * sqrt(stats->write_mmm.current.m2 / (stats->write_mmm.current.cnt - 1))),
-	       stats->write_mmm.current.cnt, (stats->common->Omit ? report_omitted : ""));
-    }
+#if HAVE_STRUCT_TCP_INFO_TCPI_SND_CWND
+    printf(report_write_enhanced_write_format,
+	   stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
+	   outbuffer, outbufferext,
+	   stats->sock_callstats.write.WriteCnt,
+	   stats->sock_callstats.write.WriteErr,
+	   stats->sock_callstats.write.tcpstats.retry,
+	   stats->sock_callstats.write.tcpstats.cwnd,
+	   stats->sock_callstats.write.tcpstats.rtt,
+	   netpower_buf,
+	   stats->write_mmm.current.mean * 1e-3,
+	   stats->write_mmm.current.min * 1e-3,
+	   stats->write_mmm.current.max * 1e-3,
+	   (stats->write_mmm.current.cnt < 2) ? 0 : (1e-3 * sqrt(stats->write_mmm.current.m2 / (stats->write_mmm.current.cnt - 1))),
+	   stats->write_mmm.current.cnt,
+	   (stats->common->Omit ? report_omitted : ""));
+#else
+    printf(report_write_enhanced_nocwnd_write_format,
+	   stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
+	   outbuffer, outbufferext,
+	   stats->sock_callstats.write.WriteCnt,
+	   stats->sock_callstats.write.WriteErr,
+	   stats->sock_callstats.write.tcpstats.retry,
+	   stats->sock_callstats.write.tcpstats.rtt,
+	   netpower_buf,
+	   stats->write_mmm.current.mean * 1e3,
+	   stats->write_mmm.current.min * 1e3,
+	   stats->write_mmm.current.max * 1e3,
+	   (stats->write_mmm.current.cnt < 2) ? 0 : (1e3 * sqrt(stats->write_mmm.current.m2 / (stats->write_mmm.current.cnt - 1))),
+	   stats->write_mmm.current.cnt, (stats->common->Omit ? report_omitted : ""));
+#endif
 #endif
     if (stats->latency_histogram) {
 	histogram_print(stats->latency_histogram, stats->ts.iStart, stats->ts.iEnd);
@@ -835,28 +835,28 @@ void tcp_output_write_enhanced_isoch (struct TransferInfo *stats) {
 	   stats->isochstats.cntFrames, stats->isochstats.cntFramesMissed, stats->isochstats.cntSlips, (stats->common->Omit ? report_omitted : ""));
 #else
     set_netpowerbuf(stats->sock_callstats.write.tcpstats.rtt * 1e-6, stats);
-    if (stats->sock_callstats.write.tcpstats.cwnd > 0) {
-	printf(report_write_enhanced_isoch_format,
-	       stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
-	       outbuffer, outbufferext,
-	       stats->sock_callstats.write.WriteCnt,
-	       stats->sock_callstats.write.WriteErr,
-	       stats->sock_callstats.write.tcpstats.retry,
-	       stats->sock_callstats.write.tcpstats.cwnd,
-	       stats->sock_callstats.write.tcpstats.rtt,
-	       stats->isochstats.cntFrames, stats->isochstats.cntFramesMissed, stats->isochstats.cntSlips,
-	       netpower_buf,(stats->common->Omit ? report_omitted : ""));
-    } else {
-	printf(report_write_enhanced_isoch_nocwnd_format,
-	       stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
-	       outbuffer, outbufferext,
-	       stats->sock_callstats.write.WriteCnt,
-	       stats->sock_callstats.write.WriteErr,
-	       stats->sock_callstats.write.tcpstats.retry,
-	       stats->sock_callstats.write.tcpstats.rtt,
-	       stats->isochstats.cntFrames, stats->isochstats.cntFramesMissed, stats->isochstats.cntSlips,
-	       netpower_buf,(stats->common->Omit ? report_omitted : ""));
-    }
+#if HAVE_STRUCT_TCP_INFO_TCPI_SND_CWND
+    printf(report_write_enhanced_isoch_format,
+	   stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
+	   outbuffer, outbufferext,
+	   stats->sock_callstats.write.WriteCnt,
+	   stats->sock_callstats.write.WriteErr,
+	   stats->sock_callstats.write.tcpstats.retry,
+	   stats->sock_callstats.write.tcpstats.cwnd,
+	   stats->sock_callstats.write.tcpstats.rtt,
+	   stats->isochstats.cntFrames, stats->isochstats.cntFramesMissed, stats->isochstats.cntSlips,
+	   netpower_buf,(stats->common->Omit ? report_omitted : ""));
+#else
+    printf(report_write_enhanced_isoch_nocwnd_format,
+	   stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
+	   outbuffer, outbufferext,
+	   stats->sock_callstats.write.WriteCnt,
+	   stats->sock_callstats.write.WriteErr,
+	   stats->sock_callstats.write.tcpstats.retry,
+	   stats->sock_callstats.write.tcpstats.rtt,
+	   stats->isochstats.cntFrames, stats->isochstats.cntFramesMissed, stats->isochstats.cntSlips,
+	   netpower_buf,(stats->common->Omit ? report_omitted : ""));
+#endif
 #endif
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
     if (stats->latency_histogram) {

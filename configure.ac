@@ -295,7 +295,8 @@ AC_CHECK_MEMBERS([struct sockaddr_in6.sin6_len,
 			 struct ip_mreq_source.imr_multiaddr.s_addr], [], [],[$in_h])
 
 AC_CHECK_MEMBERS([struct tcp_info.tcpi_total_retrans, struct tcp_info.tcpi_unacked, struct tcp_info.tcpi_sacked,
-			 struct tcp_info.tcpi_lost, struct tcp_info.tcpi_retrans], [], [],[
+			 struct tcp_info.tcpi_lost, struct tcp_info.tcpi_retrans, struct tcp_info.tcpi_snd_mss,
+			 struct tcp_info.tcpi_snd_cwnd], [], [],[
 #include <netinet/in.h>
 #include <netinet/tcp.h>
 ])

@@ -479,6 +479,12 @@
 /* Define to 1 if 'tcpi_sacked' is a member of 'struct tcp_info'. */
 #undef HAVE_STRUCT_TCP_INFO_TCPI_SACKED
 
+/* Define to 1 if 'tcpi_snd_cwnd' is a member of 'struct tcp_info'. */
+#undef HAVE_STRUCT_TCP_INFO_TCPI_SND_CWND
+
+/* Define to 1 if 'tcpi_snd_mss' is a member of 'struct tcp_info'. */
+#undef HAVE_STRUCT_TCP_INFO_TCPI_SND_MSS
+
 /* Define to 1 if 'tcpi_total_retrans' is a member of 'struct tcp_info'. */
 #undef HAVE_STRUCT_TCP_INFO_TCPI_TOTAL_RETRANS
 
