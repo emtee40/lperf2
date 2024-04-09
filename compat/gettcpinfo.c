@@ -69,12 +69,24 @@ inline void gettcpinfo (int sock, struct iperf_tcpstats *stats) {
     struct tcp_info tcp_info_buf;
     socklen_t tcp_info_length = sizeof(struct tcp_info);
     if ((sock > 0) && !(getsockopt(sock, IPPROTO_TCP, TCP_INFO, &tcp_info_buf, &tcp_info_length) < 0)) {
-        stats->cwnd = tcp_info_buf.tcpi_snd_cwnd * tcp_info_buf.tcpi_snd_mss / 1024;
+#if HAVE_STRUCT_TCP_INFO_TCPI_SND_CWND
         stats->cwnd_packets = tcp_info_buf.tcpi_snd_cwnd;
+#else
+        stats->cwnd_packets = -1;
+#endif
+#if HAVE_STRUCT_TCP_INFO_TCPI_SND_CWND && HAVE_STRUCT_TCP_INFO_TCPI_SND_MSS
+        stats->cwnd = tcp_info_buf.tcpi_snd_cwnd * tcp_info_buf.tcpi_snd_mss / 1024;
+#else
+        stats->cwnd = -1;
+#endif
 	stats->rtt = tcp_info_buf.tcpi_rtt;
 	stats->rttvar = tcp_info_buf.tcpi_rttvar;
 	stats->retry_tot = tcp_info_buf.tcpi_total_retrans;
+#if HAVE_STRUCT_TCP_INFO_TCPI_SND_MSS
 	stats->mss_negotiated = tcp_info_buf.tcpi_snd_mss;
+#else
+	stats->mss_negotiated = -1;
+#endif
 #if HAVE_TCP_INFLIGHT
 	stats->packets_in_flight = (tcp_info_buf.tcpi_unacked - tcp_info_buf.tcpi_sacked - \
 				    tcp_info_buf.tcpi_lost + tcp_info_buf.tcpi_retrans);

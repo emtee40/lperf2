@@ -10451,6 +10451,30 @@ printf "%s\n" "#define HAVE_STRUCT_TCP_INFO_TCPI_RETRANS 1" >>confdefs.h
 
 
 fi
+ac_fn_c_check_member "$LINENO" "struct tcp_info" "tcpi_snd_mss" "ac_cv_member_struct_tcp_info_tcpi_snd_mss" "
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+
+"
+if test "x$ac_cv_member_struct_tcp_info_tcpi_snd_mss" = xyes
+then :
+
+printf "%s\n" "#define HAVE_STRUCT_TCP_INFO_TCPI_SND_MSS 1" >>confdefs.h
+
+
+fi
+ac_fn_c_check_member "$LINENO" "struct tcp_info" "tcpi_snd_cwnd" "ac_cv_member_struct_tcp_info_tcpi_snd_cwnd" "
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+
+"
+if test "x$ac_cv_member_struct_tcp_info_tcpi_snd_cwnd" = xyes
+then :
+
+printf "%s\n" "#define HAVE_STRUCT_TCP_INFO_TCPI_SND_CWND 1" >>confdefs.h
+
+
+fi
 
 
 ac_fn_c_check_member "$LINENO" "struct tcp_info" "tcpi_delivered" "ac_cv_member_struct_tcp_info_tcpi_delivered" "
