@@ -407,13 +407,7 @@ const char report_client_bb_bw_header[] =
 
 const char report_client_bb_bw_format[] =
 "%s" IPERFTimeFrmt " sec  %ss  %ss/sec    %" PRIdMAX "=%.3f/%.3f/%.3f/%.3f ms %4d %4dK/%u us    %s rps%s\n";
-#else
-const char report_client_bb_bw_header[] =
-"[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth         BB cnt=avg/min/max/stdev    RPS(avg)\n";
 
-const char report_client_bb_bw_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec    %" PRIdMAX "=%.3f/%.3f/%.3f/%.3f ms    %s rps%s\n";
-#endif
 const char report_client_bb_bw_triptime_format[] =
 "%s" IPERFTimeFrmt " sec  OWD (ms) Cnt=%" PRIdMAX " TX=%.3f/%.3f/%.3f/%.3f RX=%.3f/%.3f/%.3f/%.3f Asymmetry=%.3f/%.3f/%.3f/%.3f%s\n";
 
@@ -426,7 +420,6 @@ const char report_write_enhanced_write_format[] =
 const char report_write_enhanced_nocwnd_write_format[] =
 "%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %10" PRIdMAX "       NA/%u us  %s  %.3f/%.3f/%.3f/%.3f ms (%" PRIdMAX ")%s\n";
 
-#if HAVE_TCP_STATS
 #if HAVE_TCP_INFLIGHT
 const char report_bw_write_enhanced_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth       Write/Err  Rtry     InF(pkts)/Cwnd(pkts)/RTT(var)        NetPwr\n";
@@ -440,7 +433,7 @@ const char report_bw_write_enhanced_fq_header[] =
 const char report_bw_write_enhanced_fq_format[] =
 "%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX " %8dK(%d)/%dK(%d)/%u(%u) us %s/sec %s%s\n";
 
-#else
+#else // no inflight
 const char report_bw_write_enhanced_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth       Write/Err  Rtry     Cwnd/RTT(var)        NetPwr\n";
 
@@ -472,7 +465,13 @@ const char report_write_enhanced_isoch_format[] =
 const char report_write_enhanced_isoch_nocwnd_format[] =
 "%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %10" PRIdMAX "    NA/%u us  %9" PRIuMAX "/%" PRIuMAX "/%" PRIuMAX " %s%s\n";
 
-#else
+#else //no tcpstat
+
+const char report_client_bb_bw_header[] =
+"[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth         BB cnt=avg/min/max/stdev    RPS(avg)\n";
+
+const char report_client_bb_bw_format[] =
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec    %" PRIdMAX "=%.3f/%.3f/%.3f/%.3f ms    %s rps%s\n";
 
 const char report_bw_write_enhanced_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth       Write/Err\n";
@@ -488,7 +487,7 @@ const char report_write_enhanced_isoch_header[] =
 
 const char report_write_enhanced_isoch_format[] =
 "%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%9" PRIuMAX "/%" PRIuMAX "/%" PRIuMAX "%s\n";
-#endif
+#endif //tcp stat
 
 const char report_sumcnt_bw_write_enhanced_header[] =
 "[SUM-cnt] Interval" IPERFTimeSpace "Transfer    Bandwidth       Write/Err  Rtry\n";
@@ -563,7 +562,7 @@ const char report_bw_jitter_loss_enhanced_triptime_header[] =
 
 const char report_bw_jitter_loss_enhanced_triptime_format[] =
 "%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %6.3f ms %" PRIdMAX "/%" PRIdMAX " (%.2g%%) %.3f/%.3f/%.3f/%.3f ms %.0f pps %" PRIdMAX "/%s %" PRIdMAX "/%" PRIdMAX "%s%s\n";
-#endif
+#endif //msgtrunc
 const char report_bw_jitter_loss_enhanced_isoch_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer     Bandwidth        Jitter   Lost/Total \
  Latency avg/min/max/stdev PPS  NetPwr  Isoch:rx/lost\n";
@@ -814,10 +813,10 @@ const char warn_compat_and_peer_exchange[] =
 "WARNING: Options of '-C' '--compatibility' AND '-X' '--peerdetect' are mutually exclusive, --peerdetect ignored\n";
 
 const char warn_start_before_now[] =
-"[%3d] WARNING: --txstart-time (%ld.%06ld) %s is before now %s\n";
+"[%3d] WARNING: --txstart-time (%" PRIdMAX ".%06" PRIdMAX ") %s is before now %s\n";
 
 const char error_starttime_exceeds[] =
-"ERROR: --txstart-time (%ld.%06ld) %s exceeds max scheduled delay of %d secs\n";
+"ERROR: --txstart-time (% " PRIdMAX ".%06" PRIdMAX ") %s exceeds max scheduled delay of %d secs\n";
 
 const char error_delaytime_exceeds[] =
 "ERROR: --txdelay-time of %d seconds is more than the supported delay of %d seconds\n";
