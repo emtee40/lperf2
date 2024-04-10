@@ -70,6 +70,7 @@ static int HEADING_FLAG(report_bw_read_enhanced) = 0;
 static int HEADING_FLAG(report_bw_read_enhanced_netpwr) = 0;
 static int HEADING_FLAG(report_bw_write_enhanced) = 0;
 static int HEADING_FLAG(report_bw_write_enhanced_fq) = 0;
+static int HEADING_FLAG(report_bw_write_fq) = 0;
 static int HEADING_FLAG(report_write_enhanced_write) = 0;
 static int HEADING_FLAG(report_bw_write_enhanced_netpwr) = 0;
 static int HEADING_FLAG(report_bw_pps_enhanced) = 0;
@@ -109,6 +110,7 @@ void reporter_default_heading_flags (int flag) {
     HEADING_FLAG(report_bw_read_enhanced_netpwr) = flag;
     HEADING_FLAG(report_bw_write_enhanced) = flag;
     HEADING_FLAG(report_bw_write_enhanced_fq) = flag;
+    HEADING_FLAG(report_bw_write_fq) = flag;
     HEADING_FLAG(report_write_enhanced_write) = flag;
     HEADING_FLAG(report_write_enhanced_isoch) = flag;
     HEADING_FLAG(report_bw_write_enhanced_netpwr) = flag;
@@ -484,19 +486,35 @@ void tcp_output_write_bb (struct TransferInfo *stats) {
 	rps_string[sizeof(rps_string) - 1] = '\0';
 
 #if HAVE_TCP_STATS
-	printf(report_client_bb_bw_format, stats->common->transferIDStr,
-	       stats->ts.iStart, stats->ts.iEnd,
-	       outbuffer, outbufferext,
-	       stats->bbrtt.total.cnt,
-	       (stats->bbrtt.total.mean * 1e3),
-	       (stats->bbrtt.total.cnt < 2) ? 0 : (stats->bbrtt.total.min * 1e3),
-	       (stats->bbrtt.total.cnt < 2) ? 0 : (stats->bbrtt.total.max * 1e3),
-	       (stats->bbrtt.total.cnt < 2) ? 0 : 1e3 * (sqrt(stats->bbrtt.total.m2 / (stats->bbrtt.total.cnt - 1))),
-	       stats->sock_callstats.write.tcpstats.retry,
-	       stats->sock_callstats.write.tcpstats.cwnd,
-	       stats->sock_callstats.write.tcpstats.rtt,
-	       rps_string,
-	       (stats->common->Omit ? report_omitted : ""));
+	if (!stats->final) {
+	    printf(report_client_bb_bw_format, stats->common->transferIDStr,
+		   stats->ts.iStart, stats->ts.iEnd,
+		   outbuffer, outbufferext,
+		   stats->bbrtt.total.cnt,
+		   (stats->bbrtt.total.mean * 1e3),
+		   (stats->bbrtt.total.cnt < 2) ? 0 : (stats->bbrtt.total.min * 1e3),
+		   (stats->bbrtt.total.cnt < 2) ? 0 : (stats->bbrtt.total.max * 1e3),
+		   (stats->bbrtt.total.cnt < 2) ? 0 : 1e3 * (sqrt(stats->bbrtt.total.m2 / (stats->bbrtt.total.cnt - 1))),
+		   stats->sock_callstats.write.tcpstats.retry,
+		   stats->sock_callstats.write.tcpstats.cwnd,
+		   stats->sock_callstats.write.tcpstats.cwnd_packets,
+		   stats->sock_callstats.write.tcpstats.rtt,
+		   stats->sock_callstats.write.tcpstats.rttvar,
+		   rps_string,
+		   (stats->common->Omit ? report_omitted : ""));
+	} else {
+	    printf(report_client_bb_bw_final_format, stats->common->transferIDStr,
+		   stats->ts.iStart, stats->ts.iEnd,
+		   outbuffer, outbufferext,
+		   stats->bbrtt.total.cnt,
+		   (stats->bbrtt.total.mean * 1e3),
+		   (stats->bbrtt.total.cnt < 2) ? 0 : (stats->bbrtt.total.min * 1e3),
+		   (stats->bbrtt.total.cnt < 2) ? 0 : (stats->bbrtt.total.max * 1e3),
+		   (stats->bbrtt.total.cnt < 2) ? 0 : 1e3 * (sqrt(stats->bbrtt.total.m2 / (stats->bbrtt.total.cnt - 1))),
+		   stats->sock_callstats.write.tcpstats.retry,
+		   rps_string,
+		   (stats->common->Omit ? report_omitted : ""));
+	}
 #else
 	printf(report_client_bb_bw_format, stats->common->transferIDStr,
 	       stats->ts.iStart, stats->ts.iEnd,
@@ -561,7 +579,9 @@ void tcp_output_write_bb (struct TransferInfo *stats) {
 	       (stats->bbrtt.current.cnt < 2) ? 0 : 1e3 * (sqrt(stats->bbrtt.current.m2 / (stats->bbrtt.current.cnt - 1))),
 	       stats->sock_callstats.write.tcpstats.retry,
 	       stats->sock_callstats.write.tcpstats.cwnd,
+	       stats->sock_callstats.write.tcpstats.cwnd_packets,
 	       stats->sock_callstats.write.tcpstats.rtt,
+	       stats->sock_callstats.write.tcpstats.rttvar,
 	       rps_string,
 	       (stats->common->Omit ? report_omitted : ""));
 #else
@@ -664,9 +684,7 @@ void tcp_output_write_enhanced (struct TransferInfo *stats) {
 	   stats->sock_callstats.write.tcpstats.packets_in_flight,
 #endif
 	   stats->sock_callstats.write.tcpstats.cwnd,
-#if HAVE_TCP_INFLIGHT
 	   stats->sock_callstats.write.tcpstats.cwnd_packets,
-#endif
 	   stats->sock_callstats.write.tcpstats.rtt,
 	   stats->sock_callstats.write.tcpstats.rttvar,
 	   netpower_buf,
@@ -679,6 +697,7 @@ void tcp_output_write_enhanced (struct TransferInfo *stats) {
 	   stats->sock_callstats.write.WriteErr,
 	   stats->sock_callstats.write.tcpstats.retry,
 	   stats->sock_callstats.write.tcpstats.rtt,
+	   stats->sock_callstats.write.tcpstats.rttvar,
 	   netpower_buf,
 	   (stats->common->Omit ? report_omitted : ""));
 #endif
@@ -693,17 +712,7 @@ void tcp_output_write_enhanced (struct TransferInfo *stats) {
 
 void tcp_output_write_enhanced_fq (struct TransferInfo *stats) {
 #if (HAVE_DECL_SO_MAX_PACING_RATE)
-    HEADING_PRINT_COND(report_bw_write_enhanced_fq);
     _print_stats_common(stats);
-#if !(HAVE_TCP_STATS)
-    printf(report_bw_write_enhanced_format,
-	   stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
-	   outbuffer, outbufferext,
-	   stats->sock_callstats.write.WriteCnt,
-	   stats->sock_callstats.write.WriteErr,
-	   (stats->common->Omit ? report_omitted : ""));
-#else
-    set_netpowerbuf(stats->sock_callstats.write.tcpstats.rtt * 1e-6, stats);
     char pacingrate[40];
     if (!stats->final) {
 	byte_snprintf(pacingrate, sizeof(pacingrate), stats->FQPacingRateCurrent, 'a');
@@ -711,6 +720,18 @@ void tcp_output_write_enhanced_fq (struct TransferInfo *stats) {
     } else {
 	pacingrate[0] = '\0';
     }
+#if !(HAVE_TCP_STATS)
+    HEADING_PRINT_COND(report_bw_write_fq);
+    printf(report_bw_write_fq_format,
+	   stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
+	   outbuffer, outbufferext,
+	   stats->sock_callstats.write.WriteCnt,
+	   stats->sock_callstats.write.WriteErr,
+	   pacingrate,
+	   (stats->common->Omit ? report_omitted : ""));
+#else
+    HEADING_PRINT_COND(report_bw_write_enhanced_fq);
+    set_netpowerbuf(stats->sock_callstats.write.tcpstats.rtt * 1e-6, stats);
 #if HAVE_STRUCT_TCP_INFO_TCPI_SND_CWND
     if (!stats->final) {
 	printf(report_bw_write_enhanced_fq_format,
@@ -724,9 +745,7 @@ void tcp_output_write_enhanced_fq (struct TransferInfo *stats) {
 	       stats->sock_callstats.write.tcpstats.packets_in_flight,
 #endif
 	       stats->sock_callstats.write.tcpstats.cwnd,
-#if HAVE_TCP_INFLIGHT
 	       stats->sock_callstats.write.tcpstats.cwnd_packets,
-#endif
 	       stats->sock_callstats.write.tcpstats.rtt,
 	       stats->sock_callstats.write.tcpstats.rttvar,
 	       pacingrate, netpower_buf,
@@ -752,6 +771,7 @@ void tcp_output_write_enhanced_fq (struct TransferInfo *stats) {
 	   stats->sock_callstats.write.WriteErr,
 	   stats->sock_callstats.write.tcpstats.retry,
 	   stats->sock_callstats.write.tcpstats.rtt,
+	   stats->sock_callstats.write.tcpstats.rttvar,
 	   netpower_buf,
 	   (stats->common->Omit ? report_omitted : ""));
 #endif
@@ -789,8 +809,14 @@ void tcp_output_write_enhanced_write (struct TransferInfo *stats) {
 	   stats->sock_callstats.write.WriteCnt,
 	   stats->sock_callstats.write.WriteErr,
 	   stats->sock_callstats.write.tcpstats.retry,
+#if HAVE_TCP_INFLIGHT
+	   stats->sock_callstats.write.tcpstats.bytes_in_flight,
+	   stats->sock_callstats.write.tcpstats.packets_in_flight,
+#endif
 	   stats->sock_callstats.write.tcpstats.cwnd,
+	   stats->sock_callstats.write.tcpstats.cwnd_packets,
 	   stats->sock_callstats.write.tcpstats.rtt,
+	   stats->sock_callstats.write.tcpstats.rttvar,
 	   netpower_buf,
 	   stats->write_mmm.current.mean * 1e-3,
 	   stats->write_mmm.current.min * 1e-3,
@@ -806,6 +832,7 @@ void tcp_output_write_enhanced_write (struct TransferInfo *stats) {
 	   stats->sock_callstats.write.WriteErr,
 	   stats->sock_callstats.write.tcpstats.retry,
 	   stats->sock_callstats.write.tcpstats.rtt,
+	   stats->sock_callstats.write.tcpstats.rttvar,
 	   netpower_buf,
 	   stats->write_mmm.current.mean * 1e3,
 	   stats->write_mmm.current.min * 1e3,
@@ -843,7 +870,9 @@ void tcp_output_write_enhanced_isoch (struct TransferInfo *stats) {
 	   stats->sock_callstats.write.WriteErr,
 	   stats->sock_callstats.write.tcpstats.retry,
 	   stats->sock_callstats.write.tcpstats.cwnd,
+	   stats->sock_callstats.write.tcpstats.cwnd_packets,
 	   stats->sock_callstats.write.tcpstats.rtt,
+	   stats->sock_callstats.write.tcpstats.rttvar,
 	   stats->isochstats.cntFrames, stats->isochstats.cntFramesMissed, stats->isochstats.cntSlips,
 	   netpower_buf,(stats->common->Omit ? report_omitted : ""));
 #else
@@ -854,6 +883,7 @@ void tcp_output_write_enhanced_isoch (struct TransferInfo *stats) {
 	   stats->sock_callstats.write.WriteErr,
 	   stats->sock_callstats.write.tcpstats.retry,
 	   stats->sock_callstats.write.tcpstats.rtt,
+	   stats->sock_callstats.write.tcpstats.rttvar,
 	   stats->isochstats.cntFrames, stats->isochstats.cntFramesMissed, stats->isochstats.cntSlips,
 	   netpower_buf,(stats->common->Omit ? report_omitted : ""));
 #endif
@@ -1672,7 +1702,8 @@ void tcp_output_write_enhanced_csv (struct TransferInfo *stats) {
 	       -1,
 	       0,
 	       0);
-    } else if (stats->sock_callstats.write.tcpstats.cwnd > 0) {
+    } else {
+#if HAVE_STRUCT_TCP_INFO_TCPI_SND_CWND
 	printf(reportCSV_bw_write_enhanced_format,
 	       timestr,
 	       stats->csv_peer,
@@ -1688,7 +1719,7 @@ void tcp_output_write_enhanced_csv (struct TransferInfo *stats) {
 	       stats->sock_callstats.write.tcpstats.cwnd_packets,
 	       stats->sock_callstats.write.tcpstats.rtt,
 	       stats->sock_callstats.write.tcpstats.rttvar);
-    } else {
+#else
 	printf(reportCSV_bw_write_enhanced_format,
 	       timestr,
 	       stats->csv_peer,
@@ -1704,6 +1735,7 @@ void tcp_output_write_enhanced_csv (struct TransferInfo *stats) {
 	       -1,
 	       stats->sock_callstats.write.tcpstats.rtt,
 	       0);
+#endif
     }
 #endif
     cond_flush(stats);
@@ -1756,7 +1788,6 @@ void tcp_output_write_bb_csv (struct TransferInfo *stats) {
 #endif
     } else {
 	double rps = ((stats->bbrtt.current.cnt > 0) && (stats->iBBrunning > 0)) ? ((double) stats->bbrtt.current.cnt / stats->iBBrunning) : 0;
-
 #if HAVE_TCP_STATS
 	printf(reportCSV_client_bb_bw_tcp_format,
 	       timestr,
@@ -2270,7 +2301,7 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
 #endif
 #if HAVE_TCP_STATS
     if (!isUDP(report->common) && (report->tcpinitstats.isValid) && isEnhanced(report->common)) {
-	snprintf(b, SNBUFFERSIZE-strlen(b), " (icwnd/mss/irtt=%u/%u/%u)", \
+	snprintf(b, SNBUFFERSIZE-strlen(b), " (icwnd/mss/irtt=%" PRIdMAX "/%" PRIuLEAST32 "/%" PRIuLEAST32 ")", \
 		 report->tcpinitstats.cwnd, report->tcpinitstats.mss_negotiated, report->tcpinitstats.rtt);
 	b += strlen(b);
     }

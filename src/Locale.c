@@ -50,6 +50,22 @@
  * -------------------------------------------------------------------
  * Strings and other stuff that is locale specific.
  * ------------------------------------------------------------------- */
+
+/* Format specifiers per inttypes.h
+ *
+ * macro	description	example
+ * PRIxMAX	printf specifier for intmax_t	PRIiMAX is the equivalent of i (in "%i") for intmax_t values
+ * PRIxN	printf specifier for intN_t	PRId16 is the equivalent of d (in "%d") for int16_t values
+ * PRIxLEASTN	printf specifier for int_leastN_t	PRIuLEAST32 is the equivalent of u (in "%u") for uint32_t values
+ * PRIxFASTN	printf specifier for int_fastN_t	PRIxFAST8 is the equivalent of x (in "%x") for uint8_t values
+ * PRIxPTR	printf specifier for intptr_t	PRIuPTR is the equivalent of u (in "%u") for uintptr_t values
+ *
+ Where:
+ * x is one of d, i, o,u or x (for the printf specifiers this can also be an uppercase X).*
+ * N is 8, 16, 32, 64, or any other type width supported by the library in <cstdint>.
+ * * The specifier assumes the type to be signed for i and d, and unsigned for o, u, x and X.
+ */
+
 #include "headers.h"
 #include "version.h"
 #include "gettcpinfo.h"
@@ -402,68 +418,87 @@ const char report_triptime_enhanced_format[] =
 "%s" IPERFTimeFrmt " trip-time (3WHS done->fin+finack) = %.4f sec%s\n";
 
 #if HAVE_TCP_STATS
-const char report_client_bb_bw_header[] =
-"[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth         BB cnt=avg/min/max/stdev         Rtry  Cwnd/RTT    RPS(avg)\n";
-
-const char report_client_bb_bw_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec    %" PRIdMAX "=%.3f/%.3f/%.3f/%.3f ms %4d %4dK/%u us    %s rps%s\n";
-
-const char report_client_bb_bw_triptime_format[] =
-"%s" IPERFTimeFrmt " sec  OWD (ms) Cnt=%" PRIdMAX " TX=%.3f/%.3f/%.3f/%.3f RX=%.3f/%.3f/%.3f/%.3f Asymmetry=%.3f/%.3f/%.3f/%.3f%s\n";
-
-const char report_write_enhanced_write_header[] =
-"[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth       Write/Err  Rtry     Cwnd/RTT        NetPwr  write-times avg/min/max/stdev (cnt)\n";
-
-const char report_write_enhanced_write_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %10" PRIdMAX "%8dK/%u us  %s  %.3f/%.3f/%.3f/%.3f ms (%" PRIdMAX ")%s\n";
-
-const char report_write_enhanced_nocwnd_write_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %10" PRIdMAX "       NA/%u us  %s  %.3f/%.3f/%.3f/%.3f ms (%" PRIdMAX ")%s\n";
-
 #if HAVE_TCP_INFLIGHT
 const char report_bw_write_enhanced_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth       Write/Err  Rtry     InF(pkts)/Cwnd(pkts)/RTT(var)        NetPwr\n";
 
 const char report_bw_write_enhanced_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX " %8dK(%d)/%dK(%d)/%u(%u) us  %s\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX " %8" PRIdMAX "K(%" PRIuLEAST32 ")/%" PRIdMAX "K(%" PRIuLEAST32 ")/%" PRIuLEAST32 "(%" PRIuLEAST32 ") us  %s\n";
+
+const char report_write_enhanced_nocwnd_write_format[] =
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %10" PRIdMAX "       NA/%" PRIuLEAST32 "(%" PRIuLEAST32 ") us  %s  %.3f/%.3f/%.3f/%.3f ms (%" PRIdMAX ")%s\n";
 
 const char report_bw_write_enhanced_fq_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth       Write/Err  Rtry     InF(pkts)/Cwnd(pkts)/RTT(var)  fq-rate  NetPwr\n";
 
 const char report_bw_write_enhanced_fq_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX " %8dK(%d)/%dK(%d)/%u(%u) us %s/sec %s%s\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX " %8" PRIdMAX "K(%" PRIuLEAST32 ")/%" PRIdMAX "K(%" PRIuLEAST32 ")/%" PRIuLEAST32 "(%" PRIuLEAST32 ") us %s/sec %s%s\n";
+
+const char report_client_bb_bw_header[] =
+"[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth         BB cnt=avg/min/max/stdev         Rtry  Cwnd(pkts)/RTT(var)    RPS(avg)\n";
+
+const char report_client_bb_bw_format[] =
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec    %" PRIdMAX "=%.3f/%.3f/%.3f/%.3f ms %4" PRIuLEAST32 "%4" PRIdMAX "K/(%" PRIuLEAST32 ")/%" PRIuLEAST32 "(%" PRIuLEAST32 ") us    %s rps%s\n";
+
+const char report_client_bb_bw_final_format[] =
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec    %" PRIdMAX "=%.3f/%.3f/%.3f/%.3f ms %4" PRIuLEAST32 "   -(-)/-(-)            %s rps%s\n";
+
+const char report_write_enhanced_write_header[] =
+"[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth       Write/Err  Rtry    InF(pkts)/Cwnd(pkts)/RTT(var)   NetPwr  write-times avg/min/max/stdev (cnt)\n";
+
+const char report_write_enhanced_write_format[] =
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %8" PRIuLEAST32 "%7" PRIdMAX "K(%" PRIuLEAST32 ")/%" PRIdMAX "K(%" PRIuLEAST32 ")/%" PRIuLEAST32 "(%" PRIuLEAST32 ") us      %s  %.3f/%.3f/%.3f/%.3f ms (%" PRIdMAX ")%s\n";
 
 #else // no inflight
 const char report_bw_write_enhanced_header[] =
-"[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth       Write/Err  Rtry     Cwnd/RTT(var)        NetPwr\n";
+"[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth       Write/Err  Rtry     Cwnd(pkts)/RTT(var)        NetPwr\n";
 
 const char report_bw_write_enhanced_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX " %8dK/%u(%u) us  %s\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIuLEAST32 " %8" PRIdMAX "K(%" PRIuLEAST32 ")/%" PRIuLEAST32 "(%" PRIuLEAST32 ") us  %s\n";
 
 const char report_bw_write_enhanced_fq_header[] =
-"[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth       Write/Err  Rtry     Cwnd/RTT(var)  fq-rate  NetPwr\n";
+"[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth       Write/Err  Rtry     Cwnd(pkts)/RTT(var)  fq-rate  NetPwr\n";
 
 const char report_bw_write_enhanced_fq_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX " %8dK/%u(%u) us %s/sec %s%s\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIuLEAST32 " %8" PRIdMAX "K(%" PRIuLEAST32 ")/%" PRIuLEAST32 "(%" PRIuLEAST32 ") us %s/sec %s%s\n";
+
+const char report_client_bb_bw_header[] =
+"[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth         BB cnt=avg/min/max/stdev         Rtry  Cwnd(pkts)/RTT(var)    RPS(avg)\n";
+
+const char report_client_bb_bw_format[] =
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec    %" PRIdMAX "=%.3f/%.3f/%.3f/%.3f ms %4" PRIuLEAST32 " %4" PRIdMAX "K(%" PRIuLEAST32 ")/%" PRIuLEAST32 "(%" PRIuLEAST32 ") us    %s rps%s\n";
+
+const char report_client_bb_bw_final_format[] =
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec    %" PRIdMAX "=%.3f/%.3f/%.3f/%.3f ms %4" PRIuLEAST32 "   -(-)/-(-)            %s rps%s\n";
+
+const char report_write_enhanced_write_header[] =
+"[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth       Write/Err  Rtry     Cwnd(pkts)/RTT(var)        NetPwr  write-times avg/min/max/stdev (cnt)\n";
+
+const char report_write_enhanced_write_format[] =
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %10" PRIuLEAST32 "%8" PRIdMAX "K(%" PRIuLEAST32 ")/%" PRIuLEAST32 "(%" PRIuLEAST32 ") us  %s  %.3f/%.3f/%.3f/%.3f ms (%" PRIdMAX ")%s\n";
+
+const char report_write_enhanced_nocwnd_write_format[] =
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %10" PRIuLEAST32 "       NA/%" PRIuLEAST32 "(%" PRIuLEAST32 ") us  %s  %.3f/%.3f/%.3f/%.3f ms (%" PRIdMAX ")%s\n";
+
 #endif //HAVE_TCP_INFLIGHT
 
 const char report_sum_bw_write_enhanced_format[] =
-"[SUM] " IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX " %s\n";
+"[SUM] " IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIuLEAST32 " %s\n";
 
 const char report_bw_write_enhanced_fq_final_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX " %8dK/%u(%u) us %s%s\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%10" PRIuLEAST32 " %8dK/%u(%u) us %s%s\n";
 
 const char report_bw_write_enhanced_nocwnd_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %10" PRIdMAX "       NA/%u us%s\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %10" PRIuLEAST32 "       NA/%" PRIuLEAST32 "(%" PRIuLEAST32 ")us    %s\n";
 
 const char report_write_enhanced_isoch_header[] =
-"[ ID] Interval" IPERFTimeSpace "Transfer     Bandwidth      Write/Err  Rtry     Cwnd/RTT     isoch:tx/miss/slip  NetPwr\n";
+"[ ID] Interval" IPERFTimeSpace "Transfer     Bandwidth      Write/Err  Rtry     Cwnd(pkts)/RTT(var)     isoch:tx/miss/slip  NetPwr\n";
 
 const char report_write_enhanced_isoch_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %8d %8dK/%u us  %9" PRIuMAX "/%" PRIuMAX "/%" PRIuMAX " %s%s\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %8" PRIuLEAST32 " %8" PRIdMAX "K(%" PRIuLEAST32 ")/%" PRIuLEAST32 "(%" PRIuLEAST32 ") us  %9" PRIuMAX "/%" PRIuMAX "/%" PRIuMAX "       %s%s\n";
 
 const char report_write_enhanced_isoch_nocwnd_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %10" PRIdMAX "    NA/%u us  %9" PRIuMAX "/%" PRIuMAX "/%" PRIuMAX " %s%s\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX " %10" PRIuLEAST32 "    NA/%" PRIuLEAST32 "(%" PRIuLEAST32 ") us  %9" PRIuMAX "/%" PRIuMAX "/%" PRIuMAX "   %s%s\n";
 
 #else //no tcpstat
 
@@ -472,6 +507,12 @@ const char report_client_bb_bw_header[] =
 
 const char report_client_bb_bw_format[] =
 "%s" IPERFTimeFrmt " sec  %ss  %ss/sec    %" PRIdMAX "=%.3f/%.3f/%.3f/%.3f ms    %s rps%s\n";
+
+const char report_bw_write_enhanced_fq_header[] =
+"[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth       Write/Err fq-rate  NetPwr\n";
+
+const char report_bw_write_enhanced_fq_format[] =
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%s/sec %s%s\n";
 
 const char report_bw_write_enhanced_header[] =
 "[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth       Write/Err\n";
@@ -487,7 +528,23 @@ const char report_write_enhanced_isoch_header[] =
 
 const char report_write_enhanced_isoch_format[] =
 "%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%9" PRIuMAX "/%" PRIuMAX "/%" PRIuMAX "%s\n";
-#endif //tcp stat
+
+const char report_write_enhanced_write_header[] =
+"[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth       Write/Err NetPwr  write-times avg/min/max/stdev (cnt)\n";
+
+const char report_write_enhanced_write_format[] =
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "%s  %.3f/%.3f/%.3f/%.3f ms (%" PRIdMAX ")%s\n";
+
+const char report_bw_write_fq_header[] =
+"[ ID] Interval" IPERFTimeSpace "Transfer    Bandwidth       Write/Err  fq-rate\n";
+
+const char report_bw_write_fq_format[] =
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %" PRIdMAX "/%" PRIdMAX "    %s/sec%s\n";
+
+#endif //no tcp stat
+
+const char report_client_bb_bw_triptime_format[] =
+"%s" IPERFTimeFrmt " sec  OWD (ms) Cnt=%" PRIdMAX " TX=%.3f/%.3f/%.3f/%.3f RX=%.3f/%.3f/%.3f/%.3f Asymmetry=%.3f/%.3f/%.3f/%.3f%s\n";
 
 const char report_sumcnt_bw_write_enhanced_header[] =
 "[SUM-cnt] Interval" IPERFTimeSpace "Transfer    Bandwidth       Write/Err  Rtry\n";
@@ -625,7 +682,7 @@ const char report_burst_write_tcp_format[] =
 #endif
 
 const char report_burst_write_tcp_nocwnd_format[] =
-"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %6.3f ms %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX "NA/%u%s\n";
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %6.3f ms %" PRIdMAX "/%" PRIdMAX "%10" PRIdMAX "NA/%"PRIuLEAST32 "(%" PRIuLEAST32 ")%s\n";
 
 const char report_burst_write_tcp_final_format[] =
 "%s" IPERFTimeFrmt " sec  %ss  %ss/sec               %" PRIdMAX "=%d:%d:%d:%d:%d:%d:%d:%d%s\n";
@@ -712,26 +769,30 @@ const char reportCSV_bw_format[] =
 
 const char reportCSV_bw_read_enhanced_header[] =
 "time,srcaddress,srcport,dstaddr,dstport,transferid,istart,iend,bytes,speed,readcnt,bin0,bin1,bin2,bin3,bin4,bin5,bin6,bin7\n";
+
 const char reportCSV_bw_read_enhanced_format[] =
 "%s,%s,%d,%.1f,%.1f,%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%d,%d,%d,%d,%d,%d,%d,%d\n";
 
 const char reportCSV_bw_write_enhanced_header[] =
 "time,srcaddress,srcport,dstaddr,dstport,transferid,istart,iend,bytes,speed,writecnt,writeerr,tcpretry,tcpcwnd,tcppcwnd,tcprtt,tcprttvar\n";
+
 const char reportCSV_bw_write_enhanced_format[] =
-"%s,%s,%d,%.1f,%.1f,%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%d,%d,%u,%u\n";
+"%s,%s,%d,%.1f,%.1f,%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%" PRIuLEAST32 ",%" PRIdMAX ",%" PRIuLEAST32 ",%" PRIuLEAST32 ",%" PRIuLEAST32 "\n";
 
 const char reportCSV_bw_jitter_loss_format[] =
 "%s,%s,%d,%.1f-%.1f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%" PRIdMAX "\n";
 
 const char reportCSV_bw_jitter_loss_pps_header[] =
 "time,srcaddress,srcport,dstaddr,dstport,transferid,istart,iend,bytes,speed,jitter,errors,datagrams,errpercent,outoforder,writecnt,writeerr,pps\n";
+
 const char reportCSV_bw_jitter_loss_pps_format[] =
 "%s,%s,%d,%.1f,%.1f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%f\n";
 
 const char reportCSV_client_bb_bw_tcp_header[] =
 "time,srcaddress,srcport,dstaddr,dstport,transferid,istart,iend,bytes,speed,bbcnt,bbavg,bbmin,bbmax,bbstdev,tcpretry,tcpcwnd,tcprtt,rps\n";
+
 const char reportCSV_client_bb_bw_tcp_format[] =
-"%s,%s,%d,%.1f,%.1f,%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%.3f,%.3f,%.3f,%.3f,%d,%d,%u,%0.1f\n";
+"%s,%s,%d,%.1f,%.1f,%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%.3f,%.3f,%.3f,%.3f,%" PRIuLEAST32 ",%" PRIdMAX ",%" PRIuLEAST32 ",%0.1f\n";
 
 /* -------------------------------------------------------------------
  * warnings
@@ -813,10 +874,10 @@ const char warn_compat_and_peer_exchange[] =
 "WARNING: Options of '-C' '--compatibility' AND '-X' '--peerdetect' are mutually exclusive, --peerdetect ignored\n";
 
 const char warn_start_before_now[] =
-"[%3d] WARNING: --txstart-time (%" PRIdMAX ".%06" PRIdMAX ") %s is before now %s\n";
+"[%3d] WARNING: --txstart-time (%ld.%06ld) %s is before now %s\n";
 
 const char error_starttime_exceeds[] =
-"ERROR: --txstart-time (% " PRIdMAX ".%06" PRIdMAX ") %s exceeds max scheduled delay of %d secs\n";
+"ERROR: --txstart-time %ld.%06ld %s exceeds max scheduled delay of %d secs\n";
 
 const char error_delaytime_exceeds[] =
 "ERROR: --txdelay-time of %d seconds is more than the supported delay of %d seconds\n";

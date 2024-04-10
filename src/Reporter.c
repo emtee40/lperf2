@@ -1893,7 +1893,6 @@ void reporter_transfer_protocol_server_bb_tcp (struct ReporterData *data, bool f
 	    }
         }
 #if HAVE_TCP_STATS
-
 	stats->sock_callstats.write.tcpstats.retry = stats->sock_callstats.write.tcpstats.retry_tot;
 #endif
 	stats->cntBytes = stats->total.Bytes.current;
