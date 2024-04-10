@@ -58,8 +58,8 @@ inline void iperf_formattime (char *timestr, int buflen, struct timeval timestam
 	    strftime(timestr, buflen, "%Y-%m-%d %H:%M:%S", &ts);
 	    if (prec_ms) {
 		int currlen = strlen(timestr);
-		if (currlen > 5) {
-		    snprintf((timestr + currlen), 5, ".%.3d", (int) (timestamp.tv_usec/1000));
+		if ((buflen - currlen) > 10) {
+		    snprintf((timestr + currlen), 10, ".%.3d", (int) (timestamp.tv_usec/1000));
 		}
 	    }
 	    break;
@@ -67,8 +67,8 @@ inline void iperf_formattime (char *timestr, int buflen, struct timeval timestam
 	    strftime(timestr, buflen, "%Y-%m-%d %H:%M:%S", &ts);
 	    int currlen = strlen(timestr);
 	    if (prec_ms) {
-		if (currlen > 5) {
-		    snprintf((timestr + currlen), 5, ".%.3d", (int) (timestamp.tv_usec/1000));
+		if ((buflen - currlen) > 10) {
+		    snprintf((timestr + currlen), 10, ".%.3d", (int) (timestamp.tv_usec/1000));
 		    currlen = strlen(timestr);
 		}
 	    }
@@ -80,8 +80,8 @@ inline void iperf_formattime (char *timestr, int buflen, struct timeval timestam
 	    strftime(timestr, buflen, "%Y%m%d%H%M%S", &ts);
 	    if (prec_ms) {
 		int currlen = strlen(timestr);
-		if (currlen > 5) {
-		    snprintf((timestr + currlen), 5, ".%.3d", (int) (timestamp.tv_usec/1000));
+		if ((buflen - currlen) > 10) {
+		    snprintf((timestr + currlen), 10, ".%.3d", (int) (timestamp.tv_usec/1000));
 		}
 	    }
 	    break;
@@ -89,8 +89,8 @@ inline void iperf_formattime (char *timestr, int buflen, struct timeval timestam
 	    strftime(timestr, buflen, "%z:%Y%m%d%H%M%S", &ts);
 	    if (prec_ms) {
 		int currlen = strlen(timestr);
-		if (currlen > 5) {
-		    snprintf((timestr + currlen), 5, ".%.3d", (int) (timestamp.tv_usec/1000));
+		if ((buflen - currlen) > 10) {
+		    snprintf((timestr + currlen), 10, ".%.3d", (int) (timestamp.tv_usec/1000));
 		}
 	    }
 	    break;
