@@ -60,17 +60,17 @@ extern "C" {
 
 struct iperf_tcpstats {
     bool isValid;
-    int rtt;
+    uint32_t rtt;
     double connecttime;
 #if HAVE_TCP_STATS
-    int cwnd;
-    intmax_t cwnd_packets;
-    int rttvar;
-    intmax_t retry;
-    intmax_t retry_prev;
-    intmax_t retry_tot;
-    int mss_negotiated;
-    intmax_t packets_in_flight;
+    intmax_t cwnd;
+    uint32_t cwnd_packets;
+    uint32_t rttvar;
+    uint32_t retry;
+    uint32_t retry_prev;
+    uint32_t retry_tot;
+    uint32_t mss_negotiated;
+    uint32_t packets_in_flight;
     intmax_t bytes_in_flight;
 #endif
 };

@@ -230,6 +230,10 @@ extern const char report_sumcnt_write_enhanced_write_header[];
 
 extern const char report_bw_write_enhanced_format[];
 
+extern const char report_bw_write_fq_header[];
+
+extern const char report_bw_write_fq_format[];
+
 extern const char report_bw_write_enhanced_fq_header[];
 
 extern const char report_bw_write_enhanced_fq_format[];
@@ -323,6 +327,8 @@ extern const char report_udp_fullduplex_enhanced_format[];
 extern const char report_client_bb_bw_header[];
 
 extern const char report_client_bb_bw_format[];
+
+extern const char report_client_bb_bw_final_format[];
 
 extern const char report_client_bb_bw_triptime_format[];
 
