@@ -547,6 +547,10 @@ bool reporter_process_transfer_report (struct ReporterData *this_ireport) {
 	    reporter_handle_packet_tcpistats(this_ireport, packet);
 	}
 #endif
+#if (HAVE_DECL_SO_MAX_PACING_RATE)
+	if (isFQPacing(this_ireport->info.common))
+	    this_ireport->info.FQPacingRateCurrent = packet->FQPacingRate;
+#endif
 	if (this_ireport->transfer_interval_handler) {
 	    if (sumstats && (this_ireport->packetring->uplevel != sumstats->uplevel) \
 		&& (TimeDifference(sumstats->ts.nextTime, packet->packetTime) > 0)) {
@@ -1141,9 +1145,6 @@ static inline void reporter_handle_packet_tcpistats (struct ReporterData *data, 
 #else
     stats->sock_callstats.write.tcpstats.bytes_in_flight = -1;
     stats->sock_callstats.write.tcpstats.packets_in_flight = -1;
-#endif
-#if (HAVE_DECL_SO_MAX_PACING_RATE)
-    stats->FQPacingRateCurrent = packet->FQPacingRate;
 #endif
 }
 #endif
