@@ -440,7 +440,7 @@ inline void Client::SetFullDuplexReportStartTime () {
 	}
     }
 #ifdef HAVE_THREAD_DEBUG
-    thread_debug("Client fullduplex report start=%ld.%ld next=%ld.%ld", fullduplexstats->ts.startTime.tv_sec, fullduplexstats->ts.startTime.tv_usec, fullduplexstats->ts.nextTime.tv_sec, fullduplexstats->ts.nextTime.tv_usec);
+    thread_debug("Client fullduplex report start=%ld.%06ld next=%ld.%06ld", fullduplexstats->ts.startTime.tv_sec, fullduplexstats->ts.startTime.tv_usec, fullduplexstats->ts.nextTime.tv_sec, fullduplexstats->ts.nextTime.tv_usec);
 #endif
 }
 inline void Client::SetReportStartTime () {
@@ -467,13 +467,13 @@ inline void Client::SetReportStartTime () {
 		sumstats->ts.nextTime = myReport->info.ts.nextTime;
 	    }
 #ifdef HAVE_THREAD_DEBUG
-	    thread_debug("Client group sum report start=%ld.%ld next=%ld.%ld", sumstats->ts.startTime.tv_sec, sumstats->ts.startTime.tv_usec, sumstats->ts.nextTime.tv_sec, sumstats->ts.nextTime.tv_usec);
+	    thread_debug("Client group sum report start=%ld.%06ld next=%ld.%06ld", sumstats->ts.startTime.tv_sec, sumstats->ts.startTime.tv_usec, sumstats->ts.nextTime.tv_sec, sumstats->ts.nextTime.tv_usec);
 #endif
 	}
 	Mutex_Unlock(&myReport->GroupSumReport->reference.lock);
     }
 #ifdef HAVE_THREAD_DEBUG
-    thread_debug("Client(%d) report start/ipg=%ld.%ld next=%ld.%ld", mSettings->mSock, myReport->info.ts.startTime.tv_sec, myReport->info.ts.startTime.tv_usec, myReport->info.ts.nextTime.tv_sec, myReport->info.ts.nextTime.tv_usec);
+    thread_debug("Client(%d) report start/ipg=%ld.%06ld next=%ld.%06ld", mSettings->mSock, myReport->info.ts.startTime.tv_sec, myReport->info.ts.startTime.tv_usec, myReport->info.ts.nextTime.tv_sec, myReport->info.ts.nextTime.tv_usec);
 #endif
 }
 
@@ -567,7 +567,7 @@ void Client::InitTrafficLoop () {
     if (isModeTime(mSettings)) {
         mEndTime.setnow();
         mEndTime.add(mSettings->mAmount / 100.0);
-	// now.setnow(); fprintf(stderr, "DEBUG: end time set to %ld.%ld now is %ld.%ld\n", mEndTime.getSecs(), mEndTime.getUsecs(), now.getSecs(), now.getUsecs());
+	// now.setnow(); fprintf(stderr, "DEBUG: end time set to %ld.%06ld now is %ld.%06ld\n", mEndTime.getSecs(), mEndTime.getUsecs(), now.getSecs(), now.getUsecs());
     }
 #if HAVE_DECL_TCP_TX_DELAY
     current_state = NO_DELAY;
@@ -793,7 +793,7 @@ void Client::RunTCP () {
 		reportstruct->err_readwrite=WriteErrFatal;
 		now.setnow();
 		char warnbuf[WARNBUFSIZE];
-		snprintf(warnbuf, sizeof(warnbuf), "%stcp write (%ld.%ld)", mSettings->mTransferIDStr, now.getSecs(), now.getUsecs());
+		snprintf(warnbuf, sizeof(warnbuf), "%stcp write (%ld.%06ld)", mSettings->mTransferIDStr, now.getSecs(), now.getUsecs());
 		warnbuf[sizeof(warnbuf)-1] = '\0';
 		WARN(1, warnbuf);
 		break;

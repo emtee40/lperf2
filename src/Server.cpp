@@ -271,7 +271,7 @@ void Server::RunTCP () {
 		    n = 0;
 		    now.setnow();
 		    char warnbuf[WARNBUFSIZE];
-		    snprintf(warnbuf, sizeof(warnbuf), "%stcp recv (%ld.%ld)",\
+		    snprintf(warnbuf, sizeof(warnbuf), "%stcp recv (%ld.%06ld)",\
 			     mSettings->mTransferIDStr, now.getSecs(), now.getUsecs());
 		    warnbuf[sizeof(warnbuf)-1] = '\0';
 		    WARN_errno(1, warnbuf);
@@ -517,7 +517,7 @@ inline void Server::SetFullDuplexReportStartTime () {
 	}
     }
 #ifdef HAVE_THREAD_DEBUG
-    thread_debug("Server fullduplex report start=%ld.%ld next=%ld.%ld", fullduplexstats->ts.startTime.tv_sec, fullduplexstats->ts.startTime.tv_usec, fullduplexstats->ts.nextTime.tv_sec, fullduplexstats->ts.nextTime.tv_usec);
+    thread_debug("Server fullduplex report start=%ld.%06ld next=%ld.%06ld", fullduplexstats->ts.startTime.tv_sec, fullduplexstats->ts.startTime.tv_usec, fullduplexstats->ts.nextTime.tv_sec, fullduplexstats->ts.nextTime.tv_usec);
 #endif
 }
 
@@ -563,7 +563,7 @@ inline void Server::SetReportStartTime () {
 	Mutex_Unlock(&myReport->GroupSumReport->reference.lock);
     }
 #ifdef HAVE_THREAD_DEBUG
-    thread_debug("Server(%d) report start=%ld.%ld next=%ld.%ld", mSettings->mSock, myReport->info.ts.startTime.tv_sec, myReport->info.ts.startTime.tv_usec, myReport->info.ts.nextTime.tv_sec, myReport->info.ts.nextTime.tv_usec);
+    thread_debug("Server(%d) report start=%ld.%06ld next=%ld.%06ld", mSettings->mSock, myReport->info.ts.startTime.tv_sec, myReport->info.ts.startTime.tv_usec, myReport->info.ts.nextTime.tv_sec, myReport->info.ts.nextTime.tv_usec);
 #endif
 }
 
@@ -828,13 +828,13 @@ inline bool Server::ReadPacketID (int offset_adjust) {
 
 #ifdef HAVE_PACKET_DEBUG
 	if (isTripTime(mSettings)) {
-	    int len = snprintf(NULL,0,"%sPacket id 0x%x, 0x%x -> %" PRIdMAX " (0x%" PRIxMAX ") Sent: %ld.%ld6 Received: %ld.%ld6 Delay: %f\n", \
+	    int len = snprintf(NULL,0,"%sPacket id 0x%x, 0x%x -> %" PRIdMAX " (0x%" PRIxMAX ") Sent: %ld.%06ld6 Received: %ld.%06ld6 Delay: %f\n", \
 			       mSettings->mTransferIDStr,ntohl(mBuf_UDP->id), ntohl(mBuf_UDP->id2), reportstruct->packetID, reportstruct->packetID, \
 			       reportstruct->sentTime.tv_sec, reportstruct->sentTime.tv_usec, \
 			       reportstruct->packetTime.tv_sec, reportstruct->packetTime.tv_usec, TimeDifference(reportstruct->packetTime, reportstruct->sentTime));
 	    char *text = (char *) calloc(len+1, sizeof(char));
 	    if (text) {
-		snprintf(text, len,"%sPacket ID id 0x%x, 0x%x -> %" PRIdMAX " (0x%" PRIxMAX ") Sent: %ld.%ld Received: %ld.%ld Delay: %f\n", \
+		snprintf(text, len,"%sPacket ID id 0x%x, 0x%x -> %" PRIdMAX " (0x%" PRIxMAX ") Sent: %ld.%06ld Received: %ld.%06ld Delay: %f\n", \
 			 mSettings->mTransferIDStr,ntohl(mBuf_UDP->id), ntohl(mBuf_UDP->id2), reportstruct->packetID, reportstruct->packetID, \
 			 reportstruct->sentTime.tv_sec, reportstruct->sentTime.tv_usec, \
 			 reportstruct->packetTime.tv_sec, reportstruct->packetTime.tv_usec, TimeDifference(reportstruct->packetTime, reportstruct->sentTime));

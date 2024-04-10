@@ -135,13 +135,13 @@ int histogram_insert(struct histogram *h, float value, struct timeval *ts) {
         h->maxval = value;
         h->maxts.tv_sec = ts->tv_sec;
         h->maxts.tv_usec = ts->tv_usec;
-	// printf("imax=%ld.%ld %f\n",h->maxts.tv_sec, h->maxts.tv_usec, value);
+	// printf("imax=%ld.%06ld %f\n",h->maxts.tv_sec, h->maxts.tv_usec, value);
 	if (value > h->fmaxval) {
 	  h->fmaxbin = bin;
           h->fmaxval = value;
 	  h->fmaxts.tv_sec = ts->tv_sec;
 	  h->fmaxts.tv_usec = ts->tv_usec;
-	  // printf("fmax=%ld.%ld %f\n",h->fmaxts.tv_sec, h->fmaxts.tv_usec, value);
+	  // printf("fmax=%ld.%06ld %f\n",h->fmaxts.tv_sec, h->fmaxts.tv_usec, value);
 	}
     }
     if (bin < 0) {
@@ -261,7 +261,7 @@ void histogram_print(struct histogram *h, double start, double end) {
       fprintf(stdout, "%s (%.2f/%.2f/99.7%%=%d/%d/%d,Outliers=%d,obl/obu=%d/%d)", \
 	      h->outbuf, h->ci_lower, h->ci_upper, lowerci, upperci, upper3stdev, outliercnt, oob_l, oob_u);
     if (!h->final && (h->maxval > 0) && ((h->maxts.tv_sec > 0) || h->maxts.tv_usec > 0)) {
-	fprintf(stdout, " (%0.3f ms/%ld.%ld)", (h->maxval * 1e3), (long) h->maxts.tv_sec, (long) h->maxts.tv_usec);
+	fprintf(stdout, " (%0.3f ms/%ld.%06ld)", (h->maxval * 1e3), (long) h->maxts.tv_sec, (long) h->maxts.tv_usec);
 	if (TimeDifference(h->prev->maxts, h->maxts) > 0) {
 	    fprintf(stdout, "(clock_err)");
 	}
@@ -272,7 +272,7 @@ void histogram_print(struct histogram *h, double start, double end) {
       h->maxts.tv_sec = 0;
       h->maxts.tv_usec = 0;
     } else if (h->final && (h->fmaxval > 0) && ((h->maxts.tv_sec > 0) || h->maxts.tv_usec > 0)) {
-	fprintf(stdout, " (%0.3f ms/%ld.%ld)", (h->fmaxval * 1e3), (long) h->fmaxts.tv_sec, (long) h->fmaxts.tv_usec);
+	fprintf(stdout, " (%0.3f ms/%ld.%06ld)", (h->fmaxval * 1e3), (long) h->fmaxts.tv_sec, (long) h->fmaxts.tv_usec);
     }
     fprintf(stdout, "%s\n", (h->Omit ? report_omitted : ""));
 }
