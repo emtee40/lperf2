@@ -1,7 +1,7 @@
 See doc/DESIGN_NOTES for some description around the software design
 See doc/CLOCKSYNC_NOTES for some description around synchronizing the realtime clocks
 
-2.2.0 (as of March 14th, 2024)
+2.2.0 (as of April 10th, 2024)
 ------------------------------
 o new ./configure --enable-summing-debug option to help with summing debug
 o select ahead of writes slow down UDP performance. support ./configure --disable-write-select
@@ -16,6 +16,10 @@ o support for both packets and bytes inflight taken from tcp_info struct amd pkt
 o man page updates and -h to reflect new options, better descriptions
 o lots of work around summing with parallel threads, new implementation based on interval or slot counters, hopefully should work reliably
 o --bounceback tests are much more reliable and robust
+o add cwnd packet output with csv formatting
+o some fixes around bind to device and --incr-dstip
+o use a compile time test for HAVE_STRUCT_TCP_INFO_TCPI_SND_CWND and not a runtime test
+o use format specifiers for tcp_info struct fields
 o Improve event handling around select timeouts, helps with larger -P values and summing
 o use the getsockopt IP_TOS for the displayed output, warn when set and get don't match
 o better tos byte output, include dscp and ecn fields individually
