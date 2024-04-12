@@ -1943,7 +1943,7 @@ static void reporter_output_listener_settings (struct ReportSettings *report) {
     }
     if (report->common->TOS) {
 	fprintf(stdout, "TOS will be set to 0x%x (dscp=%d,ecn=%d)\n", report->common->TOS, \
-	    DSCP_VALUE(report->common->RTOS), ECN_VALUE(report->common->RTOS));
+	    DSCP_VALUE(report->common->TOS), ECN_VALUE(report->common->TOS));
     }
     if (isUDP(report->common)) {
 	if (isSingleClient(report->common)) {
