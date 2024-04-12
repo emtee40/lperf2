@@ -1,4 +1,4 @@
-.TH IPERF 1 "March 2024" NLANR/DAST "User Manuals"
+.TH IPERF 1 "April 2024" NLANR/DAST "User Manuals"
 .SH NAME
 iperf \- perform network traffic tests using network sockets. Metrics include throughput and latency or link capacity and responsiveness.
 .SH SYNOPSIS
@@ -871,12 +871,26 @@ supported using the --fq-rate long option. This will work with the --reverse
 and --full-duplex options as well.
 .P
 .B
-IP tos:
+IP tos and dscp:
 Specifies the type-of-service or DSCP class for connections.  Accepted values are \fBaf11, af12, af13, af21,
 af22, af23, af31, af32, af33, af41, af42, af43, cs0, cs1, cs2, cs3, cs4, cs5, cs6, cs7, ef, le, nqb, nqb2,
 ac_be, ac_bk, ac_vi, ac_vo, lowdelay, throughput, reliability\fR, a numeric value, or none to use the operating system default.
 The ac_xx values are the four access categories defined in WMM for Wi-Fi, and they are aliases for DSCP values that will be mapped
 to the corresponding ACs under the assumption that the device uses the DSCP-to-UP mapping table specified in IETF RFC 8325.
+.LP
+.br
+One can set the tos byte using:
+.br
+--dscp on the client
+.br
+--tos or -S on the client or server though the server side setting has caveats (per next item)
+.br
+--tos-override for server side reversed traffic (use case is for bleaching the return path)
+.LP
+.br
+The --dscp value on the client is merely a convenience in that the user can set the dscp field's six bits vs set the tos byte.
+The --tos-override allows one to test the reflected TOS feature of APs. This is when the network bleaches the client side tos setting and the reverse traffic will then have no TOS setting. The AP is expected to apply the upstream traffic's TOS to the reverse traffic. The use case is that the --tos-overide would by zero simulating network bleaching of the tos byte.
+If there is no --tos setting then the setsockopt will never be called and the default values are used.
 .P
 .B --trip-times
 The --trip-times option enables many one way delay (OWD) metrics. Also note that using --trip-times on a TCP client
