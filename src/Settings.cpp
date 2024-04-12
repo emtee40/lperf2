@@ -606,7 +606,8 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 
 	if (mExtSettings->mThreadMode == kMode_Unknown) {
 	    mExtSettings->mThreadMode = kMode_Client;
-	    mExtSettings->mThreads = 1;
+	    if (!mExtSettings->mThreads)
+		mExtSettings->mThreads = 1;
 	}
 	break;
 
