@@ -1502,6 +1502,7 @@ void reporter_transfer_protocol_sum_server_udp (struct TransferInfo *stats, bool
     }
     if ((stats->output_handler) && !(stats->isMaskOutput)) {
 	(*stats->output_handler)(stats);
+	reporter_reset_transfer_stats_sum(stats);
     }
     if (!final) {
 	// there is no packet ID for sum server reports, set it to total cnt for calculation
@@ -1525,6 +1526,7 @@ void reporter_transfer_protocol_sum_client_udp (struct TransferInfo *stats, bool
     }
     if ((stats->output_handler) && !(stats->isMaskOutput)) {
 	(*stats->output_handler)(stats);
+	reporter_reset_transfer_stats_sum(stats);
     }
     if (!final) {
 	reporter_reset_transfer_stats_client_udp(stats);
