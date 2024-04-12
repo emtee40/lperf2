@@ -3,6 +3,7 @@ See doc/CLOCKSYNC_NOTES for some description around synchronizing the realtime c
 
 2.2.1 (as of April 13th, 2024)
 ------------------------------
+o ticket 309 (regression): udp summing is broken. Need to reset sum event counters after interval reports
 o ticket 308: -P should be order independent
 o fix output for tos on server side
 o remove settings report for client threads when P > 1
