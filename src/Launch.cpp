@@ -379,6 +379,7 @@ void client_init(struct thread_Settings *clients) {
     // to the list of threads to start
     for (int i = 1; i < clients->mThreads; i++) {
 	Settings_Copy(clients, &next, DEEP_COPY);
+	setNoSettReport(next);
 	// printf("*****port/thread = %d/%d\n", next->mPort + i, i);
 	if (next) {
 	    if (isIncrSrcIP(clients) && (clients->mLocalhost != NULL)) {
@@ -398,7 +399,6 @@ void client_init(struct thread_Settings *clients) {
 		next->incrdstip = i;
 		// force a setHostname
 		SockAddr_zeroAddress(&next->peer);
-		setNoSettReport(next);
 	    } else if (clients->mBindPort) {
 		// Increment the source port of none of the quintuple is being change or the user requests it
 		if ((!isIncrDstPort(clients) && !isIncrDstIP(clients) && !isIncrSrcIP(clients)) || isIncrSrcPort(clients)) {
