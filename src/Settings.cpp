@@ -133,6 +133,7 @@ static int tcptxdelay = 0;
 static int testxchangetimeout = 0;
 static int synctransferid = 0;
 static int ignoreshutdown = 0;
+static int skiprxcopy = 0;
 
 void Settings_Interpret(char option, const char *optarg, struct thread_Settings *mExtSettings);
 // apply compound settings after the command line has been fully parsed
@@ -242,6 +243,7 @@ const struct option long_options[] =
 {"permit-key-timeout", required_argument, &permitkeytimeout, 1},
 {"burst-size", required_argument, &burstsize, 1},
 {"burst-period", required_argument, &burstperiodic, 1},
+{"skip-rx-copy", no_argument, &skiprxcopy, 1},
 {"tos-override", required_argument, &overridetos, 1},
 {"tcp-rx-window-clamp", required_argument, &rxwinclamp, 1},
 {"tcp-quickack", no_argument, &tcpquickack, 1},
@@ -1480,6 +1482,14 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	    else
 		mExtSettings->mBounceBackReplyBytes = 0;
 	}
+	if (skiprxcopy) {
+	    skiprxcopy = 0;
+#if HAVE_DECL_MSG_TRUNC
+	    setSkipRxCopy(mExtSettings);
+	    mExtSettings->recv_flags = MSG_TRUNC;
+	    setEnhanced(mExtSettings);
+#endif
+	}
 	break;
     default: // ignore unknown
 	break;
@@ -1847,7 +1857,6 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 		fprintf(stderr, "WARN: setting of option --tcp-tx-delay is not supported with -u UDP\n");
 		unsetTcpTxDelay(mExtSettings);
 	    }
-
 	    {
 		double delay_target;
 		if (isIPG(mExtSettings)) {
@@ -2021,9 +2030,15 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	if (mExtSettings->mBurstSize != 0) {
 	    fprintf(stderr, "WARN: option of --burst-size not supported on the server\n");
 	}
-	if (isUDP(mExtSettings) && isRxClamp(mExtSettings)) {
-	    fprintf(stderr, "WARN: option of --tcp-rx-window-clamp not supported using -u UDP \n");
-	    unsetRxClamp(mExtSettings);
+	if (isUDP(mExtSettings)) {
+	    if (isRxClamp(mExtSettings)) {
+		fprintf(stderr, "WARN: option of --tcp-rx-window-clamp not supported using -u UDP \n");
+		unsetRxClamp(mExtSettings);
+	    }
+	    if (isSkipRxCopy(mExtSettings)) {
+		fprintf(stderr, "WARN: Option of --skip-rx-copy not supported with -u UDP\n");
+		unsetSkipRxCopy(mExtSettings);
+	    }
 	}
     }
     if (bail)
