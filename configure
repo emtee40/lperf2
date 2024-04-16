@@ -672,10 +672,6 @@ CXXDEPMODE
 ac_ct_CXX
 CXXFLAGS
 CXX
-TUNTAP_TAP_FALSE
-TUNTAP_TAP_TRUE
-TUNTAP_TUN_FALSE
-TUNTAP_TUN_TRUE
 AF_PACKET_FALSE
 AF_PACKET_TRUE
 am__fastdepCC_FALSE
@@ -5495,7 +5491,9 @@ else case e in #(
   e) enable_af_packet="no" ;;
 esac
 fi
-    if test "x${enable_af_packet}" = "xyes"; then
+
+fi
+ if test "x${enable_af_packet}" = "xyes"; then
   AF_PACKET_TRUE=
   AF_PACKET_FALSE='#'
 else
@@ -5503,8 +5501,6 @@ else
   AF_PACKET_FALSE=
 fi
 
-
-fi
 
 # Check whether --enable-tuntap-tun was given.
 if test ${enable_tuntap_tun+y}
@@ -5537,14 +5533,6 @@ printf "%s\n" "#define HAVE_TUNTAP_TUN 1" >>confdefs.h
 else case e in #(
   e) enable_tuntap_tun="no" ;;
 esac
-fi
-
-    if test "x${enable_tuntap_tun}" = "xyes"; then
-  TUNTAP_TUN_TRUE=
-  TUNTAP_TUN_FALSE='#'
-else
-  TUNTAP_TUN_TRUE='#'
-  TUNTAP_TUN_FALSE=
 fi
 
 
@@ -5581,14 +5569,6 @@ printf "%s\n" "#define HAVE_TUNTAP_TAP 1" >>confdefs.h
 else case e in #(
   e) enable_tuntap_tap="no" ;;
 esac
-fi
-
-    if test "x${enable_tuntap_tap}" = "xyes"; then
-  TUNTAP_TAP_TRUE=
-  TUNTAP_TAP_FALSE='#'
-else
-  TUNTAP_TAP_TRUE='#'
-  TUNTAP_TAP_FALSE=
 fi
 
 
@@ -11390,14 +11370,6 @@ Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${AF_PACKET_TRUE}" && test -z "${AF_PACKET_FALSE}"; then
   as_fn_error $? "conditional \"AF_PACKET\" was never defined.
-Usually this means the macro was only invoked conditionally." "$LINENO" 5
-fi
-if test -z "${TUNTAP_TUN_TRUE}" && test -z "${TUNTAP_TUN_FALSE}"; then
-  as_fn_error $? "conditional \"TUNTAP_TUN\" was never defined.
-Usually this means the macro was only invoked conditionally." "$LINENO" 5
-fi
-if test -z "${TUNTAP_TAP_TRUE}" && test -z "${TUNTAP_TAP_FALSE}"; then
-  as_fn_error $? "conditional \"TUNTAP_TAP\" was never defined.
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 if test -z "${am__fastdepCXX_TRUE}" && test -z "${am__fastdepCXX_FALSE}"; then
