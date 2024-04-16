@@ -95,8 +95,8 @@ AS_IF([test "x$enable_af_packet" = "xyes"], [
       [enable_af_packet="no"],
       [[#include <sys/socket.h>
       #include <linux/if_packet.h>]])
-   AM_CONDITIONAL([AF_PACKET], [test "x${enable_af_packet}" = "xyes"])
 ])
+AM_CONDITIONAL([AF_PACKET], [test "x${enable_af_packet}" = "xyes"])
 
 dnl TUNTAP_TUN support
 AC_ARG_ENABLE(tuntap-tun,
@@ -107,7 +107,6 @@ AS_IF([test "x$enable_tuntap_tun" = "xyes"], [
       AC_DEFINE([HAVE_TUNTAP_TUN],[1],[TUNTAP_TUN support is available]),
       [enable_tuntap_tun="no"],
       [[#include <linux/if_tun.h>]])
-   AM_CONDITIONAL([TUNTAP_TUN], [test "x${enable_tuntap_tun}" = "xyes"])
 ])
 
 dnl TUNTAP_TAP support
@@ -119,7 +118,6 @@ AS_IF([test "x$enable_tuntap_tap" = "xyes"], [
       AC_DEFINE([HAVE_TUNTAP_TAP],[1],[TUNTAP_TAP support is available]),
       [enable_tuntap_tap="no"],
       [[#include <linux/if_tun.h>]])
-   AM_CONDITIONAL([TUNTAP_TAP], [test "x${enable_tuntap_tap}" = "xyes"])
 ])
 
 dnl ===================================================================
