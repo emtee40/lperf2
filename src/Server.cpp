@@ -246,7 +246,7 @@ void Server::RunTCP () {
 		}
 	    }
 	    if (!reportstruct->transit_ready) {
-		n = recv(mSettings->mSock, mSettings->mBuf, readLen, 0);
+		n = recv(mSettings->mSock, mSettings->mBuf, readLen, ((isburst && (burst_nleft > 0)) ? 0 : mSettings->recv_flags));
 		if (n > 0) {
 		    reportstruct->emptyreport = false;
 		    if (isburst) {

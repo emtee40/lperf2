@@ -1908,13 +1908,16 @@ static void reporter_output_listener_settings (struct ReportSettings *report) {
 	    byte_snprintf(outbufferext, sizeof(outbufferext), report->common->BufLen / 8, 'A');
 	    outbuffer[(sizeof(outbuffer)-1)] = '\0';
 	    outbufferext[(sizeof(outbufferext)-1)] = '\0';
-	    printf("%s: %s (Dist bin width=%s)\n", server_read_size, outbuffer, outbufferext);
+	    printf("%s: %s (Dist bin width=%s)", server_read_size, outbuffer, outbufferext);
+	    if (isSkipRxCopy(report->common)) {
+		printf(" (skip-rx-copy)");
+	    }
+	    printf("\n");
 	} else {
 	    byte_snprintf(outbuffer, sizeof(outbuffer), report->common->BufLen, 'B');
 	    outbuffer[(sizeof(outbuffer)-1)] = '\0';
 	    printf("%s: %s \n", server_read_size, outbuffer);
 	}
-
     }
 #if HAVE_DECL_TCP_CONGESTION
     if (isCongestionControl(report->common) || isEnhanced(report->common)) {

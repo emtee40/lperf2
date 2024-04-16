@@ -120,6 +120,7 @@ Server specific:\n\
       --histograms         enable latency histograms\n\
       --jitter-histograms  enable jitter histograms\n\
       --permit-key-timeout set the timeout for a permit key in seconds\n\
+      --skip-rx-copy       set MSG_TRUNC to avoid kernel to application spaced copy of data\n\
       --tcp-rx-window-clamp set the TCP receive window clamp size in bytes\n\
       --test-exchange-timeout set the timeout on the test exchange, use 0 for no timeout\n\
       --tap-dev   #[<dev>] use TAP device to receive at L2 layer\n\
