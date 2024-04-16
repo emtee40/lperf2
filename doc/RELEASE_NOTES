@@ -3,6 +3,7 @@ See doc/CLOCKSYNC_NOTES for some description around synchronizing the realtime c
 
 2.2.1 (as of April 16th, 2024)
 ------------------------------
+o ticket 305: add support for --skip-rx-copy w/tcp. Set recv flags to MSG_TRUNC when the payload isn't needed by iperf
 o ticket 157 (regression since 2.1.4): remove AM_CONDITIONAL for TUN & TAP. Move the AF_PACKET AM_CONDITIONAL to its own scope. Rerun autoreconf automake
 o ticket 309 (regression): udp summing is broken. Need to reset sum event counters after interval reports
 o ticket 308: -P should be order independent
