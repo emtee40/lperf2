@@ -605,6 +605,8 @@ bool reporter_process_report (struct ReportHeader *reporthdr);
 void setTransferID(struct thread_Settings *inSettings, enum TansferIDType traffic_direction);
 void updateTransferIDPeer(struct thread_Settings *inSettings);
 void format_ips_port_string (struct TransferInfo *stats, bool sum);
+int post_connection_error (struct thread_Settings *inSettings, struct timeval t);
+void post_connect_timer_expired (struct thread_Settings *inSettings, struct timeval t);
 
 #ifdef __cplusplus
 } /* end extern "C" */
