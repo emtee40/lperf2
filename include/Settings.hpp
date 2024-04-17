@@ -170,7 +170,6 @@ struct thread_Settings {
     char*  mHistogramStr;         // --histograms (packets)
     char*  mTransferIDStr;          //
     char*  mBuf;
-    int recv_flags;                 // support for MSG_TRUNC on recv
     FILE*  Extractor_file;
 
     struct ReportHeader* reporthdr;
