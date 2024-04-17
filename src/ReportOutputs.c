@@ -939,7 +939,8 @@ void udp_output_read (struct TransferInfo *stats) {
 	       outbuffer, outbufferext,
 	       (stats->final) ? ((stats->inline_jitter.total.sum / (double) stats->inline_jitter.total.cnt) * 1e3) : (stats->jitter * 1e3),  \
 	       stats->cntError, stats->cntDatagrams,
-	       (100.0 * stats->cntError) / stats->cntDatagrams, (stats->common->Omit ? report_omitted : ""));
+	       (stats->cntDatagrams ? ((100.0 * stats->cntError) / stats->cntDatagrams) : 0),
+	       (stats->common->Omit ? report_omitted : ""));
     }
     _output_outoforder(stats);
     cond_flush(stats);
@@ -955,12 +956,12 @@ void udp_output_read_triptime (struct TransferInfo *stats) {
 	       outbuffer, outbufferext,
 	       0.0, stats->cntError,
 	       stats->cntDatagrams,
+	       (stats->cntDatagrams ? ((100.0 * stats->cntError) / stats->cntDatagrams) : 0),
+	       0.0, // pps
 	       stats->sock_callstats.read.cntRead,
 	       stats->sock_callstats.read.cntReadTimeo,
-#if HAVE_DECL_MSG_TRUNC
 	       stats->sock_callstats.read.cntReadErrLen,
-#endif
-	       0.0,0.0,0.0,0.0,0.0,0.0,(stats->common->Omit ? report_omitted : ""));
+	       (stats->common->Omit ? report_omitted : ""));
     } else {
 	if ((stats->transit.current.min > UNREALISTIC_LATENCYMINMAX) ||
 	    (stats->transit.current.min < UNREALISTIC_LATENCYMINMIN)) {
@@ -969,15 +970,11 @@ void udp_output_read_triptime (struct TransferInfo *stats) {
 		   outbuffer, outbufferext,
 		   (stats->final) ? ((stats->inline_jitter.total.sum / (double) stats->inline_jitter.total.cnt) * 1e3) : (stats->jitter * 1e3),
 		   stats->cntError, stats->cntDatagrams,
-		   (100.0 * stats->cntError) / stats->cntDatagrams,
-		   (stats->cntIPG / stats->IPGsum),
+		   (stats->cntDatagrams ? ((100.0 * stats->cntError) / stats->cntDatagrams) : 0),
+		   (stats->cntIPG / stats->IPGsum), // pps
 		   stats->sock_callstats.read.cntRead,
-#if HAVE_DECL_MSG_TRUNC
 		   stats->sock_callstats.read.cntReadTimeo,
 		   stats->sock_callstats.read.cntReadErrLen,(stats->common->Omit ? report_omitted : ""));
-#else
-	    stats->sock_callstats.read.cntReadTimeo, (stats->common->Omit ? report_omitted : ""));
-#endif
 	} else {
 	    double meantransit;
 	    double variance;
@@ -1001,7 +998,7 @@ void udp_output_read_triptime (struct TransferInfo *stats) {
 		   outbuffer, outbufferext,
 		   (stats->final) ? ((stats->inline_jitter.total.sum / (double) stats->inline_jitter.total.cnt) * 1e3) : (stats->jitter * 1e3),  \
 		   stats->cntError, stats->cntDatagrams,
-		   (100.0 * stats->cntError) / stats->cntDatagrams,
+		   (stats->cntDatagrams ? ((100.0 * stats->cntError) / stats->cntDatagrams) : 0),
 		   (meantransit * 1e3),
 		   ((stats->final ? stats->transit.total.min : stats->transit.current.min) * 1e3),
 		   ((stats->final ? stats->transit.total.max : stats->transit.current.max) * 1e3),
@@ -1011,9 +1008,7 @@ void udp_output_read_triptime (struct TransferInfo *stats) {
 		   llaw_bufstr,
 		   stats->sock_callstats.read.cntRead,
 		   stats->sock_callstats.read.cntReadTimeo,
-#if HAVE_DECL_MSG_TRUNC
 		   stats->sock_callstats.read.cntReadErrLen,
-#endif
 		   netpower_buf, (stats->common->Omit ? report_omitted : ""));
 	}
     }
@@ -1035,12 +1030,12 @@ void udp_output_read_enhanced (struct TransferInfo *stats) {
 	       outbuffer, outbufferext,
 	       0.0, stats->cntError,
 	       stats->cntDatagrams,
+	       (stats->cntDatagrams ? ((100.0 * stats->cntError) / stats->cntDatagrams) : 0),
+	       0.0, // pps
 	       stats->sock_callstats.read.cntRead,
 	       stats->sock_callstats.read.cntReadTimeo,
-#if HAVE_DECL_MSG_TRUNC
 	       stats->sock_callstats.read.cntReadErrLen,
-#endif
-	       0.0,0.0,0.0,0.0,0.0,0.0, (stats->common->Omit ? report_omitted : ""));
+	       (stats->common->Omit ? report_omitted : ""));
     } else {
 	if ((stats->transit.current.min > UNREALISTIC_LATENCYMINMAX) ||
 	    (stats->transit.current.min < UNREALISTIC_LATENCYMINMIN)) {
@@ -1049,15 +1044,11 @@ void udp_output_read_enhanced (struct TransferInfo *stats) {
 		   outbuffer, outbufferext,
 		   (stats->final) ? ((stats->inline_jitter.total.sum / (double) stats->inline_jitter.total.cnt) * 1e3) : (stats->jitter * 1e3),
 		   stats->cntError, stats->cntDatagrams,
-		   (100.0 * stats->cntError) / stats->cntDatagrams,
-		   (stats->cntIPG / stats->IPGsum),
+		   (stats->cntDatagrams ? ((100.0 * stats->cntError) / stats->cntDatagrams) : 0),
+		   (stats->cntIPG / stats->IPGsum), // pps
 		   stats->sock_callstats.read.cntRead,
-#if HAVE_DECL_MSG_TRUNC
 		   stats->sock_callstats.read.cntReadTimeo,
 		   stats->sock_callstats.read.cntReadErrLen, (stats->common->Omit ? report_omitted : ""));
-#else
-	    stats->sock_callstats.read.cntReadTimeo, (stats->common->Omit ? report_omitted : ""));
-#endif
 	} else {
 	    double meantransit;
 	    double variance;
@@ -1076,7 +1067,7 @@ void udp_output_read_enhanced (struct TransferInfo *stats) {
 		   outbuffer, outbufferext,
 		   (stats->final) ? ((stats->inline_jitter.total.sum / (double) stats->inline_jitter.total.cnt) * 1e3) : (stats->jitter * 1e3),  \
 		   stats->cntError, stats->cntDatagrams,
-		   (100.0 * stats->cntError) / stats->cntDatagrams,
+		   (stats->cntDatagrams ? ((100.0 * stats->cntError) / stats->cntDatagrams) : 0),
 		   (meantransit * 1e3),
 		   ((stats->final ? stats->transit.total.min : stats->transit.current.min) * 1e3),
 		   ((stats->final ? stats->transit.total.max : stats->transit.current.max) * 1e3),
@@ -1084,9 +1075,7 @@ void udp_output_read_enhanced (struct TransferInfo *stats) {
 		   (stats->cntIPG / stats->IPGsum),
 		   stats->sock_callstats.read.cntRead,
 		   stats->sock_callstats.read.cntReadTimeo,
-#if HAVE_DECL_MSG_TRUNC
 		   stats->sock_callstats.read.cntReadErrLen,
-#endif
 		   netpower_buf, (stats->common->Omit ? report_omitted : ""));
 	}
     }
@@ -1108,7 +1097,12 @@ void udp_output_read_triptime_isoch (struct TransferInfo *stats) {
 	       outbuffer, outbufferext,
 	       0.0, stats->cntError,
 	       stats->cntDatagrams,
-	       0.0,0.0,0.0,0.0,0.0,0.0);
+	       (stats->cntDatagrams ? ((100.0 * stats->cntError) / stats->cntDatagrams) : 0),
+	       0.0, // pps
+	       stats->sock_callstats.read.cntRead,
+	       stats->sock_callstats.read.cntReadTimeo,
+	       stats->sock_callstats.read.cntReadErrLen,
+	       (stats->common->Omit ? report_omitted : ""));
 
     } else {
 	// If the min latency is out of bounds of a realistic value
@@ -1121,7 +1115,10 @@ void udp_output_read_triptime_isoch (struct TransferInfo *stats) {
 		   outbuffer, outbufferext,
 		   (stats->final) ? ((stats->inline_jitter.total.sum / (double) stats->inline_jitter.total.cnt) * 1e3) : (stats->jitter * 1e3),
 		   stats->cntError, stats->cntDatagrams,
-		   (100.0 * stats->cntError) / stats->cntDatagrams,
+		   (stats->cntDatagrams ? ((100.0 * stats->cntError) / stats->cntDatagrams) : 0),
+		   stats->sock_callstats.read.cntRead,
+		   stats->sock_callstats.read.cntReadTimeo,
+		   stats->sock_callstats.read.cntReadErrLen,
 		   (stats->cntIPG / stats->IPGsum), (stats->common->Omit ? report_omitted : ""));
 	} else {
 	    double frame_meantransit = (stats->isochstats.transit.current.cnt > 0) ? (stats->isochstats.transit.current.sum / stats->isochstats.transit.current.cnt) : 0;
@@ -1132,7 +1129,7 @@ void udp_output_read_triptime_isoch (struct TransferInfo *stats) {
 		   outbuffer, outbufferext,
 		   (stats->final) ? ((stats->inline_jitter.total.sum / (double) stats->inline_jitter.total.cnt) * 1e3) : (stats->jitter * 1e3),  \
 		   stats->cntError, stats->cntDatagrams,
-		   (100.0 * stats->cntError) / stats->cntDatagrams,
+		   (stats->cntDatagrams ? ((100.0 * stats->cntError) / stats->cntDatagrams) : 0),
 		   (meantransit * 1e3),
 		   stats->transit.current.min * 1e3,
 		   stats->transit.current.max * 1e3,
@@ -1205,7 +1202,7 @@ void udp_output_sum_read (struct TransferInfo *stats) {
 	   stats->ts.iStart, stats->ts.iEnd,
 	   outbuffer, outbufferext,
 	   stats->cntError, stats->cntDatagrams,
-	   ((100.0 * stats->cntError) / stats->cntDatagrams),
+	   (stats->cntDatagrams ? ((100.0 * stats->cntError) / stats->cntDatagrams) : 0),
            (stats->common->Omit ? report_omitted : ""));
     if ((stats->cntOutofOrder > 0)  && stats->final) {
 	printf(report_sum_outoforder,
@@ -1262,7 +1259,8 @@ void udp_output_sumcnt_read_enhanced (struct TransferInfo *stats) {
 	   outbuffer, outbufferext,
 	   (stats->final) ? ((stats->inline_jitter.total.sum / (double) stats->inline_jitter.total.cnt) * 1e3) : (stats->jitter * 1e3),  \
 	   stats->cntError, stats->cntDatagrams,
-	   (100.0 * stats->cntError) / stats->cntDatagrams, (stats->common->Omit ? report_omitted : ""));
+	   (stats->cntDatagrams ? ((100.0 * stats->cntError) / stats->cntDatagrams) : 0),
+	   (stats->common->Omit ? report_omitted : ""));
     if ((stats->cntOutofOrder > 0)  && stats->final) {
 	if (isSumOnly(stats->common)) {
 	    printf(report_sumcnt_outoforder,
@@ -1585,17 +1583,18 @@ void udp_output_basic_csv (struct TransferInfo *stats) {
     _print_stats_csv_timestr(stats, timestr, sizeof(timestr));
     intmax_t speed = _print_stats_csv_speed(stats);
     printf(reportCSV_bw_jitter_loss_format,
-	    timestr,
-	    stats->csv_peer,
-	    stats->common->transferID,
-	    stats->ts.iStart,
-	    stats->ts.iEnd,
-	    stats->cntBytes,
-	    speed,
-	    (stats->final) ? ((stats->inline_jitter.total.sum / (double) stats->inline_jitter.total.cnt) * 1e3) : (stats->jitter * 1e3),
-	    stats->cntError,
-	    stats->cntDatagrams,
-	    (100.0 * stats->cntError) / stats->cntDatagrams, stats->cntOutofOrder );
+	   timestr,
+	   stats->csv_peer,
+	   stats->common->transferID,
+	   stats->ts.iStart,
+	   stats->ts.iEnd,
+	   stats->cntBytes,
+	   speed,
+	   (stats->final) ? ((stats->inline_jitter.total.sum / (double) stats->inline_jitter.total.cnt) * 1e3) : (stats->jitter * 1e3),
+	   stats->cntError,
+	   stats->cntDatagrams,
+	   (stats->cntDatagrams ? ((100.0 * stats->cntError) / stats->cntDatagrams) : 0),
+	   stats->cntOutofOrder );
     cond_flush(stats);
 }
 
@@ -1615,7 +1614,7 @@ void udp_output_enhanced_csv (struct TransferInfo *stats) {
 	   (stats->jitter * 1e3),
 	   stats->cntError,
 	   stats->cntDatagrams,
-	   (100.0 * stats->cntError) / stats->cntDatagrams,
+	   (stats->cntDatagrams ? ((100.0 * stats->cntError) / stats->cntDatagrams) : 0),
 	   stats->cntOutofOrder,
 	   stats->sock_callstats.write.WriteCnt,
 	   stats->sock_callstats.write.WriteErr,
