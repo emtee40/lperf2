@@ -971,7 +971,7 @@ void udp_output_read_triptime (struct TransferInfo *stats) {
 		   (stats->final) ? ((stats->inline_jitter.total.sum / (double) stats->inline_jitter.total.cnt) * 1e3) : (stats->jitter * 1e3),
 		   stats->cntError, stats->cntDatagrams,
 		   (stats->cntDatagrams ? ((100.0 * stats->cntError) / stats->cntDatagrams) : 0),
-		   (stats->cntIPG / stats->IPGsum), // pps
+		   (stats->IPGsum ? (stats->cntIPG / stats->IPGsum) : 0), // pps
 		   stats->sock_callstats.read.cntRead,
 		   stats->sock_callstats.read.cntReadTimeo,
 		   stats->sock_callstats.read.cntReadErrLen,(stats->common->Omit ? report_omitted : ""));
@@ -1003,7 +1003,7 @@ void udp_output_read_triptime (struct TransferInfo *stats) {
 		   ((stats->final ? stats->transit.total.min : stats->transit.current.min) * 1e3),
 		   ((stats->final ? stats->transit.total.max : stats->transit.current.max) * 1e3),
 		   (stats->final ? (stats->transit.total.cnt < 2) : (stats->transit.current.cnt < 2)) ? 0 : (1e3 * variance), // convert from sec to ms
-		   (stats->cntIPG / stats->IPGsum),
+		   (stats->IPGsum ? (stats->cntIPG / stats->IPGsum) : 0), // pps
 		   stats->cntIPG,
 		   llaw_bufstr,
 		   stats->sock_callstats.read.cntRead,
@@ -1045,7 +1045,7 @@ void udp_output_read_enhanced (struct TransferInfo *stats) {
 		   (stats->final) ? ((stats->inline_jitter.total.sum / (double) stats->inline_jitter.total.cnt) * 1e3) : (stats->jitter * 1e3),
 		   stats->cntError, stats->cntDatagrams,
 		   (stats->cntDatagrams ? ((100.0 * stats->cntError) / stats->cntDatagrams) : 0),
-		   (stats->cntIPG / stats->IPGsum), // pps
+		   (stats->IPGsum ? (stats->cntIPG / stats->IPGsum) : 0), // pps
 		   stats->sock_callstats.read.cntRead,
 		   stats->sock_callstats.read.cntReadTimeo,
 		   stats->sock_callstats.read.cntReadErrLen, (stats->common->Omit ? report_omitted : ""));
@@ -1072,7 +1072,7 @@ void udp_output_read_enhanced (struct TransferInfo *stats) {
 		   ((stats->final ? stats->transit.total.min : stats->transit.current.min) * 1e3),
 		   ((stats->final ? stats->transit.total.max : stats->transit.current.max) * 1e3),
 		   (stats->final ? (stats->transit.total.cnt < 2) : (stats->transit.current.cnt < 2)) ? 0 : (1e3 * variance), // convert from sec to ms
-		   (stats->cntIPG / stats->IPGsum),
+		   (stats->IPGsum ? (stats->cntIPG / stats->IPGsum) : 0), // pps
 		   stats->sock_callstats.read.cntRead,
 		   stats->sock_callstats.read.cntReadTimeo,
 		   stats->sock_callstats.read.cntReadErrLen,
@@ -1134,7 +1134,7 @@ void udp_output_read_triptime_isoch (struct TransferInfo *stats) {
 		   stats->transit.current.min * 1e3,
 		   stats->transit.current.max * 1e3,
 		   (stats->transit.current.cnt < 2) ? 0 : 1e3 * (sqrt(stats->transit.current.m2 / (stats->transit.current.cnt - 1))),
-		   (stats->cntIPG / stats->IPGsum),
+		   (stats->IPGsum ? (stats->cntIPG / stats->IPGsum) : 0), // pps
 		   stats->isochstats.cntFrames, stats->isochstats.cntFramesMissed,
 		   (frame_meantransit * 1e3),
 		   stats->isochstats.transit.current.min * 1e3,
