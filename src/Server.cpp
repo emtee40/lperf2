@@ -246,8 +246,12 @@ void Server::RunTCP () {
 		}
 	    }
 	    if (!reportstruct->transit_ready) {
-		n = recv(mSettings->mSock, mSettings->mBuf, readLen, \
-			 ((!isSkipRxCopy(mSettings) || (isburst && (burst_nleft > 0))) ? 0 : MSG_TRUNC));
+#ifdef HAVE_DECL_MSG_TRUNC
+		int recvflags = ((!isSkipRxCopy(mSettings) || (isburst && (burst_nleft > 0))) ? 0 : MSG_TRUNC);
+#else
+		int recvflags = 0;
+#endif
+		n = recv(mSettings->mSock, mSettings->mBuf, readLen, recvflags);
 		if (n > 0) {
 		    reportstruct->emptyreport = false;
 		    if (isburst) {
