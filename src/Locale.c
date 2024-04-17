@@ -630,6 +630,9 @@ const char report_sumcnt_bw_jitter_loss_enhanced_format[] =
 const char report_bw_jitter_loss_suppress_enhanced_format[] =
 "%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %6.3f ms %" PRIdMAX "/%" PRIdMAX " (%.2g%%) -/-/-/- ms %.0f pps %" PRIdMAX "/%" PRIdMAX "/%" PRIdMAX "%s\n";
 
+const char report_bw_jitter_loss_suppress_isoch_format[] =
+"%s" IPERFTimeFrmt " sec  %ss  %ss/sec  %6.3f ms %" PRIdMAX "/%" PRIdMAX " (%.2g%%) -/-/-/- ms %.0f pps  %3" PRIdMAX " /% " PRIdMAX " -/-/-/- ms  -%s\n";
+
 /*
  * Frame interval reports
  */

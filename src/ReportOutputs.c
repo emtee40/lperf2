@@ -1092,33 +1092,29 @@ void udp_output_read_triptime_isoch (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_bw_jitter_loss_enhanced_isoch_triptime);
     _print_stats_common(stats);
     if (!stats->cntIPG) {
-	printf(report_bw_jitter_loss_suppress_enhanced_format, stats->common->transferIDStr,
+	printf(report_bw_jitter_loss_suppress_isoch_format, stats->common->transferIDStr,
 	       stats->ts.iStart, stats->ts.iEnd,
 	       outbuffer, outbufferext,
 	       0.0, stats->cntError,
 	       stats->cntDatagrams,
 	       (stats->cntDatagrams ? ((100.0 * stats->cntError) / stats->cntDatagrams) : 0),
 	       0.0, // pps
-	       stats->sock_callstats.read.cntRead,
-	       stats->sock_callstats.read.cntReadTimeo,
-	       stats->sock_callstats.read.cntReadErrLen,
+	       stats->isochstats.cntFrames, stats->isochstats.cntFramesMissed,
 	       (stats->common->Omit ? report_omitted : ""));
-
     } else {
 	// If the min latency is out of bounds of a realistic value
 	// assume the clocks are not synched and suppress the
 	// latency output
 	if ((stats->transit.current.min > UNREALISTIC_LATENCYMINMAX) ||
 	    (stats->transit.current.min < UNREALISTIC_LATENCYMINMIN)) {
-	    printf(report_bw_jitter_loss_suppress_enhanced_format, stats->common->transferIDStr,
+	    printf(report_bw_jitter_loss_suppress_isoch_format, stats->common->transferIDStr,
 		   stats->ts.iStart, stats->ts.iEnd,
 		   outbuffer, outbufferext,
 		   (stats->final) ? ((stats->inline_jitter.total.sum / (double) stats->inline_jitter.total.cnt) * 1e3) : (stats->jitter * 1e3),
 		   stats->cntError, stats->cntDatagrams,
 		   (stats->cntDatagrams ? ((100.0 * stats->cntError) / stats->cntDatagrams) : 0),
-		   stats->sock_callstats.read.cntRead,
-		   stats->sock_callstats.read.cntReadTimeo,
-		   stats->sock_callstats.read.cntReadErrLen,
+		   (stats->IPGsum ? (stats->cntIPG / stats->IPGsum) : 0), // pps
+		   stats->isochstats.cntFrames, stats->isochstats.cntFramesMissed,
 		   (stats->cntIPG / stats->IPGsum), (stats->common->Omit ? report_omitted : ""));
 	} else {
 	    double frame_meantransit = (stats->isochstats.transit.current.cnt > 0) ? (stats->isochstats.transit.current.sum / stats->isochstats.transit.current.cnt) : 0;
