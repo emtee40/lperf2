@@ -523,7 +523,7 @@ inline void Server::SetFullDuplexReportStartTime () {
 
 inline void Server::SetReportStartTime () {
     if (TimeZero(myReport->info.ts.startTime)) {
-	if (!TimeZero(mSettings->sent_time) && !isTxStartTime(mSettings)) {
+	if (isTripTime(mSettings) && !TimeZero(mSettings->sent_time) && !isTxStartTime(mSettings)) {
 	    // Servers that aren't full duplex use the accept timestamp for start
 	    myReport->info.ts.startTime.tv_sec = mSettings->sent_time.tv_sec;
 	    myReport->info.ts.startTime.tv_usec = mSettings->sent_time.tv_usec;
