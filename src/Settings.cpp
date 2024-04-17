@@ -1486,7 +1486,6 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	    skiprxcopy = 0;
 #if HAVE_DECL_MSG_TRUNC
 	    setSkipRxCopy(mExtSettings);
-	    mExtSettings->recv_flags = MSG_TRUNC;
 	    setEnhanced(mExtSettings);
 #endif
 	}
