@@ -64,6 +64,7 @@
 #include "packet_ring.h"
 #include "payloads.h"
 #include "gettcpinfo.h"
+#include "iperf_formattime.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -2123,6 +2124,39 @@ bool reporter_condprint_burst_interval_report_client_tcp (struct ReporterData *d
 	advance_jobq = true;
     }
     return advance_jobq;
+}
+
+int post_connection_error (struct thread_Settings *inSettings, struct timeval t) {
+    char timestr[120];
+    char tmpaddr[200];
+    char errtext[50];
+    int connect_errno = errno_decode(errtext, sizeof(errtext));
+    unsigned short port = SockAddr_getPort(&inSettings->peer);
+    SockAddr_getHostAddress(&inSettings->peer, tmpaddr, sizeof(tmpaddr));
+    iperf_formattime(timestr, sizeof(timestr), t, isEnhanced(inSettings), isUTC(inSettings), YearThruSecTZ);
+    int slen = snprintf(NULL, 0, "%stcp connect to %s port %" PRIu16 " failed (%s) on %s", \
+			inSettings->mTransferIDStr, tmpaddr, port, errtext, timestr);
+    char *text = (char *) calloc((slen+1), sizeof(char));
+    if (text) {
+	snprintf(text, (slen+1), "%stcp connect to %s port %" PRIu16 " failed (%s) on %s", \
+		 inSettings->mTransferIDStr, tmpaddr, port, errtext, timestr);
+	PostReport(InitStringReport(text));
+	FREE_ARRAY(text);
+    }
+    return connect_errno;
+}
+void post_connect_timer_expired (struct thread_Settings *inSettings, struct timeval t) {
+    char timestr[120];
+    iperf_formattime(timestr, sizeof(timestr), t, isEnhanced(inSettings), isUTC(inSettings), YearThruSecTZ);
+    int len = snprintf(NULL, 0, "%stcp connect attempt timer expired on %s\n", \
+		       inSettings->mTransferIDStr, timestr);
+    char *text = (char *) calloc(len+1, sizeof(char));
+    if (text) {
+	snprintf(text, len, "%stcp connect attempt timer expired on %s\n", \
+		 inSettings->mTransferIDStr, timestr);
+	PostReport(InitStringReport(text));
+	FREE_ARRAY(text);
+    }
 }
 
 #ifdef __cplusplus
