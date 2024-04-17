@@ -197,11 +197,11 @@ bool Client::my_connect (bool close_on_fail) {
 		t.tv_sec = connect_done.getSecs();
 		t.tv_usec = connect_done.getUsecs();
 		iperf_formattime(timestr, sizeof(timestr), t, isEnhanced(mSettings), isUTC(mSettings), YearThruSecTZ);
-		int slen = snprintf(NULL, 0, "%stcp connect to %s port %d failed (%s) on %s", \
+		int slen = snprintf(NULL, 0, "%stcp connect to %s port %" PRIu16 " failed (%s) on %s", \
 				    mSettings->mTransferIDStr, tmpaddr, port, errtext, timestr);
 		char *text = (char *) calloc((slen+1), sizeof(char));
 		if (text) {
-		    snprintf(text, (slen+1), "%stcp connect to %s port %d failed (%s) on %s", \
+		    snprintf(text, (slen+1), "%stcp connect to %s port %" PRIu16 " failed (%s) on %s", \
 			     mSettings->mTransferIDStr, tmpaddr, port, errtext, timestr);
 		    PostReport(InitStringReport(text));
 		    FREE_ARRAY(text);
