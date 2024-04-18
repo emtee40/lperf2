@@ -1248,16 +1248,16 @@ void udp_output_sumcnt_enhanced (struct TransferInfo *stats) {
 }
 
 void udp_output_sumcnt_read_enhanced (struct TransferInfo *stats) {
-    HEADING_PRINT_COND(report_sumcnt_bw_read_enhanced);
+    HEADING_PRINT_COND(report_sumcnt_bw_jitter_loss);
     _print_stats_common(stats);
-    printf(report_sumcnt_bw_read_enhanced_format, (stats->final ? stats->threadcnt_final: stats->slot_thread_downcount),
+    printf(report_sumcnt_bw_jitter_loss_format, (stats->final ? stats->threadcnt_final: stats->slot_thread_downcount),
 	   stats->ts.iStart, stats->ts.iEnd,
 	   outbuffer, outbufferext,
 	   (stats->final) ? ((stats->inline_jitter.total.sum / (double) stats->inline_jitter.total.cnt) * 1e3) : (stats->jitter * 1e3),  \
 	   stats->cntError, stats->cntDatagrams,
 	   (stats->cntDatagrams ? ((100.0 * stats->cntError) / stats->cntDatagrams) : 0),
 	   (stats->common->Omit ? report_omitted : ""));
-    if ((stats->cntOutofOrder > 0)  && stats->final) {
+    if ((stats->cntOutofOrder > 0) && stats->final) {
 	if (isSumOnly(stats->common)) {
 	    printf(report_sumcnt_outoforder,
 		   (stats->final ? stats->threadcnt_final: stats->slot_thread_downcount),
