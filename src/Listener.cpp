@@ -677,6 +677,11 @@ int Listener::udp_accept (thread_Settings *server) {
 	nread = recvfrom(ListenSocket, server->mBuf, server->mBufLen, 0, \
 			 reinterpret_cast<struct sockaddr*>(&server->peer), &server->size_peer);
 	if (nread > 0) {
+	    struct client_udp_testhdr *hdr = reinterpret_cast<struct client_udp_testhdr *>(server->mBuf + server->l4payloadoffset);
+	    uint32_t flags = ntohl(hdr->base.flags);
+	    if (flags & HEADER_SEQNO64B) {
+		setSeqNo64b(server);
+	    }
 	    // filter and ignore negative sequence numbers, these can be heldover from a previous run
 	    if (isSeqNo64b(mSettings)) {
 		// New client - Signed PacketID packed into unsigned id2,id
