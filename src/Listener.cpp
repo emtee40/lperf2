@@ -677,10 +677,11 @@ int Listener::udp_accept (thread_Settings *server) {
 	nread = recvfrom(ListenSocket, server->mBuf, server->mBufLen, 0, \
 			 reinterpret_cast<struct sockaddr*>(&server->peer), &server->size_peer);
 	if (nread > 0) {
-	    struct client_udp_testhdr *hdr = reinterpret_cast<struct client_udp_testhdr *>(server->mBuf + server->l4payloadoffset);
+	    struct client_udp_testhdr *hdr = reinterpret_cast<struct client_udp_testhdr *>(server->mBuf);
 	    uint32_t flags = ntohl(hdr->base.flags);
-	    if (flags & HEADER_SEQNO64B) {
-		setSeqNo64b(server);
+	    setSeqNo64b(server);
+	    if ((nread >=4) & (flags & HEADER_SEQNO64B)) {
+		unsetSeqNo64b(server);
 	    }
 	    // filter and ignore negative sequence numbers, these can be heldover from a previous run
 	    if (isSeqNo64b(mSettings)) {
