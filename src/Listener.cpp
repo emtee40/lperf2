@@ -684,7 +684,7 @@ int Listener::udp_accept (thread_Settings *server) {
 		unsetSeqNo64b(server);
 	    }
 	    // filter and ignore negative sequence numbers, these can be heldover from a previous run
-	    if (isSeqNo64b(mSettings)) {
+	    if (isSeqNo64b(server)) {
 		// New client - Signed PacketID packed into unsigned id2,id
 		packetID = (static_cast<uint32_t>(ntohl(mBuf_UDP->id))) | (static_cast<uintmax_t>(ntohl(mBuf_UDP->id2)) << 32);
 	    } else {
