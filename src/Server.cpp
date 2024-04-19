@@ -276,8 +276,8 @@ void Server::RunTCP () {
 		    n = 0;
 		    now.setnow();
 		    char warnbuf[WARNBUFSIZE];
-		    snprintf(warnbuf, sizeof(warnbuf), "%stcp recv (%ld.%06ld)",\
-			     mSettings->mTransferIDStr, now.getSecs(), now.getUsecs());
+		    snprintf(warnbuf, sizeof(warnbuf), "%stcp recv",\
+			     mSettings->mTransferIDStr);
 		    warnbuf[sizeof(warnbuf)-1] = '\0';
 		    WARN_errno(1, warnbuf);
 		}

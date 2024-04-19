@@ -910,7 +910,7 @@ bool Listener::apply_client_settings_udp (thread_Settings *server) {
 	}
 	Timestamp now;
 	if (!isTxStartTime(server) && ((abs(now.getSecs() - server->sent_time.tv_sec)) > (MAXDIFFTIMESTAMPSECS + 1))) {
-	    fprintf(stdout,"WARN: ignore --trip-times because client didn't provide valid start timestamp within %d seconds of now (now=%ld send=%ld)\n", MAXDIFFTIMESTAMPSECS, now.getSecs(), server->sent_time.tv_sec);
+	    fprintf(stdout,"WARN: ignore --trip-times because client didn't provide valid start timestamp within %d seconds of now\n", MAXDIFFTIMESTAMPSECS);
 	    unsetTripTime(server);
 	} else {
 	    setTripTime(server);
