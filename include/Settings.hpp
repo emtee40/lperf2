@@ -320,6 +320,7 @@ struct thread_Settings {
     double connecttime;
     double connect_retry_time;    // units in seconds
     unsigned int connect_retry_timer; // units in usecs
+    struct Condition receiving;
 };
 
 /*

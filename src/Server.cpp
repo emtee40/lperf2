@@ -726,8 +726,9 @@ bool Server::InitTrafficLoop (void) {
     if (setfullduplexflag)
 	SetFullDuplexReportStartTime();
 
-    if (isServerModeTime(mSettings) || (isModeTime(mSettings) && (isBounceBack(mSettings) || isServerReverse(mSettings) || isFullDuplex(mSettings) || isReverse(mSettings)))) {
-
+    if (isServerModeTime(mSettings) || \
+	(isModeTime(mSettings) && (isBounceBack(mSettings) || isServerReverse(mSettings) || isFullDuplex(mSettings) \
+				   || isReverse(mSettings)))) {
 	if (isServerReverse(mSettings) || isFullDuplex(mSettings) || isReverse(mSettings))
 	    mSettings->mAmount += (SLOPSECS * 100);  // add 2 sec for slop on reverse, units are 10 ms
 
@@ -1015,7 +1016,9 @@ void Server::RunUDP () {
     int rxlen;
     bool isLastPacket = false;
 
-    if (InitTrafficLoop()) {
+    bool startReceiving = InitTrafficLoop();
+    Condition_Signal(&mSettings->receiving); // signal the listener thread so it can hang a new recvfrom
+    if (startReceiving) {
         // Exit loop on three conditions
         // 1) Fatal read error
         // 2) Last packet of traffic flow sent by client
