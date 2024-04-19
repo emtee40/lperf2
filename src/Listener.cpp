@@ -683,7 +683,7 @@ int Listener::udp_accept (thread_Settings *server) {
 	    struct client_udp_testhdr *hdr = reinterpret_cast<struct client_udp_testhdr *>(server->mBuf);
 	    uint32_t flags = ntohl(hdr->base.flags);
 	    setSeqNo64b(server);
-	    if (!isCompat(mSettings) && (nread >= 4) & (flags & HEADER_SEQNO64B)) {
+	    if (!isCompat(mSettings) && (nread >= 4) && !(flags & HEADER_SEQNO64B)) {
 		unsetSeqNo64b(server);
 	    }
 	    // filter and ignore negative sequence numbers, these can be heldover from a previous run
