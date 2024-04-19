@@ -2241,8 +2241,8 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
 	b += strlen(b);
     }
     if (isEnhanced(report->common)) {
-        if (isCongestionControl(report->common)) {
 #if HAVE_DECL_TCP_CONGESTION
+        if (isCongestionControl(report->common)) {
 	    char cca[40] = "";
 	    Socklen_t len = sizeof(cca);
 	    int rc;
@@ -2250,14 +2250,11 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
 	        cca[len]='\0';
 	    }
 	    if (rc != SOCKET_ERROR) {
-	        snprintf(b, SNBUFFERSIZE-strlen(b), " (sock=%d/%s)", report->common->socket, cca);
+	        snprintf(b, SNBUFFERSIZE-strlen(b), " (%s)", cca);
 	        b += strlen(b);
 	    }
-#endif
-	} else {
-	    snprintf(b, SNBUFFERSIZE-strlen(b), " (sock=%d)", report->common->socket);
-	    b += strlen(b);
 	}
+#endif
     }
     if (isOverrideTOS(report->common)) {
 	if (isFullDuplex(report->common)) {
