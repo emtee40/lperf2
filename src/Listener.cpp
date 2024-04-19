@@ -662,8 +662,6 @@ int Listener::udp_accept (thread_Settings *server) {
     // Preset the server socket to INVALID, hang recvfrom on the Listener's socket
     // The INVALID socket is used to keep the while loop going
     server->mSock = INVALID_SOCKET;
-    intmax_t packetID64;
-    int32_t packetID32;
     bool drainstalepkts = true;
     struct UDP_datagram* mBuf_UDP  = reinterpret_cast<struct UDP_datagram*>(server->mBuf);
     // Look for a UDP packet with a postive seq no while draining any neg seq no packets
@@ -689,12 +687,12 @@ int Listener::udp_accept (thread_Settings *server) {
 	    // filter and ignore negative sequence numbers, these can be heldover from a previous run
 	    if (isSeqNo64b(server)) {
 		// New client - Signed PacketID packed into unsigned id2,id
-		packetID64 = (static_cast<uint32_t>(ntohl(mBuf_UDP->id))) | (static_cast<uintmax_t>(ntohl(mBuf_UDP->id2)) << 32);
+		intmax_t packetID64 = (static_cast<uint32_t>(ntohl(mBuf_UDP->id))) | (static_cast<uintmax_t>(ntohl(mBuf_UDP->id2)) << 32);
 		if (packetID64 > 0)
 		    drainstalepkts = false;
 	    } else {
 		// Old client - Signed PacketID in Signed id
-		packetID32 = static_cast<int32_t>(ntohl(mBuf_UDP->id));
+		int32_t packetID32 = static_cast<int32_t>(ntohl(mBuf_UDP->id));
 		if (packetID32 > 0)
 		    drainstalepkts = false;
 	    }
