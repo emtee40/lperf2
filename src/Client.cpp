@@ -767,7 +767,7 @@ void Client::RunTCP () {
 		reportstruct->err_readwrite=WriteErrFatal;
 		now.setnow();
 		char warnbuf[WARNBUFSIZE];
-		snprintf(warnbuf, sizeof(warnbuf), "%stcp write (%ld.%06ld)", mSettings->mTransferIDStr, now.getSecs(), now.getUsecs());
+		snprintf(warnbuf, sizeof(warnbuf), "%stcp write", mSettings->mTransferIDStr);
 		warnbuf[sizeof(warnbuf)-1] = '\0';
 		WARN(1, warnbuf);
 		break;
