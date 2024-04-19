@@ -306,10 +306,6 @@ void Listener::Run () {
 		continue;
 	    }
 	}
-	// Force compat mode to use 64 bit seq numbers
-	if (isUDP(server) && isCompat(mSettings)) {
-	    setSeqNo64b(server);
-	}
 	setTransferID(server, NORMAL);
 	if ((mSettings->mReportMode == kReport_CSV) && server->mSumReport && !server->mSumReport->sum_reverse_set) {
 	    format_ips_port_string(&server->mSumReport->info, 1);
@@ -379,7 +375,13 @@ void Listener::Run () {
 	    PostReport(reporthdr);
 	}
 	// Now start the server side traffic threads
+	if (isUDP(server)) {
+	    Condition_Initialize(&server->receiving);
+	}
 	thread_start_all(server);
+	if (isUDP(server)) {
+	    Condition_TimedWait(&server->receiving, 1);
+	}
     }
 #ifdef HAVE_THREAD_DEBUG
     thread_debug("Listener exiting port/sig/threads %d/%d/%d", mSettings->mPort, sInterupted, mCount);
@@ -660,7 +662,9 @@ int Listener::udp_accept (thread_Settings *server) {
     // Preset the server socket to INVALID, hang recvfrom on the Listener's socket
     // The INVALID socket is used to keep the while loop going
     server->mSock = INVALID_SOCKET;
-    intmax_t packetID;
+    intmax_t packetID64;
+    int32_t packetID32;
+    bool drainstalepkts = true;
     struct UDP_datagram* mBuf_UDP  = reinterpret_cast<struct UDP_datagram*>(server->mBuf);
     // Look for a UDP packet with a postive seq no while draining any neg seq no packets
     // The UDP client traffic thread uses negative seq numbers to indicate to the server that
@@ -673,26 +677,29 @@ int Listener::udp_accept (thread_Settings *server) {
     // they have negative seq numbers.
   RETRYREAD:
     do {
-	packetID = 0;
 	nread = recvfrom(ListenSocket, server->mBuf, server->mBufLen, 0, \
 			 reinterpret_cast<struct sockaddr*>(&server->peer), &server->size_peer);
 	if (nread > 0) {
 	    struct client_udp_testhdr *hdr = reinterpret_cast<struct client_udp_testhdr *>(server->mBuf);
 	    uint32_t flags = ntohl(hdr->base.flags);
 	    setSeqNo64b(server);
-	    if ((nread >=4) & (flags & HEADER_SEQNO64B)) {
+	    if (!isCompat(mSettings) && (nread >= 4) & (flags & HEADER_SEQNO64B)) {
 		unsetSeqNo64b(server);
 	    }
 	    // filter and ignore negative sequence numbers, these can be heldover from a previous run
 	    if (isSeqNo64b(server)) {
 		// New client - Signed PacketID packed into unsigned id2,id
-		packetID = (static_cast<uint32_t>(ntohl(mBuf_UDP->id))) | (static_cast<uintmax_t>(ntohl(mBuf_UDP->id2)) << 32);
+		packetID64 = (static_cast<uint32_t>(ntohl(mBuf_UDP->id))) | (static_cast<uintmax_t>(ntohl(mBuf_UDP->id2)) << 32);
+		if (packetID64 > 0)
+		    drainstalepkts = false;
 	    } else {
 		// Old client - Signed PacketID in Signed id
-		packetID = static_cast<int32_t>(ntohl(mBuf_UDP->id));
+		packetID32 = static_cast<int32_t>(ntohl(mBuf_UDP->id));
+		if (packetID32 > 0)
+		    drainstalepkts = false;
 	    }
 	}
-    } while ((nread > 0) && (packetID < 0) && !sInterupted);
+    } while ((nread > 0) && drainstalepkts && !sInterupted);
     FAIL_errno(nread == SOCKET_ERROR, "recvfrom", mSettings);
     if ((nread > 0) && !sInterupted) {
 	Timestamp now;
@@ -701,7 +708,6 @@ int Listener::udp_accept (thread_Settings *server) {
 	// Drop duplicates, may need to use a BPF drop for better performance
 	// or ebfs
 	if (!Iperf_push_host(server)) {
-	    packetID = 0;
 	    goto RETRYREAD;
 	} else {
 	    int rc;
@@ -885,9 +891,6 @@ bool Listener::apply_client_settings_udp (thread_Settings *server) {
     struct client_udp_testhdr *hdr = reinterpret_cast<struct client_udp_testhdr *>(server->mBuf + server->l4payloadoffset);
     uint32_t flags = ntohl(hdr->base.flags);
     uint16_t upperflags = 0;
-    if (flags & HEADER_SEQNO64B) {
-	setSeqNo64b(server);
-    }
 #if HAVE_THREAD_DEBUG
     thread_debug("UDP test flags = %X", flags);
 #endif
