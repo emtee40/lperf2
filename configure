@@ -9628,6 +9628,7 @@ then :
 
 fi
 
+
 ac_fn_c_check_func "$LINENO" "snprintf" "ac_cv_func_snprintf"
 if test "x$ac_cv_func_snprintf" = xyes
 then :
@@ -9642,7 +9643,23 @@ esac
  ;;
 esac
 fi
-ac_fn_c_check_func "$LINENO" "inet_pton" "ac_cv_func_inet_pton"
+ac_fn_c_check_func "$LINENO" "gettimeofday" "ac_cv_func_gettimeofday"
+if test "x$ac_cv_func_gettimeofday" = xyes
+then :
+  printf "%s\n" "#define HAVE_GETTIMEOFDAY 1" >>confdefs.h
+
+else case e in #(
+  e) case " $LIBOBJS " in
+  *" gettimeofday.$ac_objext "* ) ;;
+  *) LIBOBJS="$LIBOBJS gettimeofday.$ac_objext"
+ ;;
+esac
+ ;;
+esac
+fi
+
+if test "x$ac_cv_header_winsock2_h" != xyes; then :
+      ac_fn_c_check_func "$LINENO" "inet_pton" "ac_cv_func_inet_pton"
 if test "x$ac_cv_func_inet_pton" = xyes
 then :
   printf "%s\n" "#define HAVE_INET_PTON 1" >>confdefs.h
@@ -9670,19 +9687,7 @@ esac
  ;;
 esac
 fi
-ac_fn_c_check_func "$LINENO" "gettimeofday" "ac_cv_func_gettimeofday"
-if test "x$ac_cv_func_gettimeofday" = xyes
-then :
-  printf "%s\n" "#define HAVE_GETTIMEOFDAY 1" >>confdefs.h
 
-else case e in #(
-  e) case " $LIBOBJS " in
-  *" gettimeofday.$ac_objext "* ) ;;
-  *) LIBOBJS="$LIBOBJS gettimeofday.$ac_objext"
- ;;
-esac
- ;;
-esac
 fi
 
 ac_fn_check_decl "$LINENO" "ENOBUFS" "ac_cv_have_decl_ENOBUFS" "#include <errno.h>
@@ -11148,7 +11153,6 @@ case "$ac_cv_host" in
 *-android)
         CFLAGS="$CFLAGS -fPIE"; LDFLAGS="$LDFLAGS -pie";;
 esac
-
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether make is GNU make" >&5
 printf %s "checking whether make is GNU make... " >&6; }
