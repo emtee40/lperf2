@@ -379,7 +379,7 @@ void Listener::Run () {
 	    Condition_Initialize(&server->receiving);
 	}
 	thread_start_all(server);
-	if (isUDP(server)) {
+	if (isUDP(server) && (mCount != 0)) {
 	    Condition_TimedWait(&server->receiving, 1);
 	}
     }
