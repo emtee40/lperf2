@@ -64,6 +64,15 @@ Windows (Cygwin + i686-w64-mingw32)
 
   The result runs natively on WinXP and above without requiring Cygwin
 
+
+---
+Windows 64 (Cygwin + i686-w64-mingw32)
+
+# dnf install mingw64-gcc mingw64-gcc-c++ mingw64-winpthreads-static
+
+$ ../iperf2-code/configure --host=x86_64-w64-mingw32
+$ make
+
 ---
 
 Windows (MinGW + Msys)
