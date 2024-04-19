@@ -63,16 +63,6 @@ AM_CONDITIONAL([SUMMING_DEBUG], [test "x$enable_summing_debug" = "xyes"])
 AC_ARG_ENABLE(checkprograms, AS_HELP_STRING([--enable-checkprograms],[enable support for building support programs such as checkdelay, checkpdfs, etc. (default is disable)]))
 AM_CONDITIONAL([CHECKPROGRAMS], [test "x$enable_checkprograms" = "xyes"])
 
-AC_ARG_ENABLE([static-bin],
-    AS_HELP_STRING([--enable-static-bin], [link iperf binary statically]),
-    [enable_static_bin=yes],
-    [:])
-AM_CONDITIONAL([ENABLE_STATIC_BIN], [test x$enable_static_bin = xno])
-
-AS_IF([test "x$enable_static_bin" = xyes],
- [CFLAGS="$CFLAGS --static"; CXXFLAGS="$CXXFLAGS --static"; LDFLAGS="$LDFLAGS --static"]
- [])
-
 AC_ARG_ENABLE(debug_symbols,
 AS_HELP_STRING([--enable-debug-symbols],
                [enable debugging with symbols, default: no]),
@@ -242,7 +232,13 @@ AC_DEFINE_UNQUOTED([RETSIGTYPE],[$ac_cv_type_signal],[Define as the return type 
 AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
 AC_CHECK_FUNCS([atexit memset select strchr strerror strtol strtoll strtod usleep clock_gettime sched_setscheduler sched_yield mlockall setitimer nanosleep clock_nanosleep freopen])
-AC_REPLACE_FUNCS(snprintf inet_pton inet_ntop gettimeofday)
+
+AC_REPLACE_FUNCS(snprintf gettimeofday)
+if test "x$ac_cv_header_winsock2_h" != xyes; then :
+   dnl Use local replacements rather than require a later Windows API
+   AC_REPLACE_FUNCS(inet_pton inet_ntop)
+fi
+
 AC_CHECK_DECLS([ENOBUFS, EWOULDBLOCK],[],[],[#include <errno.h>])
 AC_CHECK_DECLS([SIOCGIFMTU],[],[],[
 #ifdef HAVE_LINUX_SOCKIOS_H
@@ -469,7 +465,6 @@ case "$ac_cv_host" in
     dnl Android requires PIE
     CFLAGS="$CFLAGS -fPIE"; LDFLAGS="$LDFLAGS -pie";;
 esac
-
 
 dnl GNU make allows us to use the $(strip ...) builtin which eliminates a
 dnl large amount of extra whitespace in compile lines.
