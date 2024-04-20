@@ -91,16 +91,34 @@ dnl ===================================================================
 dnl Checks for programs
 dnl ===================================================================
 
+
+AC_CANONICAL_HOST
+
+dnl provide defaults before chosing compiler
+case "$ac_cv_host" in
+*-mingw32)
+    dnl Static link on MINGW for standalone DOS executable
+    : ${LDFLAGS="-static"}
+    : ${CFLAGS="-O2"}
+    ;;
+*-android)
+    dnl Android requires PIE
+    : ${LDFLAGS="-pie"}
+    : ${CFLAGS="-O2 -fPIE"}
+    ;;
+*)
+    : ${CFLAGS="-O2"}
+    ;;
+esac
+
+
 AC_PROG_CXX
-CXXFLAGS=`echo " $CXXFLAGS " | sed -e "s/ -g / /"` # do not want it implicitly
 AC_PROG_CC
-CFLAGS=`echo " $CFLAGS " | sed -e "s/ -g / /"` # do not want it implicitly
 AC_SEARCH_LIBS([strerror],[cposix])
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AC_PROG_RANLIB
 AC_LANG(C)
-AC_CANONICAL_HOST
 
 dnl ===================================================================
 dnl Checks for libraries.
@@ -422,15 +440,6 @@ fi
 if test "$enable_discover_defaultlen" = yes; then
 AC_DEFINE([DEFAULT_PAYLOAD_LEN_PER_MTU_DISCOVERY], 1, [Define if default UDP payload length is based on device MTU and socket buffer size])
 fi
-
-case "$ac_cv_host" in
-*-mingw32)
-    dnl Static link on MINGW for standalone DOS executable
-    LIBS="$LIBS -static-libstdc++ -static";;
-*-android)
-    dnl Android requires PIE
-    CFLAGS="$CFLAGS -fPIE"; LDFLAGS="$LDFLAGS -pie";;
-esac
 
 dnl GNU make allows us to use the $(strip ...) builtin which eliminates a
 dnl large amount of extra whitespace in compile lines.
