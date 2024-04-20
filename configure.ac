@@ -155,7 +155,7 @@ AC_SEARCH_LIBS([socket], [socket], [],
 
 dnl Checks for header files.
 
-AC_CHECK_HEADERS([arpa/inet.h libintl.h net/ethernet.h net/if.h sys/ioctl.h sys/sockio.h linux/sockios.h linux/ip.h linux/udp.h linux/tcp.h linux/if_packet.h linux/filter.h linux/if_tun.h netdb.h netinet/in.h netinet/tcp.h netinet/ip.h netinet/udp.h stdlib.h string.h strings.h sys/socket.h sys/time.h syslog.h unistd.h signal.h ifaddrs.h])
+AC_CHECK_HEADERS([arpa/inet.h libintl.h net/ethernet.h net/if.h sys/ioctl.h sys/sockio.h linux/sockios.h linux/ip.h linux/udp.h linux/tcp.h linux/if_packet.h linux/filter.h linux/if_tun.h netdb.h netinet/in.h netinet/tcp.h netinet/ip.h netinet/udp.h stdlib.h string.h strings.h sys/socket.h sys/time.h syslog.h unistd.h signal.h])
 
 dnl ===================================================================
 dnl Checks for typedefs, structures
@@ -198,7 +198,7 @@ AC_FUNC_SELECT_ARGTYPES
 
 AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([atexit memset select strchr strerror strtol strtoll strtod usleep clock_gettime sched_setscheduler sched_yield mlockall setitimer nanosleep clock_nanosleep freopen])
+AC_CHECK_FUNCS([atexit memset select strchr strerror strtol strtoll strtod usleep clock_gettime sched_setscheduler sched_yield mlockall setitimer nanosleep clock_nanosleep freopen getifaddrs])
 
 AC_REPLACE_FUNCS(snprintf gettimeofday)
 if test "x$ac_cv_header_winsock2_h" != xyes; then :
