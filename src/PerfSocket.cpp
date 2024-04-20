@@ -142,8 +142,9 @@ void SetSocketOptions (struct thread_Settings *inSettings) {
     WARN_errno(rc == SOCKET_ERROR, "SO_REUSEADDR");
 #endif
 #if HAVE_DECL_SO_REUSEPORT
+    boolean = ((inSettings->mThreadMode == kMode_Client) && inSettings->mBindPort) ? 1 : 0;
     setsockopt(inSettings->mSock, SOL_SOCKET, SO_REUSEPORT, (char*) &boolean, len);
-    WARN_errno(rc == SOCKET_ERROR, "SO_REUSEADDR");
+    WARN_errno(rc == SOCKET_ERROR, "SO_REUSEPORT");
 #endif
 
 #if ((HAVE_TUNTAP_TAP) && (HAVE_TUNTAP_TUN))
