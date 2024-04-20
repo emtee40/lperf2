@@ -79,36 +79,13 @@ dnl AF_PACKET support
 AC_ARG_ENABLE(af-packet,
     AS_HELP_STRING([--enable-af-packet], [Enable AF_PACKET support [default=yes]]),,[enable_af_packet=yes])
 
-AS_IF([test "x$enable_af_packet" = "xyes"], [
-   AC_CHECK_DECL([TPACKET_V2],
-      AC_DEFINE([HAVE_AF_PACKET],[1],[AF_PACKET support is available]),
-      [enable_af_packet="no"],
-      [[#include <sys/socket.h>
-      #include <linux/if_packet.h>]])
-])
-AM_CONDITIONAL([AF_PACKET], [test "x${enable_af_packet}" = "xyes"])
-
 dnl TUNTAP_TUN support
 AC_ARG_ENABLE(tuntap-tun,
     AS_HELP_STRING([--enable-tuntap-tun], [Enable TUNTAP_TUN support [default=yes]]),,[enable_tuntap_tun=yes])
 
-AS_IF([test "x$enable_tuntap_tun" = "xyes"], [
-   AC_CHECK_DECLS([IFF_TUN],
-      AC_DEFINE([HAVE_TUNTAP_TUN],[1],[TUNTAP_TUN support is available]),
-      [enable_tuntap_tun="no"],
-      [[#include <linux/if_tun.h>]])
-])
-
 dnl TUNTAP_TAP support
 AC_ARG_ENABLE(tuntap-tap,
     AS_HELP_STRING([--enable-tuntap-tap], [Enable TUNTAP_TAP support [default=yes]]),,[enable_tuntap_tap=yes])
-
-AS_IF([test "x$enable_tuntap_tap" = "xyes"], [
-   AC_CHECK_DECLS([IFF_TAP],
-      AC_DEFINE([HAVE_TUNTAP_TAP],[1],[TUNTAP_TAP support is available]),
-      [enable_tuntap_tap="no"],
-      [[#include <linux/if_tun.h>]])
-])
 
 dnl ===================================================================
 dnl Checks for programs
@@ -361,6 +338,28 @@ if test "$ac_cv_have_ipv6" = yes; then
   fi
 fi
 
+AS_IF([test "x$enable_af_packet" = "xyes"], [
+   AC_CHECK_DECL([TPACKET_V2],
+      AC_DEFINE([HAVE_AF_PACKET],[1],[AF_PACKET support is available]),
+      [enable_af_packet="no"],
+      [[#include <sys/socket.h>
+      #include <linux/if_packet.h>]])
+])
+AM_CONDITIONAL([AF_PACKET], [test "x${enable_af_packet}" = "xyes"])
+
+AS_IF([test "x$enable_tuntap_tun" = "xyes"], [
+   AC_CHECK_DECLS([IFF_TUN],
+      AC_DEFINE([HAVE_TUNTAP_TUN],[1],[TUNTAP_TUN support is available]),
+      [enable_tuntap_tun="no"],
+      [[#include <linux/if_tun.h>]])
+])
+
+AS_IF([test "x$enable_tuntap_tap" = "xyes"], [
+   AC_CHECK_DECLS([IFF_TAP],
+      AC_DEFINE([HAVE_TUNTAP_TAP],[1],[TUNTAP_TAP support is available]),
+      [enable_tuntap_tap="no"],
+      [[#include <linux/if_tun.h>]])
+])
 
 if test "$enable_packet_debug" = yes; then
    AC_DEFINE([HAVE_PACKET_DEBUG], 1, [Define if packet level debugging is desired])
