@@ -52,14 +52,16 @@
 inline void iperf_formattime (char *timestr, int buflen, struct timeval timestamp, bool prec_ms, bool utc_time, enum TimeFormatType ftype) {
     if (buflen > 0) {
 	struct tm ts ;
-	ts = (utc_time ? *gmtime(&timestamp.tv_sec) : *localtime(&timestamp.tv_sec));
+	time_t seconds = (time_t) timestamp.tv_sec;
+	int useconds = (int) timestamp.tv_usec;
+	ts = (utc_time ? *gmtime(&seconds) : *localtime(&seconds));
 	switch (ftype) {
 	case YearThruSec:
 	    strftime(timestr, buflen, "%Y-%m-%d %H:%M:%S", &ts);
 	    if (prec_ms) {
 		int currlen = strlen(timestr);
 		if ((buflen - currlen) > 10) {
-		    snprintf((timestr + currlen), 10, ".%.3d", (int) (timestamp.tv_usec/1000));
+		    snprintf((timestr + currlen), 10, ".%.3d", useconds);
 		}
 	    }
 	    break;
@@ -68,7 +70,7 @@ inline void iperf_formattime (char *timestr, int buflen, struct timeval timestam
 	    int currlen = strlen(timestr);
 	    if (prec_ms) {
 		if ((buflen - currlen) > 10) {
-		    snprintf((timestr + currlen), 10, ".%.3d", (int) (timestamp.tv_usec/1000));
+		    snprintf((timestr + currlen), 10, ".%.3d", useconds);
 		    currlen = strlen(timestr);
 		}
 	    }
@@ -81,7 +83,7 @@ inline void iperf_formattime (char *timestr, int buflen, struct timeval timestam
 	    if (prec_ms) {
 		int currlen = strlen(timestr);
 		if ((buflen - currlen) > 10) {
-		    snprintf((timestr + currlen), 10, ".%.3d", (int) (timestamp.tv_usec/1000));
+		    snprintf((timestr + currlen), 10, ".%.3d", useconds);
 		}
 	    }
 	    break;
@@ -90,7 +92,7 @@ inline void iperf_formattime (char *timestr, int buflen, struct timeval timestam
 	    if (prec_ms) {
 		int currlen = strlen(timestr);
 		if ((buflen - currlen) > 10) {
-		    snprintf((timestr + currlen), 10, ".%.3d", (int) (timestamp.tv_usec/1000));
+		    snprintf((timestr + currlen), 10, ".%.3d", useconds);
 		}
 	    }
 	    break;
