@@ -134,8 +134,8 @@ typedef bool _Bool;
 // Bummer, AF_PACKET requires kernel headers as <netpacket/packet.h> isn't sufficient
 #include <linux/filter.h>
 #include <linux/if_packet.h>
-#include <linux/ip.h>
-#include <linux/udp.h>
+#include <netinet/ip.h>
+#include <netinet/udp.h>
 // In older linux kernels, the kernel headers and glibc headers are in conflict,
 // specificially <linux/in6.h> and <netinit/in.h>
 // preventing the following include:
