@@ -272,7 +272,7 @@ void histogram_print(struct histogram *h, double start, double end) {
       h->maxts.tv_sec = 0;
       h->maxts.tv_usec = 0;
     } else if (h->final && (h->fmaxval > 0) && ((h->maxts.tv_sec > 0) || h->maxts.tv_usec > 0)) {
-	fprintf(stdout, " (%0.3f ms/%" PRIdMAX ".%06" PRIdMAX ")", (h->fmaxval * 1e3), (long) h->fmaxts.tv_sec, (long) h->fmaxts.tv_usec);
+	fprintf(stdout, " (%0.3f ms/%ld.%06ld)", (h->fmaxval * 1e3), (long) h->fmaxts.tv_sec, (long) h->fmaxts.tv_usec);
     }
     fprintf(stdout, "%s\n", (h->Omit ? report_omitted : ""));
 }
