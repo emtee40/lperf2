@@ -8835,6 +8835,18 @@ then :
   printf "%s\n" "#define HAVE_NETINET_TCP_H 1" >>confdefs.h
 
 fi
+ac_fn_c_check_header_compile "$LINENO" "netinet/ip.h" "ac_cv_header_netinet_ip_h" "$ac_includes_default"
+if test "x$ac_cv_header_netinet_ip_h" = xyes
+then :
+  printf "%s\n" "#define HAVE_NETINET_IP_H 1" >>confdefs.h
+
+fi
+ac_fn_c_check_header_compile "$LINENO" "netinet/udp.h" "ac_cv_header_netinet_udp_h" "$ac_includes_default"
+if test "x$ac_cv_header_netinet_udp_h" = xyes
+then :
+  printf "%s\n" "#define HAVE_NETINET_UDP_H 1" >>confdefs.h
+
+fi
 ac_fn_c_check_header_compile "$LINENO" "stdlib.h" "ac_cv_header_stdlib_h" "$ac_includes_default"
 if test "x$ac_cv_header_stdlib_h" = xyes
 then :
