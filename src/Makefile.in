@@ -300,9 +300,6 @@ STRIP_BEGIN = @STRIP_BEGIN@
 STRIP_DUMMY = @STRIP_DUMMY@
 STRIP_END = @STRIP_END@
 VERSION = @VERSION@
-WEB100_CFLAGS = @WEB100_CFLAGS@
-WEB100_CONFIG = @WEB100_CONFIG@
-WEB100_LIBS = @WEB100_LIBS@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@
@@ -367,7 +364,7 @@ AM_CPPFLAGS = @STRIP_BEGIN@ \
 
 AM_CXXFLAGS = -Wall $(am__append_2) $(am__append_4)
 AM_CFLAGS = -Wall $(am__append_1) $(am__append_3)
-iperf_LDFLAGS = @CFLAGS@ @PTHREAD_CFLAGS@ @WEB100_CFLAGS@ @DEFS@
+iperf_LDFLAGS = @CFLAGS@ @PTHREAD_CFLAGS@ @DEFS@
 iperf_SOURCES = Client.cpp Extractor.c isochronous.cpp Launch.cpp \
 	active_hosts.cpp Listener.cpp Locale.c PerfSocket.cpp \
 	Reporter.c Reports.c ReportOutputs.c Server.cpp Settings.cpp \

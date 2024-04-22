@@ -262,14 +262,14 @@
 /* Define to 1 if you have the 'freopen' function. */
 #undef HAVE_FREOPEN
 
+/* Define to 1 if you have the 'getifaddrs' function. */
+#undef HAVE_GETIFADDRS
+
 /* Define if syscall(SYS_gettid) available. */
 #undef HAVE_GETTID_SYSCALL
 
 /* Define to 1 if you have the 'gettimeofday' function. */
 #undef HAVE_GETTIMEOFDAY
-
-/* Define to 1 if you have the <ifaddrs.h> header file. */
-#undef HAVE_IFADDRS_H
 
 /* Define to 1 if you have the 'inet_ntop' function. */
 #undef HAVE_INET_NTOP
@@ -548,9 +548,6 @@
 /* Define to 1 if you have the 'vprintf' function. */
 #undef HAVE_VPRINTF
 
-/* Define if Web100 is desired and available */
-#undef HAVE_WEB100
-
 /* Define if using WIN32 threads */
 #undef HAVE_WIN32_THREAD
 
@@ -584,15 +581,9 @@
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
 
-/* printf code for type long long int */
-#undef PRINTF_LL
-
 /* Define to necessary symbol if this constant uses a non-standard name on
    your system. */
 #undef PTHREAD_CREATE_JOINABLE
-
-/* Define as the return type of signal handlers (`int' or `void'). */
-#undef RETSIGTYPE
 
 /* Define to the type of arg 1 for 'select'. */
 #undef SELECT_TYPE_ARG1
@@ -610,10 +601,6 @@
 
 /* Define 3rd arg of accept */
 #undef Socklen_t
-
-/* Define to 1 if you can safely include both <sys/time.h> and <time.h>. This
-   macro is obsolete. */
-#undef TIME_WITH_SYS_TIME
 
 /* Define to 1 if your <sys/time.h> declares 'struct tm'. */
 #undef TM_IN_SYS_TIME

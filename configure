@@ -645,9 +645,6 @@ LTLIBOBJS
 STRIP_END
 STRIP_BEGIN
 STRIP_DUMMY
-WEB100_LIBS
-WEB100_CFLAGS
-WEB100_CONFIG
 AF_PACKET_FALSE
 AF_PACKET_TRUE
 LIBOBJS
@@ -785,7 +782,6 @@ enable_multicast
 enable_tcpstats
 enable_threads
 enable_debuginfo
-enable_web100
 enable_kalman
 enable_multicast_all
 enable_write_select
@@ -1454,7 +1450,6 @@ Optional Features:
   --disable-threads       disable thread support (default is autodetect)
   --enable-debuginfo      enable asserts and debugging info for sockets
                           (default is no)
-  --disable-web100        disable web100 support (default is autodetect)
   --disable-kalman        disable kalman delay tuning (default is enable)
   --disable-multicast-all enable the use of IP_MULITICAST_ALL (default is
                           disable)
@@ -3759,8 +3754,6 @@ fi
 
 
 
-
-
 # ===========================================================================
 #        https://www.gnu.org/software/autoconf-archive/ax_pthread.html
 # ===========================================================================
@@ -3905,13 +3898,6 @@ then :
 else case e in #(
   e) enable_debuginfo=no ;;
 esac
-fi
-
-
-# Check whether --enable-web100 was given.
-if test ${enable_web100+y}
-then :
-  enableval=$enable_web100;
 fi
 
 
@@ -9856,122 +9842,6 @@ else
 
 printf "%s\n" "#define NDEBUG 1" >>confdefs.h
 
-fi
-
-if test "$enable_web100" != no; then
-if test -e "/proc/web100"; then
-if test -d "/proc/web100"; then
-if test -e "/proc/web100/header"; then
-if test -f "/proc/web100/header"; then
-if test -r "/proc/web100/header"; then
-
-web100_success=""
-
-# Extract the first word of "web100-config", so it can be a program name with args.
-set dummy web100-config; ac_word=$2
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-printf %s "checking for $ac_word... " >&6; }
-if test ${ac_cv_path_WEB100_CONFIG+y}
-then :
-  printf %s "(cached) " >&6
-else case e in #(
-  e) case $WEB100_CONFIG in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_WEB100_CONFIG="$WEB100_CONFIG" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  case $as_dir in #(((
-    '') as_dir=./ ;;
-    */) ;;
-    *) as_dir=$as_dir/ ;;
-  esac
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir$ac_word$ac_exec_ext"; then
-    ac_cv_path_WEB100_CONFIG="$as_dir$ac_word$ac_exec_ext"
-    printf "%s\n" "$as_me:${as_lineno-$LINENO}: found $as_dir$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_path_WEB100_CONFIG" && ac_cv_path_WEB100_CONFIG="no"
-  ;;
-esac ;;
-esac
-fi
-WEB100_CONFIG=$ac_cv_path_WEB100_CONFIG
-if test -n "$WEB100_CONFIG"; then
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $WEB100_CONFIG" >&5
-printf "%s\n" "$WEB100_CONFIG" >&6; }
-else
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
-printf "%s\n" "no" >&6; }
-fi
-
-
-
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for Web100" >&5
-printf %s "checking for Web100... " >&6; }
-
-if test "$WEB100_CONFIG" != "no"; then
-  WEB100_CFLAGS=`$WEB100_CONFIG --cflags`
-  WEB100_LIBS=`$WEB100_CONFIG --libs`
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-printf "%s\n" "yes" >&6; }
-else
-  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
-printf "%s\n" "no" >&6; }
-  echo "*** The web100-config script installed by Web100 could not be found"
-  echo "*** If Web100 was installed in PREFIX, make sure PREFIX/bin is in"
-  echo "*** your path, or set the WEB100_CONFIG environment variable to the"
-  echo "*** full path to web100-config"
-  web100_success="no"
-fi
-
-if test x$web100_success = x; then
-  if test "x" != "x"; then
-    { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for Web100 - version " >&5
-printf %s "checking for Web100 - version ... " >&6; }
-
-    WEB100_VERSION=`$WEB100_CONFIG --version`
-    if test "$WEB100_VERSION" = ""; then
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-printf "%s\n" "yes" >&6; }
-    else
-      { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: no" >&5
-printf "%s\n" "no" >&6; }
-      echo "*** The requested () and installed ($WEB100_VERSION) versions"
-      echo "*** of Web100 do not match."
-      web100_success="no"
-    fi
-  fi
-fi
-
-if test x$web100_success = x; then
-  web100_success="yes"
-fi
-
-if test x$web100_success = xyes; then
-  :
-else
-  WEB100_CFLAGS=""
-  WEB100_LIBS=""
-  :
-fi
-
-
-
-
-if test "$web100_success" = yes; then
-
-printf "%s\n" "#define HAVE_WEB100 1" >>confdefs.h
-
-fi fi fi fi fi fi
 fi
 
 if test "$enable_kalman" != no; then
