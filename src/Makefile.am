@@ -21,7 +21,7 @@ AM_CXXFLAGS += -O2
 endif
 
 
-iperf_LDFLAGS = @CFLAGS@ @PTHREAD_CFLAGS@ @WEB100_CFLAGS@ @DEFS@
+iperf_LDFLAGS = @CFLAGS@ @PTHREAD_CFLAGS@ @DEFS@
 
 iperf_SOURCES = \
 		Client.cpp \

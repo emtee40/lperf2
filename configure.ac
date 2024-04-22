@@ -31,8 +31,6 @@ AC_ARG_ENABLE(debuginfo, AS_HELP_STRING([--enable-debuginfo],[enable asserts and
 	enable_debuginfo=$enableval,
 	enable_debuginfo=no)
 
-AC_ARG_ENABLE(web100, AS_HELP_STRING([--disable-web100],[disable web100 support (default is autodetect)]))
-
 AC_ARG_ENABLE(kalman, AS_HELP_STRING([--disable-kalman],[disable kalman delay tuning (default is enable)]))
 
 AC_ARG_ENABLE(multicast_all, AS_HELP_STRING([--disable-multicast-all],[enable the use of IP_MULITICAST_ALL (default is disable)]))
@@ -392,18 +390,6 @@ if test "$enable_debuginfo" = yes; then
    AC_DEFINE([DBG_MJZ], 1, [Define if debugging info is desired])
 else
    AC_DEFINE([NDEBUG], [1], [Define to disable asserts])
-fi
-
-if test "$enable_web100" != no; then
-if test -e "/proc/web100"; then
-if test -d "/proc/web100"; then
-if test -e "/proc/web100/header"; then
-if test -f "/proc/web100/header"; then
-if test -r "/proc/web100/header"; then
-AM_PATH_WEB100()
-if test "$web100_success" = yes; then
-AC_DEFINE([HAVE_WEB100], 1, [Define if Web100 is desired and available])
-fi fi fi fi fi fi
 fi
 
 if test "$enable_kalman" != no; then
