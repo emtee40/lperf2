@@ -12,7 +12,6 @@ AM_INIT_AUTOMAKE()
 dnl The end user may not have autotools
 AM_MAINTAINER_MODE([disable])
 
-m4_include([m4/ax_create_stdint_h.m4])
 m4_include([m4/dast.m4])
 m4_include([m4/ax_pthread.m4])
 
