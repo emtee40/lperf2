@@ -539,9 +539,6 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
-/* Define if select based writes are desired */
-#undef HAVE_USE_WRITE_SELECT
-
 /* Define to 1 if you have the 'usleep' function. */
 #undef HAVE_USLEEP
 
