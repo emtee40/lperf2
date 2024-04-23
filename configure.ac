@@ -430,10 +430,6 @@ if test "$enable_multicast_all" = no; then
 AC_DEFINE([HAVE_MULTICAST_ALL_DISABLE], 1, [Define if use of IP_MULTICAST_ALL is desired and available])
 fi
 
-if test "$enable_write_select" != no; then
-AC_DEFINE([HAVE_USE_WRITE_SELECT], 1, [Define if select based writes are desired])
-fi
-
 if test "$enable_role_reversal_id" != no; then
 AC_DEFINE([HAVE_ROLE_REVERSAL_ID], 1, [Define if role reversal ids are desired ])
 fi
