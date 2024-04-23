@@ -3743,17 +3743,6 @@ fi
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 # ===========================================================================
 #        https://www.gnu.org/software/autoconf-archive/ax_pthread.html
 # ===========================================================================
@@ -7801,7 +7790,8 @@ fi
 
 
 
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking 3rd argument of accept" >&5
+
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking 3rd argument of accept" >&5
 printf %s "checking 3rd argument of accept... " >&6; }
 if test ${ac_cv_accept_arg+y}
 then :
@@ -7992,18 +7982,19 @@ ac_compiler_gnu=$ac_cv_c_compiler_gnu
 
   fi
 
- ;;
+   ;;
 esac
 fi
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $ac_cv_accept_arg" >&5
 printf "%s\n" "$ac_cv_accept_arg" >&6; }
 
-if test -z "$ac_cv_accept_arg" ; then
-  ac_cv_accept_arg=int
-fi
+  if test -z "$ac_cv_accept_arg" ; then
+    ac_cv_accept_arg=int
+  fi
 
 
 printf "%s\n" "#define Socklen_t $ac_cv_accept_arg" >>confdefs.h
+
 
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for working memcmp" >&5
