@@ -539,9 +539,6 @@
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
 
-/* Define if select based writes are desired */
-#undef HAVE_USE_WRITE_SELECT
-
 /* Define to 1 if you have the 'usleep' function. */
 #undef HAVE_USLEEP
 
@@ -583,9 +580,6 @@
 
 /* Define to the version of this package. */
 #undef PACKAGE_VERSION
-
-/* printf code for type long long int */
-#undef PRINTF_LL
 
 /* Define to necessary symbol if this constant uses a non-standard name on
    your system. */

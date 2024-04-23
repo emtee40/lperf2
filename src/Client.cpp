@@ -507,7 +507,7 @@ void Client::InitTrafficLoop () {
     // Set the timeout value to 1/2 the interval (per -i) or 1/2 the -t value
     if (isPeriodicBurst(mSettings) && (mSettings->mFPS > 0.0)) {
 	sosndtimer = static_cast<int>(round(250000.0 / mSettings->mFPS));
-    } else if (mSettings->mInterval > 0) {
+    } else if ((mSettings->mInterval > 0) &&  (mSettings->mIntervalMode == kInterval_Time)) {
         sosndtimer = static_cast<int>(round(((mSettings->mThreads > 1) ? 0.25 : 0.5) * mSettings->mInterval));
     } else {
 	sosndtimer = static_cast<int>(mSettings->mAmount * 5e3);
@@ -519,16 +519,8 @@ void Client::InitTrafficLoop () {
     if (sosndtimer < 1000) {
 	sosndtimer = 1000; //lower bound of 1 ms
     }
-    if ((mSettings->mInterval > 0) && (mSettings->mIntervalMode == kInterval_Time)) {
-	int interval_half = static_cast<int>(round(mSettings->mAmount * 10000) / 2);
-	if (sosndtimer > interval_half) {
-	    sosndtimer = interval_half;
-	}
-    }
-    if (!isUDP(mSettings)) {
-	mSettings->sosndtimer = sosndtimer;
-	SetSocketOptionsSendTimeout(mSettings, sosndtimer);
-    }
+    mSettings->sosndtimer = sosndtimer;
+    SetSocketOptionsSendTimeout(mSettings, sosndtimer);
     // set the lower bounds delay based of the socket timeout timer
     // units needs to be in nanoseconds
     delay_lower_bounds = static_cast<double>(sosndtimer) * -1e3;
@@ -1401,44 +1393,26 @@ void Client::RunUDP () {
 	if (isModeAmount(mSettings)) {
 	    currLen = write(mySocket, mSettings->mBuf, (mSettings->mAmount < static_cast<unsigned>(mSettings->mBufLen)) ? mSettings->mAmount : mSettings->mBufLen);
 	} else {
-	    currLen = -1;
-#if (HAVE_USE_WRITE_SELECT) && (HAVE_SELECT)
-#if HAVE_DECL_MSG_DONTWAIT
-	    currLen = send(mySocket, mSettings->mBuf, mSettings->mBufLen, MSG_DONTWAIT);
-	    if ((currLen < 0) && !FATALUDPWRITERR(errno)) {
-		if (AwaitSelectWrite()) {
-		    currLen = write(mySocket, mSettings->mBuf, mSettings->mBufLen);
-		    reportstruct->err_readwrite = WriteSelectRetry;
+	    currLen = write(mySocket, mSettings->mBuf, mSettings->mBufLen);
+	}
+	if (currLen <= 0) {
+	    reportstruct->packetID--;
+	    reportstruct->emptyreport = true;
+	    if (currLen == 0) {
+	        reportstruct->err_readwrite = WriteTimeo;
+	    } else {
+		if (FATALUDPWRITERR(errno)) {
+		    reportstruct->err_readwrite = WriteErrFatal;
+		    WARN_errno(1, "write");
+		    currLen = 0;
+		    break;
 		} else {
-		    reportstruct->err_readwrite = WriteTimeo;
+		    //WARN_errno(1, "write n");
+		    currLen = 0;
+		    reportstruct->err_readwrite = WriteErrAccount;
 		}
 	    }
-#else
-	    if (AwaitSelectWrite()) {
-		currLen = write(mySocket, mSettings->mBuf, mSettings->mBufLen);
-	    } else {
-		reportstruct->err_readwrite = WriteTimeo;
-	    }
-#endif
-#else
-	    currLen = write(mySocket, mSettings->mBuf, mSettings->mBufLen);
-#endif
 	}
-	if (currLen < 0) {
-	    reportstruct->packetID--;
-	    if (FATALUDPWRITERR(errno)) {
-	        reportstruct->err_readwrite = WriteErrFatal;
-	        WARN_errno(1, "write");
-	        currLen = 0;
-		break;
-	    } else {
-	      //WARN_errno(1, "write n");
-	        currLen = 0;
-	        reportstruct->err_readwrite = WriteErrAccount;
-	    }
-	    reportstruct->emptyreport = true;
-	}
-
 	if (isModeAmount(mSettings)) {
 	    /* mAmount may be unsigned, so don't let it underflow! */
 	    if (mSettings->mAmount >= static_cast<unsigned long>(currLen)) {
