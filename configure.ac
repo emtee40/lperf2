@@ -162,28 +162,7 @@ AC_STRUCT_TM
 
 AC_CHECK_TYPES(int64_t)
 
-AC_CACHE_CHECK(3rd argument of accept, ac_cv_accept_arg, [
-  dnl Try socklen_t (POSIX)
-  DAST_ACCEPT_ARG(socklen_t)
-
-  dnl Try int (original BSD)
-  DAST_ACCEPT_ARG(int)
-
-  dnl Try size_t (older standard; AIX)
-  DAST_ACCEPT_ARG(size_t)
-
-  dnl Try short (shouldn't be)
-  DAST_ACCEPT_ARG(short)
-
-  dnl Try long (shouldn't be)
-  DAST_ACCEPT_ARG(long)
-])
-
-if test -z "$ac_cv_accept_arg" ; then
-  ac_cv_accept_arg=int
-fi
-
-AC_DEFINE_UNQUOTED([Socklen_t], $ac_cv_accept_arg, [Define 3rd arg of accept])
+DAST_SOCKLEN_T
 
 dnl Checks for library functions.
 AC_FUNC_MEMCMP
