@@ -1328,8 +1328,7 @@ void Client::RunUDP () {
     if (apply_first_udppkt_delay && (delay_target > 100000)) {
 	//the case when a UDP first packet went out in SendFirstPayload
 	delay_loop(static_cast<unsigned long>(delay_target / 1000));
-	now.setnow();
-	lastPacketTime.set(now.getSecs(), now.getUsecs());
+	lastPacketTime.setnow();
     }
 
     while (InProgress()) {
