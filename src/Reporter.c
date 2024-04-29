@@ -715,8 +715,9 @@ static inline void reporter_compute_packet_pps (struct TransferInfo *stats, stru
     }
     stats->ts.IPGstart = packet->packetTime;
     stats->IPGsum += TimeDifference(packet->packetTime, packet->prevPacketTime);
+    stats->IPGsumcarry = TimeDifference(stats->ts.nextTime, packet->packetTime);
 #if DEBUG_PPS
-    printf("*** IPGsum = %f cnt=%ld ipg=%ld.%06ld pkt=%ld.%06ld id=%ld empty=%d transit=%f prev=%ld.%06ld\n", stats->IPGsum, stats->total.IPG.current, stats->ts.IPGstart.tv_sec, stats->ts.IPGstart.tv_usec, packet->packetTime.tv_sec, packet->packetTime.tv_usec, packet->packetID, packet->emptyreport, TimeDifference(packet->packetTime, packet->prevPacketTime), packet->prevPacketTime.tv_sec, packet->prevPacketTime.tv_usec);
+    printf("*** IPGsum = %f cnt=%ld ipg=%ld.%06ld pkt=%ld.%06ld id=%ld empty=%d transit=%f prev=%ld.%06ld carry %f\n", stats->IPGsum, stats->total.IPG.current, stats->ts.IPGstart.tv_sec, stats->ts.IPGstart.tv_usec, packet->packetTime.tv_sec, packet->packetTime.tv_usec, packet->packetID, packet->emptyreport, TimeDifference(packet->packetTime, packet->prevPacketTime), packet->prevPacketTime.tv_sec, packet->prevPacketTime.tv_usec, stats->IPGsumcarry);
 #endif
 }
 
@@ -2013,7 +2014,7 @@ bool reporter_condprint_time_interval_report (struct ReporterData *data, struct 
 	struct TransferInfo *fullduplexstats = (data->FullDuplexReport ? &data->FullDuplexReport->info : NULL);
 	stats->ts.packetTime = packet->packetTime;
 #if DEBUG_PPS
-	printf("*** packetID TRIGGER = %ld pt=%ld.%06ld empty=%d nt=%ld.%06ld\n",packet->packetID, packet->packetTime.tv_sec, packet->packetTime.tv_usec, packet->emptyreport, stats->ts.nextTime.tv_sec, stats->ts.nextTime.tv_usec);
+	printf("*** packetID TRIGGER = %ld pt=%ld.%06ld empty=%d nt=%ld.%06ld carry %f\n",packet->packetID, packet->packetTime.tv_sec, packet->packetTime.tv_usec, packet->emptyreport, stats->ts.nextTime.tv_sec, stats->ts.nextTime.tv_usec, stats->IPGsumcarry);
 #endif
 	reporter_set_timestamps_time(stats, INTERVAL);
 	(*data->transfer_protocol_handler)(data, 0);
