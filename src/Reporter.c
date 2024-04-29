@@ -707,6 +707,7 @@ void reporter_handle_packet_null (struct ReporterData *data, struct ReportStruct
 void reporter_transfer_protocol_null (struct ReporterData *data, bool final){
 }
 
+#define DEBUG_PPS 0
 static inline void reporter_compute_packet_pps (struct TransferInfo *stats, struct ReportStruct *packet) {
     if (!packet->emptyreport) {
         stats->total.Datagrams.current++;
@@ -714,8 +715,8 @@ static inline void reporter_compute_packet_pps (struct TransferInfo *stats, stru
     }
     stats->ts.IPGstart = packet->packetTime;
     stats->IPGsum += TimeDifference(packet->packetTime, packet->prevPacketTime);
-#ifdef DEBUG_PPS
-    printf("*** IPGsum = %f cnt=%ld ipg=%ld.%06ld pkt=%ld.%06ld id=%ld empty=%d transit=%f prev=%ld.%06ld\n", stats->IPGsum, stats->cntIPG, stats->ts.IPGstart.tv_sec, stats->ts.IPGstart.tv_usec, packet->packetTime.tv_sec, packet->packetTime.tv_usec, packet->packetID, packet->emptyreport, TimeDifference(packet->packetTime, packet->prevPacketTime), packet->prevPacketTime.tv_sec, packet->prevPacketTime.tv_usec);
+#if DEBUG_PPS
+    printf("*** IPGsum = %f cnt=%ld ipg=%ld.%06ld pkt=%ld.%06ld id=%ld empty=%d transit=%f prev=%ld.%06ld\n", stats->IPGsum, stats->total.IPG.current, stats->ts.IPGstart.tv_sec, stats->ts.IPGstart.tv_usec, packet->packetTime.tv_sec, packet->packetTime.tv_usec, packet->packetID, packet->emptyreport, TimeDifference(packet->packetTime, packet->prevPacketTime), packet->prevPacketTime.tv_sec, packet->prevPacketTime.tv_usec);
 #endif
 }
 
@@ -2011,7 +2012,7 @@ bool reporter_condprint_time_interval_report (struct ReporterData *data, struct 
 	struct TransferInfo *sumstats = (data->GroupSumReport ? &data->GroupSumReport->info : NULL);
 	struct TransferInfo *fullduplexstats = (data->FullDuplexReport ? &data->FullDuplexReport->info : NULL);
 	stats->ts.packetTime = packet->packetTime;
-#ifdef DEBUG_PPS
+#if DEBUG_PPS
 	printf("*** packetID TRIGGER = %ld pt=%ld.%06ld empty=%d nt=%ld.%06ld\n",packet->packetID, packet->packetTime.tv_sec, packet->packetTime.tv_usec, packet->emptyreport, stats->ts.nextTime.tv_sec, stats->ts.nextTime.tv_usec);
 #endif
 	reporter_set_timestamps_time(stats, INTERVAL);
