@@ -389,6 +389,7 @@ int Client::StartSynch () {
 	if (isModeAmount(mSettings)) {
 	    mSettings->mAmount -= reportstruct->packetLen;
 	}
+	reportstruct->writecnt = 1;
 	myReportPacket();
 	myReport->info.ts.prevpacketTime = reportstruct->packetTime;
 	reportstruct->packetID++;
@@ -1327,6 +1328,8 @@ void Client::RunUDP () {
     if (apply_first_udppkt_delay && (delay_target > 100000)) {
 	//the case when a UDP first packet went out in SendFirstPayload
 	delay_loop(static_cast<unsigned long>(delay_target / 1000));
+	now.setnow();
+	lastPacketTime.set(now.getSecs(), now.getUsecs());
     }
 
     while (InProgress()) {
@@ -1396,7 +1399,6 @@ void Client::RunUDP () {
 	    currLen = write(mySocket, mSettings->mBuf, mSettings->mBufLen);
 	}
 	if (currLen <= 0) {
-	    reportstruct->packetID--;
 	    reportstruct->emptyreport = true;
 	    if (currLen == 0) {
 	        reportstruct->err_readwrite = WriteTimeo;
@@ -1426,14 +1428,16 @@ void Client::RunUDP () {
 	reportstruct->packetLen = static_cast<unsigned long>(currLen);
 	reportstruct->prevPacketTime = myReport->info.ts.prevpacketTime;
 	myReportPacket();
-	reportstruct->packetID++;
-	myReport->info.ts.prevpacketTime = reportstruct->packetTime;
-	// Insert delay here only if the running delay is greater than 100 usec,
-	// otherwise don't delay and immediately continue with the next tx.
-	if (delay >= 100000) {
-	    // Convert from nanoseconds to microseconds
-	    // and invoke the microsecond delay
-	    delay_loop(static_cast<unsigned long>(delay / 1000));
+	if (!reportstruct->emptyreport) {
+	    reportstruct->packetID++;
+	    myReport->info.ts.prevpacketTime = reportstruct->packetTime;
+	    // Insert delay here only if the running delay is greater than 100 usec,
+	    // otherwise don't delay and immediately continue with the next tx.
+	    if (delay >= 100000) {
+		// Convert from nanoseconds to microseconds
+		// and invoke the microsecond delay
+		delay_loop(static_cast<unsigned long>(delay / 1000));
+	    }
 	}
     }
     FinishTrafficActions();
