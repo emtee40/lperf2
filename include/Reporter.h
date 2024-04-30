@@ -340,7 +340,6 @@ struct ReportTimeStamps {
     struct timeval prevTime;
     struct timeval nextTime;
     struct timeval intervalTime;
-    struct timeval IPGstart;
     struct timeval nextTCPSampleTime;
 };
 
