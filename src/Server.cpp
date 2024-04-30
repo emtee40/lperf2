@@ -549,7 +549,6 @@ inline void Server::SetReportStartTime () {
 	    myReport->info.ts.startTime.tv_usec = now.getUsecs();
 	}
     }
-    myReport->info.ts.IPGstart = myReport->info.ts.startTime;
 
     if (!TimeZero(myReport->info.ts.intervalTime)) {
 	myReport->info.ts.nextTime = myReport->info.ts.startTime;
