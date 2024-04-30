@@ -426,7 +426,6 @@ inline void Client::SetReportStartTime () {
     }
     myReport->info.ts.startTime.tv_sec = now.getSecs();
     myReport->info.ts.startTime.tv_usec = now.getUsecs();
-    myReport->info.ts.IPGstart = myReport->info.ts.startTime;
     myReport->info.ts.prevpacketTime = myReport->info.ts.startTime;
     if (!TimeZero(myReport->info.ts.intervalTime)) {
 	myReport->info.ts.nextTime = myReport->info.ts.startTime;
