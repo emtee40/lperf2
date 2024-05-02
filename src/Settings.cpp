@@ -608,8 +608,6 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 
 	if (mExtSettings->mThreadMode == kMode_Unknown) {
 	    mExtSettings->mThreadMode = kMode_Client;
-	    if (!mExtSettings->mThreads)
-		mExtSettings->mThreads = 1;
 	}
 	break;
 
@@ -2206,13 +2204,17 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	    int prcnt = ((mExtSettings->mPortLast - mExtSettings->mPort) + 1);
 	    int threads_needed = (prcnt > mExtSettings->mThreads) ? prcnt : mExtSettings->mThreads;
 	    if (mExtSettings->mThreads < prcnt) {
-		fprintf(stderr, "WARNING: port-range and -P mismatch (adjusting -P to %d)\n", threads_needed);
+		if (mExtSettings->mThreads)
+		    fprintf(stderr, "WARNING: port-range and -P mismatch (adjusting -P to %d)\n", threads_needed);
 		mExtSettings->mThreads = threads_needed;
 	    } else if ((mExtSettings->mThreads > 1) && (threads_needed > prcnt)) {
 		fprintf(stderr, "WARNING: port-range and -P mismatch (adjusting port-range to %d-%d)\n", \
 			mExtSettings->mPort, mExtSettings->mPort + threads_needed);
 	    }
 	}
+	if (!mExtSettings->mThreads)
+	    mExtSettings->mThreads = 1;
+
 	mExtSettings->mIfrnametx = NULL; // default off SO_BINDTODEVICE
 	if (((results = strtok(mExtSettings->mHost, "%")) != NULL) && ((results = strtok(NULL, "%")) != NULL)) {
 	    size_t len = strlen(results) + 1;
