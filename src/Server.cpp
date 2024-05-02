@@ -763,7 +763,6 @@ inline int Server::ReadWithRxTimestamp () {
     int tsdone = false;
 
     reportstruct->err_readwrite = ReadSuccess;
-
 #if (HAVE_DECL_SO_TIMESTAMP) && (HAVE_DECL_MSG_CTRUNC)
     cmsg = reinterpret_cast<struct cmsghdr *>(&ctrl);
     currLen = recvmsg(mSettings->mSock, &message, mSettings->recvflags);
@@ -800,7 +799,11 @@ inline int Server::ReadWithRxTimestamp () {
 	if (currLen == 0) {
 	    peerclose = true;
 	} else if (FATALUDPREADERR(errno)) {
-	    WARN_errno(1, "recvmsg");
+	    char warnbuf[WARNBUFSIZE];
+	    snprintf(warnbuf, sizeof(warnbuf), "%srecvmsg",\
+		     mSettings->mTransferIDStr);
+	    warnbuf[sizeof(warnbuf)-1] = '\0';
+	    WARN_errno(1, warnbuf);
 	    currLen = 0;
 	    peerclose = true;
 	} else {
