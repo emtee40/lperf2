@@ -1604,7 +1604,7 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 		}
 	    } else {
 		if ((static_cast<int> (mExtSettings->mBurstSize) == 0) && isPeriodicBurst(mExtSettings)) {
-		    mExtSettings->mBurstSize = static_cast <uint32_t> (mExtSettings->mAppRate * mExtSettings->mFPS);
+		    mExtSettings->mBurstSize = static_cast <uint32_t> ((mExtSettings->mAppRate * 8) / mExtSettings->mFPS);
 		    setBurstSize(mExtSettings);
 		} else if ((static_cast<int> (mExtSettings->mBurstSize) != 0) && !isPeriodicBurst(mExtSettings)) {
 		    mExtSettings->mFPS = static_cast<double> (1 / ((mExtSettings->mBurstSize) * 8 / static_cast<double> (mExtSettings->mAppRate)));
