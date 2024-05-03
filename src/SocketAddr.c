@@ -54,7 +54,7 @@
 #include "headers.h"
 
 #include "SocketAddr.h"
-#ifdef HAVE_IFADDRS_H
+#ifdef HAVE_GETIFADDRS
 #include <ifaddrs.h>
 #endif
 
@@ -527,7 +527,7 @@ int SockAddr_Hostare_Equal (iperf_sockaddr* first, iperf_sockaddr *second) {
  * Return 0 if set, -1 if not
  * ------------------------------------------------------------------- */
 int SockAddr_Ifrname (struct thread_Settings *inSettings) {
-#ifdef HAVE_IFADDRS_H
+#ifdef HAVE_GETIFADDRS
     if (inSettings->mIfrname == NULL) {
 	struct sockaddr_storage myaddr;
 	struct ifaddrs* ifaddr;

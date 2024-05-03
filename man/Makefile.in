@@ -89,9 +89,8 @@ build_triplet = @build@
 host_triplet = @host@
 subdir = man
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-am__aclocal_m4_deps = $(top_srcdir)/m4/ax_create_stdint_h.m4 \
-	$(top_srcdir)/m4/dast.m4 $(top_srcdir)/m4/ax_pthread.m4 \
-	$(top_srcdir)/configure.ac
+am__aclocal_m4_deps = $(top_srcdir)/m4/dast.m4 \
+	$(top_srcdir)/m4/ax_pthread.m4 $(top_srcdir)/configure.ac
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 DIST_COMMON = $(srcdir)/Makefile.am $(am__DIST_COMMON)
@@ -175,10 +174,8 @@ DEPDIR = @DEPDIR@
 ECHO_C = @ECHO_C@
 ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
-EGREP = @EGREP@
 ETAGS = @ETAGS@
 EXEEXT = @EXEEXT@
-GREP = @GREP@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
@@ -212,9 +209,6 @@ STRIP_BEGIN = @STRIP_BEGIN@
 STRIP_DUMMY = @STRIP_DUMMY@
 STRIP_END = @STRIP_END@
 VERSION = @VERSION@
-WEB100_CFLAGS = @WEB100_CFLAGS@
-WEB100_CONFIG = @WEB100_CONFIG@
-WEB100_LIBS = @WEB100_LIBS@
 abs_builddir = @abs_builddir@
 abs_srcdir = @abs_srcdir@
 abs_top_builddir = @abs_top_builddir@

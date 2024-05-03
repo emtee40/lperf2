@@ -12,7 +12,6 @@ AM_INIT_AUTOMAKE()
 dnl The end user may not have autotools
 AM_MAINTAINER_MODE([disable])
 
-m4_include([m4/ax_create_stdint_h.m4])
 m4_include([m4/dast.m4])
 m4_include([m4/ax_pthread.m4])
 
@@ -30,8 +29,6 @@ AC_ARG_ENABLE(threads, AS_HELP_STRING([--disable-threads],[disable thread suppor
 AC_ARG_ENABLE(debuginfo, AS_HELP_STRING([--enable-debuginfo],[enable asserts and debugging info for sockets (default is no)]),
 	enable_debuginfo=$enableval,
 	enable_debuginfo=no)
-
-AC_ARG_ENABLE(web100, AS_HELP_STRING([--disable-web100],[disable web100 support (default is autodetect)]))
 
 AC_ARG_ENABLE(kalman, AS_HELP_STRING([--disable-kalman],[disable kalman delay tuning (default is enable)]))
 
@@ -79,51 +76,46 @@ dnl AF_PACKET support
 AC_ARG_ENABLE(af-packet,
     AS_HELP_STRING([--enable-af-packet], [Enable AF_PACKET support [default=yes]]),,[enable_af_packet=yes])
 
-AS_IF([test "x$enable_af_packet" = "xyes"], [
-   AC_CHECK_DECL([TPACKET_V2],
-      AC_DEFINE([HAVE_AF_PACKET],[1],[AF_PACKET support is available]),
-      [enable_af_packet="no"],
-      [[#include <sys/socket.h>
-      #include <linux/if_packet.h>]])
-])
-AM_CONDITIONAL([AF_PACKET], [test "x${enable_af_packet}" = "xyes"])
-
 dnl TUNTAP_TUN support
 AC_ARG_ENABLE(tuntap-tun,
     AS_HELP_STRING([--enable-tuntap-tun], [Enable TUNTAP_TUN support [default=yes]]),,[enable_tuntap_tun=yes])
-
-AS_IF([test "x$enable_tuntap_tun" = "xyes"], [
-   AC_CHECK_DECLS([IFF_TUN],
-      AC_DEFINE([HAVE_TUNTAP_TUN],[1],[TUNTAP_TUN support is available]),
-      [enable_tuntap_tun="no"],
-      [[#include <linux/if_tun.h>]])
-])
 
 dnl TUNTAP_TAP support
 AC_ARG_ENABLE(tuntap-tap,
     AS_HELP_STRING([--enable-tuntap-tap], [Enable TUNTAP_TAP support [default=yes]]),,[enable_tuntap_tap=yes])
 
-AS_IF([test "x$enable_tuntap_tap" = "xyes"], [
-   AC_CHECK_DECLS([IFF_TAP],
-      AC_DEFINE([HAVE_TUNTAP_TAP],[1],[TUNTAP_TAP support is available]),
-      [enable_tuntap_tap="no"],
-      [[#include <linux/if_tun.h>]])
-])
-
 dnl ===================================================================
 dnl Checks for programs
 dnl ===================================================================
 
+
+AC_CANONICAL_HOST
+
+dnl provide defaults before chosing compiler
+case "$ac_cv_host" in
+*-mingw32)
+    dnl Static link on MINGW for standalone DOS executable
+    : ${LDFLAGS="-static"}
+    : ${CFLAGS="-O2"}
+    ;;
+*-android)
+    dnl Android requires PIE
+    : ${LDFLAGS="-pie"}
+    : ${CFLAGS="-O2 -fPIE"}
+    ;;
+*)
+    : ${CFLAGS="-O2"}
+    ;;
+esac
+
+
 AC_PROG_CXX
-CXXFLAGS=`echo " $CXXFLAGS " | sed -e "s/ -g / /"` # do not want it implicitly
 AC_PROG_CC
-CFLAGS=`echo " $CFLAGS " | sed -e "s/ -g / /"` # do not want it implicitly
 AC_SEARCH_LIBS([strerror],[cposix])
 AC_PROG_INSTALL
 AC_PROG_MAKE_SET
 AC_PROG_RANLIB
 AC_LANG(C)
-AC_CANONICAL_HOST
 
 dnl ===================================================================
 dnl Checks for libraries.
@@ -154,16 +146,8 @@ AC_SEARCH_LIBS([socket], [socket], [],
   [#include <windows.h>])])
 
 dnl Checks for header files.
-m4_warn([obsolete],
-[The preprocessor macro `STDC_HEADERS' is obsolete.
-  Except in unusual embedded environments, you can safely include all
-  ISO C90 headers unconditionally.])dnl
-# Autoupdate added the next two lines to ensure that your configure
-# script's behavior did not change.  They are probably safe to remove.
-AC_CHECK_INCLUDES_DEFAULT
-AC_PROG_EGREP
 
-AC_CHECK_HEADERS([arpa/inet.h libintl.h net/ethernet.h net/if.h sys/ioctl.h sys/sockio.h linux/sockios.h linux/ip.h linux/udp.h linux/tcp.h linux/if_packet.h linux/filter.h linux/if_tun.h netdb.h netinet/in.h netinet/tcp.h netinet/ip.h netinet/udp.h stdlib.h string.h strings.h sys/socket.h sys/time.h syslog.h unistd.h signal.h ifaddrs.h])
+AC_CHECK_HEADERS([arpa/inet.h libintl.h net/ethernet.h net/if.h sys/ioctl.h sys/sockio.h linux/sockios.h linux/ip.h linux/udp.h linux/tcp.h linux/if_packet.h linux/filter.h linux/if_tun.h netdb.h netinet/in.h netinet/tcp.h netinet/ip.h netinet/udp.h stdlib.h string.h strings.h sys/socket.h sys/time.h syslog.h unistd.h signal.h])
 
 dnl ===================================================================
 dnl Checks for typedefs, structures
@@ -172,66 +156,20 @@ dnl ===================================================================
 AC_C_CONST
 AC_TYPE_SIZE_T
 AC_CHECK_TYPES(ssize_t,,AC_DEFINE_UNQUOTED(ssize_t, int))
-m4_warn([obsolete],
-[Update your code to rely only on HAVE_SYS_TIME_H,
-then remove this warning and the obsolete code below it.
-All current systems provide time.h; it need not be checked for.
-Not all systems provide sys/time.h, but those that do, all allow
-you to include it and time.h simultaneously.])dnl
-AC_CHECK_HEADERS_ONCE([sys/time.h])
-# Obsolete code to be removed.
-if test $ac_cv_header_sys_time_h = yes; then
-  AC_DEFINE([TIME_WITH_SYS_TIME],[1],[Define to 1 if you can safely include both <sys/time.h>
-	     and <time.h>.  This macro is obsolete.])
-fi
-# End of obsolete code.
 
 AC_STRUCT_TM
 
 AC_CHECK_TYPES(int64_t)
 
-AC_CACHE_CHECK(3rd argument of accept, ac_cv_accept_arg, [
-  dnl Try socklen_t (POSIX)
-  DAST_ACCEPT_ARG(socklen_t)
-
-  dnl Try int (original BSD)
-  DAST_ACCEPT_ARG(int)
-
-  dnl Try size_t (older standard; AIX)
-  DAST_ACCEPT_ARG(size_t)
-
-  dnl Try short (shouldn't be)
-  DAST_ACCEPT_ARG(short)
-
-  dnl Try long (shouldn't be)
-  DAST_ACCEPT_ARG(long)
-])
-
-if test -z "$ac_cv_accept_arg" ; then
-  ac_cv_accept_arg=int
-fi
-
-AC_DEFINE_UNQUOTED([Socklen_t], $ac_cv_accept_arg, [Define 3rd arg of accept])
+DAST_SOCKLEN_T
 
 dnl Checks for library functions.
 AC_FUNC_MEMCMP
 AC_FUNC_SELECT_ARGTYPES
-m4_warn([obsolete],
-[your code may safely assume C89 semantics that RETSIGTYPE is void.
-Remove this warning and the `AC_CACHE_CHECK' when you adjust the code.])dnl
-AC_CACHE_CHECK([return type of signal handlers],[ac_cv_type_signal],[AC_COMPILE_IFELSE(
-[AC_LANG_PROGRAM([#include <sys/types.h>
-#include <signal.h>
-],
-		 [return *(signal (0, 0)) (0) == 1;])],
-		   [ac_cv_type_signal=int],
-		   [ac_cv_type_signal=void])])
-AC_DEFINE_UNQUOTED([RETSIGTYPE],[$ac_cv_type_signal],[Define as the return type of signal handlers
-		    (`int' or `void').])
 
 AC_FUNC_STRFTIME
 AC_FUNC_VPRINTF
-AC_CHECK_FUNCS([atexit memset select strchr strerror strtol strtoll strtod usleep clock_gettime sched_setscheduler sched_yield mlockall setitimer nanosleep clock_nanosleep freopen])
+AC_CHECK_FUNCS([atexit memset select strchr strerror strtol strtoll strtod usleep clock_gettime sched_setscheduler sched_yield mlockall setitimer nanosleep clock_nanosleep freopen getifaddrs])
 
 AC_REPLACE_FUNCS(snprintf gettimeofday)
 if test "x$ac_cv_header_winsock2_h" != xyes; then :
@@ -394,6 +332,28 @@ if test "$ac_cv_have_ipv6" = yes; then
   fi
 fi
 
+AS_IF([test "x$enable_af_packet" = "xyes"], [
+   AC_CHECK_DECL([TPACKET_V2],
+      AC_DEFINE([HAVE_AF_PACKET],[1],[AF_PACKET support is available]),
+      [enable_af_packet="no"],
+      [[#include <sys/socket.h>
+      #include <linux/if_packet.h>]])
+])
+AM_CONDITIONAL([AF_PACKET], [test "x${enable_af_packet}" = "xyes"])
+
+AS_IF([test "x$enable_tuntap_tun" = "xyes"], [
+   AC_CHECK_DECLS([IFF_TUN],
+      AC_DEFINE([HAVE_TUNTAP_TUN],[1],[TUNTAP_TUN support is available]),
+      [enable_tuntap_tun="no"],
+      [[#include <linux/if_tun.h>]])
+])
+
+AS_IF([test "x$enable_tuntap_tap" = "xyes"], [
+   AC_CHECK_DECLS([IFF_TAP],
+      AC_DEFINE([HAVE_TUNTAP_TAP],[1],[TUNTAP_TAP support is available]),
+      [enable_tuntap_tap="no"],
+      [[#include <linux/if_tun.h>]])
+])
 
 if test "$enable_packet_debug" = yes; then
    AC_DEFINE([HAVE_PACKET_DEBUG], 1, [Define if packet level debugging is desired])
@@ -408,18 +368,6 @@ if test "$enable_debuginfo" = yes; then
    AC_DEFINE([DBG_MJZ], 1, [Define if debugging info is desired])
 else
    AC_DEFINE([NDEBUG], [1], [Define to disable asserts])
-fi
-
-if test "$enable_web100" != no; then
-if test -e "/proc/web100"; then
-if test -d "/proc/web100"; then
-if test -e "/proc/web100/header"; then
-if test -f "/proc/web100/header"; then
-if test -r "/proc/web100/header"; then
-AM_PATH_WEB100()
-if test "$web100_success" = yes; then
-AC_DEFINE([HAVE_WEB100], 1, [Define if Web100 is desired and available])
-fi fi fi fi fi fi
 fi
 
 if test "$enable_kalman" != no; then
@@ -452,15 +400,6 @@ fi
 if test "$enable_discover_defaultlen" = yes; then
 AC_DEFINE([DEFAULT_PAYLOAD_LEN_PER_MTU_DISCOVERY], 1, [Define if default UDP payload length is based on device MTU and socket buffer size])
 fi
-
-case "$ac_cv_host" in
-*-mingw32)
-    dnl Static link on MINGW for standalone DOS executable
-    LIBS="$LIBS -static-libstdc++ -static";;
-*-android)
-    dnl Android requires PIE
-    CFLAGS="$CFLAGS -fPIE"; LDFLAGS="$LDFLAGS -pie";;
-esac
 
 dnl GNU make allows us to use the $(strip ...) builtin which eliminates a
 dnl large amount of extra whitespace in compile lines.
