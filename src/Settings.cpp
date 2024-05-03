@@ -1247,7 +1247,7 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	    char *end;
 	    mExtSettings->mBurstIPG = strtof(optarg,&end);
 	    if (*end != '\0') {
-		fprintf (stderr, "ERRPORE: Invalid value of '%s' for --ipg\n", optarg);
+		fprintf (stderr, "ERROR: Invalid value of '%s' for --ipg\n", optarg);
 		exit(1);
 	    }
 	}
@@ -1578,24 +1578,40 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
     if (!mExtSettings->mPortLast)
 	mExtSettings->mPortLast = mExtSettings->mPort;
 
-    // Handle default UDP offered load (TCP will be max, i.e. no read() or write() rate limiting)
-    if (!isBWSet(mExtSettings) && isUDP(mExtSettings)) {
-	mExtSettings->mAppRate = kDefault_UDPRate;
-    }
     if (isTripTime(mExtSettings) && (isReverse(mExtSettings) || \
 				     isFullDuplex(mExtSettings) || \
 				     (mExtSettings->mMode != kTest_Normal))) {
 	setEnhanced(mExtSettings);
     }
-    // Warnings
+
     if (mExtSettings->mThreadMode == kMode_Client) {
 	if (isModeTime(mExtSettings) && infinitetime) {
 	    unsetModeTime(mExtSettings);
 	    setModeInfinite(mExtSettings);
 	    fprintf(stderr, "WARNING: client will send traffic forever or until an external signal (e.g. SIGINT or SIGTERM) occurs to stop it\n");
 	}
-	if (isFullDuplex(mExtSettings) && isCongestionControl(mExtSettings)) {
-	    fprintf(stderr, "WARNING: tcp congestion control will only be applied on transmit traffic, use -Z on the server\n");
+	// Handle default UDP offered load (TCP will be max, i.e. no read() or write() rate limiting)
+	if (isUDP(mExtSettings)) {
+	    if (!isBWSet(mExtSettings)) {
+		if ((static_cast<int> (mExtSettings->mBurstSize) == 0) && !isPeriodicBurst(mExtSettings)) {
+		    mExtSettings->mAppRate = kDefault_UDPRate;
+		} else if ((static_cast<int> (mExtSettings->mBurstSize) == 0) && isPeriodicBurst(mExtSettings)) {
+		    mExtSettings->mBurstSize = byte_atoi("1M"); //default to 1 Mbyte
+		    setBurstSize(mExtSettings);
+		} else if ((static_cast<int> (mExtSettings->mBurstSize) != 0) && !isPeriodicBurst(mExtSettings)) {
+		    mExtSettings->mFPS = 1.0;
+		    setPeriodicBurst(mExtSettings);
+		}
+	    } else {
+		if ((static_cast<int> (mExtSettings->mBurstSize) == 0) && isPeriodicBurst(mExtSettings)) {
+		    mExtSettings->mBurstSize = static_cast <uint32_t> (mExtSettings->mAppRate * mExtSettings->mFPS);
+		    setBurstSize(mExtSettings);
+		} else if ((static_cast<int> (mExtSettings->mBurstSize) != 0) && !isPeriodicBurst(mExtSettings)) {
+		    mExtSettings->mFPS = static_cast<double> (1 / ((mExtSettings->mBurstSize) * 8 / static_cast<double> (mExtSettings->mAppRate)));
+		    setPeriodicBurst(mExtSettings);
+		}
+	    }
+	    printf("**** fps = %f %f %f\n", mExtSettings->mFPS, static_cast<double> (mExtSettings->mAppRate), static_cast<double> (mExtSettings->mBurstSize));
 	}
     }
     if (isHideIPs(mExtSettings)) {
@@ -1797,8 +1813,6 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 	    } else if (isNearCongest(mExtSettings)) {
 		fprintf(stderr, "ERROR: options of --burst-period and --near-congestion cannot be applied together\n");
 		bail = true;
-	    } else if (static_cast<int> (mExtSettings->mBurstSize) == 0) {
-	        mExtSettings->mBurstSize = byte_atoi("1M"); //default to 1 Mbyte
 	    }
 	    if (static_cast<int> (mExtSettings->mBurstSize) < mExtSettings->mBufLen) {
 		fprintf(stderr, "ERROR: option of --burst-size %d must be equal or larger to write length (-l) %d\n", mExtSettings->mBurstSize, mExtSettings->mBufLen);

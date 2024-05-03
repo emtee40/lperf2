@@ -124,6 +124,7 @@ private:
     void RunUDPIsochronous(void);
     // UDP plain
     void RunUDP(void);
+    void RunUDPBurst(void);
     // client connect
     void PeerXchange(void);
     thread_Settings *mSettings;
