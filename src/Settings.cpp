@@ -1250,7 +1250,8 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 		fprintf (stderr, "ERROR: Invalid value of '%s' for --ipg\n", optarg);
 		exit(1);
 	    }
-	}
+	    mExtSettings->mBurstIPG = mExtSettings->mBurstIPG * 1e6; // convert to microseconds
+}
 	if (rxwinclamp) {
 	    rxwinclamp = 0;
 #if HAVE_DECL_TCP_WINDOW_CLAMP
