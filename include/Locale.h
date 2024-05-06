@@ -382,16 +382,25 @@ extern const char reportCSV_peer[];
 
 extern const char reportCSV_bw_format[];
 
-extern const char reportCSV_bw_read_enhanced_header[];
-extern const char reportCSV_bw_read_enhanced_format[];
+extern const char reportCSV_bw_tcp_read_enhanced_header[];
+extern const char reportCSV_bw_tcp_read_enhanced_format[];
 
-extern const char reportCSV_bw_write_enhanced_header[];
-extern const char reportCSV_bw_write_enhanced_format[];
+extern const char reportCSV_bw_tcp_read_triptime_header[];
+extern const char reportCSV_bw_tcp_read_triptime_format[];
+
+extern const char reportCSV_bw_tcp_write_enhanced_header[];
+extern const char reportCSV_bw_tcp_write_enhanced_format[];
 
 extern const char reportCSV_bw_jitter_loss_format[];
 
-extern const char reportCSV_bw_jitter_loss_pps_header[];
-extern const char reportCSV_bw_jitter_loss_pps_format[];
+extern const char reportCSV_bw_udp_read_enhanced_header[];
+extern const char reportCSV_bw_udp_read_enhanced_format[];
+
+extern const char reportCSV_bw_udp_read_triptime_header[];
+extern const char reportCSV_bw_udp_read_triptime_format[];
+
+extern const char reportCSV_bw_udp_write_enhanced_header[];
+extern const char reportCSV_bw_udp_write_enhanced_format[];
 
 extern const char reportCSV_client_bb_bw_tcp_header[];
 extern const char reportCSV_client_bb_bw_tcp_format[];
