@@ -1849,7 +1849,7 @@ void tcp_output_write_enhanced_csv (struct TransferInfo *stats) {
 	       stats->sock_callstats.write.tcpstats.rtt,
 	       stats->sock_callstats.write.tcpstats.rttvar);
 #else
-	printf(reportCSV_bw_write_enhanced_format,
+	printf(reportCSV_bw_tcp_write_enhanced_format,
 	       timestr,
 	       stats->csv_peer,
 	       stats->common->transferID,
