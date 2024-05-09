@@ -307,10 +307,10 @@ const char client_isochronous[] =
 "Isochronous: %0.2f frames/sec mean=%s/s, stddev=%s/s, Period/IPG=%0.2f/%.3f ms\n";
 
 const char client_burstperiod[] =
-"Bursting: %s every %0.2f second(s)\n";
+"Bursting: %s every %0.3f second(s)\n";
 
 const char client_burstperiodcount[] =
-"Bursting: %s writes %d times every %0.2f second(s)\n";
+"Bursting: %s writes %d times every %0.3f second(s)\n";
 
 const char client_bounceback[] =
 "Bounceback test (req/reply size =%s/%s) (server hold req=%d usecs & tcp_quickack)\n";
@@ -769,26 +769,44 @@ const char report_client_bb_triptime_clocksync_error[] ="%s" IPERFTimeFrmt " sec
 const char reportCSV_bw_format[] =
 "%s,%s,%d,%.1f-%.1f,%" PRIdMAX ",%" PRIdMAX "\n";
 
-const char reportCSV_bw_read_enhanced_header[] =
+const char reportCSV_bw_tcp_read_enhanced_header[] =
 "time,srcaddress,srcport,dstaddr,dstport,transferid,istart,iend,bytes,speed,readcnt,bin0,bin1,bin2,bin3,bin4,bin5,bin6,bin7\n";
 
-const char reportCSV_bw_read_enhanced_format[] =
+const char reportCSV_bw_tcp_read_enhanced_format[] =
 "%s,%s,%d,%.1f,%.1f,%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%d,%d,%d,%d,%d,%d,%d,%d\n";
 
-const char reportCSV_bw_write_enhanced_header[] =
+const char reportCSV_bw_tcp_read_triptime_header[] =
+"time,srcaddress,srcport,dstaddr,dstport,transferid,istart,iend,bytes,speed,ttavg,ttmin,ttmax,ttsdev,ttcnt,ttsize,readcnt,bin0,bin1,bin2,bin3,bin4,bin5,bin6,bin7\n";
+
+const char reportCSV_bw_tcp_read_triptime_format[] =
+"%s,%s,%d,%.1f,%.1f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%.3f,%.3f,%.3f,%d,%d,%" PRIdMAX ",%d,%d,%d,%d,%d,%d,%d,%d\n";
+
+const char reportCSV_bw_tcp_write_enhanced_header[] =
 "time,srcaddress,srcport,dstaddr,dstport,transferid,istart,iend,bytes,speed,writecnt,writeerr,tcpretry,tcpcwnd,tcppcwnd,tcprtt,tcprttvar\n";
 
-const char reportCSV_bw_write_enhanced_format[] =
+const char reportCSV_bw_tcp_write_enhanced_format[] =
 "%s,%s,%d,%.1f,%.1f,%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%" PRIuLEAST32 ",%" PRIdMAX ",%" PRIuLEAST32 ",%" PRIuLEAST32 ",%" PRIuLEAST32 "\n";
 
 const char reportCSV_bw_jitter_loss_format[] =
 "%s,%s,%d,%.1f-%.1f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%" PRIdMAX "\n";
 
-const char reportCSV_bw_jitter_loss_pps_header[] =
-"time,srcaddress,srcport,dstaddr,dstport,transferid,istart,iend,bytes,speed,jitter,errors,datagrams,errpercent,outoforder,writecnt,writeerr,pps\n";
+const char reportCSV_bw_udp_read_enhanced_header[] =
+"time,srcaddress,srcport,dstaddr,dstport,transferid,istart,iend,bytes,speed,jitter,errors,datagrams,errpercent,outoforder,readcnt,readtimeo,readerrlen,pps\n";
 
-const char reportCSV_bw_jitter_loss_pps_format[] =
-"%s,%s,%d,%.1f,%.1f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%f\n";
+const char reportCSV_bw_udp_read_enhanced_format[] =
+"%s,%s,%d,%.1f,%.1f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%f\n";
+
+const char reportCSV_bw_udp_read_triptime_header[] =
+"time,srcaddress,srcport,dstaddr,dstport,transferid,istart,iend,bytes,speed,jitter,errors,datagrams,errpercent,outoforder,ttavg,ttmin,ttmax,ttsdev,ttcnt,ttsize,readcnt,readtimeo,readerrlen,pps\n";
+
+const char reportCSV_bw_udp_read_triptime_format[] =
+"%s,%s,%d,%.1f,%.1f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%" PRIdMAX ",%.3f,%.3f,%.3f,%.3f,%d,%d,%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%f\n";
+
+const char reportCSV_bw_udp_write_enhanced_header[] =
+"time,srcaddress,srcport,dstaddr,dstport,transferid,istart,iend,bytes,speed,jitter,errors,datagrams,errpercent,outoforder,writecnt,writeerr,writetimeo,pps\n";
+
+const char reportCSV_bw_udp_write_enhanced_format[] =
+"%s,%s,%d,%.1f,%.1f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%f\n";
 
 const char reportCSV_client_bb_bw_tcp_header[] =
 "time,srcaddress,srcport,dstaddr,dstport,transferid,istart,iend,bytes,speed,bbcnt,bbavg,bbmin,bbmax,bbstdev,tcpretry,tcpcwnd,tcprtt,rps\n";

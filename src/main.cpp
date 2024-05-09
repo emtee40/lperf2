@@ -215,7 +215,7 @@ int main(int argc, char **argv) {
 	FILE *fd;
 	fprintf(stdout, "Output from stdout (but not from stderr) will be redirected to file %s\n", ext_gSettings->mOutputFileName);
 	fflush(stdout);
-	fd = freopen(ext_gSettings->mOutputFileName, "w", stdout);
+	fd = freopen(ext_gSettings->mOutputFileName, "a", stdout);
 	FAIL_errno(fd == NULL, "freopen stdout\n", ext_gSettings);
 #else
 	fprintf(stderr, "Output to file not supported\n");

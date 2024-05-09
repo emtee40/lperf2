@@ -587,6 +587,8 @@ void Client::Run () {
 	// Launch the approprate UDP traffic loop
 	if (isIsochronous(mSettings)) {
 	    RunUDPIsochronous();
+	} else if (isBurstSize(mSettings)) {
+	    RunUDPBurst();
 	} else {
 	    RunUDP();
 	}
@@ -1589,6 +1591,82 @@ void Client::RunUDPIsochronous () {
     FinishTrafficActions();
 }
 // end RunUDPIsoch
+
+void Client::RunUDPBurst () {
+    struct UDP_datagram* mBuf_UDP = reinterpret_cast<struct UDP_datagram*>(mSettings->mBuf);
+    int currLen;
+    int remaining;
+    if (mSettings->mFPS > 0) {
+	framecounter = new Isochronous::FrameCounter(mSettings->mFPS);
+    }
+    while (InProgress()) {
+	remaining = mSettings->mBurstSize;
+	framecounter->wait_tick(&reportstruct->sched_err, true);
+	do  {
+	    now.setnow();
+	    reportstruct->writecnt = 1;
+	    reportstruct->packetTime.tv_sec = now.getSecs();
+	    reportstruct->packetTime.tv_usec = now.getUsecs();
+	    reportstruct->sentTime = reportstruct->packetTime;
+	    // store datagram ID into buffer
+	    WritePacketID(reportstruct->packetID);
+	    mBuf_UDP->tv_sec  = htonl(reportstruct->packetTime.tv_sec);
+	    mBuf_UDP->tv_usec = htonl(reportstruct->packetTime.tv_usec);
+
+	    reportstruct->err_readwrite = WriteSuccess;
+	    reportstruct->emptyreport = false;
+	    // perform write
+	    if (isModeAmount(mSettings)) {
+		currLen = write(mySocket, mSettings->mBuf, (mSettings->mAmount < static_cast<unsigned>(mSettings->mBufLen)) ? mSettings->mAmount : mSettings->mBufLen);
+	    } else {
+		currLen = write(mySocket, mSettings->mBuf, ((remaining > mSettings->mBufLen) ? mSettings->mBufLen : \
+							    (remaining < static_cast<int>(sizeof(struct UDP_datagram)) ? static_cast<int>(sizeof(struct UDP_datagram)) : remaining)));
+	    }
+	    if (isIPG(mSettings)) {
+		Timestamp t2;
+		double delay = mSettings->mBurstIPG - (1e-6 * t2.subSec(now));
+		if (delay)
+		    delay_loop(static_cast<unsigned long> (delay));
+	    }
+	    if (currLen <= 0) {
+		reportstruct->emptyreport = true;
+		if (currLen == 0) {
+		    reportstruct->err_readwrite = WriteTimeo;
+		} else {
+		    if (FATALUDPWRITERR(errno)) {
+			reportstruct->err_readwrite = WriteErrFatal;
+			WARN_errno(1, "write");
+			currLen = 0;
+			break;
+		    } else {
+			//WARN_errno(1, "write n");
+			currLen = 0;
+			reportstruct->err_readwrite = WriteErrAccount;
+		    }
+		}
+	    }
+	    if (isModeAmount(mSettings)) {
+		/* mAmount may be unsigned, so don't let it underflow! */
+		if (mSettings->mAmount >= static_cast<unsigned long>(currLen)) {
+		    mSettings->mAmount -= static_cast<unsigned long>(currLen);
+		} else {
+		    mSettings->mAmount = 0;
+		}
+	    }
+
+	    // report packets
+	    reportstruct->packetLen = static_cast<unsigned long>(currLen);
+	    reportstruct->prevPacketTime = myReport->info.ts.prevpacketTime;
+	    remaining -= reportstruct->packetLen;
+	    myReportPacket();
+	    if (!reportstruct->emptyreport) {
+		reportstruct->packetID++;
+		myReport->info.ts.prevpacketTime = reportstruct->packetTime;
+	    }
+	} while (remaining > 0);
+    }
+    FinishTrafficActions();
+}
 
 inline void Client::WritePacketID (intmax_t packetID) {
     struct UDP_datagram * mBuf_UDP = reinterpret_cast<struct UDP_datagram *>(mSettings->mBuf);
