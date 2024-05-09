@@ -445,6 +445,9 @@ void client_init(struct thread_Settings *clients) {
 		} else if (isWorkingLoadDown(clients)) {
 		    setReverse(next);
 		}
+		if (isWorkingLoadUp(clients) || isWorkingLoadDown(clients)) {
+		    unsetBWSet(next);
+		}
 		Iperf_push_host(clients);
 		// Bump the bounceback time to include the delay time
 		if (next->txholdback_timer.tv_sec || next->txholdback_timer.tv_usec) {
