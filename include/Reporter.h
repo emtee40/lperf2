@@ -489,7 +489,6 @@ void reporter_handle_packet_client(struct ReporterData *data, struct ReportStruc
 void reporter_handle_packet_server_udp(struct ReporterData *data, struct ReportStruct *packet);
 void reporter_handle_packet_server_tcp(struct ReporterData *data, struct ReportStruct *packet);
 void reporter_handle_packet_bb_client(struct ReporterData *data, struct ReportStruct *packet);
-void reporter_handle_packet_bb_server(struct ReporterData *data, struct ReportStruct *packet);
 
 // Reporter thread's conditional prints of interval reports
 // Invoked from the Reporter thread per function vector this_ireport->transfer_interval_handler
@@ -514,7 +513,6 @@ void reporter_transfer_protocol_client_tcp(struct ReporterData *data, bool final
 void reporter_transfer_protocol_client_bb_tcp(struct ReporterData *data, bool final);
 void reporter_transfer_protocol_client_udp(struct ReporterData *data, bool final);
 void reporter_transfer_protocol_server_tcp(struct ReporterData *data, bool final);
-void reporter_transfer_protocol_server_bb_tcp(struct ReporterData *data, bool final);
 void reporter_transfer_protocol_server_udp(struct ReporterData *data, bool final);
 // Function vectors to suppport sum reports
 void reporter_transfer_protocol_sum_client_tcp(struct TransferInfo *stats, bool final);
