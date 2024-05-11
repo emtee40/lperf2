@@ -1042,14 +1042,6 @@ void reporter_handle_packet_bb_client (struct ReporterData *data, struct ReportS
     }
 }
 
-void reporter_handle_packet_bb_server (struct ReporterData *data, struct ReportStruct *packet) {
-    struct TransferInfo *stats = &data->info;
-    stats->ts.packetTime = packet->packetTime;
-    if (!packet->emptyreport && (packet->packetLen > 0)) {
-	stats->total.Bytes.current += packet->packetLen;
-    }
-}
-
 inline void reporter_handle_packet_server_tcp (struct ReporterData *data, struct ReportStruct *packet) {
     struct TransferInfo *stats = &data->info;
     if (packet->packetLen > 0) {
@@ -1894,32 +1886,6 @@ void reporter_transfer_protocol_client_bb_tcp (struct ReporterData *data, bool f
     if (!final) {
 	reporter_reset_transfer_stats_client_tcp(stats);
     }
-}
-
-void reporter_transfer_protocol_server_bb_tcp (struct ReporterData *data, bool final) {
-    struct TransferInfo *stats = &data->info;
-    if (final) {
-	if ((stats->cntBytes > 0) && stats->output_handler && !TimeZero(stats->ts.intervalTime)) {
-	    // print a partial interval report if enable and this a final
-	    if ((stats->output_handler) && !(stats->isMaskOutput)) {
-		reporter_set_timestamps_time(stats, FINALPARTIAL);
-		if ((stats->ts.iEnd - stats->ts.iStart) > stats->ts.significant_partial)
-		    (*stats->output_handler)(stats);
-		reporter_reset_transfer_stats_server_tcp(stats);
-	    }
-        }
-#if HAVE_TCP_STATS
-	stats->sock_callstats.write.tcpstats.retry = stats->sock_callstats.write.tcpstats.retry_tot;
-#endif
-	stats->cntBytes = stats->total.Bytes.current;
-	reporter_set_timestamps_time(stats, TOTAL);
-    } else {
-	stats->cntBytes = stats->total.Bytes.current - stats->total.Bytes.prev;
-    }
-    if ((stats->output_handler) && !(stats->isMaskOutput))
-	(*stats->output_handler)(stats);
-    if (!final)
-	reporter_reset_transfer_stats_client_tcp(stats);
 }
 
 void reporter_transfer_protocol_sum_server_tcp (struct TransferInfo *stats, bool final) {

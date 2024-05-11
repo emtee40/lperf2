@@ -703,10 +703,6 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
 		    ireport->info.output_handler = tcp_output_read_enhanced_csv;
 		else
 		    ireport->info.output_handler = tcp_output_basic_csv;
-	    } else if (isBounceBack(inSettings)) {
-		ireport->packet_handler_post_report = reporter_handle_packet_bb_server;
-		ireport->transfer_protocol_handler = reporter_transfer_protocol_server_bb_tcp;
-		ireport->info.output_handler = tcp_output_write;
 	    } else if (isTripTime(inSettings) && isIsochronous(inSettings)) {
 		ireport->info.output_handler = tcp_output_read_enhanced_isoch;
 	    } else if (isTripTime(inSettings)) {
