@@ -997,6 +997,8 @@ void reporter_handle_packet_bb_client (struct ReporterData *data, struct ReportS
     }
     if (!packet->emptyreport && (packet->packetLen > 0)) {
 	stats->total.Bytes.current += packet->packetLen;
+	stats->total.TxBytes.current += packet->writeLen;
+	stats->total.RxBytes.current += packet->recvLen;
 	double bbrtt = TimeDifference(packet->packetTime, packet->sentTime);
 	stats->iBBrunning += bbrtt;
 	stats->fBBrunning += bbrtt;
@@ -1260,6 +1262,8 @@ static inline void reporter_reset_transfer_stats_client_tcp (struct TransferInfo
 	reporter_reset_mmm(&stats->bbowdto.current);
 	reporter_reset_mmm(&stats->bbowdfro.current);
 	reporter_reset_mmm(&stats->bbasym.current);
+	stats->total.RxBytes.prev = stats->total.RxBytes.current;
+	stats->total.TxBytes.prev = stats->total.TxBytes.current;
     }
     if (isTcpWriteTimes(stats->common)) {
 	reporter_reset_mmm(&stats->write_mmm.current);
@@ -1877,9 +1881,13 @@ void reporter_transfer_protocol_client_bb_tcp (struct ReporterData *data, bool f
 	stats->sock_callstats.write.tcpstats.retry = stats->sock_callstats.write.tcpstats.retry_tot;
 #endif
 	stats->cntBytes = stats->total.Bytes.current;
+	stats->cntTxBytes = stats->total.TxBytes.current;
+	stats->cntRxBytes = stats->total.RxBytes.current;
 	reporter_set_timestamps_time(stats, TOTAL);
     } else {
 	stats->cntBytes = stats->total.Bytes.current - stats->total.Bytes.prev;
+	stats->cntRxBytes = stats->total.RxBytes.current - stats->total.RxBytes.prev;
+	stats->cntTxBytes = stats->total.TxBytes.current - stats->total.TxBytes.prev;
     }
     if ((stats->output_handler) && !(stats->isMaskOutput))
         (*stats->output_handler)(stats);

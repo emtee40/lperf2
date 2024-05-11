@@ -99,6 +99,8 @@ struct ReportStruct {
     uint32_t remaining;
     bool transit_ready;
     int writecnt;
+    intmax_t writeLen;
+    intmax_t recvLen;
     long write_time;
     bool scheduled;
     long sched_err;

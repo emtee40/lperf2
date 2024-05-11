@@ -1216,6 +1216,8 @@ void Client::RunBounceBackTCP () {
 	    WriteTcpTxBBHdr(reportstruct, burst_id, 0);
 	    int write_offset = 0;
 	    reportstruct->writecnt = 0;
+	    reportstruct->writeLen = 0;
+	    reportstruct->recvLen = 0;
 	  RETRY_WRITE:
 	    n = writen(mySocket, (mSettings->mBuf + write_offset), (writelen - write_offset), &reportstruct->writecnt);
 	    if (n < 0) {
@@ -1248,6 +1250,7 @@ void Client::RunBounceBackTCP () {
 		    WARN_errno(rc == SOCKET_ERROR, "setsockopt TCP_QUICKACK");
 		}
 #endif
+		reportstruct->writeLen = writelen;
 		int read_offset = 0;
 	      RETRY_READ:
 		n = recvn(mySocket, (mSettings->mBuf + read_offset), (mSettings->mBounceBackReplyBytes - read_offset), 0);
@@ -1262,7 +1265,8 @@ void Client::RunBounceBackTCP () {
 			reportstruct->sentTimeTX.tv_usec = ntohl(bbhdr->bbserverTx_ts.usec);
 			reportstruct->packetTime.tv_sec = now.getSecs();
 			reportstruct->packetTime.tv_usec = now.getUsecs();
-			reportstruct->packetLen += n;
+			reportstruct->recvLen = mSettings->mBounceBackReplyBytes;
+			reportstruct->packetLen = reportstruct->writeLen + reportstruct->recvLen;
 			reportstruct->emptyreport = false;
 			reportstruct->packetID = burst_id;
 			myReportPacket();

@@ -284,6 +284,8 @@ struct ConnectionInfo {
 
 struct ShiftCounters {
     struct ShiftUintCounter Bytes;
+    struct ShiftUintCounter RxBytes;
+    struct ShiftUintCounter TxBytes;
     struct ShiftIntCounter Lost;
     struct ShiftIntCounter OutofOrder;
     struct ShiftIntCounter Datagrams;
@@ -356,6 +358,8 @@ struct TransferInfo {
     int slot_thread_downcount; // increments on a thread's interval sum output
     bool isMaskOutput;
     uintmax_t cntBytes;
+    uintmax_t cntRxBytes;
+    uintmax_t cntTxBytes;
     intmax_t cntError;
     intmax_t cntOutofOrder;
     intmax_t cntDatagrams;
