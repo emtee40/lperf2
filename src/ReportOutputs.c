@@ -482,6 +482,22 @@ void tcp_output_write (struct TransferInfo *stats) {
 void tcp_output_write_bb (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_client_bb_bw);
     _print_stats_common(stats);
+
+    char outrxbytes[SNBUFFERSIZE]; // Buffer for printing
+    char outtxbytes[SNBUFFERSIZE]; // Buffer for printing
+    strcpy(outrxbytes, "0");
+    strcpy(outtxbytes, "0");
+    if (stats->cntRxBytes > 0) {
+	byte_snprintf(outrxbytes, sizeof(outrxbytes), (double) stats->cntRxBytes, toupper((int)stats->common->Format));
+//	byte_snprintf(outrxbytes, sizeof(outrxbytes), (double)stats->cntRxBytes / (stats->ts.iEnd - stats->ts.iStart), stats->common->Format);
+	outbuffer[sizeof(outrxbytes)-1]='\0';
+    }
+    if (stats->cntTxBytes > 0) {
+	byte_snprintf(outtxbytes, sizeof(outtxbytes), (double) stats->cntTxBytes, toupper((int)stats->common->Format));
+//	byte_snprintf(outtxbytes, sizeof(outtxbytes), (double)stats->cntTxBytes / (stats->ts.iEnd - stats->ts.iStart), stats->common->Format);
+	outbuffer[sizeof(outtxbytes)-1]='\0';
+    }
+
     char rps_string[80];
     if (stats->final) {
         double rps = ((stats->fBBrunning > 0) && (stats->bbrtt.total.cnt > 0)) ? ((double) stats->bbrtt.total.cnt / stats->fBBrunning) : 0;
@@ -506,6 +522,7 @@ void tcp_output_write_bb (struct TransferInfo *stats) {
 		   stats->sock_callstats.write.tcpstats.cwnd_packets,
 		   stats->sock_callstats.write.tcpstats.rtt,
 		   stats->sock_callstats.write.tcpstats.rttvar,
+		   outtxbytes, outrxbytes,
 		   rps_string,
 		   (stats->common->Omit ? report_omitted : ""));
 	} else {
@@ -518,6 +535,7 @@ void tcp_output_write_bb (struct TransferInfo *stats) {
 		   (stats->bbrtt.total.cnt < 2) ? 0 : (stats->bbrtt.total.max * 1e3),
 		   (stats->bbrtt.total.cnt < 2) ? 0 : 1e3 * (sqrt(stats->bbrtt.total.m2 / (stats->bbrtt.total.cnt - 1))),
 		   stats->sock_callstats.write.tcpstats.retry,
+		   outtxbytes, outrxbytes,
 		   rps_string,
 		   (stats->common->Omit ? report_omitted : ""));
 	}
@@ -530,6 +548,7 @@ void tcp_output_write_bb (struct TransferInfo *stats) {
 	       (stats->bbrtt.total.cnt < 2) ? 0 : (stats->bbrtt.total.min * 1e3),
 	       (stats->bbrtt.total.cnt < 2) ? 0 : (stats->bbrtt.total.max * 1e3),
 	       (stats->bbrtt.total.cnt < 2) ? 0 : 1e3 * (sqrt(stats->bbrtt.total.m2 / (stats->bbrtt.total.cnt - 1))),
+	       outtxbytes, outrxbytes,
 	       rps_string,
 	       (stats->common->Omit ? report_omitted : ""));
 #endif
@@ -588,6 +607,7 @@ void tcp_output_write_bb (struct TransferInfo *stats) {
 	       stats->sock_callstats.write.tcpstats.cwnd_packets,
 	       stats->sock_callstats.write.tcpstats.rtt,
 	       stats->sock_callstats.write.tcpstats.rttvar,
+	       outtxbytes, outrxbytes,
 	       rps_string,
 	       (stats->common->Omit ? report_omitted : ""));
 #else
@@ -599,6 +619,7 @@ void tcp_output_write_bb (struct TransferInfo *stats) {
 	       (stats->bbrtt.current.cnt < 2) ? 0 : (stats->bbrtt.current.min * 1e3),
 	       (stats->bbrtt.current.cnt < 2) ? 0 : (stats->bbrtt.current.max * 1e3),
 	       (stats->bbrtt.current.cnt < 2) ? 0 : 1e3 * (sqrt(stats->bbrtt.current.m2 / (stats->bbrtt.current.cnt - 1))),
+	       outtxbytes, outrxbytes,
 	       rps_string,
 	       (stats->common->Omit ? report_omitted : ""));
 #endif
