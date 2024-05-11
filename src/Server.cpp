@@ -560,7 +560,7 @@ inline void Server::SetReportStartTime () {
 	Mutex_Lock(&myReport->GroupSumReport->reference.lock);
 	if (TimeZero(sumstats->ts.startTime)) {
 	    sumstats->ts.startTime = myReport->info.ts.startTime;
-	    if (isModeTime(mSettings) || isModeInfinite(mSettings)) {
+	    if (mSettings->mIntervalMode == kInterval_Time) {
 		sumstats->ts.nextTime = myReport->info.ts.nextTime;
 	    }
 	}
