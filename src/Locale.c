@@ -809,10 +809,10 @@ const char reportCSV_bw_udp_write_enhanced_format[] =
 "%s,%s,%d,%.1f,%.1f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%f\n";
 
 const char reportCSV_client_bb_bw_tcp_header[] =
-"time,srcaddress,srcport,dstaddr,dstport,transferid,istart,iend,bytes,speed,bbcnt,bbavg,bbmin,bbmax,bbstdev,tcpretry,tcpcwnd,tcprtt,rps\n";
+"time,srcaddress,srcport,dstaddr,dstport,transferid,istart,iend,bytes,speed,bbcnt,bbavg,bbmin,bbmax,bbstdev,tcpretry,tcpcwnd,tcppcwnd,tcprtt,tcprttvar,txbytes,rxbytes,rps\n";
 
 const char reportCSV_client_bb_bw_tcp_format[] =
-"%s,%s,%d,%.1f,%.1f,%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%.3f,%.3f,%.3f,%.3f,%" PRIuLEAST32 ",%" PRIdMAX ",%" PRIuLEAST32 ",%0.1f\n";
+"%s,%s,%d,%.1f,%.1f,%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%.3f,%.3f,%.3f,%.3f,%" PRIuLEAST32 ",%" PRIdMAX ",%" PRIuLEAST32 ",%" PRIuLEAST32 ",%" PRIuLEAST32 ",%" PRIdMAX ",%" PRIdMAX ",%0.1f\n";
 
 /* -------------------------------------------------------------------
  * warnings

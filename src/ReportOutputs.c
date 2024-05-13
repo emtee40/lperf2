@@ -1688,6 +1688,37 @@ void udp_output_read_triptime_csv (struct TransferInfo *stats) {
     cond_flush(stats);
 }
 
+void udp_output_read_triptime_sum_csv (struct TransferInfo *stats) {
+    HEADING_PRINT_COND(reportCSV_bw_udp_read_triptime);
+    char timestr[120];
+    _print_stats_csv_timestr(stats, timestr, sizeof(timestr));
+    intmax_t speed = _print_stats_csv_speed(stats);
+    printf(reportCSV_bw_udp_read_triptime_format,
+	   timestr,
+	   stats->csv_peer,
+	   stats->common->transferID,
+	   stats->ts.iStart,
+	   stats->ts.iEnd,
+	   stats->cntBytes,
+	   speed,
+	   (stats->final) ? (stats->inline_jitter.total.cnt ? ((stats->inline_jitter.total.sum / (double) stats->inline_jitter.total.cnt) * 1e3) : -1) : (stats->jitter * 1e3),
+	   stats->cntError,
+	   stats->cntDatagrams,
+	   (stats->cntDatagrams ? ((100.0 * stats->cntError) / stats->cntDatagrams) : 0),
+	   stats->cntOutofOrder,
+	   -1.0,
+	   -1.0,
+	   -1.0,
+	   -1.0,
+	   -1,
+	   -1,
+	   stats->sock_callstats.read.cntRead,
+	   stats->sock_callstats.read.cntReadTimeo,
+	   stats->sock_callstats.read.cntReadErrLen,
+	   (stats->cntIPG && stats->IPGsum ? (stats->cntIPG / (stats->IPGsum + stats->IPGsumcarry)) : 0.0));
+    cond_flush(stats);
+}
+
 void udp_output_write_enhanced_csv (struct TransferInfo *stats) {
     HEADING_PRINT_COND(reportCSV_bw_udp_write_enhanced);
     char timestr[120];
@@ -1813,6 +1844,37 @@ void tcp_output_read_triptime_csv (struct TransferInfo *stats) {
     cond_flush(stats);
 }
 
+void tcp_output_read_triptime_sum_csv (struct TransferInfo *stats) {
+    HEADING_PRINT_COND(reportCSV_bw_tcp_read_triptime);
+    char timestr[80];
+    _print_stats_csv_timestr(stats, timestr, sizeof(timestr));
+    intmax_t speed = _print_stats_csv_speed(stats);
+    printf(reportCSV_bw_tcp_read_triptime_format,
+	   timestr,
+	   stats->csv_peer,
+	   stats->common->transferID,
+	   stats->ts.iStart,
+	   stats->ts.iEnd,
+	   stats->cntBytes,
+	   speed,
+	   -1.0,
+	   -1.0,
+	   -1.0,
+	   -1.0,
+	   -1,
+	   -1,
+	   stats->sock_callstats.read.cntRead,
+	   stats->sock_callstats.read.bins[0],
+	   stats->sock_callstats.read.bins[1],
+	   stats->sock_callstats.read.bins[2],
+	   stats->sock_callstats.read.bins[3],
+	   stats->sock_callstats.read.bins[4],
+	   stats->sock_callstats.read.bins[5],
+	   stats->sock_callstats.read.bins[6],
+	   stats->sock_callstats.read.bins[7]);
+    cond_flush(stats);
+}
+
 void tcp_output_write_enhanced_csv (struct TransferInfo *stats) {
     HEADING_PRINT_COND(reportCSV_bw_tcp_write_enhanced);
     char timestr[120];
@@ -1829,9 +1891,9 @@ void tcp_output_write_enhanced_csv (struct TransferInfo *stats) {
 	   speed,
 	   -1,
 	   -1,
-	   -1,
-	   -1,
-	   -1,
+	   0,
+	   0,
+	   0,
 	   0,
 	   0);
 #else
@@ -1848,8 +1910,8 @@ void tcp_output_write_enhanced_csv (struct TransferInfo *stats) {
 	       stats->sock_callstats.write.WriteCnt,
 	       stats->sock_callstats.write.WriteErr,
 	       stats->sock_callstats.write.tcpstats.retry,
-	       -1,
-	       -1,
+	       0,
+	       0,
 	       0,
 	       0);
     } else {
@@ -1881,8 +1943,8 @@ void tcp_output_write_enhanced_csv (struct TransferInfo *stats) {
 	       stats->sock_callstats.write.WriteCnt,
 	       stats->sock_callstats.write.WriteErr,
 	       stats->sock_callstats.write.tcpstats.retry,
-	       -1,
-	       -1,
+	       0,
+	       0,
 	       stats->sock_callstats.write.tcpstats.rtt,
 	       0);
 #endif
@@ -1896,6 +1958,7 @@ void tcp_output_write_bb_csv (struct TransferInfo *stats) {
     char timestr[120];
     _print_stats_csv_timestr(stats, timestr, sizeof(timestr));
     intmax_t speed = _print_stats_csv_speed(stats);
+
     if (stats->final) {
         double rps = ((stats->fBBrunning > 0) && (stats->bbrtt.total.cnt > 0)) ? ((double) stats->bbrtt.total.cnt / stats->fBBrunning) : 0;
 
@@ -1915,7 +1978,11 @@ void tcp_output_write_bb_csv (struct TransferInfo *stats) {
 	       (stats->bbrtt.total.cnt < 2) ? 0 : 1e3 * (sqrt(stats->bbrtt.total.m2 / (stats->bbrtt.total.cnt - 1))),
 	       stats->sock_callstats.write.tcpstats.retry,
 	       stats->sock_callstats.write.tcpstats.cwnd,
+	       stats->sock_callstats.write.tcpstats.cwnd_packets,
 	       stats->sock_callstats.write.tcpstats.rtt,
+	       stats->sock_callstats.write.tcpstats.rttvar,
+	       stats->cntTxBytes,
+	       stats->cntRxBytes,
 	       rps);
 #else
 	printf(reportCSV_client_bb_bw_tcp_format,
@@ -1931,9 +1998,13 @@ void tcp_output_write_bb_csv (struct TransferInfo *stats) {
 	       (stats->bbrtt.total.cnt < 2) ? 0 : (stats->bbrtt.total.min * 1e3),
 	       (stats->bbrtt.total.cnt < 2) ? 0 : (stats->bbrtt.total.max * 1e3),
 	       (stats->bbrtt.total.cnt < 2) ? 0 : 1e3 * (sqrt(stats->bbrtt.total.m2 / (stats->bbrtt.total.cnt - 1))),
-	       -1,
-	       -1,
-	       -1,
+	       0,
+	       0,
+	       0,
+	       0,
+	       0,
+	       stats->cntTxBytes,
+	       stats->cntRxBytes,
 	       rps);
 #endif
     } else {
@@ -1954,7 +2025,11 @@ void tcp_output_write_bb_csv (struct TransferInfo *stats) {
 	       (stats->bbrtt.current.cnt < 2) ? 0 : 1e3 * (sqrt(stats->bbrtt.current.m2 / (stats->bbrtt.current.cnt - 1))),
 	       stats->sock_callstats.write.tcpstats.retry,
 	       stats->sock_callstats.write.tcpstats.cwnd,
+	       stats->sock_callstats.write.tcpstats.cwnd_packets,
 	       stats->sock_callstats.write.tcpstats.rtt,
+	       stats->sock_callstats.write.tcpstats.rttvar,
+	       stats->cntTxBytes,
+	       stats->cntRxBytes,
 	       rps);
 #else
 	printf(reportCSV_client_bb_bw_tcp_format,
@@ -1970,12 +2045,48 @@ void tcp_output_write_bb_csv (struct TransferInfo *stats) {
 	       (stats->bbrtt.current.cnt < 2) ? 0 : (stats->bbrtt.current.min * 1e3),
 	       (stats->bbrtt.current.cnt < 2) ? 0 : (stats->bbrtt.current.max * 1e3),
 	       (stats->bbrtt.current.cnt < 2) ? 0 : 1e3 * (sqrt(stats->bbrtt.current.m2 / (stats->bbrtt.current.cnt - 1))),
-	       -1,
-	       -1,
-	       -1,
+	       0,
+	       0,
+	       0,
+	       0,
+	       stats->cntTxBytes,
+	       stats->cntRxBytes,
 	       rps);
 #endif
     }
+    cond_flush(stats);
+}
+
+void tcp_output_write_bb_sum_csv (struct TransferInfo *stats) {
+    HEADING_PRINT_COND(reportCSV_client_bb_bw_tcp);
+    char timestr[120];
+    _print_stats_csv_timestr(stats, timestr, sizeof(timestr));
+    intmax_t speed = _print_stats_csv_speed(stats);
+    printf(reportCSV_client_bb_bw_tcp_format,
+	   timestr,
+	   stats->csv_peer,
+	   stats->common->transferID,
+	   stats->ts.iStart,
+	   stats->ts.iEnd,
+	   stats->cntBytes,
+	   speed,
+	   -1,
+	   -1.0,
+	   -1.0,
+	   -1.0,
+	   -1.0,
+#if HAVE_TCP_STATS
+	   stats->sock_callstats.write.tcpstats.retry,
+#else
+	   0,
+#endif
+	   0,
+	   0,
+	   0,
+	   0,
+	   -1,
+	   -1,
+	   -1.0);
     cond_flush(stats);
 }
 

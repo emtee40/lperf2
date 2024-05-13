@@ -264,7 +264,9 @@ void SetSumHandlers (struct thread_Settings *inSettings, struct SumReport* sumre
 	if (isUDP(inSettings)) {
 	    sumreport->transfer_protocol_sum_handler = reporter_transfer_protocol_sum_server_udp;
 	    if (inSettings->mReportMode == kReport_CSV) {
-		if (isEnhanced(inSettings))
+		if (isTripTime(inSettings))
+		    sumreport->info.output_handler = udp_output_read_triptime_sum_csv;
+		else if (isEnhanced(inSettings))
 		    sumreport->info.output_handler = udp_output_read_enhanced_csv;
 		else
 		    sumreport->info.output_handler = udp_output_basic_csv;
@@ -282,7 +284,9 @@ void SetSumHandlers (struct thread_Settings *inSettings, struct SumReport* sumre
 	} else {
 	    sumreport->transfer_protocol_sum_handler = reporter_transfer_protocol_sum_server_tcp;
 	    if (inSettings->mReportMode == kReport_CSV) {
-		if (isEnhanced(inSettings))
+		if (isTripTime(inSettings))
+		    sumreport->info.output_handler = tcp_output_read_triptime_sum_csv;
+		else if (isEnhanced(inSettings))
 		    sumreport->info.output_handler = tcp_output_read_enhanced_csv;
 		else
 		    sumreport->info.output_handler = tcp_output_basic_csv;
@@ -320,10 +324,13 @@ void SetSumHandlers (struct thread_Settings *inSettings, struct SumReport* sumre
 	} else {
 	    sumreport->transfer_protocol_sum_handler = reporter_transfer_protocol_sum_client_tcp;
 	    if (inSettings->mReportMode == kReport_CSV) {
-		if (isEnhanced(inSettings))
+	        if (isBounceBack(inSettings)) {
+		    sumreport->info.output_handler = tcp_output_write_bb_sum_csv;
+		} else if (isEnhanced(inSettings)) {
 		    sumreport->info.output_handler = tcp_output_write_enhanced_csv;
-		else
+		} else {
 		    sumreport->info.output_handler = tcp_output_basic_csv;
+		}
 	    } else {
 		if (isSumOnly(inSettings)) {
 		    sumreport->info.output_handler = (isEnhanced(inSettings) ? tcp_output_sumcnt_write_enhanced : tcp_output_sumcnt_write);
