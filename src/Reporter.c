@@ -713,13 +713,17 @@ static inline void reporter_compute_packet_pps (struct TransferInfo *stats, stru
         stats->total.Datagrams.current++;
         stats->total.IPG.current++;
     }
-    if (stats->IPGsum > 0) {
+    if (stats->IPGsum >= 0) {
 	// printf("*** within interval %f\n",TimeDifference(packet->packetTime, packet->prevPacketTime));
 	stats->IPGsum += TimeDifference(packet->packetTime, packet->prevPacketTime);
     } else if (TimeZero(stats->ts.prevTime)) {
 	// printf("*** start %f\n", TimeDifference(packet->packetTime, stats->ts.startTime));
 	stats->IPGsum += TimeDifference(packet->packetTime, stats->ts.startTime);
-	stats->ts.prevTime = stats->ts.startTime;
+	if (TimeDifference(packet->packetTime, stats->ts.startTime) > 0) {
+	    stats->ts.prevTime = stats->ts.startTime;
+	} else {
+	    stats->ts.prevTime = packet->packetTime;
+	}
     } else {
 	// printf("*** cross interval %f\n", TimeDifference(packet->packetTime, stats->ts.prevTime));
 	stats->IPGsum += TimeDifference(packet->packetTime, stats->ts.prevTime);
