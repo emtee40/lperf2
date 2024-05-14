@@ -713,9 +713,10 @@ static inline void reporter_compute_packet_pps (struct TransferInfo *stats, stru
         stats->total.Datagrams.current++;
         stats->total.IPG.current++;
     }
-    if (stats->IPGsum >= 0) {
-	// printf("*** within interval %f\n",TimeDifference(packet->packetTime, packet->prevPacketTime));
-	stats->IPGsum += TimeDifference(packet->packetTime, packet->prevPacketTime);
+    if ((stats->IPGsum == 0) && !TimeZero(stats->ts.prevTime)) {
+	// printf("*** cross interval %f\n", TimeDifference(packet->packetTime, stats->ts.prevTime));
+	stats->IPGsum += TimeDifference(packet->packetTime, stats->ts.prevTime);
+	stats->ts.prevTime = stats->ts.nextTime;
     } else if (TimeZero(stats->ts.prevTime)) {
 	// printf("*** start %f\n", TimeDifference(packet->packetTime, stats->ts.startTime));
 	stats->IPGsum += TimeDifference(packet->packetTime, stats->ts.startTime);
@@ -725,9 +726,8 @@ static inline void reporter_compute_packet_pps (struct TransferInfo *stats, stru
 	    stats->ts.prevTime = packet->packetTime;
 	}
     } else {
-	// printf("*** cross interval %f\n", TimeDifference(packet->packetTime, stats->ts.prevTime));
-	stats->IPGsum += TimeDifference(packet->packetTime, stats->ts.prevTime);
-	stats->ts.prevTime = stats->ts.nextTime;
+	// printf("*** within interval %f\n",TimeDifference(packet->packetTime, packet->prevPacketTime));
+	stats->IPGsum += TimeDifference(packet->packetTime, packet->prevPacketTime);
     }
     stats->IPGsumcarry = TimeDifference(stats->ts.nextTime, packet->packetTime);
 #if DEBUG_PPS
