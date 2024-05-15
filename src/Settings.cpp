@@ -1727,7 +1727,8 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 		    struct timeval t;
 		    t.tv_sec = now.getSecs();
 		    t.tv_usec = now.getUsecs();
-		    iperf_formattime(timestr, sizeof(timestr), t, isEnhanced(mExtSettings), isUTC(mExtSettings), YearThruSecTZ);
+		    printf("**** set prec %d %d %d\n", Microseconds, Milliseconds, Seconds);
+		    iperf_formattime(timestr, sizeof(timestr), t, (isEnhanced(mExtSettings) ? Milliseconds : Seconds), isUTC(mExtSettings), YearThruSecTZ);
 		    printf(error_starttime_exceeds, mExtSettings->txstart_epoch.tv_sec, mExtSettings->txstart_epoch.tv_usec, \
 			  timestr, MAXDIFFTXSTART);
 		    bail = true;

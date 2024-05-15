@@ -49,7 +49,26 @@
 #include "util.h"
 #include "iperf_formattime.h"
 
-inline void iperf_formattime (char *timestr, int buflen, struct timeval timestamp, bool prec_ms, bool utc_time, enum TimeFormatType ftype) {
+static inline void append_precision (char *timestr, int buflen, enum TimeFormatPrecision prec, int useconds) {
+    if (prec != Seconds) {
+	int currlen = strlen(timestr);
+	if ((buflen - currlen) > 10) {
+	    switch (prec) {
+	    case Milliseconds:
+		snprintf((timestr + currlen), 10, ".%03d", (useconds / 1000));
+		break;
+	    case Microseconds:
+		snprintf((timestr + currlen), 10, ".%06d", useconds);
+		break;
+	    default:
+		break;
+	    }
+	}
+    }
+}
+
+inline void iperf_formattime (char *timestr, int buflen, struct timeval timestamp, \
+			      enum TimeFormatPrecision prec, bool utc_time, enum TimeFormatType ftype) {
     if (buflen > 0) {
 	struct tm ts ;
 	time_t seconds = (time_t) timestamp.tv_sec;
@@ -58,43 +77,22 @@ inline void iperf_formattime (char *timestr, int buflen, struct timeval timestam
 	switch (ftype) {
 	case YearThruSec:
 	    strftime(timestr, buflen, "%Y-%m-%d %H:%M:%S", &ts);
-	    if (prec_ms) {
-		int currlen = strlen(timestr);
-		if ((buflen - currlen) > 10) {
-		    snprintf((timestr + currlen), 10, ".%.3d", useconds);
-		}
-	    }
 	    break;
 	case YearThruSecTZ:
 	    strftime(timestr, buflen, "%Y-%m-%d %H:%M:%S", &ts);
+	    append_precision(timestr, buflen, prec, useconds);
 	    int currlen = strlen(timestr);
-	    if (prec_ms) {
-		if ((buflen - currlen) > 10) {
-		    snprintf((timestr + currlen), 10, ".%.3d", useconds);
-		    currlen = strlen(timestr);
-		}
-	    }
 	    if ((buflen - currlen) > 5) {
 		strftime((timestr + currlen), (buflen - currlen), " (%Z)", &ts);
 	    }
 	    break;
 	case CSV:
 	    strftime(timestr, buflen, "%Y%m%d%H%M%S", &ts);
-	    if (prec_ms) {
-		int currlen = strlen(timestr);
-		if ((buflen - currlen) > 10) {
-		    snprintf((timestr + currlen), 10, ".%.3d", useconds);
-		}
-	    }
+	    append_precision(timestr, buflen, prec, useconds);
 	    break;
 	case CSVTZ:
 	    strftime(timestr, buflen, "%z:%Y%m%d%H%M%S", &ts);
-	    if (prec_ms) {
-		int currlen = strlen(timestr);
-		if ((buflen - currlen) > 10) {
-		    snprintf((timestr + currlen), 10, ".%.3d", useconds);
-		}
-	    }
+	    append_precision(timestr, buflen, useconds, useconds);
 	    break;
 	default:
 	    FAIL_exit(1, "iperf_formattime program error");

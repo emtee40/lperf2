@@ -1589,7 +1589,7 @@ static inline void _print_stats_csv_timestr(struct TransferInfo *stats,
     iperf_formattime(timestr,
 		     buflen,
 		     (!stats->final ? stats->ts.nextTime : stats->ts.packetTime),
-		     isEnhanced(stats->common),
+		     (isEnhanced(stats->common) ? Microseconds : Seconds),
 		     isUTC(stats->common),
 		     (isEnhanced(stats->common) ? CSVTZ : CSV));
 }
@@ -2572,7 +2572,7 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
 	if (report->connect_timestamp.tv_sec > 0) {
 	    char timestr[80];
 	    iperf_formattime(timestr, sizeof(timestr), report->connect_timestamp, \
-		     isEnhanced(report->common), isUTC(report->common), YearThruSecTZ);
+			     (isEnhanced(report->common) ? Milliseconds : Seconds), isUTC(report->common), YearThruSecTZ);
 	    if (!isUDP(report->common) && (report->common->ThreadMode == kMode_Client) && (report->tcpinitstats.connecttime > 0)) {
 		snprintf(b, SNBUFFERSIZE-strlen(b), " (ct=%4.2f ms) on %s", report->tcpinitstats.connecttime, timestr);
 	    } else {
@@ -2665,9 +2665,9 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
 	    start.tv_sec = now.tv_sec + seconds_from_now;
 	    char now_timebuf[80];
 	    iperf_formattime(now_timebuf, sizeof(now_timebuf), now, \
-			     isEnhanced(report->common), isUTC(report->common), YearThruSecTZ);
+			     (isEnhanced(report->common) ? Milliseconds : Seconds), isUTC(report->common), YearThruSecTZ);
 	    iperf_formattime(start_timebuf, sizeof(start_timebuf), start, \
-			     isEnhanced(report->common), isUTC(report->common), YearThruSec);
+			     (isEnhanced(report->common) ? Milliseconds : Seconds), isUTC(report->common), YearThruSec);
 	    if (seconds_from_now > 0) {
 		printf(client_report_epoch_start_current, report->common->transferID, seconds_from_now, \
 		       start_timebuf, now_timebuf);
