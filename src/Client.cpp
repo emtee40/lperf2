@@ -384,14 +384,11 @@ int Client::StartSynch () {
 	reportstruct->err_readwrite = WriteSuccess;
 	reportstruct->packetTime = myReport->info.ts.startTime;
 	reportstruct->sentTime = reportstruct->packetTime;
-	reportstruct->prevSentTime = reportstruct->packetTime;
-	reportstruct->prevPacketTime = myReport->info.ts.prevpacketTime;
 	if (isModeAmount(mSettings)) {
 	    mSettings->mAmount -= reportstruct->packetLen;
 	}
 	reportstruct->writecnt = 1;
 	myReportPacket();
-	myReport->info.ts.prevpacketTime = reportstruct->packetTime;
 	reportstruct->packetID++;
     }
     if (setfullduplexflag) {
@@ -426,7 +423,6 @@ inline void Client::SetReportStartTime () {
     }
     myReport->info.ts.startTime.tv_sec = now.getSecs();
     myReport->info.ts.startTime.tv_usec = now.getUsecs();
-    myReport->info.ts.prevpacketTime = myReport->info.ts.startTime;
     if (!TimeZero(myReport->info.ts.intervalTime)) {
 	myReport->info.ts.nextTime = myReport->info.ts.startTime;
 	TimeAdd(myReport->info.ts.nextTime, myReport->info.ts.intervalTime);
@@ -697,7 +693,6 @@ void Client::RunTCP () {
 		if (isPeriodicBurst(mSettings)) {
 		    // low duty cycle traffic needs special event handling
 		    now.setnow();
-		    myReport->info.ts.prevsendTime = reportstruct->packetTime;
 		    reportstruct->packetTime.tv_sec = now.getSecs();
 		    reportstruct->packetTime.tv_usec = now.getUsecs();
 		    if (!InProgress()) {
@@ -719,7 +714,6 @@ void Client::RunTCP () {
 	    reportstruct->packetTime.tv_usec = now.getUsecs();
 	    WriteTcpTxHdr(reportstruct, burst_remaining, burst_id++);
 	    reportstruct->sentTime = reportstruct->packetTime;
-	    myReport->info.ts.prevsendTime = reportstruct->packetTime;
 	    writelen = (mSettings->mBufLen > burst_remaining) ? burst_remaining : mSettings->mBufLen;
 	    // perform write, full header must succeed
 	    if (isTcpWriteTimes(mSettings)) {
@@ -780,7 +774,6 @@ void Client::RunTCP () {
 		    reportstruct->transit_ready = false;
 		} else {
 		    reportstruct->transit_ready = true;
-		    reportstruct->prevSentTime = myReport->info.ts.prevsendTime;
 		}
 	    }
 	}
@@ -837,7 +830,6 @@ void Client::RunNearCongestionTCP () {
 	    reportstruct->packetTime.tv_usec = now.getUsecs();
 	    WriteTcpTxHdr(reportstruct, burst_remaining, burst_id++);
 	    reportstruct->sentTime = reportstruct->packetTime;
-	    myReport->info.ts.prevsendTime = reportstruct->packetTime;
 	    // perform write
 	    int writelen = (mSettings->mBufLen > burst_remaining) ? burst_remaining : mSettings->mBufLen;
 	    reportstruct->packetLen = write(mySocket, mSettings->mBuf, writelen);
@@ -1430,11 +1422,9 @@ void Client::RunUDP () {
 
 	// report packets
 	reportstruct->packetLen = static_cast<unsigned long>(currLen);
-	reportstruct->prevPacketTime = myReport->info.ts.prevpacketTime;
 	myReportPacket();
 	if (!reportstruct->emptyreport) {
 	    reportstruct->packetID++;
-	    myReport->info.ts.prevpacketTime = reportstruct->packetTime;
 	    // Insert delay here only if the running delay is greater than 100 usec,
 	    // otherwise don't delay and immediately continue with the next tx.
 	    if (delay >= 100000) {
@@ -1578,11 +1568,9 @@ void Client::RunUDPIsochronous () {
 
 	    reportstruct->frameID=frameid;
 	    reportstruct->packetLen = static_cast<unsigned long>(currLen);
-	    reportstruct->prevPacketTime = myReport->info.ts.prevpacketTime;
 	    myReportPacket();
 	    reportstruct->scheduled = false; // reset to false after the report
 	    reportstruct->packetID++;
-	    myReport->info.ts.prevpacketTime = reportstruct->packetTime;
 	    // Insert delay here only if the running delay is greater than 1 usec,
 	    // otherwise don't delay and immediately continue with the next tx.
 	    if (delay >= 1000) {
@@ -1660,12 +1648,10 @@ void Client::RunUDPBurst () {
 
 	    // report packets
 	    reportstruct->packetLen = static_cast<unsigned long>(currLen);
-	    reportstruct->prevPacketTime = myReport->info.ts.prevpacketTime;
 	    remaining -= reportstruct->packetLen;
 	    myReportPacket();
 	    if (!reportstruct->emptyreport) {
 		reportstruct->packetID++;
-		myReport->info.ts.prevpacketTime = reportstruct->packetTime;
 	    }
 	} while (remaining > 0);
     }

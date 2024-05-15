@@ -161,7 +161,6 @@ void Server::RunTCP () {
 
     if (!InitTrafficLoop())
 	return;
-    myReport->info.ts.prevsendTime = myReport->info.ts.startTime;
 
     int burst_nleft = 0;
     burst_info.burst_id = 0;
@@ -222,10 +221,8 @@ void Server::RunTCP () {
 		    }
 		    reportstruct->sentTime.tv_sec = burst_info.send_tt.write_tv_sec;
 		    reportstruct->sentTime.tv_usec = burst_info.send_tt.write_tv_usec;
-		    myReport->info.ts.prevsendTime = reportstruct->sentTime;
 		    burst_nleft = burst_info.burst_size - n;
 		    if (burst_nleft == 0) {
-			reportstruct->prevSentTime = myReport->info.ts.prevsendTime;
 			reportstruct->transit_ready = true;
 			reportstruct->burstperiod = burst_info.burst_period_us;
 		    }
@@ -257,7 +254,6 @@ void Server::RunTCP () {
 		    if (isburst) {
 			burst_nleft -= n;
 			if (burst_nleft == 0) {
-			    reportstruct->sentTime = myReport->info.ts.prevsendTime;
 			    if (isTripTime(mSettings) || isIsochronous(mSettings)) {
 				reportstruct->isochStartTime.tv_sec = burst_info.send_tt.write_tv_sec;
 				reportstruct->isochStartTime.tv_usec = burst_info.send_tt.write_tv_usec;
@@ -449,7 +445,6 @@ void Server::RunBounceBackTCP () {
 	SetSocketOptionsSendTimeout(mSettings, sotimer);
 	SetSocketOptionsReceiveTimeout(mSettings, sotimer);
     }
-    myReport->info.ts.prevsendTime = myReport->info.ts.startTime;
     now.setnow();
     reportstruct->packetTime.tv_sec = now.getSecs();
     reportstruct->packetTime.tv_usec = now.getUsecs();
@@ -720,7 +715,6 @@ bool Server::InitTrafficLoop (void) {
 	}
     }
     SetReportStartTime();
-    reportstruct->prevPacketTime = myReport->info.ts.startTime;
 
     if (setfullduplexflag)
 	SetFullDuplexReportStartTime();
@@ -779,9 +773,6 @@ inline int Server::ReadWithRxTimestamp () {
 		    cmsg->cmsg_type  == SCM_TIMESTAMP &&
 		    cmsg->cmsg_len   == CMSG_LEN(sizeof(struct timeval))) {
 		    memcpy(&(reportstruct->packetTime), CMSG_DATA(cmsg), sizeof(struct timeval));
-		    if (TimeZero(myReport->info.ts.prevpacketTime)) {
-			myReport->info.ts.prevpacketTime = reportstruct->packetTime;
-		    }
 		    tsdone = true;
 		}
 	    }
@@ -809,8 +800,6 @@ inline int Server::ReadWithRxTimestamp () {
 	} else {
 	    reportstruct->err_readwrite = ReadTimeo;
 	}
-    } else if (TimeZero(myReport->info.ts.prevpacketTime)) {
-	myReport->info.ts.prevpacketTime = reportstruct->packetTime;
     }
     if (!tsdone) {
 	now.setnow();
@@ -1051,11 +1040,7 @@ void Server::RunUDP () {
 	        if (!(reportstruct->l2errors & L2UNKNOWN)) {
 	            // ReadPacketID returns true if this is the last UDP packet sent by the client
 	            // also sets the packet rx time in the reportstruct
-	            reportstruct->prevSentTime = myReport->info.ts.prevsendTime;
-	            reportstruct->prevPacketTime = myReport->info.ts.prevpacketTime;
 	            isLastPacket = ReadPacketID(mSettings->l4payloadoffset);
-	            myReport->info.ts.prevsendTime = reportstruct->sentTime;
-	            myReport->info.ts.prevpacketTime = reportstruct->packetTime;
 	            if (isIsochronous(mSettings)) {
 	                udp_isoch_processing(rxlen);
 	            }

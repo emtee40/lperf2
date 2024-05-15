@@ -713,26 +713,10 @@ static inline void reporter_compute_packet_pps (struct TransferInfo *stats, stru
         stats->total.Datagrams.current++;
         stats->total.IPG.current++;
     }
-    if ((stats->IPGsum == 0) && !TimeZero(stats->ts.prevTime)) {
-	// printf("*** cross interval %f\n", TimeDifference(packet->packetTime, stats->ts.prevTime));
-	stats->IPGsum += TimeDifference(packet->packetTime, stats->ts.prevTime);
-	stats->ts.prevTime = stats->ts.nextTime;
-    } else if (TimeZero(stats->ts.prevTime)) {
-	// printf("*** start %f\n", TimeDifference(packet->packetTime, stats->ts.startTime));
-	stats->IPGsum += TimeDifference(packet->packetTime, stats->ts.startTime);
-	if (TimeDifference(packet->packetTime, stats->ts.startTime) > 0) {
-	    stats->ts.prevTime = stats->ts.startTime;
-	} else {
-	    stats->ts.prevTime = packet->packetTime;
-	}
-    } else {
-	// printf("*** within interval %f\n",TimeDifference(packet->packetTime, packet->prevPacketTime));
-	stats->IPGsum += TimeDifference(packet->packetTime, packet->prevPacketTime);
+    if (TimeZero(stats->ts.startPPS)) {
+	printf("*** start %ld.%ld\n", stats->ts.startPPS.tv_sec, stats->ts.startPPS.tv_usec);	
+	stats->ts.startPPS = packet->packetTime;
     }
-    stats->IPGsumcarry = TimeDifference(stats->ts.nextTime, packet->packetTime);
-#if DEBUG_PPS
-    printf("*** IPGsum = %f cnt=%ld ipg=%ld.%06ld pkt=%ld.%06ld id=%ld empty=%d transit=%f prev=%ld.%06ld carry %f\n", stats->IPGsum, stats->total.IPG.current, stats->ts.IPGstart.tv_sec, stats->ts.IPGstart.tv_usec, packet->packetTime.tv_sec, packet->packetTime.tv_usec, packet->packetID, packet->emptyreport, TimeDifference(packet->packetTime, packet->prevPacketTime), packet->prevPacketTime.tv_sec, packet->prevPacketTime.tv_usec, stats->IPGsumcarry);
-#endif
 }
 
 static void reporter_handle_packet_oneway_transit (struct TransferInfo *stats, struct ReportStruct *packet) {
@@ -888,11 +872,6 @@ static void reporter_handle_rxmsg_oneway_transit (struct TransferInfo *stats, st
 	if (stats->framelatency_histogram) {
 	    histogram_insert(stats->framelatency_histogram, transit, &packet->sentTime);
 	}
-	if (!TimeZero(stats->ts.prevpacketTime)) {
-	    double delta = TimeDifference(packet->sentTime, stats->ts.prevpacketTime);
-	    stats->IPGsum += delta;
-	}
-	stats->ts.prevpacketTime = packet->sentTime;
 	stats->isochstats.frameID++;  // RJM fix this overload
 	stats->burstid_transition = true;
     } else if (stats->burstid_transition && packet->frameID && (packet->frameID != stats->isochstats.frameID)) {
@@ -907,10 +886,6 @@ static inline void reporter_handle_txmsg_oneway_transit (struct TransferInfo *st
     // very first burst
     if (!stats->isochstats.frameID) {
 	stats->isochstats.frameID = packet->frameID;
-    }
-    if (!TimeZero(stats->ts.prevpacketTime)) {
-	double delta = TimeDifference(packet->sentTime, stats->ts.prevpacketTime);
-	stats->IPGsum += delta;
     }
     if (packet->transit_ready) {
         reporter_handle_packet_oneway_transit(stats, packet);
@@ -1242,7 +1217,6 @@ static inline void reporter_reset_transfer_stats_sum (struct TransferInfo *sumst
 #endif
     sumstats->slot_thread_upcount -= sumstats->slot_thread_downcount;
     sumstats->slot_thread_downcount = 0;
-    sumstats->ts.prevTime = sumstats->ts.nextTime;
     sumstats->iInP = 0;
     sumstats->uplevel = toggleLevel(sumstats->uplevel);
     sumstats->downlevel = toggleLevel(sumstats->downlevel);
@@ -1288,8 +1262,9 @@ static inline void reporter_reset_transfer_stats_client_udp (struct TransferInfo
     stats->isochstats.framecnt.prev = stats->isochstats.framecnt.current;
     stats->isochstats.framelostcnt.prev = stats->isochstats.framelostcnt.current;
     stats->isochstats.slipcnt.prev = stats->isochstats.slipcnt.current;
-    if (stats->cntDatagrams)
-	stats->IPGsum = 0;
+    if (stats->cntDatagrams) {
+	stats->ts.startPPS = stats->ts.endPPS;
+    }
 }
 
 static inline void reporter_reset_transfer_stats_server_tcp (struct TransferInfo *stats) {
@@ -1301,7 +1276,7 @@ static inline void reporter_reset_transfer_stats_server_tcp (struct TransferInfo
     }
     reporter_reset_mmm(&stats->transit.current);
     reporter_reset_mmm(&stats->isochstats.transit.current);
-    stats->IPGsum = 0;
+    stats->IPGsum = 0; // FIX THIS NOW!!!
 }
 
 static inline void reporter_reset_transfer_stats_server_udp (struct TransferInfo *stats) {
@@ -1323,8 +1298,9 @@ static inline void reporter_reset_transfer_stats_server_udp (struct TransferInfo
     stats->sock_callstats.read.ReadCnt.prev = stats->sock_callstats.read.ReadCnt.current;
     stats->sock_callstats.read.ReadTimeoCnt.prev = stats->sock_callstats.read.ReadTimeoCnt.current;
     stats->sock_callstats.read.ReadErrLenCnt.prev = stats->sock_callstats.read.ReadErrLenCnt.current;
-    if (stats->cntDatagrams)
-	stats->IPGsum = 0;
+    if (stats->cntDatagrams) {
+	stats->ts.startPPS = stats->ts.endPPS;
+    }
 }
 
 // These do the following
@@ -1367,7 +1343,7 @@ void reporter_transfer_protocol_server_udp (struct ReporterData *data, bool fina
     if (stats->total.Datagrams.current == 1)
 	stats->jitter = 0;
     if (isTripTime(stats->common) && !final) {
-	double lambda =  ((stats->IPGsum > 0.0) ? (round (stats->cntIPG / stats->IPGsum)) : 0.0);
+	double lambda =  stats->PPS;
 	double meantransit = (double) ((stats->transit.current.cnt > 0) ? (stats->transit.current.sum / stats->transit.current.cnt) : 0.0);
 	double variance = (stats->transit.current.cnt < 2) ? 0 : \
 	    (sqrt(stats->transit.current.m2 / (stats->transit.current.cnt - 1)));
@@ -1382,8 +1358,7 @@ void reporter_transfer_protocol_server_udp (struct ReporterData *data, bool fina
 	sumstats->total.Datagrams.current += stats->PacketID - stats->total.Datagrams.prev;
 	sumstats->total.Bytes.current += stats->cntBytes;
 	sumstats->total.IPG.current += stats->cntIPG;
-	if (sumstats->IPGsum < stats->IPGsum)
-	    sumstats->IPGsum = stats->IPGsum;
+	sumstats->PPS += stats->PPS;	
 	sumstats->iInP += stats->iInP;
 	sumstats->sock_callstats.read.cntRead += stats->sock_callstats.read.cntRead;
 	sumstats->sock_callstats.read.cntReadTimeo += stats->sock_callstats.read.cntReadTimeo;
@@ -1980,8 +1955,9 @@ void reporter_transfer_protocol_fullduplex_udp (struct TransferInfo *stats, bool
     }
     if ((stats->output_handler) && !(stats->isMaskOutput))
 	(*stats->output_handler)(stats);
-    if (stats->cntDatagrams)
-        stats->IPGsum = 0.0;
+    if (stats->cntDatagrams) {
+	stats->ts.PPSstart = stats->ts.PPSend;
+    }
 }
 
 // Conditional print based on time
