@@ -781,6 +781,9 @@ const char reportCSV_bw_tcp_read_triptime_header[] =
 const char reportCSV_bw_tcp_read_triptime_format[] =
 "%s,%s,%d,%.1f,%.1f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%.3f,%.3f,%.3f,%d,%d,%" PRIdMAX ",%d,%d,%d,%d,%d,%d,%d,%d\n";
 
+const char reportCSV_bw_tcp_read_isochronous_header[] =
+"time,srcaddress,srcport,dstaddr,dstport,transferid,istart,iend,bytes,speed,itavg,itmin,itmax,itsdev,itcnt,itsize,readcnt,bin0,bin1,bin2,bin3,bin4,bin5,bin6,bin7\n";
+
 const char reportCSV_bw_tcp_write_enhanced_header[] =
 "time,srcaddress,srcport,dstaddr,dstport,transferid,istart,iend,bytes,speed,writecnt,writeerr,tcpretry,tcpcwnd,tcppcwnd,tcprtt,tcprttvar\n";
 
@@ -801,6 +804,12 @@ const char reportCSV_bw_udp_read_triptime_header[] =
 
 const char reportCSV_bw_udp_read_triptime_format[] =
 "%s,%s,%d,%.1f,%.1f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%" PRIdMAX ",%.3f,%.3f,%.3f,%.3f,%d,%d,%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%f\n";
+
+const char reportCSV_bw_udp_read_isochronous_header[] =
+"time,srcaddress,srcport,dstaddr,dstport,transferid,istart,iend,bytes,speed,jitter,errors,datagrams,errpercent,outoforder,ttavg,ttmin,ttmax,ttsdev,itavg,itmin,itmax,itsdev,readcnt,readtimeo,readerrlen,pps\n";
+
+const char reportCSV_bw_udp_read_isochronous_format[] =
+"%s,%s,%d,%.1f,%.1f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%" PRIdMAX ",%" PRIdMAX ",%.3f,%" PRIdMAX ",%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%.3f,%" PRIdMAX ",%" PRIdMAX ",%" PRIdMAX ",%f\n";
 
 const char reportCSV_bw_udp_write_enhanced_header[] =
 "time,srcaddress,srcport,dstaddr,dstport,transferid,istart,iend,bytes,speed,jitter,errors,datagrams,errpercent,outoforder,writecnt,writeerr,writetimeo,pps\n";

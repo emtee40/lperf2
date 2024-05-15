@@ -98,9 +98,11 @@ static int HEADING_FLAG(report_sumcnt_udp_enhanced) = 0;
 static int HEADING_FLAG(report_sumcnt_udp_triptime) = 0;
 static int HEADING_FLAG(reportCSV_bw_tcp_read_enhanced) = 0;
 static int HEADING_FLAG(reportCSV_bw_tcp_read_triptime) = 0;
+static int HEADING_FLAG(reportCSV_bw_tcp_read_isochronous) = 0;
 static int HEADING_FLAG(reportCSV_bw_tcp_write_enhanced) = 0;
 static int HEADING_FLAG(reportCSV_bw_udp_read_enhanced) = 0;
 static int HEADING_FLAG(reportCSV_bw_udp_read_triptime) = 0;
+static int HEADING_FLAG(reportCSV_bw_udp_read_isochronous) = 0;
 static int HEADING_FLAG(reportCSV_bw_udp_write_enhanced) = 0;
 static int HEADING_FLAG(reportCSV_client_bb_bw_tcp) = 0;
 
@@ -138,9 +140,11 @@ void reporter_default_heading_flags (int flag) {
     HEADING_FLAG(report_sumcnt_udp_triptime) = flag;
     HEADING_FLAG(reportCSV_bw_tcp_read_enhanced) = 0;
     HEADING_FLAG(reportCSV_bw_tcp_read_triptime) = 0;
+    HEADING_FLAG(reportCSV_bw_tcp_read_isochronous) = 0;
     HEADING_FLAG(reportCSV_bw_tcp_write_enhanced) = 0;
     HEADING_FLAG(reportCSV_bw_udp_read_enhanced) = 0;
     HEADING_FLAG(reportCSV_bw_udp_read_triptime) = 0;
+    HEADING_FLAG(reportCSV_bw_udp_read_isochronous) = 0;
     HEADING_FLAG(reportCSV_bw_udp_write_enhanced) = 0;
     HEADING_FLAG(reportCSV_client_bb_bw_tcp) = 0;
 }
@@ -1719,6 +1723,74 @@ void udp_output_read_triptime_sum_csv (struct TransferInfo *stats) {
     cond_flush(stats);
 }
 
+void udp_output_read_isochronous_csv (struct TransferInfo *stats) {
+    HEADING_PRINT_COND(reportCSV_bw_udp_read_isochronous);
+    char timestr[120];
+    _print_stats_csv_timestr(stats, timestr, sizeof(timestr));
+    intmax_t speed = _print_stats_csv_speed(stats);
+    double frame_meantransit = (stats->isochstats.transit.current.cnt > 0) ? (stats->isochstats.transit.current.sum / stats->isochstats.transit.current.cnt) : 0;
+    double meantransit = (stats->transit.current.cnt > 0) ? (stats->transit.current.sum / stats->transit.current.cnt) : 0;
+    printf(reportCSV_bw_udp_read_isochronous_format,
+	   timestr,
+	   stats->csv_peer,
+	   stats->common->transferID,
+	   stats->ts.iStart,
+	   stats->ts.iEnd,
+	   stats->cntBytes,
+	   speed,
+	   (stats->final) ? (stats->inline_jitter.total.cnt ? ((stats->inline_jitter.total.sum / (double) stats->inline_jitter.total.cnt) * 1e3) : -1) : (stats->jitter * 1e3),
+	   stats->cntError,
+	   stats->cntDatagrams,
+	   (stats->cntDatagrams ? ((100.0 * stats->cntError) / stats->cntDatagrams) : 0),
+	   stats->cntOutofOrder,
+	   (meantransit * 1e3),
+	   stats->transit.current.min * 1e3,
+	   stats->transit.current.max * 1e3,
+	   (stats->transit.current.cnt < 2) ? 0 : 1e3 * (sqrt(stats->transit.current.m2 / (stats->transit.current.cnt - 1))),
+	   (frame_meantransit * 1e3),
+	   stats->isochstats.transit.current.min * 1e3,
+	   stats->isochstats.transit.current.max * 1e3,
+	   (stats->isochstats.transit.current.cnt < 2) ? 0 : 1e3 * (sqrt(stats->isochstats.transit.current.m2 / (stats->isochstats.transit.current.cnt - 1))),
+	   stats->sock_callstats.read.cntRead,
+	   stats->sock_callstats.read.cntReadTimeo,
+	   stats->sock_callstats.read.cntReadErrLen,
+	   (stats->cntIPG && stats->IPGsum ? (stats->cntIPG / (stats->IPGsum + stats->IPGsumcarry)) : 0.0));
+    cond_flush(stats);
+}
+
+void udp_output_read_isochronous_sum_csv (struct TransferInfo *stats) {
+    HEADING_PRINT_COND(reportCSV_bw_udp_read_isochronous);
+    char timestr[120];
+    _print_stats_csv_timestr(stats, timestr, sizeof(timestr));
+    intmax_t speed = _print_stats_csv_speed(stats);
+    printf(reportCSV_bw_udp_read_isochronous_format,
+	   timestr,
+	   stats->csv_peer,
+	   stats->common->transferID,
+	   stats->ts.iStart,
+	   stats->ts.iEnd,
+	   stats->cntBytes,
+	   speed,
+	   (stats->final) ? (stats->inline_jitter.total.cnt ? ((stats->inline_jitter.total.sum / (double) stats->inline_jitter.total.cnt) * 1e3) : -1) : (stats->jitter * 1e3),
+	   stats->cntError,
+	   stats->cntDatagrams,
+	   (stats->cntDatagrams ? ((100.0 * stats->cntError) / stats->cntDatagrams) : 0),
+	   stats->cntOutofOrder,
+	   -1.0,
+	   -1.0,
+	   -1.0,
+	   -1.0,
+	   -1.0,
+	   -1.0,
+	   -1.0,
+	   -1.0,
+	   stats->sock_callstats.read.cntRead,
+	   stats->sock_callstats.read.cntReadTimeo,
+	   stats->sock_callstats.read.cntReadErrLen,
+	   (stats->cntIPG && stats->IPGsum ? (stats->cntIPG / (stats->IPGsum + stats->IPGsumcarry)) : 0.0));
+    cond_flush(stats);
+}
+
 void udp_output_write_enhanced_csv (struct TransferInfo *stats) {
     HEADING_PRINT_COND(reportCSV_bw_udp_write_enhanced);
     char timestr[120];
@@ -1846,6 +1918,97 @@ void tcp_output_read_triptime_csv (struct TransferInfo *stats) {
 
 void tcp_output_read_triptime_sum_csv (struct TransferInfo *stats) {
     HEADING_PRINT_COND(reportCSV_bw_tcp_read_triptime);
+    char timestr[80];
+    _print_stats_csv_timestr(stats, timestr, sizeof(timestr));
+    intmax_t speed = _print_stats_csv_speed(stats);
+    printf(reportCSV_bw_tcp_read_triptime_format,
+	   timestr,
+	   stats->csv_peer,
+	   stats->common->transferID,
+	   stats->ts.iStart,
+	   stats->ts.iEnd,
+	   stats->cntBytes,
+	   speed,
+	   -1.0,
+	   -1.0,
+	   -1.0,
+	   -1.0,
+	   -1,
+	   -1,
+	   stats->sock_callstats.read.cntRead,
+	   stats->sock_callstats.read.bins[0],
+	   stats->sock_callstats.read.bins[1],
+	   stats->sock_callstats.read.bins[2],
+	   stats->sock_callstats.read.bins[3],
+	   stats->sock_callstats.read.bins[4],
+	   stats->sock_callstats.read.bins[5],
+	   stats->sock_callstats.read.bins[6],
+	   stats->sock_callstats.read.bins[7]);
+    cond_flush(stats);
+}
+
+void tcp_output_read_isochronous_csv (struct TransferInfo *stats) {
+    HEADING_PRINT_COND(reportCSV_bw_tcp_read_isochronous);
+    char timestr[80];
+    double meantransit;
+    _print_stats_csv_timestr(stats, timestr, sizeof(timestr));
+    intmax_t speed = _print_stats_csv_speed(stats);
+    if (!stats->final) {
+        meantransit = (stats->isochstats.transit.current.cnt > 0) ? (stats->isochstats.transit.current.sum / stats->isochstats.transit.current.cnt) : 0;
+	printf(reportCSV_bw_tcp_read_triptime_format,
+	       timestr,
+	       stats->csv_peer,
+	       stats->common->transferID,
+	       stats->ts.iStart,
+	       stats->ts.iEnd,
+	       stats->cntBytes,
+	       speed,
+	       (meantransit * 1e3),
+	       (stats->isochstats.transit.current.cnt < 2) ? 0 : stats->isochstats.transit.current.min * 1e3,
+	       (stats->isochstats.transit.current.cnt < 2) ? 0 : stats->isochstats.transit.current.max * 1e3,
+	       (stats->isochstats.transit.current.cnt < 2) ? 0 : 1e3 * (sqrt(stats->isochstats.transit.current.m2 / (stats->isochstats.transit.current.cnt - 1))),
+	       stats->isochstats.transit.current.cnt,
+	       stats->isochstats.transit.current.cnt ? (long) ((double)stats->cntBytes / (double) stats->isochstats.transit.current.cnt) : 0,
+	       stats->sock_callstats.read.cntRead,
+	       stats->sock_callstats.read.bins[0],
+	       stats->sock_callstats.read.bins[1],
+	       stats->sock_callstats.read.bins[2],
+	       stats->sock_callstats.read.bins[3],
+	       stats->sock_callstats.read.bins[4],
+	       stats->sock_callstats.read.bins[5],
+	       stats->sock_callstats.read.bins[6],
+	       stats->sock_callstats.read.bins[7]);
+    } else {
+        meantransit = (stats->isochstats.transit.total.cnt > 0) ? (stats->isochstats.transit.total.sum / stats->isochstats.transit.total.cnt) : 0;
+	printf(reportCSV_bw_tcp_read_triptime_format,
+	       timestr,
+	       stats->csv_peer,
+	       stats->common->transferID,
+	       stats->ts.iStart,
+	       stats->ts.iEnd,
+	       stats->cntBytes,
+	       speed,
+	       (meantransit * 1e3),
+	       stats->isochstats.transit.total.min * 1e3,
+	       stats->isochstats.transit.total.max * 1e3,
+	       (stats->isochstats.transit.total.cnt < 2) ? 0 : 1e3 * (sqrt(stats->isochstats.transit.total.m2 / (stats->isochstats.transit.total.cnt - 1))),
+	       stats->isochstats.transit.total.cnt,
+	       stats->isochstats.transit.total.cnt ? (long) ((double)stats->cntBytes / (double) stats->isochstats.transit.total.cnt) : 0,
+	       stats->sock_callstats.read.cntRead,
+	       stats->sock_callstats.read.bins[0],
+	       stats->sock_callstats.read.bins[1],
+	       stats->sock_callstats.read.bins[2],
+	       stats->sock_callstats.read.bins[3],
+	       stats->sock_callstats.read.bins[4],
+	       stats->sock_callstats.read.bins[5],
+	       stats->sock_callstats.read.bins[6],
+	       stats->sock_callstats.read.bins[7]);
+    }
+    cond_flush(stats);
+}
+
+void tcp_output_read_isochronous_sum_csv (struct TransferInfo *stats) {
+    HEADING_PRINT_COND(reportCSV_bw_tcp_read_isochronous);
     char timestr[80];
     _print_stats_csv_timestr(stats, timestr, sizeof(timestr));
     intmax_t speed = _print_stats_csv_speed(stats);
