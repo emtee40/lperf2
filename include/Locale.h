@@ -387,6 +387,7 @@ extern const char reportCSV_bw_tcp_read_enhanced_format[];
 
 extern const char reportCSV_bw_tcp_read_triptime_header[];
 extern const char reportCSV_bw_tcp_read_triptime_format[];
+extern const char reportCSV_bw_tcp_read_isochronous_header[];
 
 extern const char reportCSV_bw_tcp_write_enhanced_header[];
 extern const char reportCSV_bw_tcp_write_enhanced_format[];
@@ -398,6 +399,9 @@ extern const char reportCSV_bw_udp_read_enhanced_format[];
 
 extern const char reportCSV_bw_udp_read_triptime_header[];
 extern const char reportCSV_bw_udp_read_triptime_format[];
+
+extern const char reportCSV_bw_udp_read_isochronous_header[];
+extern const char reportCSV_bw_udp_read_isochronous_format[];
 
 extern const char reportCSV_bw_udp_write_enhanced_header[];
 extern const char reportCSV_bw_udp_write_enhanced_format[];

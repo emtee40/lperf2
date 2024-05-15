@@ -263,82 +263,120 @@ void SetSumHandlers (struct thread_Settings *inSettings, struct SumReport* sumre
     case kMode_Server :
 	if (isUDP(inSettings)) {
 	    sumreport->transfer_protocol_sum_handler = reporter_transfer_protocol_sum_server_udp;
-	    if (inSettings->mReportMode == kReport_CSV) {
-		if (isTripTime(inSettings))
-		    sumreport->info.output_handler = udp_output_read_triptime_sum_csv;
-		else if (isEnhanced(inSettings))
+	    if (isTripTime(inSettings)) {
+		if (inSettings->mReportMode == kReport_CSV)
+		    if (isIsochronous(inSettings))
+			sumreport->info.output_handler = udp_output_read_isochronous_sum_csv;
+		    else
+			sumreport->info.output_handler = udp_output_read_triptime_sum_csv;
+		else
+		    sumreport->info.output_handler = udp_output_sumcnt_read_triptime;
+	    } else if (isSumOnly(inSettings)) {
+		if (inSettings->mReportMode == kReport_CSV)
 		    sumreport->info.output_handler = udp_output_read_enhanced_csv;
 		else
-		    sumreport->info.output_handler = udp_output_basic_csv;
-	    } else {
-		if (isTripTime(inSettings)) {
-		    sumreport->info.output_handler = udp_output_sumcnt_read_triptime;
-		} else if (isSumOnly(inSettings)) {
 		    sumreport->info.output_handler = udp_output_sumcnt_enhanced;
-		} else if (isFullDuplex(inSettings)) {
+	    } else if (isFullDuplex(inSettings)) {
+		if (inSettings->mReportMode == kReport_CSV)
+		    sumreport->info.output_handler = udp_output_read_enhanced_csv;
+		else
 		    sumreport->info.output_handler = udp_output_fullduplex_sum;
-		} else {
-		    sumreport->info.output_handler =  (isEnhanced(inSettings) ? udp_output_sumcnt_read_enhanced : udp_output_sum_read);
-		}
+	    } else if (isEnhanced(inSettings)) {
+		if (inSettings->mReportMode == kReport_CSV)
+		    sumreport->info.output_handler = udp_output_read_enhanced_csv;
+		else
+		    sumreport->info.output_handler = udp_output_sumcnt_read_enhanced;
+	    } else {
+		if (inSettings->mReportMode == kReport_CSV)
+		    sumreport->info.output_handler = udp_output_basic_csv;
+		else
+		    sumreport->info.output_handler = udp_output_sum_read;
 	    }
 	} else {
 	    sumreport->transfer_protocol_sum_handler = reporter_transfer_protocol_sum_server_tcp;
-	    if (inSettings->mReportMode == kReport_CSV) {
-		if (isTripTime(inSettings))
-		    sumreport->info.output_handler = tcp_output_read_triptime_sum_csv;
-		else if (isEnhanced(inSettings))
+	    if (isTripTime(inSettings)) {
+		if (inSettings->mReportMode == kReport_CSV)
+		    if (isIsochronous(inSettings))
+			sumreport->info.output_handler = tcp_output_read_isochronous_sum_csv;
+		    else
+			sumreport->info.output_handler = tcp_output_read_triptime_sum_csv;
+		else
+		    sumreport->info.output_handler = tcp_output_sumcnt_read_triptime;
+	    } else if (isSumOnly(inSettings)) {
+		if (inSettings->mReportMode == kReport_CSV)
 		    sumreport->info.output_handler = tcp_output_read_enhanced_csv;
 		else
-		    sumreport->info.output_handler = tcp_output_basic_csv;
-	    } else {
-		if (isTripTime(inSettings)) {
-		    sumreport->info.output_handler = tcp_output_sumcnt_read_triptime;
-		} else if (isSumOnly(inSettings)) {
 		    sumreport->info.output_handler = (isEnhanced(inSettings) ? tcp_output_sumcnt_read_enhanced : tcp_output_sumcnt_read);
-		} else if (isFullDuplex(inSettings)) {
+	    } else if (isFullDuplex(inSettings)) {
+		if (inSettings->mReportMode == kReport_CSV)
+		    sumreport->info.output_handler = tcp_output_read_enhanced_csv;
+		else
 		    sumreport->info.output_handler = tcp_output_sum_read;
-		} else {
-		    sumreport->info.output_handler =  (isEnhanced(inSettings) ? tcp_output_sumcnt_read_enhanced : tcp_output_sum_read);
-		}
+	    } else if (isEnhanced(inSettings)) {
+		if (inSettings->mReportMode == kReport_CSV)
+		    sumreport->info.output_handler = tcp_output_read_enhanced_csv;
+		else
+		    sumreport->info.output_handler = tcp_output_sumcnt_read_enhanced;
+	    } else {
+		if (inSettings->mReportMode == kReport_CSV)
+		    sumreport->info.output_handler = tcp_output_basic_csv;
+		else
+		    sumreport->info.output_handler = tcp_output_sum_read;
 	    }
 	}
 	break;
     case kMode_Client :
 	if (isUDP(inSettings)) {
 	    sumreport->transfer_protocol_sum_handler = reporter_transfer_protocol_sum_client_udp;
-	    if (inSettings->mReportMode == kReport_CSV) {
-		if (isEnhanced(inSettings))
+	    if (isSumOnly(inSettings)) {
+		if (inSettings->mReportMode == kReport_CSV)
 		    sumreport->info.output_handler = udp_output_write_enhanced_csv;
 		else
-		    sumreport->info.output_handler = udp_output_basic_csv;
-	    } else {
-		if (isSumOnly(inSettings)) {
 		    sumreport->info.output_handler = ((isEnhanced(inSettings) && !isFullDuplex(inSettings)) ? \
 						      udp_output_sumcnt_write_enhanced : udp_output_sumcnt);
-		} else if (isFullDuplex(inSettings)) {
+	    } else if (isFullDuplex(inSettings)) {
+		if (inSettings->mReportMode == kReport_CSV)
+		    sumreport->info.output_handler = udp_output_write_enhanced_csv;
+		else
 		    sumreport->info.output_handler = udp_output_fullduplex_sum;
-		} else {
-		    sumreport->info.output_handler = (isEnhanced(inSettings) ? udp_output_sumcnt_write_enhanced : udp_output_sum_write);
-		}
+	    } else if (isEnhanced(inSettings)) {
+		if (inSettings->mReportMode == kReport_CSV)
+		    sumreport->info.output_handler = udp_output_write_enhanced_csv;
+		else
+		    sumreport->info.output_handler = udp_output_sumcnt_write_enhanced;
+	    } else {
+		if (inSettings->mReportMode == kReport_CSV)
+		    sumreport->info.output_handler = udp_output_basic_csv;
+		else
+		    sumreport->info.output_handler = udp_output_sum_write;
 	    }
 	} else {
 	    sumreport->transfer_protocol_sum_handler = reporter_transfer_protocol_sum_client_tcp;
-	    if (inSettings->mReportMode == kReport_CSV) {
-	        if (isBounceBack(inSettings)) {
-		    sumreport->info.output_handler = tcp_output_write_bb_sum_csv;
-		} else if (isEnhanced(inSettings)) {
+	    if (isSumOnly(inSettings)) {
+		if (inSettings->mReportMode == kReport_CSV)
 		    sumreport->info.output_handler = tcp_output_write_enhanced_csv;
-		} else {
-		    sumreport->info.output_handler = tcp_output_basic_csv;
-		}
-	    } else {
-		if (isSumOnly(inSettings)) {
+		else
 		    sumreport->info.output_handler = (isEnhanced(inSettings) ? tcp_output_sumcnt_write_enhanced : tcp_output_sumcnt_write);
-		} else if (isFullDuplex(inSettings)) {
+	    } if (isBounceBack(inSettings)) {
+		if (inSettings->mReportMode == kReport_CSV)
+		    sumreport->info.output_handler = tcp_output_write_bb_sum_csv;
+		else
+		    sumreport->info.output_handler = tcp_output_sumcnt_write_enhanced;
+	    } else if (isFullDuplex(inSettings)) {
+		if (inSettings->mReportMode == kReport_CSV)
+		    sumreport->info.output_handler = tcp_output_write_enhanced_csv;
+		else
 		    sumreport->info.output_handler = tcp_output_fullduplex_sum;
-		} else {
-		    sumreport->info.output_handler = (isEnhanced(inSettings) ? tcp_output_sumcnt_write_enhanced : tcp_output_sum_write);
-		}
+	    } else if (isEnhanced(inSettings)) {
+		if (inSettings->mReportMode == kReport_CSV)
+		    sumreport->info.output_handler = tcp_output_write_enhanced_csv;
+		else
+		    sumreport->info.output_handler = tcp_output_sumcnt_write_enhanced;
+	    } else {
+		if (inSettings->mReportMode == kReport_CSV)
+		    sumreport->info.output_handler = tcp_output_basic_csv;
+		else
+		    sumreport->info.output_handler = tcp_output_sum_write;
 	    }
 	}
 	break;
@@ -668,24 +706,32 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
 		ireport->transfer_protocol_handler = reporter_transfer_protocol_server_udp;
 		if (isSumOnly(inSettings)) {
 		    ireport->info.output_handler = NULL;
-		} else if ((inSettings->mReportMode == kReport_CSV) && !isSumOnly(inSettings)) {
-		    if (isTripTime(inSettings))
-		        ireport->info.output_handler = udp_output_read_triptime_csv;
-		    else if (isEnhanced(inSettings))
-			ireport->info.output_handler = udp_output_read_enhanced_csv;
-		    else
-			ireport->info.output_handler = udp_output_basic_csv;
 		} else if (isTripTime(inSettings)) {
 		    if (isIsochronous(inSettings))
-			ireport->info.output_handler = udp_output_read_triptime_isoch;
+			if (inSettings->mReportMode == kReport_CSV)
+			    ireport->info.output_handler = udp_output_read_isochronous_csv;
+			else
+			    ireport->info.output_handler = udp_output_read_triptime_isoch;
 		    else
-			ireport->info.output_handler = udp_output_read_triptime;
+			if (inSettings->mReportMode == kReport_CSV)
+			    ireport->info.output_handler = udp_output_read_triptime_csv;
+			else
+			    ireport->info.output_handler = udp_output_read_triptime;
 		} else if (isEnhanced(inSettings)) {
-		    ireport->info.output_handler = udp_output_read_enhanced;
+		    if (inSettings->mReportMode == kReport_CSV)
+			ireport->info.output_handler = udp_output_read_enhanced_csv;
+		    else
+			ireport->info.output_handler = udp_output_read_enhanced;
 		} else if (isFullDuplex(inSettings)) {
-		    ireport->info.output_handler = udp_output_read;
+		    if (inSettings->mReportMode == kReport_CSV)
+			ireport->info.output_handler = udp_output_basic_csv;
+		    else
+			ireport->info.output_handler = udp_output_read;
 		} else {
-		    ireport->info.output_handler = udp_output_read;
+		    if (inSettings->mReportMode == kReport_CSV)
+			ireport->info.output_handler = udp_output_basic_csv;
+		    else
+			ireport->info.output_handler = udp_output_read;
 		}
 	    }
 	} else {  // TCP case
@@ -703,23 +749,31 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
 		ireport->packet_handler_post_report = NULL;
 	    } else if (isSumOnly(inSettings)) {
 		ireport->info.output_handler = NULL;
-	    } else if ((inSettings->mReportMode == kReport_CSV) && !isSumOnly(inSettings)) {
-		if (isTripTime(inSettings))
+	    } else if (isTripTime(inSettings) && isIsochronous(inSettings)) {
+		if (inSettings->mReportMode == kReport_CSV)
+		    ireport->info.output_handler = tcp_output_read_isochronous_csv;
+		else
+		    ireport->info.output_handler = tcp_output_read_enhanced_isoch;
+	    } else if (isTripTime(inSettings)) {
+		if (inSettings->mReportMode == kReport_CSV)
 		    ireport->info.output_handler = tcp_output_read_triptime_csv;
-		else if (isEnhanced(inSettings))
+		else
+		    ireport->info.output_handler = tcp_output_read_triptime;
+	    } else if (isEnhanced(inSettings)) {
+		if (inSettings->mReportMode == kReport_CSV)
 		    ireport->info.output_handler = tcp_output_read_enhanced_csv;
 		else
-		    ireport->info.output_handler = tcp_output_basic_csv;
-	    } else if (isTripTime(inSettings) && isIsochronous(inSettings)) {
-		ireport->info.output_handler = tcp_output_read_enhanced_isoch;
-	    } else if (isTripTime(inSettings)) {
-		ireport->info.output_handler = tcp_output_read_triptime;
-	    } else if (isEnhanced(inSettings)) {
-		ireport->info.output_handler = tcp_output_read_enhanced;
+		    ireport->info.output_handler = tcp_output_read_enhanced;
 	    } else if (!isFullDuplex(inSettings)) {
-		ireport->info.output_handler = tcp_output_read;
+		if (inSettings->mReportMode == kReport_CSV)
+		    ireport->info.output_handler = tcp_output_basic_csv;
+		else
+		    ireport->info.output_handler = tcp_output_read;
 	    } else {
-		ireport->info.output_handler = tcp_output_read;
+		if (inSettings->mReportMode == kReport_CSV)
+		    ireport->info.output_handler = tcp_output_basic_csv;
+		else
+		    ireport->info.output_handler = tcp_output_read;
 	    }
 	}
 	break;
@@ -729,19 +783,26 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
 	    ireport->transfer_protocol_handler = reporter_transfer_protocol_client_udp;
             if (isSumOnly(inSettings)) {
 		ireport->info.output_handler = NULL;
-	    } else if ((inSettings->mReportMode == kReport_CSV) && !isSumOnly(inSettings)) {
-		if (isEnhanced(inSettings))
+	    } else if (isIsochronous(inSettings)) {
+		if (inSettings->mReportMode == kReport_CSV)
 		    ireport->info.output_handler = udp_output_write_enhanced_csv;
 		else
-		    ireport->info.output_handler = udp_output_basic_csv;
-	    } else if (isIsochronous(inSettings)) {
-		ireport->info.output_handler = udp_output_write_enhanced_isoch;
+		    ireport->info.output_handler = udp_output_write_enhanced_isoch;
 	    } else if (isEnhanced(inSettings)) {
-		ireport->info.output_handler = udp_output_write_enhanced;
+		if (inSettings->mReportMode == kReport_CSV)
+		    ireport->info.output_handler = udp_output_write_enhanced_csv;
+		else
+		    ireport->info.output_handler = udp_output_write_enhanced;
 	    } else if (isFullDuplex(inSettings)) {
-		ireport->info.output_handler = udp_output_write;
+		if (inSettings->mReportMode == kReport_CSV)
+		    ireport->info.output_handler = udp_output_basic_csv;
+		else
+		    ireport->info.output_handler = udp_output_write;
 	    } else {
-		ireport->info.output_handler = udp_output_write;
+		if (inSettings->mReportMode == kReport_CSV)
+		    ireport->info.output_handler = udp_output_basic_csv;
+		else
+		    ireport->info.output_handler = udp_output_write;
 	    }
 	} else {
 	    ireport->transfer_protocol_handler = reporter_transfer_protocol_client_tcp;
@@ -754,25 +815,34 @@ struct ReportHeader* InitIndividualReport (struct thread_Settings *inSettings) {
 		    ireport->info.output_handler = tcp_output_write_bb_csv;
 		else
 		    ireport->info.output_handler = tcp_output_write_bb;
-	    } else if ((inSettings->mReportMode == kReport_CSV) && !isSumOnly(inSettings)) {
-		if (isEnhanced(inSettings))
+	    } else if (isIsochronous(inSettings)) {
+		if (inSettings->mReportMode == kReport_CSV)
 		    ireport->info.output_handler = tcp_output_write_enhanced_csv;
 		else
-		    ireport->info.output_handler = tcp_output_basic_csv;
-	    } else if (isIsochronous(inSettings)) {
-		ireport->info.output_handler = tcp_output_write_enhanced_isoch;
+		    ireport->info.output_handler = tcp_output_write_enhanced_isoch;
 	    } else if (isTcpWriteTimes(inSettings)) {
-		ireport->info.output_handler = tcp_output_write_enhanced_write;
+		if (inSettings->mReportMode == kReport_CSV)
+		    ireport->info.output_handler = tcp_output_write_enhanced_csv;
+		else
+		    ireport->info.output_handler = tcp_output_write_enhanced_write;
 	    } else if (isEnhanced(inSettings)) {
-		if (isFQPacing(inSettings))
+		if (inSettings->mReportMode == kReport_CSV)
+		    ireport->info.output_handler = tcp_output_write_enhanced_csv;
+		else if (isFQPacing(inSettings))
 		    ireport->info.output_handler = tcp_output_write_enhanced_fq;
 		else {
 		    ireport->info.output_handler = tcp_output_write_enhanced;
 		}
 	    } else if (isFullDuplex(inSettings)) {
-		ireport->info.output_handler = tcp_output_write;
+		if (inSettings->mReportMode == kReport_CSV)
+		    ireport->info.output_handler = tcp_output_basic_csv;
+		else
+		    ireport->info.output_handler = tcp_output_write;
 	    } else {
-		ireport->info.output_handler = tcp_output_write;
+		if (inSettings->mReportMode == kReport_CSV)
+		    ireport->info.output_handler = tcp_output_basic_csv;
+		else
+		    ireport->info.output_handler = tcp_output_write;
 	    }
 	}
 	break;
