@@ -335,7 +335,6 @@ struct ReportTimeStamps {
     double iEnd;
     double significant_partial;
     struct timeval startTime;
-    struct timeval matchTime;
     struct timeval packetTime;
     struct timeval prevpacketTime;
     struct timeval prevsendTime;
