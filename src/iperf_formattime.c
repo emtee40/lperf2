@@ -92,7 +92,7 @@ inline void iperf_formattime (char *timestr, int buflen, struct timeval timestam
 	    break;
 	case CSVTZ:
 	    strftime(timestr, buflen, "%z:%Y%m%d%H%M%S", &ts);
-	    append_precision(timestr, buflen, useconds, useconds);
+	    append_precision(timestr, buflen, prec, useconds);
 	    break;
 	default:
 	    FAIL_exit(1, "iperf_formattime program error");
