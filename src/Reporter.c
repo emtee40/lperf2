@@ -1207,12 +1207,14 @@ static inline void reporter_set_timestamps_time (struct TransferInfo *stats, enu
 #if HAVE_SUMMING_DEBUG
 static void reporter_dump_timestamps (struct ReportStruct *packet, struct TransferInfo *stats, struct TransferInfo *sumstats, bool final) {
     if (packet)
-	printf("**** %s pkt      =%ld.%06ld (up/down)=%d/%d ibytes/sbytes=%ld/%ld (final=%d)\n", stats->common->transferIDStr, (long) packet->packetTime.tv_sec, \
-	       (long) packet->packetTime.tv_usec, sumstats->slot_thread_upcount, sumstats->slot_thread_downcount, stats->cntBytes, sumstats->cntBytes, final);
+	printf("**** %s pkt      =%ld.%06ld (up/down)=%d/%d ibytes=%ld/%ld sbytes=%ld/%ld (final=%d)\n", stats->common->transferIDStr, (long) packet->packetTime.tv_sec, \
+	       (long) packet->packetTime.tv_usec, sumstats->slot_thread_upcount, sumstats->slot_thread_downcount, stats->total.Bytes.prev, stats->total.Bytes.current, \
+	       sumstats->total.Bytes.prev, sumstats->total.Bytes.current, final);
     else {
-	printf("**** %s pkt ts   =%ld.%06ld prev=%ld.%06ld (up/down)=%d/%d ibytes/sbytes=%ld/%ld (final=%d)\n", stats->common->transferIDStr, (long) stats->ts.packetTime.tv_sec, \
+	printf("**** %s pkt ts   =%ld.%06ld prev=%ld.%06ld (up/down)=%d/%d ibytes=%ld/%ld sbytes=%ld/%ld (final=%d)\n", stats->common->transferIDStr, (long) stats->ts.packetTime.tv_sec, \
 	       (long) stats->ts.packetTime.tv_usec, (long) stats->ts.prevpacketTime.tv_sec, (long) stats->ts.prevpacketTime.tv_usec, \
-	       sumstats->slot_thread_upcount, sumstats->slot_thread_downcount, stats->cntBytes, sumstats->cntBytes, final);
+	       sumstats->slot_thread_upcount, sumstats->slot_thread_downcount, stats->total.Bytes.prev, stats->total.Bytes.current, \
+	       sumstats->total.Bytes.prev, sumstats->total.Bytes.current, final);
     }
     printf("**** %s stats    =%ld.%06ld next=%ld.%06ld prev=%ld.%06ld\n", stats->common->transferIDStr, (long) stats->ts.packetTime.tv_sec, \
 	   (long) stats->ts.packetTime.tv_usec, (long) stats->ts.nextTime.tv_sec, (long) stats->ts.nextTime.tv_usec, (long) stats->ts.prevpacketTime.tv_sec, (long) stats->ts.prevpacketTime.tv_usec);
@@ -1895,16 +1897,17 @@ void reporter_transfer_protocol_client_bb_tcp (struct ReporterData *data, bool f
 	stats->cntTxBytes = stats->total.TxBytes.current - stats->total.TxBytes.prev;
     }
     if (sumstats) {
-	sumstats->total.Bytes.current += stats->cntBytes;
-	sumstats->sock_callstats.write.WriteErr += stats->sock_callstats.write.WriteErr;
-	sumstats->sock_callstats.write.WriteCnt += stats->sock_callstats.write.WriteCnt;
-	sumstats->sock_callstats.write.totWriteErr += stats->sock_callstats.write.WriteErr;
-	sumstats->sock_callstats.write.totWriteCnt += stats->sock_callstats.write.WriteCnt;
+	if (!final) {
+	    sumstats->total.Bytes.current += stats->cntBytes;
+	    sumstats->sock_callstats.write.WriteErr += stats->sock_callstats.write.WriteErr;
+	    sumstats->sock_callstats.write.WriteCnt += stats->sock_callstats.write.WriteCnt;
+	    sumstats->sock_callstats.write.totWriteErr += stats->sock_callstats.write.WriteErr;
+	    sumstats->sock_callstats.write.totWriteCnt += stats->sock_callstats.write.WriteCnt;
 #if HAVE_TCP_STATS
-	sumstats->sock_callstats.write.tcpstats.retry += stats->sock_callstats.write.tcpstats.retry;
-	sumstats->sock_callstats.write.tcpstats.retry_tot += stats->sock_callstats.write.tcpstats.retry;
+	    sumstats->sock_callstats.write.tcpstats.retry += stats->sock_callstats.write.tcpstats.retry;
+	    sumstats->sock_callstats.write.tcpstats.retry_tot += stats->sock_callstats.write.tcpstats.retry;
 #endif
-	if (final) {
+	} else {
 	    sumstats->threadcnt_final++;
 	    if (data->packetring->downlevel != sumstats->downlevel) {
 		sumstats->slot_thread_downcount++;
