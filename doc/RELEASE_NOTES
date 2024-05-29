@@ -1,8 +1,45 @@
 See doc/DESIGN_NOTES for some description around the software design
-See doc/CLOCKSYNC_NOTES for some description around synchronizing the realtime clocks
+See doc/CLOCKSYNC_NOTES for some description around synchronizing the
+realtime clocks
 
-2.2.1 (as of April 19th, 2024)
+2.2.1 (as of May 29th, 2024)
 ------------------------------
+o fix client side bb summing
+o fix format error in timestamps
+o 1) Support CSV for isochronous, both UDP and TCP 2) Reorganise CSV report assignement to be more logical.
+o support milliseconds and microseconds with iperf_formattime, also make sure the leading zeros are printed per the field width
+o fix multiple pps regressions
+o csv patches per ticket 320 and 322
+o add per direction byte counts with bounceback on client (server side code yet to be done)
+o fix summing init code per ticket 324
+o tcp working load should use full capacity seeking behaviors
+o fix csv compile breakage on MAC
+o use append for --ouput vs w, ticket 321
+o use --ipg units of seconds
+o fix settings calculations when -b is given for --burst options
+o improve port range / traffic thread count (-P) warning
+o add transferid to recvmsg warning
+o compute packet pps accounts for interval crossing using that timestamp vs packet timestamp
+o use object setnow() method to set lastPackeTime in first packet delay
+o pps calculation needs to include partial gap value with IPGsum ahead of PPS output
+o minor fixes for DEBUG_PPS support
+o fix initial udp write delay and reporting
+o Rerun autoconf
+o Remove unused ax_create_stdint_h
+o move Socklen_t discovery entirely into dast.m4
+o Remove unused DAST_REPLACE macros
+o fix udp regression with high pps, sosndtimer needs to be set, don't use write select
+o Remove obsolete web100 makefile support
+o fix for windows enhanced writes with summing
+o don't mix typecast with format specifiers, use %ld for (long) typecast
+o use typecast for time_val seconds for portability, fix windows 64 cross compile
+o Set default compiler and load flags without overiding user choice.
+o Move packet and tuntap checks later so they don't execute before compiler checks.
+o Use HAVE_GETIFADDRS instead of HAVE_IFADDRS_H for Android and any other OS that has the header file but might not enable the actual feature
+o Remove code that is unused and deprecated
+o Update defuns to comply with autoconf-2.72
+o use netinet vs linux for ip.h and udp.h, add configure.ac checks for the header files, update dscp.h for new defines not in netienet per WFA/WMM inputs
+o disable SO_REUSEPORT for server side
 o various fixes in ReportOutputs including divide by zero test, segv fixes, and spacings
 o fix for UDP 64b seq number detection per packet header
 o fix configure.ac to support Win64 compiles
