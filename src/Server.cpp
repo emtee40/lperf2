@@ -93,7 +93,7 @@ Server::Server (thread_Settings *inSettings) {
 	}
     }
 #endif
-#if HAVE_DECL_MSG_CTRUNC
+#if (HAVE_DECL_SO_TIMESTAMP) && (HAVE_DECL_MSG_CTRUNC)
     ctrunc_warn_enable = true;
 #endif
     // Enable kernel level timestamping if available
