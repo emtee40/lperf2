@@ -95,6 +95,8 @@ extern const char client_report_epoch_start[];
 
 extern const char client_report_epoch_start_current[];
 
+extern const char server_report_epoch_start_current[];
+
 extern const char server_pid_port[];
 
 extern const char server_working_load_port[];
