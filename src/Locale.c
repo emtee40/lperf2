@@ -370,6 +370,9 @@ const char report_sumcnt_bw_header[] =
 const char client_report_epoch_start_current[] =
 "[%3d] Client traffic to start in %d seconds at %s current time is %s\n";
 
+const char server_report_epoch_start_current[] =
+"[%3d] Server receiving to start in %d seconds at %s\n";
+
 const char client_write_size[] =
 "Write buffer size";
 

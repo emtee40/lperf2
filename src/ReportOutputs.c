@@ -2810,7 +2810,8 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
 	       outbuffer);
     }
 #endif
-    if ((report->common->ThreadMode == kMode_Client) && !isServerReverse(report->common)) {
+    if ((report->common->ThreadMode == kMode_Server) ||			\
+	((report->common->ThreadMode == kMode_Client) && !isServerReverse(report->common))) {
 	if (isTxHoldback(report->common) || isTxStartTime(report->common)) {
 	    struct timeval now;
 	    TimeGetNow(now);
@@ -2829,11 +2830,18 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
 	    char now_timebuf[80];
 	    iperf_formattime(now_timebuf, sizeof(now_timebuf), now, \
 			     (isEnhanced(report->common) ? Milliseconds : Seconds), isUTC(report->common), YearThruSecTZ);
-	    iperf_formattime(start_timebuf, sizeof(start_timebuf), start, \
-			     (isEnhanced(report->common) ? Milliseconds : Seconds), isUTC(report->common), YearThruSec);
 	    if (seconds_from_now > 0) {
-		printf(client_report_epoch_start_current, report->common->transferID, seconds_from_now, \
-		       start_timebuf, now_timebuf);
+		if (report->common->ThreadMode == kMode_Server) {
+		    iperf_formattime(start_timebuf, sizeof(start_timebuf), start, \
+				     (isEnhanced(report->common) ? Milliseconds : Seconds), isUTC(report->common), YearThruSecTZ);
+		    printf(server_report_epoch_start_current, report->common->transferID, seconds_from_now, \
+			   start_timebuf);
+		} else {
+		    iperf_formattime(start_timebuf, sizeof(start_timebuf), start, \
+				     (isEnhanced(report->common) ? Milliseconds : Seconds), isUTC(report->common), YearThruSec);
+		    printf(client_report_epoch_start_current, report->common->transferID, seconds_from_now, \
+			   start_timebuf, now_timebuf);
+		}
 	    } else if (!isBounceBack(report->common)) {
 		printf(warn_start_before_now, report->common->transferID, report->epochStartTime.tv_sec, \
 		       report->epochStartTime.tv_usec, start_timebuf, now_timebuf);
