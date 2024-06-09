@@ -99,7 +99,15 @@ extern "C" {
 #define MAXTTL 255
 #endif
 #define DEFAULT_BOUNCEBACK_BYTES 100
-#define SMALL_WRITE_PREFETCH (1024 * 16)
+
+// per feedback from Eric Dumazet
+// "Keep in mind the optimal (and max) size of skbs in linux is 64K
+//
+// If you use 16K, TCP is forced to cook smaller packets, and is unable to fill the pipe.
+// (Filling 'the pipe' needs to be able to cook 2 consecutive GSO skbs atany point of time)
+//
+// I would at least use 128KB or 256KB."
+#define SMALL_WRITE_PREFETCH (1024 * 256)
 
 #define SHALLOW_COPY 1 // This is likley a bug, using a deep copy is safer but overkill
 #define DEEP_COPY 1
