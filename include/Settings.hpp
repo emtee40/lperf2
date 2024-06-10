@@ -104,10 +104,12 @@ extern "C" {
 // "Keep in mind the optimal (and max) size of skbs in linux is 64K
 //
 // If you use 16K, TCP is forced to cook smaller packets, and is unable to fill the pipe.
-// (Filling 'the pipe' needs to be able to cook 2 consecutive GSO skbs atany point of time)
+// (Filling 'the pipe' needs to be able to cook 2 consecutive GSO skbs at any point of time)
 //
 // I would at least use 128KB or 256KB."
-#define SMALL_WRITE_PREFETCH (1024 * 256)
+#define SKB_SIZE (64 * 1024)
+#define SKB_NUM 4 // minimum is 2
+#define SMALL_WRITE_PREFETCH (SKB_SIZE * SKB_NUM)
 
 #define SHALLOW_COPY 1 // This is likley a bug, using a deep copy is safer but overkill
 #define DEEP_COPY 1
