@@ -4,6 +4,7 @@ realtime clocks
 
 2.2.1 (as of June 11th, 2024)
 ------------------------------
+o don't autoset --tcp-write-prefetch with --trip-times, warn instead
 o Add Android NDK example, add mingw64 example
 o set smallest prefetch to 256K
 o print wait time on server side with --tx-starttime
