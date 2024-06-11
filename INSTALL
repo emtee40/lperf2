@@ -22,6 +22,42 @@ and to use:
 
 Platform Specific Notes
 
+Android NDK (cross compile from Linux)
+
+Download the NDK from https://developer.android.com/ndk
+
+Create a wrapper for the NDK's clang toolchain
+
+$ more ~/bin/aarch64-android-ndk
+#!/bin/sh
+export NDK=/projects/android-ndk-r26d
+export TOOLCHAIN=$NDK/toolchains/llvm/prebuilt/linux-x86_64
+export TARGET=aarch64-linux-android
+
+# Set this to your minSdkVersion.
+export API=24
+
+# Configure and build.
+export AR=$TOOLCHAIN/bin/llvm-ar
+export CC=$TOOLCHAIN/bin/$TARGET$API-clang
+export AS=$CC
+export CXX=$TOOLCHAIN/bin/$TARGET$API-clang++
+export LD=$TOOLCHAIN/bin/ld
+export RANLIB=$TOOLCHAIN/bin/llvm-ranlib
+export STRIP=$TOOLCHAIN/bin/llvm-strip
+
+"$@"
+#####
+
+Configure and make
+
+$ aarch64-android-ndk ../iperf2-code/configure --host=aarch64-linux-android
+$ make
+
+
+---
+
+
 FreeBSD
 
   If you use a cc or c++ other than the system one, threads may not be
@@ -33,12 +69,23 @@ FreeBSD
 
 ---
 
-Windows (cross compile from Linux)
+Windows 64bit (cross compile from Linux)
+
+# dnf install mingw64-gcc mingw64-gcc-c++ mingw64-winpthreads-static
+
+$ ../iperf2-code/configure --host=x86_64-w64-mingw32
+$ make
+
+---
+
+Windows 32bit (cross compile from Linux)
 
 # dnf install mingw32-gcc mingw32-gcc-c++ mingw32-winpthreads-static
 
 $ ../iperf2-code/configure --host=i686-w64-mingw32
 $ make
+
+
 
 ---
 
