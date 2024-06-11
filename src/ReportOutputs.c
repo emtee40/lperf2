@@ -2562,6 +2562,8 @@ static void reporter_output_client_settings (struct ReportSettings *report) {
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
 	if (isWritePrefetch(report->common)) {
 	    fprintf(stdout, "Event based writes (pending queue watermark at %d bytes)\n", report->common->WritePrefetch);
+	} else if (!isUDP(report->common) && isTripTime(report->common)) {
+	    fprintf(stdout, "Warn: Send side bloat possible per --tcp-write-prefetch not being set\n");
 	}
 #endif
 	if (isHistogram(report->common)) {

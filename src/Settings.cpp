@@ -1805,8 +1805,6 @@ void Settings_ModalOptions (struct thread_Settings *mExtSettings) {
 			unsetWritePrefetch(mExtSettings);
 		    }
 		} else {
-		    mExtSettings->mWritePrefetch = SMALL_WRITE_PREFETCH;
-		    setWritePrefetch(mExtSettings);
 		    setEnhanced(mExtSettings);
 		}
 	    }
