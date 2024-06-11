@@ -2,8 +2,12 @@ See doc/DESIGN_NOTES for some description around the software design
 See doc/CLOCKSYNC_NOTES for some description around synchronizing the
 realtime clocks
 
-2.2.1 (as of May 29th, 2024)
+2.2.1 (as of June 11th, 2024)
 ------------------------------
+o Add Android NDK example, add mingw64 example
+o set smallest prefetch to 256K
+o print wait time on server side with --tx-starttime
+o fix header code #if mismatch of (HAVE_DECL_SO_TIMESTAMP) && (HAVE_DECL_MSG_CTRUNC) per ticket 328
 o fix client side bb summing
 o fix format error in timestamps
 o 1) Support CSV for isochronous, both UDP and TCP 2) Reorganise CSV report assignement to be more logical.
