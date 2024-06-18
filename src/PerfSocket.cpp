@@ -75,6 +75,7 @@
 #include "SocketAddr.h"
 #include "util.h"
 #include "iperf_multicast_api.h"
+#include <cmath>
 
 /* -------------------------------------------------------------------
  * Set socket options before the listen() or connect() calls.
@@ -277,8 +278,9 @@ void SetSocketOptions (struct thread_Settings *inSettings) {
         }
 #endif
 #if HAVE_DECL_TCP_TX_DELAY
-        if (isTcpTxDelay(inSettings) && (inSettings->mTcpTxDelayProb >= 1.0)) {
-	    SetSocketTcpTxDelay(inSettings, inSettings->mTcpTxDelayMean * 1000);
+        if (isTcpTxDelay(inSettings)) {
+	    // convert to usecs
+	    SetSocketTcpTxDelay(inSettings, static_cast<int>(round(inSettings->mTcpTxDelayMean * 1000)));
 	}
 #endif
     }

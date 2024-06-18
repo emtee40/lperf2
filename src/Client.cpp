@@ -535,14 +535,6 @@ void Client::InitTrafficLoop () {
         mEndTime.add(mSettings->mAmount / 100.0);
 	// now.setnow(); fprintf(stderr, "DEBUG: end time set to %ld.%06ld now is %ld.%06ld\n", mEndTime.getSecs(), mEndTime.getUsecs(), now.getSecs(), now.getUsecs());
     }
-#if HAVE_DECL_TCP_TX_DELAY
-    current_state = NO_DELAY;
-    if (isTcpTxDelay(mSettings)) {
-        state_tokens[NO_DELAY] = (int) (mSettings->mTcpTxDelayMean * (1 - mSettings->mTcpTxDelayProb));
-        state_tokens[ADD_DELAY] = (int) (mSettings->mTcpTxDelayMean * mSettings->mTcpTxDelayProb);
-	TcpTxDelayQuantumEnd.setnow();
-    }
-#endif
     readAt = mSettings->mBuf;
     lastPacketTime.set(myReport->info.ts.startTime.tv_sec, myReport->info.ts.startTime.tv_usec);
     reportstruct->err_readwrite=WriteSuccess;
@@ -610,48 +602,6 @@ void Client::Run () {
 	}
     }
 }
-
-#if HAVE_DECL_TCP_TX_DELAY
-inline void Client::apply_txdelay_func (void) {
-    now.setnow();
-    if (isTcpTxDelay(mSettings) && TcpTxDelayQuantumEnd.before(now)) {
-	// expense the tokens for the current state
-	state_tokens[current_state] -= now.subUsec(TcpTxDelayQuantumEnd);
-	// add tokens
-	do {
-	    state_tokens[NO_DELAY] += (int) (mSettings->mTcpTxDelayMean * (1 - mSettings->mTcpTxDelayProb));
-	    state_tokens[ADD_DELAY] += (int) (mSettings->mTcpTxDelayMean * mSettings->mTcpTxDelayProb);
-	} while ((state_tokens[NO_DELAY] < 0) && (state_tokens[ADD_DELAY] < 0));
-	// set the next quantum end
-	while (TcpTxDelayQuantumEnd.before(now))
-	    TcpTxDelayQuantumEnd.add((unsigned int) TCPDELAYDEFAULTQUANTUM);
-	// do any state change
-	if ((state_tokens[NO_DELAY] < 0) && (current_state == NO_DELAY)) {
-//	    printf("**** f state change to 0->1 current=%d %d %d\n", current_state, state_tokens[NO_DELAY], state_tokens[ADD_DELAY]);
-	    SetSocketTcpTxDelay(mSettings, (mSettings->mTcpTxDelayMean * 1000.0));
-	    current_state = ADD_DELAY;
-	} else if ((state_tokens[ADD_DELAY] < 0) && (current_state == ADD_DELAY)) {
-//	    printf("**** f state change to 1->0 current=%d %d %d\n", current_state, state_tokens[NO_DELAY], state_tokens[ADD_DELAY]);
-	    SetSocketTcpTxDelay(mSettings, 0.0);
-	    current_state = NO_DELAY;
-	} else {
-	    int rval = (random() % 2);
-	    //      printf("**** curr=%d rval=%d tokens 0:%d 1:%d\n", current_state, rval, state_tokens[NO_DELAY], state_tokens[ADD_DELAY]);
-	    if (rval != current_state) {
-		if (rval && (state_tokens[ADD_DELAY] > 0)) {
-//		    printf("**** state change to 0->1  rval=%d current=%d %d %d\n", rval, current_state, state_tokens[NO_DELAY], state_tokens[ADD_DELAY]);
-		    SetSocketTcpTxDelay(mSettings, (mSettings->mTcpTxDelayMean * 1000.0));
-		    current_state = ADD_DELAY;
-		} else if ((rval != 1) && (state_tokens[NO_DELAY] > 0))  {
-//		    printf("**** state change to 1->0  rval=%d current=%d %d %d\n", rval, current_state, state_tokens[NO_DELAY], state_tokens[ADD_DELAY]);
-		    SetSocketTcpTxDelay(mSettings, 0.0);
-		    current_state = NO_DELAY;
-		}
-	    }
-	}
-    }
-}
-#endif
 
 /*
  * TCP send loop
