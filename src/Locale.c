@@ -717,16 +717,16 @@ const char report_udp_fullduplex_sum_format[] =
  * Misc reports
  * ------------------------------------------------------------------- */
 const char report_outoforder[] =
-"%s" IPERFTimeFrmt " sec  %d datagrams received out-of-order%s\n";
+"%s" IPERFTimeFrmt " sec  %" PRIdMAX " datagrams received out-of-order%s\n";
 
 const char report_sumcnt_outoforder[] =
-"[SUM-%d] " IPERFTimeFrmt " sec  %d datagrams received out-of-order%s\n";
+"[SUM-%d] " IPERFTimeFrmt " sec  %" PRIdMAX " datagrams  received out-of-order%s\n";
 
 const char report_l2statistics[] =
 "%s" IPERFTimeFrmt " sec   L2 processing detected errors, total(length/checksum/unknown) = %" PRIdMAX "(%" PRIdMAX "/%" PRIdMAX "/%" PRIdMAX ")\n";
 
 const char report_sum_outoforder[] =
-"[SUM] " IPERFTimeFrmt " sec  %d datagrams received out-of-order%s\n";
+"[SUM] " IPERFTimeFrmt " sec  %" PRIdMAX " datagrams received out-of-order%s\n";
 
 const char report_peer [] =
 "%slocal %s port %u connected with %s port %u%s\n";
