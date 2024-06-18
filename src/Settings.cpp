@@ -1286,8 +1286,10 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 		exit(1);
 	    }
 	    if (mExtSettings->mTcpTxDelayMean >= 0.001) { // smallest value is one us, units are ms
+#ifdef TCP_TX_DELAY
 		setTcpTxDelay(mExtSettings);
 		setEnhanced(mExtSettings);
+#endif
 	    }
 #else
 	    fprintf(stderr, "The --tcp-tx-delay option is not available on this operating system\n");
