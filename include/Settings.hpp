@@ -322,7 +322,7 @@ struct thread_Settings {
 #endif
     int jitter_binwidth;
 #if HAVE_DECL_TCP_TX_DELAY
-    float mTcpTxDelayMean;
+    double mTcpTxDelayMean;
 #endif
     bool mOmit;
     int sendfirst_pacing;
