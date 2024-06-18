@@ -1285,8 +1285,9 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 		fprintf (stderr, "ERROR: Invalid value of '%s' for --tcp-tx-delay\n", optarg);
 		exit(1);
 	    }
-	    if (mExtSettings->mTcpTxDelayMean > 0) {
+	    if (mExtSettings->mTcpTxDelayMean >= 0.001) { // smallest value is one us, units are ms
 		setTcpTxDelay(mExtSettings);
+		setEnhanced(mExtSettings);
 	    }
 #else
 	    fprintf(stderr, "The --tcp-tx-delay option is not available on this operating system\n");

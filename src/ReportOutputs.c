@@ -2516,6 +2516,11 @@ static void reporter_output_client_settings (struct ReportSettings *report) {
 	fprintf(stdout,"TCP working load congestion control set to %s\n", report->common->LoadCCA);
     }
 #endif
+#if HAVE_DECL_TCP_TX_DELAY
+    if (!isUDP(report->common) && isTcpTxDelay(report->common)) {
+	fprintf(stdout, "Socket option of TCP_TX_DELAY set to %2.3f milliseconds\n", report->common->TcpTxDelay);
+    }
+#endif
     if (isEnhanced(report->common)) {
 	char strtext[10];
 	if (isSetTOS(report->common)) {

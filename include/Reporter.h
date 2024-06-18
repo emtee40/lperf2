@@ -255,6 +255,7 @@ struct ReportCommon {
     double rtt_weight;
     double ListenerTimeout;
     double FPS;
+    double TcpTxDelay;
     int bbsize;
     int bbreplysize;
     int bbhold;
