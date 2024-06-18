@@ -147,14 +147,6 @@ private:
 #if HAVE_DECL_SO_MAX_PACING_RATE
     Timestamp PacingStepTime;
 #endif
-#if HAVE_DECL_TCP_TX_DELAY
-    enum delay_state {NO_DELAY=0, ADD_DELAY};
-    delay_state current_state;
-    int state_tokens[2];
-    inline void apply_txdelay_func (void);
-    Timestamp TcpTxDelayQuantumEnd;
-#endif
-
 }; // end class Client
 
 #endif // CLIENT_H

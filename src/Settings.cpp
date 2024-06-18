@@ -1,3 +1,4 @@
+
 /*---------------------------------------------------------------
  * Copyright (c) 1999,2000,2001,2002,2003
  * The Board of Trustees of the University of Illinois
@@ -1278,15 +1279,11 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	if (tcptxdelay) {
 	    tcptxdelay = 0;
 #if HAVE_DECL_TCP_TX_DELAY
-	    char *tmp= new char [strlen(optarg) + 1];
-	    char *results;
-	    strcpy(tmp, optarg);
-	    mExtSettings->mTcpTxDelayProb = 1.0;
-	    if (((results = strtok(tmp, ",")) != NULL) && !strcmp(results,tmp)) {
-		mExtSettings->mTcpTxDelayMean = atof(results);
-		if ((results = strtok(NULL, ",")) != NULL) {
-		    mExtSettings->mTcpTxDelayProb = atof(results);
-		}
+	    char *end;
+	    mExtSettings->mTcpTxDelayMean = strtof(optarg,&end);
+	    if (*end != '\0') {
+		fprintf (stderr, "ERROR: Invalid value of '%s' for --tcp-tx-delay\n", optarg);
+		exit(1);
 	    }
 	    if (mExtSettings->mTcpTxDelayMean > 0) {
 		setTcpTxDelay(mExtSettings);
