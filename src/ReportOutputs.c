@@ -2357,6 +2357,11 @@ static void reporter_output_listener_settings (struct ReportSettings *report) {
 	}
     }
 #endif
+#if HAVE_DECL_TCP_TX_DELAY
+    if (!isUDP(report->common) && isTcpTxDelay(report->common)) {
+	fprintf(stdout, "Socket option of TCP_TX_DELAY set to %2.3f milliseconds\n", report->common->TcpTxDelay);
+    }
+#endif
     if (isOverrideTOS(report->common)) {
 	fprintf(stdout, "Reflected TOS will be set to 0x%x (dscp=%d,ecn=%d)\n", report->common->RTOS, \
 		DSCP_VALUE(report->common->RTOS), ECN_VALUE(report->common->RTOS));
