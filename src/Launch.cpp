@@ -421,7 +421,6 @@ void client_init(struct thread_Settings *clients) {
 	    if (isUDP(next)) {
 		unsetUDP(next);
 		unsetBWSet(next);
-		setNoSettReport(next);
 		next->mAppRate=0;
 	    }
 	    if (isLoadCCA(next)) {
@@ -447,6 +446,7 @@ void client_init(struct thread_Settings *clients) {
 		}
 		if (isWorkingLoadUp(clients) || isWorkingLoadDown(clients)) {
 		    unsetBWSet(next);
+		    setNoSettReport(next);
 		}
 		Iperf_push_host(clients);
 		// Bump the bounceback time to include the delay time
