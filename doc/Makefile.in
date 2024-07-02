@@ -237,7 +237,7 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-EXTRA_DIST = index.html ui_license.html dast.gif
+EXTRA_DIST = index.html ui_license.html dast.gif CLOCKSYNC_NOTES RELEASE_NOTES DESIGN_NOTES ESnet400GTestbedConfiguration.txt
 all: all-am
 
 .SUFFIXES:
