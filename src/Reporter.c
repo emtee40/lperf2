@@ -63,7 +63,6 @@
 #include "delay.h"
 #include "packet_ring.h"
 #include "payloads.h"
-#include "gettcpinfo.h"
 #include "iperf_formattime.h"
 
 #ifdef __cplusplus
@@ -145,30 +144,23 @@ void PostReport (struct ReportHeader *reporthdr) {
  *
  * Returns true when the tcpinfo was sampled, false ohterwise
  */
-bool ReportPacket (struct ReporterData* data, struct ReportStruct *packet) {
+void ReportPacket (struct ReporterData* data, struct ReportStruct *packet) {
     assert(data != NULL);
-
-    bool rc = false;
-  #ifdef HAVE_THREAD_DEBUG
+#ifdef HAVE_THREAD_DEBUG
     if (packet->packetID < 0) {
 	thread_debug("Reporting last packet for %p  qdepth=%d sock=%d", (void *) data, packetring_getcount(data->packetring), data->info.common->socket);
     }
-  #endif
+#endif
+    packet->tcpstats.needTcpInfoSample = false;
 #if HAVE_TCP_STATS
     struct TransferInfo *stats = &data->info;
-    packet->tcpstats.isValid = false;
-    if (stats->isEnableTcpInfo) {
-	if (!TimeZero(stats->ts.nextTCPSampleTime) && (TimeDifference(stats->ts.nextTCPSampleTime, packet->packetTime) < 0)) {
-	    gettcpinfo(data->info.common->socket, &packet->tcpstats);
-	    TimeAdd(stats->ts.nextTCPSampleTime, stats->ts.intervalTime);
-	    rc = true;
-	} else {
-	    gettcpinfo(data->info.common->socket, &packet->tcpstats);
-	    rc = true;
-	}
+    if (stats->isEnableTcpInfo && \
+	(!TimeZero(stats->ts.nextTCPSampleTime) && \
+	 (TimeDifference(stats->ts.nextTCPSampleTime, packet->packetTime) < (TimeDouble(stats->ts.intervalTime) / 2)))) {
+	TimeAdd(stats->ts.nextTCPSampleTime, stats->ts.intervalTime);
+	packet->tcpstats.needTcpInfoSample = true;
     }
 #endif
-
     // Note for threaded operation all that needs
     // to be done is to enqueue the packet data
     // into the ring.
@@ -178,18 +170,16 @@ bool ReportPacket (struct ReporterData* data, struct ReportStruct *packet) {
     // These defeats the puropse of separating
     // traffic i/o from user i/o and really
     // should be avoided.
-  #ifdef HAVE_THREAD
+#ifdef HAVE_THREAD
     // bypass the reporter thread here for single UDP
     if (isSingleUDP(data->info.common))
         reporter_process_transfer_report(data);
-  #else
+#else
     /*
      * Process the report in this thread
      */
     reporter_process_transfer_report(data);
-  #endif
-
-    return rc;
+#endif
 }
 
 /*
@@ -554,7 +544,7 @@ bool reporter_process_transfer_report (struct ReporterData *this_ireport) {
 #endif
 	if (this_ireport->transfer_interval_handler) {
 	    if (sumstats && (this_ireport->packetring->uplevel != sumstats->uplevel) \
-		&& (TimeDifference(sumstats->ts.nextTime, packet->packetTime) > 0)) {
+		&& (TimeDifference(sumstats->ts.nextTime, packet->packetTime) >= 0)) {
 		sumstats->slot_thread_upcount++;
 #if HAVE_SUMMING_DEBUG
 		printf("**** %s upcnt   (%p) pkt=%ld.%06ld (up/down)=%d/%d uplevel (sum/pkt)=%d/%d\n", this_ireport->info.common->transferIDStr, (void *)this_ireport->packetring, \
@@ -1205,13 +1195,16 @@ static inline void reporter_set_timestamps_time (struct TransferInfo *stats, enu
 }
 
 #if HAVE_SUMMING_DEBUG
-static void reporter_dump_timestamps (struct ReportStruct *packet, struct TransferInfo *stats, struct TransferInfo *sumstats) {
+static void reporter_dump_timestamps (struct ReportStruct *packet, struct TransferInfo *stats, struct TransferInfo *sumstats, bool final) {
     if (packet)
-	printf("**** %s pkt      =%ld.%06ld (up/down)=%d/%d\n", stats->common->transferIDStr, (long) packet->packetTime.tv_sec, \
-	       (long) packet->packetTime.tv_usec, sumstats->slot_thread_upcount, sumstats->slot_thread_downcount);
+	printf("**** %s pkt      =%ld.%06ld (up/down)=%d/%d ibytes=%ld/%ld sbytes=%ld/%ld (final=%d)\n", stats->common->transferIDStr, (long) packet->packetTime.tv_sec, \
+	       (long) packet->packetTime.tv_usec, sumstats->slot_thread_upcount, sumstats->slot_thread_downcount, stats->total.Bytes.prev, stats->total.Bytes.current, \
+	       sumstats->total.Bytes.prev, sumstats->total.Bytes.current, final);
     else {
-	printf("**** %s pkt ts   =%ld.%06ld prev=%ld.%06ld (up/down)=%d/%d\n", stats->common->transferIDStr, (long) stats->ts.packetTime.tv_sec, \
-	       (long) stats->ts.packetTime.tv_usec, (long) stats->ts.prevpacketTime.tv_sec, (long) stats->ts.prevpacketTime.tv_usec, sumstats->slot_thread_upcount, sumstats->slot_thread_downcount);
+	printf("**** %s pkt ts   =%ld.%06ld prev=%ld.%06ld (up/down)=%d/%d ibytes=%ld/%ld sbytes=%ld/%ld (final=%d)\n", stats->common->transferIDStr, (long) stats->ts.packetTime.tv_sec, \
+	       (long) stats->ts.packetTime.tv_usec, (long) stats->ts.prevpacketTime.tv_sec, (long) stats->ts.prevpacketTime.tv_usec, \
+	       sumstats->slot_thread_upcount, sumstats->slot_thread_downcount, stats->total.Bytes.prev, stats->total.Bytes.current, \
+	       sumstats->total.Bytes.prev, sumstats->total.Bytes.current, final);
     }
     printf("**** %s stats    =%ld.%06ld next=%ld.%06ld prev=%ld.%06ld\n", stats->common->transferIDStr, (long) stats->ts.packetTime.tv_sec, \
 	   (long) stats->ts.packetTime.tv_usec, (long) stats->ts.nextTime.tv_sec, (long) stats->ts.nextTime.tv_usec, (long) stats->ts.prevpacketTime.tv_sec, (long) stats->ts.prevpacketTime.tv_usec);
@@ -1246,6 +1239,7 @@ static inline void reporter_reset_transfer_stats_sum (struct TransferInfo *sumst
     sumstats->iInP = 0;
     sumstats->uplevel = toggleLevel(sumstats->uplevel);
     sumstats->downlevel = toggleLevel(sumstats->downlevel);
+    sumstats->total.Bytes.prev = sumstats->total.Bytes.current;
 }
 
 static inline void reporter_reset_transfer_stats_client_tcp (struct TransferInfo *stats) {
@@ -1326,7 +1320,6 @@ static inline void reporter_reset_transfer_stats_server_udp (struct TransferInfo
     if (stats->cntDatagrams)
 	stats->IPGsum = 0;
 }
-
 // These do the following
 //
 // o) set the TransferInfo struct and then calls the individual report output handler
@@ -1775,7 +1768,7 @@ void reporter_transfer_protocol_client_tcp (struct ReporterData *data, bool fina
 #endif
 	}
 #if HAVE_SUMMING_DEBUG
-	reporter_dump_timestamps(NULL, stats, sumstats);
+	reporter_dump_timestamps(NULL, stats, sumstats, final);
 #endif
 
 #if HAVE_TCP_STATS
@@ -1870,7 +1863,7 @@ void reporter_transfer_protocol_sum_client_tcp (struct TransferInfo *stats, bool
 
 void reporter_transfer_protocol_client_bb_tcp (struct ReporterData *data, bool final) {
     struct TransferInfo *stats = &data->info;
-
+    struct TransferInfo *sumstats = (data->GroupSumReport != NULL) ? &data->GroupSumReport->info : NULL;
     if (final) {
 	if ((stats->cntBytes > 0) && stats->output_handler && !TimeZero(stats->ts.intervalTime)) {
 	    // print a partial interval report if enable and this a final
@@ -1893,6 +1886,36 @@ void reporter_transfer_protocol_client_bb_tcp (struct ReporterData *data, bool f
 	stats->cntRxBytes = stats->total.RxBytes.current - stats->total.RxBytes.prev;
 	stats->cntTxBytes = stats->total.TxBytes.current - stats->total.TxBytes.prev;
     }
+    if (sumstats) {
+	if (!final) {
+	    sumstats->total.Bytes.current += stats->cntBytes;
+	    sumstats->sock_callstats.write.WriteErr += stats->sock_callstats.write.WriteErr;
+	    sumstats->sock_callstats.write.WriteCnt += stats->sock_callstats.write.WriteCnt;
+	    sumstats->sock_callstats.write.totWriteErr += stats->sock_callstats.write.WriteErr;
+	    sumstats->sock_callstats.write.totWriteCnt += stats->sock_callstats.write.WriteCnt;
+#if HAVE_TCP_STATS
+	    sumstats->sock_callstats.write.tcpstats.retry += stats->sock_callstats.write.tcpstats.retry;
+	    sumstats->sock_callstats.write.tcpstats.retry_tot += stats->sock_callstats.write.tcpstats.retry;
+#endif
+	} else {
+	    sumstats->threadcnt_final++;
+	    if (data->packetring->downlevel != sumstats->downlevel) {
+		sumstats->slot_thread_downcount++;
+	    }
+	    if (data->packetring->uplevel != sumstats->uplevel){
+		sumstats->slot_thread_upcount++;
+	    }
+#if HAVE_SUMMING_DEBUG
+	    printf("**** %s downcnt (%p) (up/down)=%d/%d final true level (sum/pkt)=%d/%d\n", stats->common->transferIDStr, (void *)data->packetring, \
+		   sumstats->slot_thread_upcount, sumstats->slot_thread_downcount, \
+		   sumstats->uplevel, data->packetring->uplevel);
+#endif
+	}
+#if HAVE_SUMMING_DEBUG
+	reporter_dump_timestamps(NULL, stats, sumstats, final);
+#endif
+    }
+
     if ((stats->output_handler) && !(stats->isMaskOutput))
         (*stats->output_handler)(stats);
     if (!final) {
@@ -2030,7 +2053,7 @@ bool reporter_condprint_time_interval_report (struct ReporterData *data, struct 
 		    sumstats->isMaskOutput = true;
 		}
 #if HAVE_SUMMING_DEBUG
-		reporter_dump_timestamps(packet, stats, sumstats);
+		reporter_dump_timestamps(packet, stats, sumstats, sumstats->final);
 #endif
 		reporter_set_timestamps_time(sumstats, INTERVAL);
 		assert(data->GroupSumReport->transfer_protocol_sum_handler != NULL);
