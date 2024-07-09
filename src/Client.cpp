@@ -310,7 +310,7 @@ inline int Client::myWrite (int inSock, const void *inBuf, int inLen) {
     return write(inSock, inBuf, inLen);
 }
 inline int Client::myWriten(int inSock, const void *inBuf, int inLen, int *count) {
-    return writen(mySocket, mSettings->mBuf, len, count);
+    return writen(mySocket, mSettings->mBuf, inLen, count);
 }
 #endif
 
