@@ -63,7 +63,6 @@
 #include "delay.h"
 #include "packet_ring.h"
 #include "payloads.h"
-#include "gettcpinfo.h"
 #include "iperf_formattime.h"
 
 #ifdef __cplusplus
@@ -145,30 +144,22 @@ void PostReport (struct ReportHeader *reporthdr) {
  *
  * Returns true when the tcpinfo was sampled, false ohterwise
  */
-bool ReportPacket (struct ReporterData* data, struct ReportStruct *packet) {
+void ReportPacket (struct ReporterData* data, struct ReportStruct *packet) {
     assert(data != NULL);
-
-    bool rc = false;
-  #ifdef HAVE_THREAD_DEBUG
+#ifdef HAVE_THREAD_DEBUG
     if (packet->packetID < 0) {
 	thread_debug("Reporting last packet for %p  qdepth=%d sock=%d", (void *) data, packetring_getcount(data->packetring), data->info.common->socket);
     }
-  #endif
+#endif
+    packet->tcpstats.needTcpInfoSample = false;
 #if HAVE_TCP_STATS
     struct TransferInfo *stats = &data->info;
-    packet->tcpstats.isValid = false;
-    if (stats->isEnableTcpInfo) {
-	if (!TimeZero(stats->ts.nextTCPSampleTime) && (TimeDifference(stats->ts.nextTCPSampleTime, packet->packetTime) < 0)) {
-	    gettcpinfo(data->info.common->socket, &packet->tcpstats);
-	    TimeAdd(stats->ts.nextTCPSampleTime, stats->ts.intervalTime);
-	    rc = true;
-	} else {
-	    gettcpinfo(data->info.common->socket, &packet->tcpstats);
-	    rc = true;
-	}
+    if (stats->isEnableTcpInfo && \
+	(!TimeZero(stats->ts.nextTCPSampleTime) && (TimeDifference(stats->ts.nextTCPSampleTime, packet->packetTime) < 0))) {
+	TimeAdd(stats->ts.nextTCPSampleTime, stats->ts.intervalTime);
+	packet->tcpstats.needTcpInfoSample = true;
     }
 #endif
-
     // Note for threaded operation all that needs
     // to be done is to enqueue the packet data
     // into the ring.
@@ -178,18 +169,16 @@ bool ReportPacket (struct ReporterData* data, struct ReportStruct *packet) {
     // These defeats the puropse of separating
     // traffic i/o from user i/o and really
     // should be avoided.
-  #ifdef HAVE_THREAD
+#ifdef HAVE_THREAD
     // bypass the reporter thread here for single UDP
     if (isSingleUDP(data->info.common))
         reporter_process_transfer_report(data);
-  #else
+#else
     /*
      * Process the report in this thread
      */
     reporter_process_transfer_report(data);
-  #endif
-
-    return rc;
+#endif
 }
 
 /*

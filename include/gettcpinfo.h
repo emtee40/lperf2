@@ -60,6 +60,7 @@ extern "C" {
 
 struct iperf_tcpstats {
     bool isValid;
+    bool needTcpInfoSample;
     uint32_t rtt;
     double connecttime;
 #if HAVE_TCP_STATS

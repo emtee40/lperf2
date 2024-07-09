@@ -91,6 +91,11 @@ private:
     inline void WritePacketID(intmax_t);
     inline void WriteTcpTxHdr(struct ReportStruct *, int, int);
     inline void WriteTcpTxBBHdr(struct ReportStruct *, uint32_t, int);
+    inline int myWrite(int inSock, const void *inBuf, int inLen);
+    inline int myWriten(int inSock, const void *inBuf, int inLen, int *count);
+#if HAVE_TCP_STATS
+    inline void mygetTcpInfo(void);
+#endif
     inline double get_delay_target(void);
     void InitTrafficLoop(void);
     void SetReportStartTime(void);
