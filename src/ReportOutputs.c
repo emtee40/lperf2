@@ -691,15 +691,6 @@ void tcp_output_burst_write (struct TransferInfo *stats) {
     cond_flush(stats);
 }
 
-#if HAVE_TCP_INFLIGHT
-static inline double compute_byte_waittime (struct TransferInfo *stats) {
-    double delta_time = (stats->ts.iEnd - stats->ts.iStart);
-    double arrival_rate = ((delta_time > 0) ? ((double) stats->cntBytes / delta_time) : -1);
-    double wait_time = ((arrival_rate > 0) ? (1e3 * 1024 * (double) stats->sock_callstats.write.tcpstats.bytes_in_flight / arrival_rate) : -1);
-    return wait_time;
-}
-#endif
-
 void tcp_output_write_enhanced (struct TransferInfo *stats) {
     HEADING_PRINT_COND(report_bw_write_enhanced);
     _print_stats_common(stats);
@@ -712,9 +703,6 @@ void tcp_output_write_enhanced (struct TransferInfo *stats) {
 	   (stats->common->Omit ? report_omitted : ""));
 #else
     set_netpowerbuf(stats->sock_callstats.write.tcpstats.rtt * 1e-6, stats);
-#if HAVE_TCP_INFLIGHT
-    double wait_time = compute_byte_waittime(stats);
-#endif
 #if HAVE_STRUCT_TCP_INFO_TCPI_SND_CWND
     printf(report_bw_write_enhanced_format,
 	   stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
@@ -725,7 +713,6 @@ void tcp_output_write_enhanced (struct TransferInfo *stats) {
 #if HAVE_TCP_INFLIGHT
 	   stats->sock_callstats.write.tcpstats.bytes_in_flight,
 	   stats->sock_callstats.write.tcpstats.packets_in_flight,
-	   wait_time,
 #endif
 	   stats->sock_callstats.write.tcpstats.cwnd,
 	   stats->sock_callstats.write.tcpstats.cwnd_packets,
@@ -776,9 +763,6 @@ void tcp_output_write_enhanced_fq (struct TransferInfo *stats) {
 #else
     HEADING_PRINT_COND(report_bw_write_enhanced_fq);
     set_netpowerbuf(stats->sock_callstats.write.tcpstats.rtt * 1e-6, stats);
-#if HAVE_TCP_INFLIGHT
-    double wait_time = compute_byte_waittime(stats);
-#endif
 #if HAVE_STRUCT_TCP_INFO_TCPI_SND_CWND
     if (!stats->final) {
 	printf(report_bw_write_enhanced_fq_format,
@@ -790,7 +774,6 @@ void tcp_output_write_enhanced_fq (struct TransferInfo *stats) {
 #if HAVE_TCP_INFLIGHT
 	       stats->sock_callstats.write.tcpstats.bytes_in_flight,
 	       stats->sock_callstats.write.tcpstats.packets_in_flight,
-	       wait_time,
 #endif
 	       stats->sock_callstats.write.tcpstats.cwnd,
 	       stats->sock_callstats.write.tcpstats.cwnd_packets,
@@ -850,9 +833,6 @@ void tcp_output_write_enhanced_write (struct TransferInfo *stats) {
 	   (stats->common->Omit ? report_omitted : ""));
 #else
     set_netpowerbuf(stats->sock_callstats.write.tcpstats.rtt * 1e-6, stats);
-#if HAVE_TCP_INFLIGHT
-    double wait_time = compute_byte_waittime(stats);
-#endif
 #if HAVE_STRUCT_TCP_INFO_TCPI_SND_CWND
     printf(report_write_enhanced_write_format,
 	   stats->common->transferIDStr, stats->ts.iStart, stats->ts.iEnd,
@@ -863,7 +843,6 @@ void tcp_output_write_enhanced_write (struct TransferInfo *stats) {
 #if HAVE_TCP_INFLIGHT
 	   stats->sock_callstats.write.tcpstats.bytes_in_flight,
 	   stats->sock_callstats.write.tcpstats.packets_in_flight,
-	   wait_time,
 #endif
 	   stats->sock_callstats.write.tcpstats.cwnd,
 	   stats->sock_callstats.write.tcpstats.cwnd_packets,
