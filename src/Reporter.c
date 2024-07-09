@@ -155,7 +155,8 @@ void ReportPacket (struct ReporterData* data, struct ReportStruct *packet) {
 #if HAVE_TCP_STATS
     struct TransferInfo *stats = &data->info;
     if (stats->isEnableTcpInfo && \
-	(!TimeZero(stats->ts.nextTCPSampleTime) && (TimeDifference(stats->ts.nextTCPSampleTime, packet->packetTime) < 0))) {
+	(!TimeZero(stats->ts.nextTCPSampleTime) && \
+	 (TimeDifference(stats->ts.nextTCPSampleTime, packet->packetTime) < (TimeDouble(stats->ts.intervalTime) / 2)))) {
 	TimeAdd(stats->ts.nextTCPSampleTime, stats->ts.intervalTime);
 	packet->tcpstats.needTcpInfoSample = true;
     }
