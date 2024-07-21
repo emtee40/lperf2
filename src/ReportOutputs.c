@@ -2419,12 +2419,14 @@ static void reporter_output_client_settings (struct ReportSettings *report) {
 		      : report->common->Host);
     if (!report->common->Ifrnametx) {
 	printf(isEnhanced(report->common) ? client_pid_port : client_port, hoststr,
-	       (isUDP(report->common) ? "UDP" : "TCP"), report->common->Port, report->pid, \
+	       (isUDP(report->common) ? (isUDPL4S (report->common) ? (isUDPL4SVideo(report->common) ? "UDP L4S Video" : "UDP L4S") : "UDP") : "TCP"),
+	       report->common->Port, report->pid,
 	       (!report->common->threads ? 1 : report->common->threads),
 	       (!report->common->threads ? 1 : report->common->working_load_threads));
     } else {
 	printf(client_pid_port_dev, hoststr,
-	       (isUDP(report->common) ? "UDP" : "TCP"), report->common->Port, report->pid, \
+	       (isUDP(report->common) ? (isUDPL4S (report->common) ? (isUDPL4SVideo(report->common) ? "UDP L4S Video" : "UDP L4S") : "UDP") : "TCP"),
+	       report->pid,
 	       report->common->Ifrnametx, (!report->common->threads ? 1 : report->common->threads),
 	       (!report->common->threads ? 1 : report->common->working_load_threads));
     }

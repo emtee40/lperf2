@@ -256,7 +256,7 @@ const struct option long_options[] =
 {"tap-dev", optional_argument, &tapif, 1},
 {"tun-dev", optional_argument, &tunif, 1},
 {"udp-l4s", no_argument, &udpl4s, 1},
-{"udp-l4s-video", optional_argument, &udpl4svideo, 1},  
+{"udp-l4s-video", optional_argument, &udpl4svideo, 1},
 {"working-load", optional_argument, &workingload, 1},
 {"working-load-cca", required_argument, &loadcca, 1},
 {"tcp-cca", required_argument, &primarycca, 1},
@@ -1493,11 +1493,14 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	}
 	if (udpl4s) {
 	    udpl4s = 0;
-	    setUdpL4S(mExtSettings);
+	    setUDP(mExtSettings);
+	    setUDPL4S(mExtSettings);
 	}
 	if (udpl4svideo) {
 	    udpl4svideo = 0;
-	    setUdpL4SVideo(mExtSettings);
+	    setUDP(mExtSettings);
+	    setUDPL4S(mExtSettings);
+	    setUDPL4SVideo(mExtSettings);
 	}
 	break;
     default: // ignore unknown
