@@ -67,6 +67,7 @@
 #include "payloads.h"
 #include "active_hosts.h"
 #include "gettcpinfo.h"
+#include "prague_cc.h"
 
 // const double kSecs_to_usecs = 1e6;
 const double kSecs_to_nsecs = 1e9;
@@ -1651,12 +1652,10 @@ void Client::RunUDPBurst () {
 }
 
 void Client::RunUDPL4S () {
-    struct UDP_datagram* mBuf_UDP = reinterpret_cast<struct UDP_datagram*>(mSettings->mBuf);
     int currLen;
     int remaining;
-    if (mSettings->mFPS > 0) {
-        framecounter = new Isochronous::FrameCounter(mSettings->mFPS);
-    }
+    struct client_udp_l4s_fwd* mBuf_UDP = reinterpret_cast<struct client_udp_l4s_fwd*>(mSettings->mBuf);
+    PragueCC l4s_pacer;
     while (InProgress()) {
         remaining = mSettings->mBurstSize;
         framecounter->wait_tick(&reportstruct->sched_err, true);
@@ -1668,8 +1667,8 @@ void Client::RunUDPL4S () {
             reportstruct->sentTime = reportstruct->packetTime;
             // store datagram ID into buffer
             WritePacketID(reportstruct->packetID);
-            mBuf_UDP->tv_sec  = htonl(reportstruct->packetTime.tv_sec);
-            mBuf_UDP->tv_usec = htonl(reportstruct->packetTime.tv_usec);
+            mBuf_UDP->seqno_ts.tv_sec  = htonl(reportstruct->packetTime.tv_sec);
+            mBuf_UDP->seqno_ts.tv_usec = htonl(reportstruct->packetTime.tv_usec);
 
             reportstruct->err_readwrite = WriteSuccess;
             reportstruct->emptyreport = false;
