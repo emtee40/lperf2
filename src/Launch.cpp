@@ -155,7 +155,11 @@ void server_spawn(struct thread_Settings *thread) {
     }
     // Run the test
     if (isUDP(thread)) {
-        theServer->RunUDP();
+        if (isUDPL4S(thread)) {
+            theServer->RunUDPL4S();
+        } else {
+            theServer->RunUDP();
+        }
     } else {
         if (isBounceBack(thread)) {
             theServer->RunBounceBackTCP();

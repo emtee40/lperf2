@@ -1084,4 +1084,74 @@ void Server::RunUDP () {
     FreeReport(myJob);
 }
 
+void Server::RunUDPL4S () {
+    int rxlen;
+    bool isLastPacket = false;
+
+    bool startReceiving = InitTrafficLoop();
+    Condition_Signal(&mSettings->receiving); // signal the listener thread so it can hang a new recvfrom
+    if (startReceiving) {
+        // Exit loop on three conditions
+        // 1) Fatal read error
+        // 2) Last packet of traffic flow sent by client
+        // 3) -t timer expires
+        while (InProgress() && !isLastPacket) {
+            // The emptyreport flag can be set
+            // by any of the packet processing routines
+            // If it's set the iperf reporter won't do
+            // bandwidth accounting, basically it's indicating
+            // that the reportstruct itself couldn't be
+            // completely filled out.
+            reportstruct->emptyreport = true;
+            reportstruct->packetLen=0;
+            // read the next packet with timestamp
+            // will also set empty report or not
+            rxlen=ReadWithRxTimestamp();
+            if (!peerclose && (rxlen > 0)) {
+                reportstruct->emptyreport = false;
+                reportstruct->packetLen = rxlen;
+                if (isL2LengthCheck(mSettings)) {
+                    reportstruct->l2len = rxlen;
+                    // L2 processing will set the reportstruct packet length with the length found in the udp header
+                    // and also set the expected length in the report struct.  The reporter thread
+                    // will do the compare and account and print l2 errors
+                    reportstruct->l2errors = 0x0;
+                    L2_processing();
+                }
+                if (!(reportstruct->l2errors & L2UNKNOWN)) {
+                    // ReadPacketID returns true if this is the last UDP packet sent by the client
+                    // also sets the packet rx time in the reportstruct
+                    reportstruct->prevSentTime = myReport->info.ts.prevsendTime;
+                    reportstruct->prevPacketTime = myReport->info.ts.prevpacketTime;
+                    isLastPacket = ReadPacketID(mSettings->l4payloadoffset);
+                    myReport->info.ts.prevsendTime = reportstruct->sentTime;
+                    myReport->info.ts.prevpacketTime = reportstruct->packetTime;
+                    if (isIsochronous(mSettings)) {
+                        udp_isoch_processing(rxlen);
+                    }
+                }
+            }
+            ReportPacket(myReport, reportstruct);
+        }
+    }
+    disarm_itimer();
+    bool do_close = EndJob(myJob, reportstruct);
+    if (!isMulticast(mSettings) && !isNoUDPfin(mSettings)) {
+        // send a UDP acknowledgement back except when:
+        // 1) we're NOT receiving multicast
+        // 2) the user requested no final exchange
+        // 3) this is a full duplex test
+        write_UDP_AckFIN(&myReport->info, mSettings->mBufLen);
+    }
+    if (do_close) {
+#if HAVE_THREAD_DEBUG
+        thread_debug("udp close sock=%d", mySocket);
+#endif
+        int rc = close(mySocket);
+        WARN_errno(rc == SOCKET_ERROR, "server close");
+    }
+    Iperf_remove_host(mSettings);
+    FreeReport(myJob);
+}
+
 // end Recv
