@@ -1515,7 +1515,7 @@ void Client::RunUDPIsochronous () {
 	    } else {
 	        udp_payload->isoch.remaining = htonl(bytecnt);
 		reportstruct->remaining=bytecnt;
-	        currLen = myWrite(mySocket, mSettings->mBuf, (bytecnt < mSettings->mBufLen) ? bytecnt : mSettings->mBufLen);
+	        currLen = write(mySocket, mSettings->mBuf, (bytecnt < mSettings->mBufLen) ? bytecnt : mSettings->mBufLen);
 	    }
 
 	    if (currLen < 0) {
