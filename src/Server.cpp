@@ -1087,8 +1087,8 @@ void Server::RunUDP () {
 void Server::RunUDPL4S () {
     int rxlen;
     bool isLastPacket = false;
-
     bool startReceiving = InitTrafficLoop();
+    PragueCC cca_pacer;
     Condition_Signal(&mSettings->receiving); // signal the listener thread so it can hang a new recvfrom
     if (startReceiving) {
         // Exit loop on three conditions

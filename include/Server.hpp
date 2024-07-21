@@ -58,6 +58,7 @@
 #include "Settings.hpp"
 #include "util.h"
 #include "Timestamp.hpp"
+#include "prague_cc.h"
 
 /* ------------------------------------------------------------------- */
 class Server {

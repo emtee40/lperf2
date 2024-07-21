@@ -1,4 +1,6 @@
+#include <chrono>
 #include "prague_cc.h"
+
 
 const time_tp REF_RTT = 25000;  // 25ms
 const uint8_t PROB_SHIFT = 20;  // enough as max value that can control up to 100Gbps with r [Mbps] = 1/p - 1, p = 1/(r + 1) = 1/100001
@@ -8,9 +10,10 @@ const uint8_t ALPHA_SHIFT = 4;  // >> 4 is divide by 16
 time_tp PragueCC::Now() // TODO: microsecond to time_tp
 {
     // Check if now==0; skip this value used to check uninitialized timepstamp
-    struct timespec t1;
-    clock_gettime(CLOCK_MONOTONIC, &t1);
-    time_tp now = static_cast<time_tp> (static_cast<uint64_t> (t1.tv_sec) * 1000000 + t1.tv_nsec / 1000);    
+    time_tp now = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now().time_since_epoch()).count();
+    if (now==0) {
+        now++;
+    }
     return now;   
 }
 
