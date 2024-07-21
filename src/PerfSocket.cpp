@@ -417,13 +417,13 @@ void SetSocketTcpTxDelay(struct thread_Settings *mSettings, int delay) {
 #if HAVE_DECL_TCP_TX_DELAY
     int rc = setsockopt(mSettings->mSock, IPPROTO_TCP, TCP_TX_DELAY, &delay, sizeof(delay));
     if (rc == SOCKET_ERROR) {
-	fprintf(stderr, "Fail on TCP_TX_DELAY for sock %d\n", mSettings->mSock);
+        fprintf(stderr, "Fail on TCP_TX_DELAY for sock %d\n", mSettings->mSock);
     }
 #ifdef HAVE_THREAD_DEBUG
-      else {
+    else {
         Socklen_t len = sizeof(delay);
-	rc = getsockopt(mSettings->mSock, IPPROTO_TCP, TCP_TX_DELAY, reinterpret_cast<char*>(&delay), &len);
-	thread_debug("TCP_TX_DELAY set to %d for sock %d", (int) delay, mSettings->mSock);
+        rc = getsockopt(mSettings->mSock, IPPROTO_TCP, TCP_TX_DELAY, reinterpret_cast<char*>(&delay), &len);
+        thread_debug("TCP_TX_DELAY set to %d for sock %d", (int) delay, mSettings->mSock);
     }
 #endif
 #endif
@@ -434,20 +434,20 @@ void sol_bindtodevice (struct thread_Settings *inSettings) {
     char *device = (inSettings->mThreadMode == kMode_Client) ? inSettings->mIfrnametx : inSettings->mIfrname;
     if (device) {
 #if (HAVE_DECL_SO_BINDTODEVICE)
-	struct ifreq ifr;
-	memset(&ifr, 0, sizeof(ifr));
-	snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "%s", device);
-	if (setsockopt(inSettings->mSock, SOL_SOCKET, SO_BINDTODEVICE, (void *)&ifr, sizeof(ifr)) < 0) {
-	    char *buf;
-	    int len = snprintf(NULL, 0, "%s %s", "bind to device", device);
-	    len++;  // Trailing null byte + extra
-	    buf = static_cast<char *>(malloc(len));
-	    len = snprintf(buf, len, "%s %s", "bind to device", device);
-	    WARN_errno(1, buf);
-	    free(buf);
-	}
+        struct ifreq ifr;
+        memset(&ifr, 0, sizeof(ifr));
+        snprintf(ifr.ifr_name, sizeof(ifr.ifr_name), "%s", device);
+        if (setsockopt(inSettings->mSock, SOL_SOCKET, SO_BINDTODEVICE, (void *)&ifr, sizeof(ifr)) < 0) {
+            char *buf;
+            int len = snprintf(NULL, 0, "%s %s", "bind to device", device);
+            len++;  // Trailing null byte + extra
+            buf = static_cast<char *>(malloc(len));
+            len = snprintf(buf, len, "%s %s", "bind to device", device);
+            WARN_errno(1, buf);
+            free(buf);
+        }
 #else
-	fprintf(stderr, "bind to device not supported\n");
+        fprintf(stderr, "bind to device not supported\n");
 #endif
 
     }
@@ -455,31 +455,31 @@ void sol_bindtodevice (struct thread_Settings *inSettings) {
 
 void SetSocketBindToDeviceIfNeeded (struct thread_Settings *inSettings) {
     if (!isMulticast(inSettings)) {
-	// typically requires root privileges for unicast bind to device
-	sol_bindtodevice(inSettings);
+        // typically requires root privileges for unicast bind to device
+        sol_bindtodevice(inSettings);
     }
 #ifndef WIN32
     else { // multicast bind below
-	if (inSettings->mThreadMode != kMode_Client) {
-	    // multicast on the server uses iperf_multicast_join for device binding
-	    // found in listener code, do nothing and return
-	    return;
-	}
-	// Handle client side bind to device for multicast
-	if (!isIPV6(inSettings)) {
-	    // v4 tries with the -B ip first, then legacy socket bind
-	    if (!((inSettings->mLocalhost != NULL) && iperf_multicast_sendif_v4(inSettings))) {
-		if (inSettings->mIfrnametx != NULL) {
-		    sol_bindtodevice(inSettings);
-		}
-	    }
-	} else {
-	    if (!((inSettings->mIfrnametx != NULL) && iperf_multicast_sendif_v6(inSettings))) {
-		if (inSettings->mIfrnametx != NULL) {
-		    sol_bindtodevice(inSettings);
-		}
-	    }
-	}
+        if (inSettings->mThreadMode != kMode_Client) {
+            // multicast on the server uses iperf_multicast_join for device binding
+            // found in listener code, do nothing and return
+            return;
+        }
+        // Handle client side bind to device for multicast
+        if (!isIPV6(inSettings)) {
+            // v4 tries with the -B ip first, then legacy socket bind
+            if (!((inSettings->mLocalhost != NULL) && iperf_multicast_sendif_v4(inSettings))) {
+                if (inSettings->mIfrnametx != NULL) {
+                    sol_bindtodevice(inSettings);
+                }
+            }
+        } else {
+            if (!((inSettings->mIfrnametx != NULL) && iperf_multicast_sendif_v6(inSettings))) {
+                if (inSettings->mIfrnametx != NULL) {
+                    sol_bindtodevice(inSettings);
+                }
+            }
+        }
     }
 #endif
 }
@@ -490,15 +490,15 @@ void SetSocketBindToDeviceIfNeeded (struct thread_Settings *inSettings) {
  * Returns true on success, or false if there was an error
 */
 bool setsock_blocking (int fd, bool blocking) {
-   if (fd < 0) return false;
+    if (fd < 0) return false;
 #ifdef WIN32
-   unsigned long mode = blocking ? 0 : 1;
-   return (ioctlsocket(fd, FIONBIO, &mode) == 0) ? true : false;
+    unsigned long mode = blocking ? 0 : 1;
+    return (ioctlsocket(fd, FIONBIO, &mode) == 0) ? true : false;
 #else
-   int flags = fcntl(fd, F_GETFL, 0);
-   if (flags < 0) return false;
-   flags = blocking ? (flags&~O_NONBLOCK) : (flags|O_NONBLOCK);
-   return (fcntl(fd, F_SETFL, flags) == 0) ? true : false;
+    int flags = fcntl(fd, F_GETFL, 0);
+    if (flags < 0) return false;
+    flags = blocking ? (flags&~O_NONBLOCK) : (flags|O_NONBLOCK);
+    return (fcntl(fd, F_SETFL, flags) == 0) ? true : false;
 #endif
 }
 
@@ -556,33 +556,33 @@ void checksock_max_udp_payload (struct thread_Settings *inSettings) {
 #if HAVE_DECL_SIOCGIFMTU
     struct ifreq ifr;
     if (!isBuflenSet(inSettings) && inSettings->mIfrname) {
-	strncpy(ifr.ifr_name, inSettings->mIfrname, (size_t) (IFNAMSIZ - 1));
-	if (!ioctl(inSettings->mSock, SIOCGIFMTU, &ifr)) {
-	    int max;
-	    if (!isIPV6(inSettings)) {
-		max = ifr.ifr_mtu - IPV4HDRLEN - UDPHDRLEN;
-	    } else {
-		max = ifr.ifr_mtu - IPV6HDRLEN - UDPHDRLEN;
-	    }
-	    if ((max > 0) && (max != inSettings->mBufLen)) {
-		if (max > UDPMAXSIZE) {
-		    max = UDPMAXSIZE;
-		}
-		if (max > inSettings->mBufLen) {
-		    char *tmp = new char[max];
-		    assert(tmp!=NULL);
-		    if (tmp) {
-			pattern(tmp, max);
-			memcpy(tmp, inSettings->mBuf, inSettings->mBufLen);
-			DELETE_ARRAY(inSettings->mBuf);
-			inSettings->mBuf = tmp;
-			inSettings->mBufLen = max;
-		    }
-		} else {
-		    inSettings->mBufLen = max;
-		}
-	    }
-	}
+        strncpy(ifr.ifr_name, inSettings->mIfrname, (size_t) (IFNAMSIZ - 1));
+        if (!ioctl(inSettings->mSock, SIOCGIFMTU, &ifr)) {
+            int max;
+            if (!isIPV6(inSettings)) {
+                max = ifr.ifr_mtu - IPV4HDRLEN - UDPHDRLEN;
+            } else {
+                max = ifr.ifr_mtu - IPV6HDRLEN - UDPHDRLEN;
+            }
+            if ((max > 0) && (max != inSettings->mBufLen)) {
+                if (max > UDPMAXSIZE) {
+                    max = UDPMAXSIZE;
+                }
+                if (max > inSettings->mBufLen) {
+                    char *tmp = new char[max];
+                    assert(tmp!=NULL);
+                    if (tmp) {
+                        pattern(tmp, max);
+                        memcpy(tmp, inSettings->mBuf, inSettings->mBufLen);
+                        DELETE_ARRAY(inSettings->mBuf);
+                        inSettings->mBuf = tmp;
+                        inSettings->mBufLen = max;
+                    }
+                } else {
+                    inSettings->mBufLen = max;
+                }
+            }
+        }
     }
 #endif
 }
