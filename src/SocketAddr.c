@@ -65,11 +65,11 @@ extern "C" {
 int SockAddr_getAFdomain (iperf_sockaddr *inSockAddr) {
     return (SockAddr_isIPv6(inSockAddr) ?
 #if HAVE_IPV6
-		  AF_INET6
+            AF_INET6
 #else
-		  AF_INET
+            AF_INET
 #endif
-		  : AF_INET);
+            : AF_INET);
 }
 
 /* -------------------------------------------------------------------
@@ -79,30 +79,30 @@ int SockAddr_getAFdomain (iperf_sockaddr *inSockAddr) {
  * ------------------------------------------------------------------- */
 void SockAddr_remoteAddr (struct thread_Settings *inSettings) {
     if (SockAddr_isZeroAddress(&inSettings->peer) == 0) {
-	if (inSettings->mHost != NULL) {
-	    SockAddr_setHostname(inSettings->mHost, &inSettings->peer, &inSettings->size_peer, isIPV6(inSettings));
-	    if (inSettings->incrdstip)
-		SockAddr_incrAddress(&inSettings->peer, inSettings->incrdstip);
-	} else {
+        if (inSettings->mHost != NULL) {
+            SockAddr_setHostname(inSettings->mHost, &inSettings->peer, &inSettings->size_peer, isIPV6(inSettings));
+            if (inSettings->incrdstip)
+                SockAddr_incrAddress(&inSettings->peer, inSettings->incrdstip);
+        } else {
 #if HAVE_IPV6
-	    if (isIPV6(inSettings)) {
-		((struct sockaddr*)&inSettings->peer)->sa_family = AF_INET6;
-	    } else {
-		((struct sockaddr*)&inSettings->peer)->sa_family = AF_INET;
-	    }
-	}
-	if (SockAddr_isIPv6(&inSettings->peer)) {
-	    inSettings->size_peer = sizeof(struct sockaddr_in6);
-	} else {
-	    inSettings->size_peer = sizeof(struct sockaddr_in);
-	}
+            if (isIPV6(inSettings)) {
+                ((struct sockaddr*)&inSettings->peer)->sa_family = AF_INET6;
+            } else {
+                ((struct sockaddr*)&inSettings->peer)->sa_family = AF_INET;
+            }
+        }
+        if (SockAddr_isIPv6(&inSettings->peer)) {
+            inSettings->size_peer = sizeof(struct sockaddr_in6);
+        } else {
+            inSettings->size_peer = sizeof(struct sockaddr_in);
+        }
 #else
 	}
-        ((struct sockaddr*)&inSettings->peer)->sa_family = AF_INET;
+    ((struct sockaddr*)&inSettings->peer)->sa_family = AF_INET;
 	inSettings->size_peer = sizeof(struct sockaddr_in);
 #endif
 	SockAddr_setPort(&inSettings->peer, inSettings->mPort);
-    }
+}
 }
 // end SocketAddr
 
@@ -149,38 +149,38 @@ void SockAddr_localAddr (struct thread_Settings *inSettings) {
       *  user specified (via -B)
       */
      if (inSettings->mLocalhost == NULL) {
-	 if (inSettings->mThreadMode == kMode_Client) {
-	     /*
-	      * Client thread, -p and no -B,
-	      * OS will auto assign a free local port
-	      */
-	     SockAddr_setPortAny (&inSettings->local);
-	 } else {
-	     /* Server or Listener thread, -p and no -B */
-	     SockAddr_setPort(&inSettings->local, inSettings->mPort);
-	 }
+         if (inSettings->mThreadMode == kMode_Client) {
+             /*
+              * Client thread, -p and no -B,
+              * OS will auto assign a free local port
+              */
+             SockAddr_setPortAny (&inSettings->local);
+         } else {
+             /* Server or Listener thread, -p and no -B */
+             SockAddr_setPort(&inSettings->local, inSettings->mPort);
+         }
      } else {
-	 // -B was set
-	 if (inSettings->mThreadMode == kMode_Client) {
-	     /* Client thread */
-	     if (inSettings->mBindPort) {
-		 /*
-		  * User specified port so use it
-		  */
-		 SockAddr_setPort(&inSettings->local, (inSettings->mBindPort + inSettings->incrsrcport));
-	     } else {
-		 /*
-		  * No user specified port, let OS assign a free one
-		  */
-		 SockAddr_setPortAny (&inSettings->local);
-	     }
-	 } else {
-	     /*
-	      * Server or Listener thread, both always use -p port
-	      * any -B port will be ignored
-	      */
-	     SockAddr_setPort(&inSettings->local, inSettings->mPort);
-	 }
+         // -B was set
+         if (inSettings->mThreadMode == kMode_Client) {
+             /* Client thread */
+             if (inSettings->mBindPort) {
+                 /*
+                  * User specified port so use it
+                  */
+                 SockAddr_setPort(&inSettings->local, (inSettings->mBindPort + inSettings->incrsrcport));
+             } else {
+                 /*
+                  * No user specified port, let OS assign a free one
+                  */
+                 SockAddr_setPortAny (&inSettings->local);
+             }
+         } else {
+             /*
+              * Server or Listener thread, both always use -p port
+              * any -B port will be ignored
+              */
+             SockAddr_setPort(&inSettings->local, inSettings->mPort);
+         }
      }
 }
 
@@ -197,93 +197,93 @@ void SockAddr_setHostname (const char* inHostname, iperf_sockaddr *inSockAddr, S
     struct addrinfo hints;
     memset(&hints, 0, sizeof(hints));
     if (!isIPv6) {
-	hints.ai_family = AF_INET;
-	ret_ga = getaddrinfo(inHostname, NULL, &hints, &res);
-	if (ret_ga == 0) {
-	    if (res && res->ai_addr) {
-		itr = res;
-		// Now search for a IPv4 Address
-		while (itr != NULL) {
-		    if (itr->ai_family == AF_INET) {
-			memcpy(inSockAddr, (itr->ai_addr), (itr->ai_addrlen));
-			*addr_size = (Socklen_t) sizeof(struct sockaddr_in);
-			freeaddrinfo(res);
-			found = true;
-			break;
-		    } else {
-			itr = itr->ai_next;
-		    }
-		}
-	    }
-	}
+        hints.ai_family = AF_INET;
+        ret_ga = getaddrinfo(inHostname, NULL, &hints, &res);
+        if (ret_ga == 0) {
+            if (res && res->ai_addr) {
+                itr = res;
+                // Now search for a IPv4 Address
+                while (itr != NULL) {
+                    if (itr->ai_family == AF_INET) {
+                        memcpy(inSockAddr, (itr->ai_addr), (itr->ai_addrlen));
+                        *addr_size = (Socklen_t) sizeof(struct sockaddr_in);
+                        freeaddrinfo(res);
+                        found = true;
+                        break;
+                    } else {
+                        itr = itr->ai_next;
+                    }
+                }
+            }
+        }
     }
 #if HAVE_IPV6
     if (!found) {
-	hints.ai_family = AF_INET6;
-	ret_ga = getaddrinfo(inHostname, NULL, &hints, &res);
-	if (ret_ga == 0) {
-	    if (res && res->ai_addr) {
-		// Now search for a IPv6 Address
-		itr = res;
-		while (itr != NULL) {
-		    if (itr->ai_family == AF_INET6) {
-			memcpy(inSockAddr, (itr->ai_addr), (itr->ai_addrlen));
-			freeaddrinfo(res);
-			*addr_size = (Socklen_t) sizeof(struct sockaddr_in6);
-			found = true;
-			break;
-		    } else {
-			itr = itr->ai_next;
-		    }
-		}
-	    }
-	}
+        hints.ai_family = AF_INET6;
+        ret_ga = getaddrinfo(inHostname, NULL, &hints, &res);
+        if (ret_ga == 0) {
+            if (res && res->ai_addr) {
+                // Now search for a IPv6 Address
+                itr = res;
+                while (itr != NULL) {
+                    if (itr->ai_family == AF_INET6) {
+                        memcpy(inSockAddr, (itr->ai_addr), (itr->ai_addrlen));
+                        freeaddrinfo(res);
+                        *addr_size = (Socklen_t) sizeof(struct sockaddr_in6);
+                        found = true;
+                        break;
+                    } else {
+                        itr = itr->ai_next;
+                    }
+                }
+            }
+        }
     }
 #endif // IPV6
     // getaddrinfo didn't find an address, fallback to gethostbyname for v4
     if (!found && !isIPv6) {
-	// first try just converting dotted decimal
-	// on Windows gethostbyname doesn't understand dotted decimal
-	struct sockaddr_in *sockaddr = (struct sockaddr_in *)inSockAddr;
-	int rc = inet_pton(AF_INET, inHostname, &sockaddr->sin_addr);
-	sockaddr->sin_family = AF_INET;
-	if (rc == 0) {
-	    struct hostent *hostP = gethostbyname(inHostname);
-	    if (hostP == NULL) {
-		/* this is the same as herror() but works on more systems */
-		const char* format;
-		switch (h_errno) {
-		case HOST_NOT_FOUND:
-		    format = "%s: Unknown host\n";
-		    break;
-		case NO_ADDRESS:
-		    format = "%s: No address associated with name\n";
-		    break;
-		case NO_RECOVERY:
-		    format = "%s: Unknown server error\n";
-		    break;
-		case TRY_AGAIN:
-		    format = "%s: Host name lookup failure\n";
-		    break;
-		default:
-		    format = "%s: Unknown resolver error\n";
-		    break;
-		}
-		fprintf(stderr, format, inHostname);
-		exit(1);
-		return; // TODO throw
-	    }
-	    found = true;
-	    memcpy(&sockaddr->sin_addr, *(hostP->h_addr_list), (hostP->h_length));
-	}
+        // first try just converting dotted decimal
+        // on Windows gethostbyname doesn't understand dotted decimal
+        struct sockaddr_in *sockaddr = (struct sockaddr_in *)inSockAddr;
+        int rc = inet_pton(AF_INET, inHostname, &sockaddr->sin_addr);
+        sockaddr->sin_family = AF_INET;
+        if (rc == 0) {
+            struct hostent *hostP = gethostbyname(inHostname);
+            if (hostP == NULL) {
+                /* this is the same as herror() but works on more systems */
+                const char* format;
+                switch (h_errno) {
+                case HOST_NOT_FOUND:
+                    format = "%s: Unknown host\n";
+                    break;
+                case NO_ADDRESS:
+                    format = "%s: No address associated with name\n";
+                    break;
+                case NO_RECOVERY:
+                    format = "%s: Unknown server error\n";
+                    break;
+                case TRY_AGAIN:
+                    format = "%s: Host name lookup failure\n";
+                    break;
+                default:
+                    format = "%s: Unknown resolver error\n";
+                    break;
+                }
+                fprintf(stderr, format, inHostname);
+                exit(1);
+                return; // TODO throw
+            }
+            found = true;
+            memcpy(&sockaddr->sin_addr, *(hostP->h_addr_list), (hostP->h_length));
+        }
     }
     if (!found) {
-	if (!isIPv6) {
-	    fprintf(stderr, "ERROR: failed to find an ip address for host '%s'\n", inHostname);
-	} else {
-	    fprintf(stderr, "ERROR: failed to find an ipv6 address for host '%s'\n", inHostname);
-	}
-	exit(1);
+        if (!isIPv6) {
+            fprintf(stderr, "ERROR: failed to find an ip address for host '%s'\n", inHostname);
+        } else {
+            fprintf(stderr, "ERROR: failed to find an ipv6 address for host '%s'\n", inHostname);
+        }
+        exit(1);
     }
 }
 // end setHostname
@@ -295,12 +295,12 @@ void SockAddr_getHostAddress (iperf_sockaddr *inSockAddr, char* outAddress,
                                 size_t len) {
     if (((struct sockaddr*)inSockAddr)->sa_family == AF_INET) {
         inet_ntop(AF_INET, &(((struct sockaddr_in*) inSockAddr)->sin_addr),
-                   outAddress, len);
+                  outAddress, len);
     }
 #if HAVE_IPV6
     else {
         inet_ntop(AF_INET6, &(((struct sockaddr_in6*) inSockAddr)->sin6_addr),
-                   outAddress, len);
+                  outAddress, len);
     }
 #endif
 }
@@ -312,11 +312,11 @@ void SockAddr_getHostAddress (iperf_sockaddr *inSockAddr, char* outAddress,
 void SockAddr_setAddressAny (iperf_sockaddr *inSockAddr) {
     if (((struct sockaddr*)inSockAddr)->sa_family == AF_INET)
         memset(&(((struct sockaddr_in*) inSockAddr)->sin_addr), 0,
-                sizeof(struct in_addr));
+               sizeof(struct in_addr));
 #if HAVE_IPV6
     else
         memset(&(((struct sockaddr_in6*) inSockAddr)->sin6_addr), 0,
-                sizeof(struct in6_addr));
+               sizeof(struct in6_addr));
 #endif
 }
 // end setAddressAny
@@ -529,74 +529,74 @@ int SockAddr_Hostare_Equal (iperf_sockaddr* first, iperf_sockaddr *second) {
 int SockAddr_Ifrname (struct thread_Settings *inSettings) {
 #ifdef HAVE_GETIFADDRS
     if (inSettings->mIfrname == NULL) {
-	struct sockaddr_storage myaddr;
-	struct ifaddrs* ifaddr;
-	struct ifaddrs* ifa;
-	socklen_t addr_len;
-	addr_len = sizeof(struct sockaddr_storage);
-	getsockname(inSettings->mSock, (struct sockaddr*)&myaddr, &addr_len);
-	getifaddrs(&ifaddr);
+        struct sockaddr_storage myaddr;
+        struct ifaddrs* ifaddr;
+        struct ifaddrs* ifa;
+        socklen_t addr_len;
+        addr_len = sizeof(struct sockaddr_storage);
+        getsockname(inSettings->mSock, (struct sockaddr*)&myaddr, &addr_len);
+        getifaddrs(&ifaddr);
 
         // look which interface contains the desired IP per getsockname() which sets myaddr
         // When found, ifa->ifa_name contains the name of the interface (eth0, eth1, ppp0...)
-	if (myaddr.ss_family == AF_INET) {
-	    // v4 socket family (supports v4 only)
-	    struct sockaddr_in* addr = (struct sockaddr_in*)&myaddr;
-	    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
-		if ((ifa->ifa_addr) && (ifa->ifa_addr->sa_family == AF_INET)) {
-		    struct sockaddr_in* inaddr = (struct sockaddr_in*)ifa->ifa_addr;
-		    if ((inaddr->sin_addr.s_addr == addr->sin_addr.s_addr) && (ifa->ifa_name)) {
-			// Found v4 address in v4 addr family, copy it to thread settings structure
-			inSettings->mIfrname = calloc (strlen(ifa->ifa_name) + 1, sizeof(char));
-			strcpy(inSettings->mIfrname, ifa->ifa_name);
-			break;
-		    }
-		}
-	    }
-	} else if (myaddr.ss_family == AF_INET6) {
-	    // v6 socket family (supports both v4 and v6)
-	    struct sockaddr_in6* addr = (struct sockaddr_in6*)&myaddr;
-	    // Link local address are shared amongst all devices
-	    // Try to pull the interface from the destination
-	    if ((inSettings->mThreadMode == kMode_Client) && (IN6_IS_ADDR_LINKLOCAL(&addr->sin6_addr))) {
-		char *results;
-		char *copy = (char *)malloc(strlen(inSettings->mHost)+1);
-		strcpy(copy,(const char *)inSettings->mHost);
-		if (((results = strtok(copy, "%")) != NULL) && ((results = strtok(NULL, "%")) != NULL)) {
-		    inSettings->mIfrname = calloc (strlen(results) + 1, sizeof(char));
-		    strcpy(inSettings->mIfrname, results);
-		}
-		free(copy);
-	    } else if ((inSettings->mThreadMode == kMode_Server) && (IN6_IS_ADDR_V4MAPPED (&addr->sin6_addr))) {
-		for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
-		    if ((ifa->ifa_addr) && (ifa->ifa_addr->sa_family == AF_INET)) {
-			struct sockaddr_in* inaddr = (struct sockaddr_in*)ifa->ifa_addr;
-			uint32_t v4;
-			memcpy(&v4, &addr->sin6_addr.s6_addr[12], 4);
-			if ((ifa->ifa_name) && (inaddr->sin_addr.s_addr == v4)) {
-			    // Found v4 address in v4 addr family, copy it to thread settings structure
-			    inSettings->mIfrname = calloc (strlen(ifa->ifa_name) + 1, sizeof(char));
-			    strcpy(inSettings->mIfrname, ifa->ifa_name);
-			    break;
-			}
-		    }
-		}
-	    } else {
-		// Hunt the v6 interfaces
-		for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
-		    if ((ifa->ifa_addr) && (ifa->ifa_addr->sa_family == AF_INET6)) {
-			struct sockaddr_in6* inaddr = (struct sockaddr_in6*)ifa->ifa_addr;
-			if ((ifa->ifa_name) && (IN6_ARE_ADDR_EQUAL(&addr->sin6_addr, &inaddr->sin6_addr))) {
-			    // Found v6 address in v6 addr family, copy it to thread settings structure
-			    inSettings->mIfrname = calloc (strlen(ifa->ifa_name) + 1, sizeof(char));
-			    strcpy(inSettings->mIfrname, ifa->ifa_name);
-			    break;
-			}
-		    }
-		}
-	    }
-	}
-	freeifaddrs(ifaddr);
+        if (myaddr.ss_family == AF_INET) {
+            // v4 socket family (supports v4 only)
+            struct sockaddr_in* addr = (struct sockaddr_in*)&myaddr;
+            for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+                if ((ifa->ifa_addr) && (ifa->ifa_addr->sa_family == AF_INET)) {
+                    struct sockaddr_in* inaddr = (struct sockaddr_in*)ifa->ifa_addr;
+                    if ((inaddr->sin_addr.s_addr == addr->sin_addr.s_addr) && (ifa->ifa_name)) {
+                        // Found v4 address in v4 addr family, copy it to thread settings structure
+                        inSettings->mIfrname = calloc (strlen(ifa->ifa_name) + 1, sizeof(char));
+                        strcpy(inSettings->mIfrname, ifa->ifa_name);
+                        break;
+                    }
+                }
+            }
+        } else if (myaddr.ss_family == AF_INET6) {
+            // v6 socket family (supports both v4 and v6)
+            struct sockaddr_in6* addr = (struct sockaddr_in6*)&myaddr;
+            // Link local address are shared amongst all devices
+            // Try to pull the interface from the destination
+            if ((inSettings->mThreadMode == kMode_Client) && (IN6_IS_ADDR_LINKLOCAL(&addr->sin6_addr))) {
+                char *results;
+                char *copy = (char *)malloc(strlen(inSettings->mHost)+1);
+                strcpy(copy,(const char *)inSettings->mHost);
+                if (((results = strtok(copy, "%")) != NULL) && ((results = strtok(NULL, "%")) != NULL)) {
+                    inSettings->mIfrname = calloc (strlen(results) + 1, sizeof(char));
+                    strcpy(inSettings->mIfrname, results);
+                }
+                free(copy);
+            } else if ((inSettings->mThreadMode == kMode_Server) && (IN6_IS_ADDR_V4MAPPED (&addr->sin6_addr))) {
+                for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+                    if ((ifa->ifa_addr) && (ifa->ifa_addr->sa_family == AF_INET)) {
+                        struct sockaddr_in* inaddr = (struct sockaddr_in*)ifa->ifa_addr;
+                        uint32_t v4;
+                        memcpy(&v4, &addr->sin6_addr.s6_addr[12], 4);
+                        if ((ifa->ifa_name) && (inaddr->sin_addr.s_addr == v4)) {
+                            // Found v4 address in v4 addr family, copy it to thread settings structure
+                            inSettings->mIfrname = calloc (strlen(ifa->ifa_name) + 1, sizeof(char));
+                            strcpy(inSettings->mIfrname, ifa->ifa_name);
+                            break;
+                        }
+                    }
+                }
+            } else {
+                // Hunt the v6 interfaces
+                for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+                    if ((ifa->ifa_addr) && (ifa->ifa_addr->sa_family == AF_INET6)) {
+                        struct sockaddr_in6* inaddr = (struct sockaddr_in6*)ifa->ifa_addr;
+                        if ((ifa->ifa_name) && (IN6_ARE_ADDR_EQUAL(&addr->sin6_addr, &inaddr->sin6_addr))) {
+                            // Found v6 address in v6 addr family, copy it to thread settings structure
+                            inSettings->mIfrname = calloc (strlen(ifa->ifa_name) + 1, sizeof(char));
+                            strcpy(inSettings->mIfrname, ifa->ifa_name);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        freeifaddrs(ifaddr);
     }
 #endif
     return ((inSettings->mIfrname == NULL) ? -1 : 0);
@@ -606,11 +606,11 @@ int SockAddr_Ifrname (struct thread_Settings *inSettings) {
 #if defined(HAVE_LINUX_FILTER_H) && defined(HAVE_AF_PACKET)
 int SockAddr_Drop_All_BPF (int sock) {
     struct sock_filter udp_filter[] = {
-	{ 0x6, 0, 0, 0x00000000 },
+        { 0x6, 0, 0, 0x00000000 },
     };
     struct sock_fprog bpf = {
-	.len = (sizeof(udp_filter) / sizeof(struct sock_filter)),
-	.filter = udp_filter,
+        .len = (sizeof(udp_filter) / sizeof(struct sock_filter)),
+        .filter = udp_filter,
     };
     return(setsockopt(sock, SOL_SOCKET, SO_ATTACH_FILTER, &bpf, sizeof(bpf)));
 }

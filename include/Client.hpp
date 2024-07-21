@@ -130,6 +130,7 @@ private:
     // UDP plain
     void RunUDP(void);
     void RunUDPBurst(void);
+    void RunUDPL4S(void);
     // client connect
     void PeerXchange(void);
     thread_Settings *mSettings;
