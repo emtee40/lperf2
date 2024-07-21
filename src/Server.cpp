@@ -784,6 +784,11 @@ inline int Server::ReadWithRxTimestamp () {
                     }
                     tsdone = true;
                 }
+		if (cmsg->cmsg_level == IPPROTO_IP &&
+                    cmsg->cmsg_type  == IP_RECVTOS &&
+                    cmsg->cmsg_len   == CMSG_LEN(sizeof(sizeof(u_char)))) {
+                    memcpy(&(reportstruct->tos), CMSG_DATA(cmsg), sizeof(u_char));
+		}
             }
         } else if (ctrunc_warn_enable && mSettings->mTransferIDStr) {
             fprintf(stderr, "%sWARN: recvmsg MSG_CTRUNC occured\n", mSettings->mTransferIDStr);
@@ -1130,6 +1135,8 @@ void Server::RunUDPL4S () {
                         udp_isoch_processing(rxlen);
                     }
                 }
+		// Send l4 ack
+		//
             }
             ReportPacket(myReport, reportstruct);
         }

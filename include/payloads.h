@@ -455,6 +455,87 @@ struct isoch_payload {
     uint32_t reserved;
 };
 
+/*
+ * UDP Foward L4S payload structure
+ *
+ *                 0      7 8     15 16    23 24    31
+ *                +--------+--------+--------+--------+
+ *      0x00  1   |          seqno lower              |
+ *                +--------+--------+--------+--------+
+ *      0x04  2   |             tv_sec                |
+ *                +--------+--------+--------+--------+
+ *      0x08  3   |             tv_usec               |
+ *                +--------+--------+--------+--------+
+ *            4   |          seqno upper              |
+ *                +--------+--------+--------+--------+
+ *            5   |         flags (v1)                |
+ *                +--------+--------+--------+--------+
+ *            6   |         numThreads (v1)           |
+ *                +--------+--------+--------+--------+
+ *            7   |         mPort (v1)                |
+ *                +--------+--------+--------+--------+
+ *            8   |         bufferLen (v1)            |
+ *                +--------+--------+--------+--------+
+ *            9   |         mWinBand (v1)             |
+ *                +--------+--------+--------+--------+
+ *            10  |         mAmount (v1)              |
+ *                +--------+--------+--------+--------+
+ *            11  |   up flags      |   low flags     |
+ *                +--------+--------+--------+--------+
+ *            12  |        iperf version major        |
+ *                +--------+--------+--------+--------+
+ *            13  |        iperf version minor        |
+ *                +--------+--------+--------+--------+
+ *            14  |          sender timestamp (A)     |
+ *                +--------+--------+--------+--------+
+ *            15  |          echoed timestamp (B)     |
+ *                +--------+--------+--------+--------+
+ *            16  |          sender seqno (A)         |
+ *                +--------+--------+--------+--------+
+ */
+struct client_udp_l4s_fwd {
+    struct UDP_datagram seqno_ts;
+    struct client_hdr_v1 base;
+    int16_t upperflags;
+    int16_t lowerflags;
+    uint32_t version_u;
+    uint32_t version_l;
+    uint32_t sender_ts;
+    uint32_t echoed_ts;
+    uint32_t sender_seqno;
+};
+
+/*
+ * UDP L4S ACK payload structure
+ *
+ *                 0      7 8     15 16    23 24    31
+ *                +--------+--------+--------+--------+
+ *      0X00  1   | uint16_t flags  |   reserved      |
+ *                +--------+--------+--------+--------+
+ *      0x04  2   |        receiver timestamp (B)     |
+ *                +--------+--------+--------+--------+
+ *      0x06  4   |          echoed timestamp (A)     |
+ *                +--------+--------+--------+--------+
+ *      0x08  5   |            pkt rx count (B)       |
+ *                +--------+--------+--------+--------+
+ *            6   |   pkt CE count (B,N) (CE==0x3)++  |
+ *                +--------+--------+--------+--------+
+ *            7   |          pkt lost count (A,B)     |
+ *                +--------+--------+--------+--------+
+ *            8   |         ECN ERR (bool)            |
+ *                +--------+--------+--------+--------+
+ */
+struct l4s_ack {
+    uint16_t flags;
+    uint16_t reserved;
+    uint32_t rx_ts;
+    uint32_t echo_ts;
+    uint32_t rx_cnt;
+    uint32_t CE_cnt;
+    uint32_t lost_cnt;
+    uint32_t ECN_err_flag;
+};
+
 struct cca_field {
     uint16_t cca_length;
     char value[TCP_CCA_NAME_MAX];
