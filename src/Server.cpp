@@ -1093,7 +1093,8 @@ void Server::RunUDPL4S () {
     int rxlen;
     bool isLastPacket = false;
     bool startReceiving = InitTrafficLoop();
-    PragueCC cca_pacer;
+    PragueCC l4s_pacer;
+    ecn_tp prev_ecn = ecn_not_ect;
     Condition_Signal(&mSettings->receiving); // signal the listener thread so it can hang a new recvfrom
     if (startReceiving) {
         // Exit loop on three conditions
@@ -1115,30 +1116,54 @@ void Server::RunUDPL4S () {
             if (!peerclose && (rxlen > 0)) {
                 reportstruct->emptyreport = false;
                 reportstruct->packetLen = rxlen;
-                if (isL2LengthCheck(mSettings)) {
-                    reportstruct->l2len = rxlen;
-                    // L2 processing will set the reportstruct packet length with the length found in the udp header
-                    // and also set the expected length in the report struct.  The reporter thread
-                    // will do the compare and account and print l2 errors
-                    reportstruct->l2errors = 0x0;
-                    L2_processing();
-                }
-                if (!(reportstruct->l2errors & L2UNKNOWN)) {
-                    // ReadPacketID returns true if this is the last UDP packet sent by the client
-                    // also sets the packet rx time in the reportstruct
-                    reportstruct->prevSentTime = myReport->info.ts.prevsendTime;
-                    reportstruct->prevPacketTime = myReport->info.ts.prevpacketTime;
-                    isLastPacket = ReadPacketID(mSettings->l4payloadoffset);
-                    myReport->info.ts.prevsendTime = reportstruct->sentTime;
-                    myReport->info.ts.prevpacketTime = reportstruct->packetTime;
-                    if (isIsochronous(mSettings)) {
-                        udp_isoch_processing(rxlen);
-                    }
-                }
-		// Send l4 ack
+		// ReadPacketID returns true if this is the last UDP packet sent by the client
+		// also sets the packet rx time in the reportstruct
+		reportstruct->prevSentTime = myReport->info.ts.prevsendTime;
+		reportstruct->prevPacketTime = myReport->info.ts.prevpacketTime;
+		isLastPacket = ReadPacketID(mSettings->l4payloadoffset);
+		myReport->info.ts.prevsendTime = reportstruct->sentTime;
+		myReport->info.ts.prevpacketTime = reportstruct->packetTime;
+		// Read L4S fields from UDP payload, ECN bits came from earlier cmsg
+		struct client_udp_l4s_fwd *udp_l4spkt =			\
+		    reinterpret_cast<struct client_udp_l4s_fwd *>(mSettings->mBuf);
+		l4s_pacer.PacketReceived(ntohl(udp_l4spkt->sender_ts),ntohl(udp_l4spkt->echoed_ts));
+		l4s_pacer.DataReceivedSequence(ecn_tp(reportstruct->tos & 0x03), \
+					       ntohl(udp_l4spkt->sender_seqno));
+		ReportPacket(myReport, reportstruct);
+		// Send l4s ack
 		//
-            }
-            ReportPacket(myReport, reportstruct);
+		time_tp timestamp;
+		time_tp echoed_timestamp;
+		ecn_tp ip_ecn;
+		l4s_pacer.GetTimeInfo(timestamp, echoed_timestamp,ip_ecn);
+
+                struct udp_l4s_ack *udp_l4s_pkt_ack = \
+		    reinterpret_cast<struct udp_l4s_ack *>(mSettings->mBuf);
+		udp_l4s_pkt_ack->rx_ts = htonl((int32_t) timestamp);
+		udp_l4s_pkt_ack->echo_ts = htonl((int32_t) echoed_timestamp);
+		if (ip_ecn != prev_ecn) {
+		    SetSocketOptionsIPTos(mSettings, (int) (mSettings->mTOS & ip_ecn));
+		    prev_ecn = ip_ecn;
+		}
+		count_tp pkts_rx;
+		count_tp pkts_ce;
+		count_tp pkts_lost;
+		bool l4s_err;
+		l4s_pacer.GetACKInfo(pkts_rx, pkts_ce, pkts_lost, l4s_err);
+		udp_l4s_pkt_ack->rx_cnt = htonl(pkts_rx);
+		udp_l4s_pkt_ack->CE_cnt = htonl(pkts_ce);
+		udp_l4s_pkt_ack->lost_cnt = htonl(pkts_lost);
+		udp_l4s_pkt_ack->flags = (l4s_err ? htons(L4S_ECN_ERR) : 0);
+		int ackLen = write(mySocket, mSettings->mBuf, sizeof(struct udp_l4s_ack));
+		if (ackLen <= 0) {
+		    if (ackLen == 0) {
+			WARN_errno(1, "write l4s ack timeout");
+			reportstruct->err_readwrite = WriteTimeo;
+		    } else if (FATALUDPWRITERR(errno)) {
+			WARN_errno(1, "write l4s ack fatal");
+		    }
+		}
+	    }
         }
     }
     disarm_itimer();

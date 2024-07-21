@@ -1675,9 +1675,9 @@ void Client::RunUDPL4S () {
             reportstruct->emptyreport = false;
             // perform write
             if (isModeAmount(mSettings)) {
-                currLen = myWrite(mySocket, mSettings->mBuf, (mSettings->mAmount < static_cast<unsigned>(mSettings->mBufLen)) ? mSettings->mAmount : mSettings->mBufLen);
+                currLen = write(mySocket, mSettings->mBuf, (mSettings->mAmount < static_cast<unsigned>(mSettings->mBufLen)) ? mSettings->mAmount : mSettings->mBufLen);
             } else {
-                currLen = myWrite(mySocket, mSettings->mBuf, ((remaining > mSettings->mBufLen) ? mSettings->mBufLen : \
+                currLen = write(mySocket, mSettings->mBuf, ((remaining > mSettings->mBufLen) ? mSettings->mBufLen : \
                                                               (remaining < static_cast<int>(sizeof(struct UDP_datagram)) ? static_cast<int>(sizeof(struct UDP_datagram)) : remaining)));
             }
             if (isIPG(mSettings)) {

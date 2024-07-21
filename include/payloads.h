@@ -131,6 +131,9 @@ extern "C" {
 #define HDRXACKMAX 2500000 // default 2.5 seconds, units microseconds
 #define HDRXACKMIN   10000 // default 10 ms, units microsecond
 
+// L4S Flags
+#define L4S_ECN_ERR 0x0001
+
 /*
  * Structures used for test messages which
  * are exchanged between the client and the Server/Listener
@@ -522,18 +525,18 @@ struct client_udp_l4s_fwd {
  *                +--------+--------+--------+--------+
  *            7   |          pkt lost count (A,B)     |
  *                +--------+--------+--------+--------+
- *            8   |         ECN ERR (bool)            |
+ *            8   |        reserved                   |
  *                +--------+--------+--------+--------+
  */
-struct l4s_ack {
+struct udp_l4s_ack {
     uint16_t flags;
     uint16_t reserved;
-    uint32_t rx_ts;
-    uint32_t echo_ts;
-    uint32_t rx_cnt;
-    uint32_t CE_cnt;
-    uint32_t lost_cnt;
-    uint32_t ECN_err_flag;
+    int32_t rx_ts;
+    int32_t echo_ts;
+    int32_t rx_cnt;
+    int32_t CE_cnt;
+    int32_t lost_cnt;
+    int32_t reserved1;
 };
 
 struct cca_field {
