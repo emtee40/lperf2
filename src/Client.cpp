@@ -1375,9 +1375,9 @@ void Client::RunUDP () {
 	reportstruct->emptyreport = false;
 	// perform write
 	if (isModeAmount(mSettings)) {
-	    currLen = myWrite(mySocket, mSettings->mBuf, (mSettings->mAmount < static_cast<unsigned>(mSettings->mBufLen)) ? mSettings->mAmount : mSettings->mBufLen);
+	    currLen = write(mySocket, mSettings->mBuf, (mSettings->mAmount < static_cast<unsigned>(mSettings->mBufLen)) ? mSettings->mAmount : mSettings->mBufLen);
 	} else {
-	    currLen = myWrite(mySocket, mSettings->mBuf, mSettings->mBufLen);
+	    currLen = write(mySocket, mSettings->mBuf, mSettings->mBufLen);
 	}
 	if (currLen <= 0) {
 	    reportstruct->emptyreport = true;
@@ -1511,7 +1511,7 @@ void Client::RunUDPIsochronous () {
 	    if (isModeAmount(mSettings) && (mSettings->mAmount < static_cast<unsigned>(mSettings->mBufLen))) {
 	        udp_payload->isoch.remaining = htonl(mSettings->mAmount);
 		reportstruct->remaining=mSettings->mAmount;
-	        currLen = myWrite(mySocket, mSettings->mBuf, mSettings->mAmount);
+	        currLen = write(mySocket, mSettings->mBuf, mSettings->mAmount);
 	    } else {
 	        udp_payload->isoch.remaining = htonl(bytecnt);
 		reportstruct->remaining=bytecnt;
@@ -1598,9 +1598,9 @@ void Client::RunUDPBurst () {
 	    reportstruct->emptyreport = false;
 	    // perform write
 	    if (isModeAmount(mSettings)) {
-		currLen = myWrite(mySocket, mSettings->mBuf, (mSettings->mAmount < static_cast<unsigned>(mSettings->mBufLen)) ? mSettings->mAmount : mSettings->mBufLen);
+		currLen = write(mySocket, mSettings->mBuf, (mSettings->mAmount < static_cast<unsigned>(mSettings->mBufLen)) ? mSettings->mAmount : mSettings->mBufLen);
 	    } else {
-		currLen = myWrite(mySocket, mSettings->mBuf, ((remaining > mSettings->mBufLen) ? mSettings->mBufLen : \
+		currLen = write(mySocket, mSettings->mBuf, ((remaining > mSettings->mBufLen) ? mSettings->mBufLen : \
 							    (remaining < static_cast<int>(sizeof(struct UDP_datagram)) ? static_cast<int>(sizeof(struct UDP_datagram)) : remaining)));
 	    }
 	    if (isIPG(mSettings)) {
@@ -1818,7 +1818,7 @@ void Client::FinishTrafficActions () {
 	struct UDP_datagram * mBuf_UDP = reinterpret_cast<struct UDP_datagram *>(mSettings->mBuf);
 	mBuf_UDP->tv_sec = htonl(reportstruct->packetTime.tv_sec);
 	mBuf_UDP->tv_usec = htonl(reportstruct->packetTime.tv_usec);
-	int len = myWrite(mySocket, mSettings->mBuf, mSettings->mBufLen);
+	int len = write(mySocket, mSettings->mBuf, mSettings->mBufLen);
 #ifdef HAVE_THREAD_DEBUG
 	thread_debug("UDP client sent final packet per negative seqno %ld", -reportstruct->packetID);
 #endif
@@ -1881,7 +1881,7 @@ void Client::AwaitServerFinPacket () {
 	    // try to trigger another FIN by resending a negative seq no
 	    WritePacketID(-(++reportstruct->packetID));
 	    // write data
-	    rc = myWrite(mySocket, mSettings->mBuf, mSettings->mBufLen);
+	    rc = write(mySocket, mSettings->mBuf, mSettings->mBufLen);
 	    WARN_errno(rc < 0, "write-fin");
 #ifdef HAVE_THREAD_DEBUG
 	    thread_debug("UDP client retransmit final packet per negative seqno %ld", -reportstruct->packetID);
