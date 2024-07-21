@@ -1359,53 +1359,53 @@ void Client::RunUDP () {
             else
                 adjust = 1000.0 * lastPacketTime.subUsec(reportstruct->packetTime);
 
-            lastPacketTime.set(reportstruct->packetTime.tv_sec, reportstruct->packetTime.tv_usec);
-            // Since linux nanosleep/busyloop can exceed delay
-            // there are two possible equilibriums
-            //  1)  Try to perserve inter packet gap
-            //  2)  Try to perserve requested transmit rate
-            // The latter seems preferred, hence use a running delay
-            // that spans the life of the thread and constantly adjust.
-            // A negative delay means the iperf app is behind.
-            delay += adjust;
-            // Don't let delay grow unbounded
-            if (delay < delay_lower_bounds) {
-                delay = delay_target;
-            }
-        }
-        reportstruct->err_readwrite = WriteSuccess;
-        reportstruct->emptyreport = false;
-        // perform write
-        if (isModeAmount(mSettings)) {
-            currLen = myWrite(mySocket, mSettings->mBuf, (mSettings->mAmount < static_cast<unsigned>(mSettings->mBufLen)) ? mSettings->mAmount : mSettings->mBufLen);
-        } else {
-            currLen = myWrite(mySocket, mSettings->mBuf, mSettings->mBufLen);
-        }
-        if (currLen <= 0) {
-            reportstruct->emptyreport = true;
-            if (currLen == 0) {
-                reportstruct->err_readwrite = WriteTimeo;
-            } else {
-                if (FATALUDPWRITERR(errno)) {
-                    reportstruct->err_readwrite = WriteErrFatal;
-                    WARN_errno(1, "write");
-                    currLen = 0;
-                    break;
-                } else {
-                    //WARN_errno(1, "write n");
-                    currLen = 0;
-                    reportstruct->err_readwrite = WriteErrAccount;
-                }
-            }
-        }
-        if (isModeAmount(mSettings)) {
-            /* mAmount may be unsigned, so don't let it underflow! */
-            if (mSettings->mAmount >= static_cast<unsigned long>(currLen)) {
-                mSettings->mAmount -= static_cast<unsigned long>(currLen);
-            } else {
-                mSettings->mAmount = 0;
-            }
-        }
+	    lastPacketTime.set(reportstruct->packetTime.tv_sec, reportstruct->packetTime.tv_usec);
+	    // Since linux nanosleep/busyloop can exceed delay
+	    // there are two possible equilibriums
+	    //  1)  Try to perserve inter packet gap
+	    //  2)  Try to perserve requested transmit rate
+	    // The latter seems preferred, hence use a running delay
+	    // that spans the life of the thread and constantly adjust.
+	    // A negative delay means the iperf app is behind.
+	    delay += adjust;
+	    // Don't let delay grow unbounded
+	    if (delay < delay_lower_bounds) {
+		delay = delay_target;
+	    }
+	}
+	reportstruct->err_readwrite = WriteSuccess;
+	reportstruct->emptyreport = false;
+	// perform write
+	if (isModeAmount(mSettings)) {
+	    currLen = write(mySocket, mSettings->mBuf, (mSettings->mAmount < static_cast<unsigned>(mSettings->mBufLen)) ? mSettings->mAmount : mSettings->mBufLen);
+	} else {
+	    currLen = write(mySocket, mSettings->mBuf, mSettings->mBufLen);
+	}
+	if (currLen <= 0) {
+	    reportstruct->emptyreport = true;
+	    if (currLen == 0) {
+	        reportstruct->err_readwrite = WriteTimeo;
+	    } else {
+		if (FATALUDPWRITERR(errno)) {
+		    reportstruct->err_readwrite = WriteErrFatal;
+		    WARN_errno(1, "write");
+		    currLen = 0;
+		    break;
+		} else {
+		    //WARN_errno(1, "write n");
+		    currLen = 0;
+		    reportstruct->err_readwrite = WriteErrAccount;
+		}
+	    }
+	}
+	if (isModeAmount(mSettings)) {
+	    /* mAmount may be unsigned, so don't let it underflow! */
+	    if (mSettings->mAmount >= static_cast<unsigned long>(currLen)) {
+	        mSettings->mAmount -= static_cast<unsigned long>(currLen);
+	    } else {
+	        mSettings->mAmount = 0;
+	    }
+	}
 
         // report packets
         reportstruct->packetLen = static_cast<unsigned long>(currLen);
@@ -1509,17 +1509,16 @@ void Client::RunUDPIsochronous () {
             reportstruct->emptyreport = false;
             reportstruct->writecnt = 1;
 
-            // perform write
-            if (isModeAmount(mSettings) && (mSettings->mAmount < static_cast<unsigned>(mSettings->mBufLen))) {
-                udp_payload->isoch.remaining = htonl(mSettings->mAmount);
-                reportstruct->remaining=mSettings->mAmount;
-                currLen = myWrite(mySocket, mSettings->mBuf, mSettings->mAmount);
-            } else {
-                udp_payload->isoch.remaining = htonl(bytecnt);
-                reportstruct->remaining=bytecnt;
-                currLen = myWrite(mySocket, mSettings->mBuf, (bytecnt < mSettings->mBufLen) ? bytecnt : mSettings->mBufLen);
-            }
-
+	    // perform write
+	    if (isModeAmount(mSettings) && (mSettings->mAmount < static_cast<unsigned>(mSettings->mBufLen))) {
+	        udp_payload->isoch.remaining = htonl(mSettings->mAmount);
+		reportstruct->remaining=mSettings->mAmount;
+	        currLen = write(mySocket, mSettings->mBuf, mSettings->mAmount);
+	    } else {
+	        udp_payload->isoch.remaining = htonl(bytecnt);
+		reportstruct->remaining=bytecnt;
+	        currLen = write(mySocket, mSettings->mBuf, (bytecnt < mSettings->mBufLen) ? bytecnt : mSettings->mBufLen);
+	    }
             if (currLen < 0) {
                 reportstruct->packetID--;
                 reportstruct->emptyreport = true;
@@ -1596,46 +1595,46 @@ void Client::RunUDPBurst () {
             mBuf_UDP->tv_sec  = htonl(reportstruct->packetTime.tv_sec);
             mBuf_UDP->tv_usec = htonl(reportstruct->packetTime.tv_usec);
 
-            reportstruct->err_readwrite = WriteSuccess;
-            reportstruct->emptyreport = false;
-            // perform write
-            if (isModeAmount(mSettings)) {
-                currLen = myWrite(mySocket, mSettings->mBuf, (mSettings->mAmount < static_cast<unsigned>(mSettings->mBufLen)) ? mSettings->mAmount : mSettings->mBufLen);
-            } else {
-                currLen = myWrite(mySocket, mSettings->mBuf, ((remaining > mSettings->mBufLen) ? mSettings->mBufLen : \
-                                                              (remaining < static_cast<int>(sizeof(struct UDP_datagram)) ? static_cast<int>(sizeof(struct UDP_datagram)) : remaining)));
-            }
-            if (isIPG(mSettings)) {
-                Timestamp t2;
-                double delay = mSettings->mBurstIPG - (1e-6 * t2.subSec(now));
-                if (delay)
-                    delay_loop(static_cast<unsigned long> (delay));
-            }
-            if (currLen <= 0) {
-                reportstruct->emptyreport = true;
-                if (currLen == 0) {
-                    reportstruct->err_readwrite = WriteTimeo;
-                } else {
-                    if (FATALUDPWRITERR(errno)) {
-                        reportstruct->err_readwrite = WriteErrFatal;
-                        WARN_errno(1, "write");
-                        currLen = 0;
-                        break;
-                    } else {
-                        //WARN_errno(1, "write n");
-                        currLen = 0;
-                        reportstruct->err_readwrite = WriteErrAccount;
-                    }
-                }
-            }
-            if (isModeAmount(mSettings)) {
-                /* mAmount may be unsigned, so don't let it underflow! */
-                if (mSettings->mAmount >= static_cast<unsigned long>(currLen)) {
-                    mSettings->mAmount -= static_cast<unsigned long>(currLen);
-                } else {
-                    mSettings->mAmount = 0;
-                }
-            }
+	    reportstruct->err_readwrite = WriteSuccess;
+	    reportstruct->emptyreport = false;
+	    // perform write
+	    if (isModeAmount(mSettings)) {
+		currLen = write(mySocket, mSettings->mBuf, (mSettings->mAmount < static_cast<unsigned>(mSettings->mBufLen)) ? mSettings->mAmount : mSettings->mBufLen);
+	    } else {
+		currLen = write(mySocket, mSettings->mBuf, ((remaining > mSettings->mBufLen) ? mSettings->mBufLen : \
+							    (remaining < static_cast<int>(sizeof(struct UDP_datagram)) ? static_cast<int>(sizeof(struct UDP_datagram)) : remaining)));
+	    }
+	    if (isIPG(mSettings)) {
+		Timestamp t2;
+		double delay = mSettings->mBurstIPG - (1e-6 * t2.subSec(now));
+		if (delay)
+		    delay_loop(static_cast<unsigned long> (delay));
+	    }
+	    if (currLen <= 0) {
+		reportstruct->emptyreport = true;
+		if (currLen == 0) {
+		    reportstruct->err_readwrite = WriteTimeo;
+		} else {
+		    if (FATALUDPWRITERR(errno)) {
+			reportstruct->err_readwrite = WriteErrFatal;
+			WARN_errno(1, "write");
+			currLen = 0;
+			break;
+		    } else {
+			//WARN_errno(1, "write n");
+			currLen = 0;
+			reportstruct->err_readwrite = WriteErrAccount;
+		    }
+		}
+	    }
+	    if (isModeAmount(mSettings)) {
+		/* mAmount may be unsigned, so don't let it underflow! */
+		if (mSettings->mAmount >= static_cast<unsigned long>(currLen)) {
+		    mSettings->mAmount -= static_cast<unsigned long>(currLen);
+		} else {
+		    mSettings->mAmount = 0;
+		}
+	    }
 
             // report packets
             reportstruct->packetLen = static_cast<unsigned long>(currLen);
@@ -1883,20 +1882,20 @@ void Client::FinishTrafficActions () {
             myReportPacket();
         }
     } else {
-        // stop timing
-        now.setnow();
-        reportstruct->packetTime.tv_sec = now.getSecs();
-        reportstruct->packetTime.tv_usec = now.getUsecs();
-        reportstruct->sentTime = reportstruct->packetTime;
-        // send a final terminating datagram
-        // Don't count in the mTotalLen. The server counts this one,
-        // but didn't count our first datagram, so we're even now.
-        // The negative datagram ID signifies termination to the server.
-        WritePacketID(-reportstruct->packetID);
-        struct UDP_datagram * mBuf_UDP = reinterpret_cast<struct UDP_datagram *>(mSettings->mBuf);
-        mBuf_UDP->tv_sec = htonl(reportstruct->packetTime.tv_sec);
-        mBuf_UDP->tv_usec = htonl(reportstruct->packetTime.tv_usec);
-        int len = myWrite(mySocket, mSettings->mBuf, mSettings->mBufLen);
+	// stop timing
+	now.setnow();
+	reportstruct->packetTime.tv_sec = now.getSecs();
+	reportstruct->packetTime.tv_usec = now.getUsecs();
+	reportstruct->sentTime = reportstruct->packetTime;
+	// send a final terminating datagram
+	// Don't count in the mTotalLen. The server counts this one,
+	// but didn't count our first datagram, so we're even now.
+	// The negative datagram ID signifies termination to the server.
+	WritePacketID(-reportstruct->packetID);
+	struct UDP_datagram * mBuf_UDP = reinterpret_cast<struct UDP_datagram *>(mSettings->mBuf);
+	mBuf_UDP->tv_sec = htonl(reportstruct->packetTime.tv_sec);
+	mBuf_UDP->tv_usec = htonl(reportstruct->packetTime.tv_usec);
+	int len = write(mySocket, mSettings->mBuf, mSettings->mBufLen);
 #ifdef HAVE_THREAD_DEBUG
         thread_debug("UDP client sent final packet per negative seqno %ld", -reportstruct->packetID);
 #endif
@@ -1955,12 +1954,12 @@ void Client::AwaitServerFinPacket () {
         rc = select(mySocket+1, &readSet, NULL, NULL, &timeout);
         FAIL_errno(rc == SOCKET_ERROR, "select", mSettings);
         // rc= zero means select's read timed out
-        if (rc == 0) {
-            // try to trigger another FIN by resending a negative seq no
-            WritePacketID(-(++reportstruct->packetID));
-            // write data
-            rc = myWrite(mySocket, mSettings->mBuf, mSettings->mBufLen);
-            WARN_errno(rc < 0, "write-fin");
+	if (rc == 0) {
+	    // try to trigger another FIN by resending a negative seq no
+	    WritePacketID(-(++reportstruct->packetID));
+	    // write data
+	    rc = write(mySocket, mSettings->mBuf, mSettings->mBufLen);
+	    WARN_errno(rc < 0, "write-fin");
 #ifdef HAVE_THREAD_DEBUG
             thread_debug("UDP client retransmit final packet per negative seqno %ld", -reportstruct->packetID);
 #endif
