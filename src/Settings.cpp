@@ -1,4 +1,3 @@
-
 /*---------------------------------------------------------------
  * Copyright (c) 1999,2000,2001,2002,2003
  * The Board of Trustees of the University of Illinois
@@ -135,6 +134,8 @@ static int testxchangetimeout = 0;
 static int synctransferid = 0;
 static int ignoreshutdown = 0;
 static int skiprxcopy = 0;
+static int udpl4s = 0;
+static int udpl4svideo = 0;
 
 void Settings_Interpret(char option, const char *optarg, struct thread_Settings *mExtSettings);
 // apply compound settings after the command line has been fully parsed
@@ -254,6 +255,8 @@ const struct option long_options[] =
 {"test-exchange-timeout", required_argument, &testxchangetimeout, 1},
 {"tap-dev", optional_argument, &tapif, 1},
 {"tun-dev", optional_argument, &tunif, 1},
+{"udp-l4s", no_argument, &udpl4s, 1},
+{"udp-l4s-video", optional_argument, &udpl4svideo, 1},  
 {"working-load", optional_argument, &workingload, 1},
 {"working-load-cca", required_argument, &loadcca, 1},
 {"tcp-cca", required_argument, &primarycca, 1},
@@ -1487,6 +1490,14 @@ void Settings_Interpret (char option, const char *optarg, struct thread_Settings
 	    setSkipRxCopy(mExtSettings);
 	    setEnhanced(mExtSettings);
 #endif
+	}
+	if (udpl4s) {
+	    udpl4s = 0;
+	    setUdpL4S(mExtSettings);
+	}
+	if (udpl4svideo) {
+	    udpl4svideo = 0;
+	    setUdpL4SVideo(mExtSettings);
 	}
 	break;
     default: // ignore unknown

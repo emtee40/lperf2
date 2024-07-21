@@ -176,6 +176,8 @@ Client specific:\n\
       --trip-times         enable end to end measurements (requires client and server clock sync)\n\
       --txdelay-time       time in seconds to hold back after connect and before first write\n\
       --txstart-time       unix epoch time to schedule first write and start traffic\n\
+      --udp-l4s            run a UDP L4S flow\n\
+      --udp-l4s-video      run a UDP L4S video flow\n\
   -B, --bind [<ip> | <ip:port>] bind ip (and optional port) from which to source traffic\n\
   -F, --fileinput <name>   input the data to be transmitted from a file\n\
   -H, --ssm-host <ip>      set the SSM source, use with -B for (S,G) \n\

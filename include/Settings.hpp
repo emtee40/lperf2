@@ -437,6 +437,8 @@ struct thread_Settings {
 #define FLAG_IGNORESHUTDOWN  0x01000000
 #define FLAG_SETTOS          0x02000000
 #define FLAG_SKIPRXCOPY      0x04000000
+#define FLAG_UDPL4S          0x08000000
+#define FLAG_UDPL4SVIDEO     0x10000000  
 
 #define isBuflenSet(settings)      ((settings->flags & FLAG_BUFLENSET) != 0)
 #define isCompat(settings)         ((settings->flags & FLAG_COMPAT) != 0)
@@ -524,6 +526,8 @@ struct thread_Settings {
 #define isIgnoreShutdown(settings) ((settings->flags_extend2 & FLAG_IGNORESHUTDOWN) != 0)
 #define isSetTOS(settings)         ((settings->flags_extend2 & FLAG_SETTOS) != 0)
 #define isSkipRxCopy(settings)         ((settings->flags_extend2 & FLAG_SKIPRXCOPY) != 0)
+#define isUdpL4S(settings)         ((settings->flags_extend2 & FLAG_UDPL4S) != 0)
+#define isUdpL4SVideo(settings)    ((settings->flags_extend2 & FLAG_UDPL4SVIDEO) != 0)  
 
 #define setBuflenSet(settings)     settings->flags |= FLAG_BUFLENSET
 #define setCompat(settings)        settings->flags |= FLAG_COMPAT
@@ -608,6 +612,8 @@ struct thread_Settings {
 #define setIgnoreShutdown(settings) settings->flags_extend2 |= FLAG_IGNORESHUTDOWN
 #define setSetTOS(settings)         settings->flags_extend2 |= FLAG_SETTOS
 #define setSkipRxCopy(settings)     settings->flags_extend2 |= FLAG_SKIPRXCOPY
+#define setUdpL4S(settings)     settings->flags_extend2 |= FLAG_UDPL4S
+#define setUdpL4SVideo(settings)     settings->flags_extend2 |= FLAG_UDPL4SVIDEO
 
 #define unsetBuflenSet(settings)   settings->flags &= ~FLAG_BUFLENSET
 #define unsetCompat(settings)      settings->flags &= ~FLAG_COMPAT
@@ -691,6 +697,8 @@ struct thread_Settings {
 #define unsetIgnoreShutdown(settings) settings->flags_extend2 &= ~FLAG_IGNORESHUTDOWN
 #define unsetSetTOS(settings)         settings->flags_extend2 &= ~FLAG_SETTOS
 #define unsetSkipRxCopy(settings)     settings->flags_extend2 &= ~FLAG_SKIPRXCOPY
+#define unsetL4S(settings)           settings->flags_extend2 &= ~FLAG_L4S
+#define unsetL4SVideo(settings)      settings->flags_extend2 &= ~FLAG_L4SVIDEO
 
 // set to defaults
 void Settings_Initialize(struct thread_Settings* main);

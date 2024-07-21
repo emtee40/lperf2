@@ -102,7 +102,7 @@ class PragueCC: private PragueState {
             m_r_packets_lost = 0;
             m_r_error_L4S = false; // as a receiver, check L4S-ECN validity to echo back an error
         // sender end variables
-            m_cc_ts;   // time of last cc update
+	    m_cc_ts = ts_now;   // time of last cc update
             m_packets_received = 0; // latest known receiver end counters
             m_packets_CE = 0; 
             m_packets_lost = 0;
