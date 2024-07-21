@@ -69,6 +69,7 @@ void SetSocketOptionsReceiveTimeout(struct thread_Settings *mSettings, int timer
 void SetSocketOptionsIPTos (struct thread_Settings *mSettings, int tos);
 void SetSocketTcpTxDelay (struct thread_Settings *mSettings, int delay);
 void SetSocketBindToDeviceIfNeeded (struct thread_Settings *inSettings);
+void SetSocketOptionsIPRCVTos (struct thread_Settings *mSettings);
 void setsock_tcp_mss(int inSock, int inMSS);
 int  getsock_tcp_mss(int inSock);
 #ifdef DEFAULT_PAYLOAD_LEN_PER_MTU_DISCOVERY

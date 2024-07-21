@@ -936,21 +936,24 @@ bool Listener::apply_client_settings_udp (thread_Settings *server) {
 	    server->peer_version_u = ntohl(hdr->extend.version_u);
 	    server->peer_version_l = ntohl(hdr->extend.version_l);
 	    if (flags & HEADER_UDPTESTS) {
-		// Handle stateless flags
-		if (upperflags & HEADER_ISOCH) {
-		    setIsochronous(server);
-		}
-		if (upperflags & HEADER_L2ETHPIPV6) {
-		    setIPV6(server);
-		} else {
-		    unsetIPV6(server);
-		}
-		if (upperflags & HEADER_L2LENCHECK) {
-		    setL2LengthCheck(server);
-		}
-		if (upperflags & HEADER_NOUDPFIN) {
-		    setNoUDPfin(server);
-		}
+            // Handle stateless flags
+            if (upperflags & HEADER_ISOCH) {
+                setIsochronous(server);
+            }
+            if (upperflags & HEADER_L2ETHPIPV6) {
+                setIPV6(server);
+            } else {
+                unsetIPV6(server);
+            }
+            if (upperflags & HEADER_L2LENCHECK) {
+                setL2LengthCheck(server);
+            }
+            if (upperflags & HEADER_NOUDPFIN) {
+                setNoUDPfin(server);
+            }
+            if (upperflags & HEADER_UDPL4S) {
+                setUDPL4S(server);
+           }
 	    }
 	    if (upperflags & HEADER_EPOCH_START) {
 		server->txstart_epoch.tv_sec = ntohl(hdr->start_fq.start_tv_sec);

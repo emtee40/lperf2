@@ -125,6 +125,7 @@ extern "C" {
 // lower flags (16 bit)
 #define HEADER_CCA          0x8000
 #define HEADER_BARRIER_TIME 0x4000
+#define HEADER_UDPL4S       0x2000
 
 // later features
 #define HDRXACKMAX 2500000 // default 2.5 seconds, units microseconds

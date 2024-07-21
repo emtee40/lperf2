@@ -226,7 +226,7 @@ void SetSocketOptions (struct thread_Settings *inSettings) {
     }
 
     SetSocketOptionsIPTos(inSettings, inSettings->mTOS);
-
+    SetSocketOptionsIPRCVTos(inSettings);
     if (!isUDP(inSettings)) {
 	if (isTCPMSS(inSettings)) {
 	    // set the TCP maximum segment size
@@ -375,6 +375,12 @@ void SetSocketOptionsIPTos (struct thread_Settings *mSettings, int tos) {
 	    }
 	}
     }
+}
+
+void SetSocketOptionsIPRCVTos (struct thread_Settings *mSettings) {
+    int value = (isUDPL4S(mSettings) ? 1 : 0);
+    int rc = setsockopt(mSettings->mSock, IPPROTO_IP, IP_RECVTOS, &value, sizeof(value));
+    WARN_errno(rc == SOCKET_ERROR, "ip_recvtos");
 }
 
 /*
