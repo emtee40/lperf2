@@ -3,7 +3,7 @@
 #define IPERF_VERSION_DATE "9 July 2024"
 #define IPERF_VERSION_MAJORHEX 0x00020002
 #define IPERF_VERSION_MINORHEX 0x00020005
-#define IPERF_BRANCH ""
+#define IPERF_BRANCH "udp_prague"
 
 /*
  * 	case 0:
