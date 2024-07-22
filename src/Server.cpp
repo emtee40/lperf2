@@ -1143,7 +1143,7 @@ void Server::RunUDPL4S () {
 		udp_l4s_pkt_ack->rx_ts = htonl((int32_t) timestamp);
 		udp_l4s_pkt_ack->echo_ts = htonl((int32_t) echoed_timestamp);
 		if (ip_ecn != prev_ecn) {
-		    SetSocketOptionsIPTos(mSettings, (int) (mSettings->mTOS & ip_ecn));
+		    SetSocketOptionsIPTos(mSettings, (int) (mSettings->mTOS | ip_ecn));
 		    prev_ecn = ip_ecn;
 		}
 		count_tp pkts_rx;

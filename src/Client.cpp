@@ -1653,74 +1653,81 @@ void Client::RunUDPBurst () {
 
 void Client::RunUDPL4S () {
     int currLen;
-    int remaining;
     struct client_udp_l4s_fwd* mBuf_UDP = reinterpret_cast<struct client_udp_l4s_fwd*>(mSettings->mBuf);
     PragueCC l4s_pacer;
+    time_tp nextSend = l4s_pacer.Now();
+    count_tp seqnr = 1;
+    count_tp inflight = 0;
+    rate_tp pacing_rate;
+    count_tp packet_window;
+    count_tp packet_burst;
+    size_tp packet_size;
+    ecn_tp prev_ecn = ecn_not_ect;
+    l4s_pacer.GetCCInfo(pacing_rate, packet_window, packet_burst, packet_size);
     while (InProgress()) {
-        remaining = mSettings->mBurstSize;
-        framecounter->wait_tick(&reportstruct->sched_err, true);
-        do  {
-            now.setnow();
-            reportstruct->writecnt = 1;
-            reportstruct->packetTime.tv_sec = now.getSecs();
-            reportstruct->packetTime.tv_usec = now.getUsecs();
-            reportstruct->sentTime = reportstruct->packetTime;
-            // store datagram ID into buffer
-            WritePacketID(reportstruct->packetID);
-            mBuf_UDP->seqno_ts.tv_sec  = htonl(reportstruct->packetTime.tv_sec);
-            mBuf_UDP->seqno_ts.tv_usec = htonl(reportstruct->packetTime.tv_usec);
+	count_tp inburst = 0;
+        // [TODO] Add timout functionality
+        time_tp timeout = 0;
+        time_tp startSend = 0;
+        time_tp pacer_now = l4s_pacer.Now();
+	now.setnow();
+	reportstruct->writecnt = 1;
+	reportstruct->packetTime.tv_sec = now.getSecs();
+	reportstruct->packetTime.tv_usec = now.getUsecs();
+	reportstruct->sentTime = reportstruct->packetTime;
+	// store datagram ID into buffer
+	WritePacketID(reportstruct->packetID);
+	mBuf_UDP->seqno_ts.tv_sec  = htonl(reportstruct->packetTime.tv_sec);
+	mBuf_UDP->seqno_ts.tv_usec = htonl(reportstruct->packetTime.tv_usec);
 
-            reportstruct->err_readwrite = WriteSuccess;
-            reportstruct->emptyreport = false;
-            // perform write
-            if (isModeAmount(mSettings)) {
-                currLen = write(mySocket, mSettings->mBuf, (mSettings->mAmount < static_cast<unsigned>(mSettings->mBufLen)) ? mSettings->mAmount : mSettings->mBufLen);
-            } else {
-                currLen = write(mySocket, mSettings->mBuf, ((remaining > mSettings->mBufLen) ? mSettings->mBufLen : \
-                                                              (remaining < static_cast<int>(sizeof(struct UDP_datagram)) ? static_cast<int>(sizeof(struct UDP_datagram)) : remaining)));
-            }
-            if (isIPG(mSettings)) {
-                Timestamp t2;
-                double delay = mSettings->mBurstIPG - (1e-6 * t2.subSec(now));
-                if (delay)
-                    delay_loop(static_cast<unsigned long> (delay));
-            }
-            if (currLen <= 0) {
-                reportstruct->emptyreport = true;
-                if (currLen == 0) {
-                    reportstruct->err_readwrite = WriteTimeo;
-                } else {
-                    if (FATALUDPWRITERR(errno)) {
-                        reportstruct->err_readwrite = WriteErrFatal;
-                        WARN_errno(1, "write");
-                        currLen = 0;
-                        break;
-                    } else {
-                        //WARN_errno(1, "write n");
-                        currLen = 0;
-                        reportstruct->err_readwrite = WriteErrAccount;
-                    }
-                }
-            }
-            if (isModeAmount(mSettings)) {
-                /* mAmount may be unsigned, so don't let it underflow! */
-                if (mSettings->mAmount >= static_cast<unsigned long>(currLen)) {
-                    mSettings->mAmount -= static_cast<unsigned long>(currLen);
-                } else {
-                    mSettings->mAmount = 0;
-                }
-            }
-
-            // report packets
-            reportstruct->packetLen = static_cast<unsigned long>(currLen);
-            reportstruct->prevPacketTime = myReport->info.ts.prevpacketTime;
-            remaining -= reportstruct->packetLen;
-            myReportPacket();
-            if (!reportstruct->emptyreport) {
-                reportstruct->packetID++;
-                myReport->info.ts.prevpacketTime = reportstruct->packetTime;
-            }
-        } while (remaining > 0);
+	reportstruct->err_readwrite = WriteSuccess;
+	reportstruct->emptyreport = false;
+        while ((inflight < packet_window) && (inburst < packet_burst) && (nextSend <= pacer_now)) {
+            ecn_tp new_ecn;
+	    time_tp sender_ts;
+	    time_tp echoed_ts;
+            l4s_pacer.GetTimeInfo(sender_ts, echoed_ts, new_ecn);
+	    mBuf_UDP->sender_ts = htonl(sender_ts);
+	    mBuf_UDP->echoed_ts = htonl(echoed_ts);
+	    mBuf_UDP->sender_seqno = htonl(seqnr);
+            if (startSend == 0)
+                startSend = pacer_now;
+	    if (new_ecn != prev_ecn) {
+		SetSocketOptionsIPTos(mSettings, (int) (mSettings->mTOS | new_ecn));
+		prev_ecn = new_ecn;
+	    }
+	    // perform write
+	    currLen = write(mySocket, mSettings->mBuf, packet_size);
+	    if (currLen <= 0) {
+		reportstruct->emptyreport = true;
+		if (currLen == 0) {
+		    reportstruct->err_readwrite = WriteTimeo;
+		} else {
+		    if (FATALUDPWRITERR(errno)) {
+			reportstruct->err_readwrite = WriteErrFatal;
+			WARN_errno(1, "l4s write fatal");
+			currLen = 0;
+			break;
+		    } else {
+			//WARN_errno(1, "write n");
+			currLen = 0;
+			reportstruct->err_readwrite = WriteErrAccount;
+		    }
+		}
+	    } else {
+		inburst++;
+		inflight++;
+		seqnr++;
+		// report packets
+		reportstruct->packetLen = static_cast<unsigned long>(currLen);
+		reportstruct->prevPacketTime = myReport->info.ts.prevpacketTime;
+		myReportPacket();
+		if (!reportstruct->emptyreport) {
+		    reportstruct->packetID++;
+		    myReport->info.ts.prevpacketTime = reportstruct->packetTime;
+		}
+	    }
+	}
     }
     FinishTrafficActions();
 }
