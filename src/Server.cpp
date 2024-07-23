@@ -1099,6 +1099,9 @@ void Server::RunUDPL4S () {
     ecn_tp prev_ecn = ecn_not_ect;
     Condition_Signal(&mSettings->receiving); // signal the listener thread so it can hang a new recvfrom
     if (startReceiving) {
+#ifdef HAVE_THREAD_DEBUG
+	thread_debug("Server running L4S with thread=%p sum=%p (sock=%d)", (void *) mSettings, (void *)mSettings->mSumReport, mSettings->mSock);
+#endif
         // Exit loop on three conditions
         // 1) Fatal read error
         // 2) Last packet of traffic flow sent by client
