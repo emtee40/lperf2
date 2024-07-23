@@ -100,7 +100,7 @@ Client::Client (thread_Settings *inSettings) {
     }
 
     pattern(mSettings->mBuf, mSettings->mBufLen);
-    if (isIsochronous(mSettings)) 
+    if (isIsochronous(mSettings))
 {        FAIL_errno(!(mSettings->mFPS > 0.0), "Invalid value for frames per second in the isochronous settings\n", mSettings);
     }
     if (isFileInput(mSettings)) {
@@ -1653,6 +1653,7 @@ void Client::RunUDPBurst () {
 
 void Client::RunUDPL4S () {
     int currLen;
+    peerclose = false;
     struct client_udp_l4s_fwd* mBuf_UDP = reinterpret_cast<struct client_udp_l4s_fwd*>(mSettings->mBuf);
     PragueCC l4s_pacer;
     time_tp nextSend = l4s_pacer.Now();
@@ -1740,20 +1741,22 @@ void Client::RunUDPL4S () {
 
         do {
             timeout = waitTimeout - pacer_now; // units usec
+	    int to = timeout;
 	    if (timeout > 0) {
-		SetSocketOptionsReceiveTimeout(mSettings, timeout);
+		SetSocketOptionsReceiveTimeout(mSettings, to);
 	    } else {
-		// effectively set socket to non blocking		
-		SetSocketOptionsReceiveTimeout(mSettings, 1);		
+		// effectively set socket to non blocking
+		SetSocketOptionsReceiveTimeout(mSettings, to);
 	    }
             currLen=ReadWithRxTimestamp();
+	    //	    printf("**** read done %d %d\n", currLen, to);
 	    // RJM Need error handling here in case of zero
-	    FAIL_errno((currLen == 0), "Peer close on udp recv\n", mSettings);	   
+	    //	    FAIL_errno((currLen == 0), "Peer close on udp recv\n", mSettings);
 	    pacer_now = l4s_pacer.Now();
         } while ((waitTimeout > pacer_now) && (currLen < 0));
 
         if (currLen >= (int) sizeof(struct udp_l4s_ack)) {
-	    ecn_tp rcv_ecn = ecn_tp(reportstruct->tos & 0x3);		    
+	    ecn_tp rcv_ecn = ecn_tp(reportstruct->tos & 0x3);
 	    time_tp timestamp;
 	    time_tp echoed_timestamp;
 	    struct udp_l4s_ack *udp_l4s_pkt_ack = \
@@ -1773,6 +1776,7 @@ void Client::RunUDPL4S () {
                 l4s_pacer.ResetCCInfo();
         l4s_pacer.GetCCInfo(pacing_rate, packet_window, packet_burst, packet_size);
     }
+    printf("*** why ending peer close %d\n", peerclose);
     FinishTrafficActions();
 }
 
@@ -2124,12 +2128,14 @@ int Client::SendFirstPayload () {
                 tmphdr->seqno_ts.tv_sec  = htonl(reportstruct->packetTime.tv_sec);
                 tmphdr->seqno_ts.tv_usec = htonl(reportstruct->packetTime.tv_usec);
                 udp_payload_minimum = pktlen;
+		if (!isUDPL4S(mSettings)) {
 #if HAVE_DECL_MSG_DONTWAIT
-                pktlen = send(mySocket, mSettings->mBuf, (pktlen > mSettings->mBufLen) ? pktlen : mSettings->mBufLen, MSG_DONTWAIT);
+		    pktlen = send(mySocket, mSettings->mBuf, (pktlen > mSettings->mBufLen) ? pktlen : mSettings->mBufLen, MSG_DONTWAIT);
 #else
-                pktlen = send(mySocket, mSettings->mBuf, (pktlen > mSettings->mBufLen) ? pktlen : mSettings->mBufLen, 0);
+		    pktlen = send(mySocket, mSettings->mBuf, (pktlen > mSettings->mBufLen) ? pktlen : mSettings->mBufLen, 0);
 #endif
-                apply_first_udppkt_delay = true;
+		    apply_first_udppkt_delay = true;
+		}
             } else {
                 // Set the send timeout for the very first write which has the test exchange
                 int sosndtimer = DEFAULT_TESTEXCHANGETIMEOUT; //in usecs
@@ -2212,7 +2218,7 @@ inline int Client::ReadWithRxTimestamp () {
     int tsdone = false;
 
     reportstruct->err_readwrite = ReadSuccess;
-#if (HAVE_DECL_SO_TIMESTAMP) && (HAVE_DECL_MSG_CTRUNC)
+#if (HAVE_DECL_SO_TIMESTAMP) && (HAVE_DECL_MSG_CTRUNC) && 0
     cmsg = reinterpret_cast<struct cmsghdr *>(&ctrl);
     currLen = recvmsg(mSettings->mSock, &message, mSettings->recvflags);
     if (currLen > 0) {
@@ -2247,12 +2253,8 @@ inline int Client::ReadWithRxTimestamp () {
 #else
     currLen = recv(mSettings->mSock, mSettings->mBuf, mSettings->mBufLen, mSettings->recvflags);
 #endif
-    if (currLen <=0 ) {
-        // Socket read timeout or read error
-        reportstruct->emptyreport = true;
-        if (currLen == 0) {
-            peerclose = true;
-        } else if (FATALUDPREADERR(errno)) {
+    if (currLen < 0 ) {
+        if (FATALUDPREADERR(errno)) {
             char warnbuf[WARNBUFSIZE];
             snprintf(warnbuf, sizeof(warnbuf), "%srecvmsg",\
                      mSettings->mTransferIDStr);
