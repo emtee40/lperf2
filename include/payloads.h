@@ -530,7 +530,7 @@ struct client_udp_l4s_fwd {
  */
 struct udp_l4s_ack {
     uint16_t flags; // L4S_ECN_ERR bit, receiver found a bleached/error ECN; stop using L4S_id on the sending packets!
-    uint16_t reserved;
+    uint16_t reserved1;
     int32_t rx_ts; // timestamp from peer, freeze and keep this time
     int32_t echoed_ts; // echoed_timestamp can be used to calculate the RTT
     int32_t rx_cnt; // echoed_packet counter

@@ -1768,7 +1768,6 @@ void Client::RunUDPL4S () {
 	    count_tp pkts_ce = ntohl(udp_l4s_pkt_ack->CE_cnt);
 	    count_tp pkts_lost = ntohl(udp_l4s_pkt_ack->lost_cnt);
 	    bool l4s_err = (htons(udp_l4s_pkt_ack->flags) & L4S_ECN_ERR);
-	    udp_l4s_pkt_ack->flags = (l4s_err ? htons(L4S_ECN_ERR) : 0);
 	    l4s_pacer.ACKReceived(pkts_rx, pkts_ce, pkts_lost, seqnr, l4s_err, inflight);
         }
         else // timeout, reset state

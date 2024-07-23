@@ -1159,6 +1159,7 @@ void Server::RunUDPL4S () {
 		udp_l4s_pkt_ack->CE_cnt = htonl(pkts_ce);
 		udp_l4s_pkt_ack->lost_cnt = htonl(pkts_lost);
 		udp_l4s_pkt_ack->flags = (l4s_err ? htons(L4S_ECN_ERR) : 0);
+		udp_l4s_pkt_ack->reserved1 = 0;
 		int ackLen = write(mySocket, mSettings->mBuf, sizeof(struct udp_l4s_ack));
 		if (ackLen <= 0) {
 		    if (ackLen == 0) {
