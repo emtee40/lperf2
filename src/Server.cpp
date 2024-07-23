@@ -799,6 +799,7 @@ inline int Server::ReadWithRxTimestamp () {
 #else
     currLen = recv(mSettings->mSock, mSettings->mBuf, mSettings->mBufLen, mSettings->recvflags);
 #endif
+    // RJM clean up
     if (currLen <=0) {
         // Socket read timeout or read error
         reportstruct->emptyreport = true;
@@ -1141,7 +1142,7 @@ void Server::RunUDPL4S () {
                 struct udp_l4s_ack *udp_l4s_pkt_ack = \
 		    reinterpret_cast<struct udp_l4s_ack *>(mSettings->mBuf);
 		udp_l4s_pkt_ack->rx_ts = htonl((int32_t) timestamp);
-		udp_l4s_pkt_ack->echo_ts = htonl((int32_t) echoed_timestamp);
+		udp_l4s_pkt_ack->echoed_ts = htonl((int32_t) echoed_timestamp);
 		if (ip_ecn != prev_ecn) {
 		    SetSocketOptionsIPTos(mSettings, (int) (mSettings->mTOS | ip_ecn));
 		    prev_ecn = ip_ecn;

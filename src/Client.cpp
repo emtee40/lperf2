@@ -100,8 +100,8 @@ Client::Client (thread_Settings *inSettings) {
     }
 
     pattern(mSettings->mBuf, mSettings->mBufLen);
-    if (isIsochronous(mSettings)) {
-        FAIL_errno(!(mSettings->mFPS > 0.0), "Invalid value for frames per second in the isochronous settings\n", mSettings);
+    if (isIsochronous(mSettings)) 
+{        FAIL_errno(!(mSettings->mFPS > 0.0), "Invalid value for frames per second in the isochronous settings\n", mSettings);
     }
     if (isFileInput(mSettings)) {
         if (!isSTDIN(mSettings))
@@ -1728,6 +1728,50 @@ void Client::RunUDPL4S () {
 		}
 	    }
 	}
+	if (startSend != 0)
+            nextSend = startSend + packet_size * inburst * 1000000 / pacing_rate;
+
+        time_tp waitTimeout = 0;
+        pacer_now = l4s_pacer.Now();
+        if (inflight < packet_window)
+            waitTimeout = nextSend;
+        else
+            waitTimeout = pacer_now + 1000000; // units usec
+
+        do {
+            timeout = waitTimeout - pacer_now; // units usec
+	    if (timeout > 0) {
+		SetSocketOptionsReceiveTimeout(mSettings, timeout);
+	    } else {
+		// effectively set socket to non blocking		
+		SetSocketOptionsReceiveTimeout(mSettings, 1);		
+	    }
+            currLen=ReadWithRxTimestamp();
+	    // RJM Need error handling here in case of zero
+	    FAIL_errno((currLen == 0), "Peer close on udp recv\n", mSettings);	   
+	    pacer_now = l4s_pacer.Now();
+        } while ((waitTimeout > pacer_now) && (currLen < 0));
+
+        if (currLen >= (int) sizeof(struct udp_l4s_ack)) {
+	    ecn_tp rcv_ecn = ecn_tp(reportstruct->tos & 0x3);		    
+	    time_tp timestamp;
+	    time_tp echoed_timestamp;
+	    struct udp_l4s_ack *udp_l4s_pkt_ack = \
+		reinterpret_cast<struct udp_l4s_ack *>(mSettings->mBuf);
+	    timestamp = ntohl(udp_l4s_pkt_ack->rx_ts);
+	    echoed_timestamp = ntohl(udp_l4s_pkt_ack->echoed_ts);
+	    l4s_pacer.PacketReceived(timestamp, echoed_timestamp);
+	    count_tp pkts_rx = ntohl(udp_l4s_pkt_ack->rx_cnt);
+	    count_tp pkts_ce = ntohl(udp_l4s_pkt_ack->CE_cnt);
+	    count_tp pkts_lost = ntohl(udp_l4s_pkt_ack->lost_cnt);
+	    bool l4s_err = (htons(udp_l4s_pkt_ack->flags) & L4S_ECN_ERR);
+	    udp_l4s_pkt_ack->flags = (l4s_err ? htons(L4S_ECN_ERR) : 0);
+	    l4s_pacer.ACKReceived(pkts_rx, pkts_ce, pkts_lost, seqnr, l4s_err, inflight);
+        }
+        else // timeout, reset state
+            if (inflight >= packet_window)
+                l4s_pacer.ResetCCInfo();
+        l4s_pacer.GetCCInfo(pacing_rate, packet_window, packet_burst, packet_size);
     }
     FinishTrafficActions();
 }
@@ -2162,6 +2206,72 @@ void Client::PeerXchange () {
     } else {
         WARN_errno(1, "recvack");
     }
+}
+inline int Client::ReadWithRxTimestamp () {
+    int currLen;
+    int tsdone = false;
+
+    reportstruct->err_readwrite = ReadSuccess;
+#if (HAVE_DECL_SO_TIMESTAMP) && (HAVE_DECL_MSG_CTRUNC)
+    cmsg = reinterpret_cast<struct cmsghdr *>(&ctrl);
+    currLen = recvmsg(mSettings->mSock, &message, mSettings->recvflags);
+    if (currLen > 0) {
+#if HAVE_DECL_MSG_TRUNC
+        if (message.msg_flags & MSG_TRUNC) {
+            reportstruct->err_readwrite = ReadErrLen;
+        }
+#endif
+        if (!(message.msg_flags & MSG_CTRUNC)) {
+            for (cmsg = CMSG_FIRSTHDR(&message); cmsg != NULL;
+                 cmsg = CMSG_NXTHDR(&message, cmsg)) {
+                if (cmsg->cmsg_level == SOL_SOCKET &&
+                    cmsg->cmsg_type  == SCM_TIMESTAMP &&
+                    cmsg->cmsg_len   == CMSG_LEN(sizeof(struct timeval))) {
+                    memcpy(&(reportstruct->packetTime), CMSG_DATA(cmsg), sizeof(struct timeval));
+                    if (TimeZero(myReport->info.ts.prevpacketTime)) {
+                        myReport->info.ts.prevpacketTime = reportstruct->packetTime;
+                    }
+                    tsdone = true;
+                }
+		if (cmsg->cmsg_level == IPPROTO_IP &&
+                    cmsg->cmsg_type  == IP_RECVTOS &&
+                    cmsg->cmsg_len   == CMSG_LEN(sizeof(sizeof(u_char)))) {
+                    memcpy(&(reportstruct->tos), CMSG_DATA(cmsg), sizeof(u_char));
+		}
+            }
+        } else if (ctrunc_warn_enable && mSettings->mTransferIDStr) {
+            fprintf(stderr, "%sWARN: recvmsg MSG_CTRUNC occured\n", mSettings->mTransferIDStr);
+            ctrunc_warn_enable = false;
+        }
+    }
+#else
+    currLen = recv(mSettings->mSock, mSettings->mBuf, mSettings->mBufLen, mSettings->recvflags);
+#endif
+    if (currLen <=0 ) {
+        // Socket read timeout or read error
+        reportstruct->emptyreport = true;
+        if (currLen == 0) {
+            peerclose = true;
+        } else if (FATALUDPREADERR(errno)) {
+            char warnbuf[WARNBUFSIZE];
+            snprintf(warnbuf, sizeof(warnbuf), "%srecvmsg",\
+                     mSettings->mTransferIDStr);
+            warnbuf[sizeof(warnbuf)-1] = '\0';
+            WARN_errno(1, warnbuf);
+            currLen = 0;
+            peerclose = true;
+        } else {
+            reportstruct->err_readwrite = ReadTimeo;
+        }
+    } else if (TimeZero(myReport->info.ts.prevpacketTime)) {
+        myReport->info.ts.prevpacketTime = reportstruct->packetTime;
+    }
+    if (!tsdone) {
+        now.setnow();
+        reportstruct->packetTime.tv_sec = now.getSecs();
+        reportstruct->packetTime.tv_usec = now.getUsecs();
+    }
+    return currLen;
 }
 
 /*

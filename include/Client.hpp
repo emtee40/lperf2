@@ -105,6 +105,7 @@ private:
     bool InProgress(void);
     void PostNullEvent(bool isFirst, bool select_retry);
     void AwaitServerCloseEvent(void);
+    int ReadWithRxTimestamp(void);
     inline void tcp_shutdown(void);
     bool connected;
     ReportStruct scratchpad;
@@ -150,6 +151,19 @@ private:
     bool mysock_init_done;
     bool peerclose;
     Timestamp write_start;
+#if HAVE_DECL_SO_TIMESTAMP
+    // Structures needed for recvmsg
+    // Use to get kernel timestamps of packets
+    struct sockaddr_storage srcaddr;
+    struct iovec iov[1];
+    struct msghdr message;
+    char ctrl[(CMSG_SPACE(sizeof(struct timeval)) \
+	       + CMSG_SPACE(sizeof(u_char)))]; // add space for rcvtos
+    struct cmsghdr *cmsg;
+#if HAVE_DECL_MSG_CTRUNC
+    bool ctrunc_warn_enable;
+#endif
+#endif
 #if HAVE_DECL_SO_MAX_PACING_RATE
     Timestamp PacingStepTime;
 #endif
