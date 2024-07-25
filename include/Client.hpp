@@ -98,6 +98,7 @@ private:
 #endif
     inline double get_delay_target(void);
     void InitTrafficLoop(void);
+    void InitKernelTimeStamping(void);
     void SetReportStartTime(void);
     inline void SetFullDuplexReportStartTime(void);
     void FinishTrafficActions(void);
@@ -167,6 +168,7 @@ private:
 #if HAVE_DECL_SO_MAX_PACING_RATE
     Timestamp PacingStepTime;
 #endif
+    struct udp_l4s_ack UDPAckBuf;
 }; // end class Client
 
 #endif // CLIENT_H

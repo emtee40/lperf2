@@ -1665,6 +1665,7 @@ void Client::RunUDPL4S () {
     size_tp packet_size;
     ecn_tp prev_ecn = ecn_not_ect;
     l4s_pacer.GetCCInfo(pacing_rate, packet_window, packet_burst, packet_size);
+    InitKernelTimeStamping();
     while (InProgress()) {
 	count_tp inburst = 0;
         // [TODO] Add timout functionality
@@ -1759,15 +1760,13 @@ void Client::RunUDPL4S () {
 	    ecn_tp rcv_ecn = ecn_tp(reportstruct->tos & 0x3);
 	    time_tp timestamp;
 	    time_tp echoed_timestamp;
-	    struct udp_l4s_ack *udp_l4s_pkt_ack = \
-		reinterpret_cast<struct udp_l4s_ack *>(mSettings->mBuf);
-	    timestamp = ntohl(udp_l4s_pkt_ack->rx_ts);
-	    echoed_timestamp = ntohl(udp_l4s_pkt_ack->echoed_ts);
+	    timestamp = ntohl(UDPAckBuf.rx_ts);
+	    echoed_timestamp = ntohl(UDPAckBuf.echoed_ts);
+	    count_tp pkts_rx = ntohl(UDPAckBuf.rx_cnt);
+	    count_tp pkts_ce = ntohl(UDPAckBuf.CE_cnt);
+	    count_tp pkts_lost = ntohl(UDPAckBuf.lost_cnt);
+	    bool l4s_err = (htons(UDPAckBuf.flags) & L4S_ECN_ERR);
 	    l4s_pacer.PacketReceived(timestamp, echoed_timestamp);
-	    count_tp pkts_rx = ntohl(udp_l4s_pkt_ack->rx_cnt);
-	    count_tp pkts_ce = ntohl(udp_l4s_pkt_ack->CE_cnt);
-	    count_tp pkts_lost = ntohl(udp_l4s_pkt_ack->lost_cnt);
-	    bool l4s_err = (htons(udp_l4s_pkt_ack->flags) & L4S_ECN_ERR);
 	    l4s_pacer.ACKReceived(pkts_rx, pkts_ce, pkts_lost, seqnr, l4s_err, inflight);
         }
         else // timeout, reset state
@@ -2250,7 +2249,7 @@ inline int Client::ReadWithRxTimestamp () {
         }
     }
 #else
-    currLen = recv(mSettings->mSock, mSettings->mBuf, mSettings->mBufLen, mSettings->recvflags);
+    currLen = recv(mSettings->mSock, (char *)&UDPAckBuf, sizeof(UDPAckBuf), 0);
 #endif
     if (currLen < 0 ) {
         if (FATALUDPREADERR(errno)) {
@@ -2273,6 +2272,26 @@ inline int Client::ReadWithRxTimestamp () {
         reportstruct->packetTime.tv_usec = now.getUsecs();
     }
     return currLen;
+}
+
+void Client::InitKernelTimeStamping () {
+#if HAVE_DECL_SO_TIMESTAMP
+    iov[0].iov_base=(char *)&UDPAckBuf;
+    iov[0].iov_len=sizeof(UDPAckBuf);
+
+    message.msg_iov=iov;
+    message.msg_iovlen=1;
+    message.msg_name=&srcaddr;
+    message.msg_namelen=sizeof(srcaddr);
+
+    message.msg_control = (char *) ctrl;
+    message.msg_controllen = sizeof(ctrl);
+
+    int timestampOn = 1;
+    if (setsockopt(mSettings->mSock, SOL_SOCKET, SO_TIMESTAMP, &timestampOn, sizeof(timestampOn)) < 0) {
+        WARN_errno(mSettings->mSock == SO_TIMESTAMP, "socket");
+    }
+#endif
 }
 
 /*
