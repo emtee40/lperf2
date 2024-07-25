@@ -63,6 +63,7 @@
 #include "active_hosts.h"
 #include "SocketAddr.h"
 #include "delay.h"
+#include "udp_acks.hpp"
 
 static int fullduplex_startstop_barrier (struct BarrierMutex *barrier) {
     int rc = 0;
@@ -253,6 +254,13 @@ static void clientside_client_fullduplex (struct thread_Settings *thread, \
         }
     }
 }
+static void clientside_client_udp_acks (struct thread_Settings *thread, UdpAck *thisUdpAck) {
+    setTransferID(thread, NORMAL);
+#ifdef HAVE_THREAD_DEBUG
+    thread_debug("Launch: client udp ack thread (sock=%d)", thread->mSock);
+#endif
+    thisUdpAck->RecvL4SAcks();
+}
 
 static void serverside_client_fullduplex (struct thread_Settings *thread, Client *theClient) {
 #ifdef HAVE_THREAD_DEBUG
@@ -326,7 +334,17 @@ void client_spawn (struct thread_Settings *thread) {
     } else if (!isServerReverse(thread)) {
         // These are the client side spawning of clients
         if (!isReverse(thread) && !isFullDuplex(thread)) {
-            clientside_client_basic(thread, theClient);
+	    if (isUDPL4S(thread)) {
+		struct thread_Settings *ack_thread = NULL;
+		Settings_Copy(thread, &ack_thread, DEEP_COPY);
+		FAIL((ack_thread == NULL), "Read ack L4S thread alloc failed",  thread);
+		UdpAck *thisUdpAck = NULL;
+		thisUdpAck = new UdpAck(thread);
+		FAIL((thisUdpAck == NULL), "Ack object init failed",  thread);
+		clientside_client_udp_acks(thread, thisUdpAck);
+	    } else {
+		clientside_client_basic(thread, theClient);
+	    }
         } else if (isReverse(thread) && !isFullDuplex(thread)) {
             struct thread_Settings *reverse_thread = NULL;
             Settings_Copy(thread, &reverse_thread, DEEP_COPY);
