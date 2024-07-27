@@ -2348,7 +2348,7 @@ static void reporter_output_listener_settings (struct ReportSettings *report) {
 	char cca[40] = "";
 	Socklen_t len = sizeof(cca);
 	if (getsockopt(report->common->socket, IPPROTO_TCP, TCP_CONGESTION, &cca, &len) == 0) {
-	    cca[len]='\0';
+	    cca[len - 1]='\0';
 	}
 	if (report->common->Congestion)	{
 	    fprintf(stdout,"TCP congestion control default set to %s using %s\n", report->common->Congestion, cca);
@@ -2509,7 +2509,7 @@ static void reporter_output_client_settings (struct ReportSettings *report) {
 	char cca[40] = "";
 	Socklen_t len = sizeof(cca);
 	if (getsockopt(report->common->socket, IPPROTO_TCP, TCP_CONGESTION, &cca, &len) == 0) {
-	    cca[len]='\0';
+	    cca[len - 1]='\0';
 	}
 	if (report->common->Congestion)	{
 	    fprintf(stdout,"TCP congestion control set to %s using %s\n", report->common->Congestion, cca);
@@ -2688,7 +2688,7 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
 	    Socklen_t len = sizeof(cca);
 	    int rc;
 	    if ((rc = getsockopt(report->common->socket, IPPROTO_TCP, TCP_CONGESTION, &cca, &len)) == 0) {
-	        cca[len]='\0';
+	        cca[len - 1]='\0';
 	    }
 	    if (rc != SOCKET_ERROR) {
 	        snprintf(b, SNBUFFERSIZE-strlen(b), " (%s)", cca);
