@@ -97,7 +97,11 @@
 
 #ifndef IPTOS_DSCP_LE
 # define	IPTOS_DSCP_LE		0x01 // rfc8622
+#endif
+#ifndef IPTOS_DSCP_NQB
 # define	IPTOS_DSCP_NQB		0x05 // rfc8325
+#endif
+#ifndef IPTOS_DSCP_NQB2
 # define	IPTOS_DSCP_NQB2		0x2D // rfc8325 45 decimal
 #endif
 
