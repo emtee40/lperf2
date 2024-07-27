@@ -2620,66 +2620,91 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
     char linebuffer[SNBUFFERSIZE + 1];
     char *b = &linebuffer[0];
     linebuffer[SNBUFFERSIZE] = '\0';
+    int n;
 #if HAVE_DECL_TCP_WINDOW_CLAMP
     if (!isUDP(report->common) && isRxClamp(report->common)) {
-	b += snprintf(b, (SNBUFFERSIZE-strlen(b)), " (%s%d)", "clamp=", report->common->ClampSize);
+	n = snprintf(b, (SNBUFFERSIZE-strlen(b)), " (%s%d)", "clamp=", report->common->ClampSize);
+	FAIL_exit((n < 0), "fail append clamp");
 	FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow clamp");
+	b += n;
     }
 #endif
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
     if (!isUDP(report->common) && (report->common->socket > 0) && isWritePrefetch(report->common))  {
-	b += snprintf(b, SNBUFFERSIZE-strlen(b), " (%s%d)", "prefetch=", report->common->WritePrefetch);
+	n = snprintf(b, SNBUFFERSIZE-strlen(b), " (%s%d)", "prefetch=", report->common->WritePrefetch);
+	FAIL_exit((n < 0), "fail append prefetch");
 	FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow prefetch");
+	b += n;
     }
 #endif
     if (isIsochronous(report->common)) {
-	b += snprintf(b, SNBUFFERSIZE-strlen(b), " (isoch)");
+	n = snprintf(b, SNBUFFERSIZE-strlen(b), " (isoch)");
+	FAIL_exit((n < 0), "fail append isoch");
 	FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow isoch");
+	b += n;
     }
     if (isPeriodicBurst(report->common) && (report->common->ThreadMode != kMode_Client) && !isServerReverse(report->common)) {
 #if HAVE_FASTSAMPLING
-	b += snprintf(b, SNBUFFERSIZE-strlen(b), " (burst-period=%0.4fs)", (1.0 / report->common->FPS));
+	n = snprintf(b, SNBUFFERSIZE-strlen(b), " (burst-period=%0.4fs)", (1.0 / report->common->FPS));
 #else
-	b += snprintf(b, SNBUFFERSIZE-strlen(b), " (burst-period=%0.2fs)", (1.0 / report->common->FPS));
+        n = snprintf(b, SNBUFFERSIZE-strlen(b), " (burst-period=%0.2fs)", (1.0 / report->common->FPS));
 #endif
+	FAIL_exit((n < 0), "fail append burst");
 	FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow burst");
+	b += n;
     }
     if (isFullDuplex(report->common)) {
-	b += snprintf(b, SNBUFFERSIZE-strlen(b), " (full-duplex)");
+	n = snprintf(b, SNBUFFERSIZE-strlen(b), " (full-duplex)");
+	FAIL_exit((n < 0), "fail append duplex");
 	FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow duplex");
+	b += n;
     } else if (isServerReverse(report->common) || isReverse(report->common)) {
-	b += snprintf(b, SNBUFFERSIZE-strlen(b), " (reverse)");
+	n = snprintf(b, SNBUFFERSIZE-strlen(b), " (reverse)");
+	FAIL_exit((n < 0), "fail append reverse");
 	FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow reverse");
+	b += n;
 	if (isFQPacing(report->common)) {
-	    b += snprintf(b, SNBUFFERSIZE-strlen(b), " (fq)");
+	    n = snprintf(b, SNBUFFERSIZE-strlen(b), " (fq)");
+	    FAIL_exit((n < 0), "fail append fq");
 	    FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow fq");
+	    b += n;
 	}
     }
     if (isTxStartTime(report->common)) {
-	b += snprintf(b, SNBUFFERSIZE-strlen(b), " (epoch-start)");
+	n = snprintf(b, SNBUFFERSIZE-strlen(b), " (epoch-start)");
+	FAIL_exit((n < 0), "fail append epoch");
 	FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow epoch");
+	b += n;
     }
     if (isBounceBack(report->common)) {
 	if (isTcpQuickAck(report->common)) {
-	    b += snprintf(b, SNBUFFERSIZE-strlen(b), " (bb w/quickack req/reply/hold=%d/%d/%d)", report->common->bbsize, \
+	    n = snprintf(b, SNBUFFERSIZE-strlen(b), " (bb w/quickack req/reply/hold=%d/%d/%d)", report->common->bbsize, \
 		     report->common->bbreplysize, report->common->bbhold);
 	} else {
-	    b += snprintf(b, SNBUFFERSIZE-strlen(b), " (bb req/reply/hold=%d/%d/%d)", report->common->bbsize, \
+	    n = snprintf(b, SNBUFFERSIZE-strlen(b), " (bb req/reply/hold=%d/%d/%d)", report->common->bbsize, \
 		     report->common->bbreplysize, report->common->bbhold);
 	}
+	FAIL_exit((n < 0), "fail append bb");
 	FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow bb");
+	b += n;
     }
     if (isL2LengthCheck(report->common)) {
-	b += snprintf(b, SNBUFFERSIZE-strlen(b), " (l2mode)");
+	n = snprintf(b, SNBUFFERSIZE-strlen(b), " (l2mode)");
+	FAIL_exit((n < 0), "fail append l2");
 	FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow l2");
+	b += n;
     }
     if (isUDP(report->common) && isNoUDPfin(report->common)) {
-	b += snprintf(b, SNBUFFERSIZE-strlen(b), " (no-udp-fin)");
+	n = snprintf(b, SNBUFFERSIZE-strlen(b), " (no-udp-fin)");
+	FAIL_exit((n < 0), "fail append ufin");
 	FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow ufin");
+	b += n;
     }
     if (isTripTime(report->common)) {
-	b += snprintf(b, SNBUFFERSIZE-strlen(b), " (trip-times)");
+	n = snprintf(b, SNBUFFERSIZE-strlen(b), " (trip-times)");
+	FAIL_exit((n < 0), "fail append tt");
 	FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow tt");
+	b += n;
     }
     if (isEnhanced(report->common)) {
 #if HAVE_DECL_TCP_CONGESTION
@@ -2688,58 +2713,71 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
 	    Socklen_t len = sizeof(cca);
 	    int rc;
 	    if ((rc = getsockopt(report->common->socket, IPPROTO_TCP, TCP_CONGESTION, &cca, &len)) == 0) {
-	        cca[len]='\0';
+	        cca[len - 1] = '\0';
 	    }
 	    if (rc != SOCKET_ERROR) {
-	        b += snprintf(b, SNBUFFERSIZE-strlen(b), " (%s)", cca);
+	        n = snprintf(b, SNBUFFERSIZE-strlen(b), " (%s)", cca);
+		FAIL_exit((n < 0), "fail append cca");
 		FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow cca");
+		b += n;
 	    }
 	}
 #endif
     }
     if (isOverrideTOS(report->common)) {
+	n  = 0;
 	if (isFullDuplex(report->common)) {
-	    b += snprintf(b, SNBUFFERSIZE-strlen(b), " (tos rx/tx=0x%x,dscp=%d,ecn=%d, /0x%x,dscp=%d,ecn=%d)", report->common->TOS, \
+	    n = snprintf(b, SNBUFFERSIZE-strlen(b), " (tos rx/tx=0x%x,dscp=%d,ecn=%d, /0x%x,dscp=%d,ecn=%d)", report->common->TOS, \
 		     DSCP_VALUE(report->common->TOS), ECN_VALUE(report->common->TOS), \
 		     report->common->RTOS, \
 		     DSCP_VALUE(report->common->RTOS), ECN_VALUE(report->common->RTOS));
 	} else if (isReverse(report->common)) {
-	    b += snprintf(b, SNBUFFERSIZE-strlen(b), " (tos rx=0x%x,dscp=%d,ecn=%d)", report->common->TOS,  \
+	    n = snprintf(b, SNBUFFERSIZE-strlen(b), " (tos rx=0x%x,dscp=%d,ecn=%d)", report->common->TOS,  \
 		     DSCP_VALUE(report->common->TOS), ECN_VALUE(report->common->TOS));
 	}
+	FAIL_exit((n < 0 ), "fail append o-tos");
 	FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow o-tos");
+	b += n;
     } else if (report->common->TOS) {
 	if (isFullDuplex(report->common) || isBounceBack(report->common)) {
-	    b += snprintf(b, SNBUFFERSIZE-strlen(b), " (tos rx/tx=0x%x,dscp=%d,ecn=%d/0x%x,dscp=%d,ecn=%d)", report->common->TOS, \
+	    n = snprintf(b, SNBUFFERSIZE-strlen(b), " (tos rx/tx=0x%x,dscp=%d,ecn=%d/0x%x,dscp=%d,ecn=%d)", report->common->TOS, \
 		     DSCP_VALUE(report->common->TOS), ECN_VALUE(report->common->TOS), \
 		     report->common->TOS, \
 		     DSCP_VALUE(report->common->TOS), ECN_VALUE(report->common->TOS));
 	} else if (isReverse(report->common)) {
-	    b += snprintf(b, SNBUFFERSIZE-strlen(b), " (tos rx=0x%x,dscp=%d,ecn=%d)", report->common->TOS, \
+	    n = snprintf(b, SNBUFFERSIZE-strlen(b), " (tos rx=0x%x,dscp=%d,ecn=%d)", report->common->TOS, \
 		     DSCP_VALUE(report->common->TOS), ECN_VALUE(report->common->TOS));
 	} else {
-	    b += snprintf(b, SNBUFFERSIZE-strlen(b), " (tos tx=0x%x,dscp=%d,ecn=%d)", report->common->TOS, \
+	    n = snprintf(b, SNBUFFERSIZE-strlen(b), " (tos tx=0x%x,dscp=%d,ecn=%d)", report->common->TOS, \
 		     DSCP_VALUE(report->common->TOS), ECN_VALUE(report->common->TOS));
 	}
+	FAIL_exit((n < 0), "fail append tos");
 	FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow tos");
+	b += n;
     }
     if (isEnhanced(report->common) || isPeerVerDetect(report->common)) {
 	if (report->peerversion[0] != '\0') {
-	    b += snprintf(b, SNBUFFERSIZE-strlen(b), "%s", report->peerversion);
+	    n = snprintf(b, SNBUFFERSIZE-strlen(b), "%s", report->peerversion);
+	    FAIL_exit((n < 0), "fail append peer ver");
 	    FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow peer ver");
+	    b += n;
 	}
     }
 #if HAVE_DECL_TCP_QUICKACK
     if (isTcpQuickAck(report->common) && !isBounceBack(report->common)) {
-	b += snprintf(b, SNBUFFERSIZE-strlen(b), " (qack)");
+	n = snprintf(b, SNBUFFERSIZE-strlen(b), " (qack)");
+	FAIL_exit((n < 0), "fail append peer qack");
 	FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow peer qack");
+	b += n;
     }
 #endif
 #if HAVE_TCP_STATS
     if (!isUDP(report->common) && (report->tcpinitstats.isValid) && isEnhanced(report->common)) {
-	b += snprintf(b, SNBUFFERSIZE-strlen(b), " (icwnd/mss/irtt=%" PRIdMAX "/%" PRIuLEAST32 "/%" PRIuLEAST32 ")", \
+	n = snprintf(b, SNBUFFERSIZE-strlen(b), " (icwnd/mss/irtt=%" PRIdMAX "/%" PRIuLEAST32 "/%" PRIuLEAST32 ")", \
 		 report->tcpinitstats.cwnd, report->tcpinitstats.mss_negotiated, report->tcpinitstats.rtt);
+	FAIL_exit((n < 0), "fail append tcpstats");
 	FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow tcpstats");
+	b += n;
     }
 #endif
     if ((isFullDuplex(report->common) || !isServerReverse(report->common)) \
@@ -2749,11 +2787,13 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
 	    iperf_formattime(timestr, sizeof(timestr), report->connect_timestamp, \
 			     (isEnhanced(report->common) ? Milliseconds : Seconds), isUTC(report->common), YearThruSecTZ);
 	    if (!isUDP(report->common) && (report->common->ThreadMode == kMode_Client) && (report->tcpinitstats.connecttime > 0)) {
-		b += snprintf(b, SNBUFFERSIZE-strlen(b), " (ct=%4.2f ms) on %s", report->tcpinitstats.connecttime, timestr);
+		n = snprintf(b, SNBUFFERSIZE-strlen(b), " (ct=%4.2f ms) on %s", report->tcpinitstats.connecttime, timestr);
 	    } else {
-		b += snprintf(b, SNBUFFERSIZE-strlen(b), " on %s", timestr);
+		n = snprintf(b, SNBUFFERSIZE-strlen(b), " on %s", timestr);
 	    }
+	    FAIL_exit((n < 0), "fail append ct");
 	    FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow ct");
+	    b += n;
 	}
     }
     if (local->sa_family == AF_INET) {
