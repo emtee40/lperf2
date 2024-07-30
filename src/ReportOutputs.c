@@ -2348,7 +2348,7 @@ static void reporter_output_listener_settings (struct ReportSettings *report) {
 	char cca[40] = "";
 	Socklen_t len = sizeof(cca);
 	if (getsockopt(report->common->socket, IPPROTO_TCP, TCP_CONGESTION, &cca, &len) == 0) {
-	    cca[len]='\0';
+	    cca[len - 1]='\0';
 	}
 	if (report->common->Congestion)	{
 	    fprintf(stdout,"TCP congestion control default set to %s using %s\n", report->common->Congestion, cca);
@@ -2511,7 +2511,7 @@ static void reporter_output_client_settings (struct ReportSettings *report) {
 	char cca[40] = "";
 	Socklen_t len = sizeof(cca);
 	if (getsockopt(report->common->socket, IPPROTO_TCP, TCP_CONGESTION, &cca, &len) == 0) {
-	    cca[len]='\0';
+	    cca[len - 1]='\0';
 	}
 	if (report->common->Congestion)	{
 	    fprintf(stdout,"TCP congestion control set to %s using %s\n", report->common->Congestion, cca);
@@ -2619,69 +2619,94 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
     char remote_addr[REPORT_ADDRLEN];
     struct sockaddr *local = ((struct sockaddr*)&report->common->local);
     struct sockaddr *peer = ((struct sockaddr*)&report->common->peer);
-    outbuffer[0]='\0';
-    outbufferext[0]='\0';
-    char *b = &outbuffer[0];
+    char linebuffer[SNBUFFERSIZE + 1];
+    char *b = &linebuffer[0];
+    linebuffer[SNBUFFERSIZE] = '\0';
+    int n;
 #if HAVE_DECL_TCP_WINDOW_CLAMP
     if (!isUDP(report->common) && isRxClamp(report->common)) {
-	snprintf(b, SNBUFFERSIZE-strlen(b), " (%s%d)", "clamp=", report->common->ClampSize);
-	b += strlen(b);
+	n = snprintf(b, (SNBUFFERSIZE-strlen(b)), " (%s%d)", "clamp=", report->common->ClampSize);
+	FAIL_exit((n < 0), "fail append clamp");
+	FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow clamp");
+	b += n;
     }
 #endif
 #if HAVE_DECL_TCP_NOTSENT_LOWAT
     if (!isUDP(report->common) && (report->common->socket > 0) && isWritePrefetch(report->common))  {
-	snprintf(b, SNBUFFERSIZE-strlen(b), " (%s%d)", "prefetch=", report->common->WritePrefetch);
-	b += strlen(b);
+	n = snprintf(b, SNBUFFERSIZE-strlen(b), " (%s%d)", "prefetch=", report->common->WritePrefetch);
+	FAIL_exit((n < 0), "fail append prefetch");
+	FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow prefetch");
+	b += n;
     }
 #endif
     if (isIsochronous(report->common)) {
-	snprintf(b, SNBUFFERSIZE-strlen(b), " (isoch)");
-	b += strlen(b);
+	n = snprintf(b, SNBUFFERSIZE-strlen(b), " (isoch)");
+	FAIL_exit((n < 0), "fail append isoch");
+	FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow isoch");
+	b += n;
     }
     if (isPeriodicBurst(report->common) && (report->common->ThreadMode != kMode_Client) && !isServerReverse(report->common)) {
 #if HAVE_FASTSAMPLING
-	snprintf(b, SNBUFFERSIZE-strlen(b), " (burst-period=%0.4fs)", (1.0 / report->common->FPS));
+	n = snprintf(b, SNBUFFERSIZE-strlen(b), " (burst-period=%0.4fs)", (1.0 / report->common->FPS));
 #else
-	snprintf(b, SNBUFFERSIZE-strlen(b), " (burst-period=%0.2fs)", (1.0 / report->common->FPS));
+        n = snprintf(b, SNBUFFERSIZE-strlen(b), " (burst-period=%0.2fs)", (1.0 / report->common->FPS));
 #endif
-	b += strlen(b);
+	FAIL_exit((n < 0), "fail append burst");
+	FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow burst");
+	b += n;
     }
     if (isFullDuplex(report->common)) {
-	snprintf(b, SNBUFFERSIZE-strlen(b), " (full-duplex)");
-	b += strlen(b);
+	n = snprintf(b, SNBUFFERSIZE-strlen(b), " (full-duplex)");
+	FAIL_exit((n < 0), "fail append duplex");
+	FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow duplex");
+	b += n;
     } else if (isServerReverse(report->common) || isReverse(report->common)) {
-	snprintf(b, SNBUFFERSIZE-strlen(b), " (reverse)");
-	b += strlen(b);
+	n = snprintf(b, SNBUFFERSIZE-strlen(b), " (reverse)");
+	FAIL_exit((n < 0), "fail append reverse");
+	FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow reverse");
+	b += n;
 	if (isFQPacing(report->common)) {
-	    snprintf(b, SNBUFFERSIZE-strlen(b), " (fq)");
-	    b += strlen(b);
+	    n = snprintf(b, SNBUFFERSIZE-strlen(b), " (fq)");
+	    FAIL_exit((n < 0), "fail append fq");
+	    FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow fq");
+	    b += n;
 	}
     }
     if (isTxStartTime(report->common)) {
-	snprintf(b, SNBUFFERSIZE-strlen(b), " (epoch-start)");
-	b += strlen(b);
+	n = snprintf(b, SNBUFFERSIZE-strlen(b), " (epoch-start)");
+	FAIL_exit((n < 0), "fail append epoch");
+	FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow epoch");
+	b += n;
     }
     if (isBounceBack(report->common)) {
 	if (isTcpQuickAck(report->common)) {
-	    snprintf(b, SNBUFFERSIZE-strlen(b), " (bb w/quickack req/reply/hold=%d/%d/%d)", report->common->bbsize, \
+	    n = snprintf(b, SNBUFFERSIZE-strlen(b), " (bb w/quickack req/reply/hold=%d/%d/%d)", report->common->bbsize, \
 		     report->common->bbreplysize, report->common->bbhold);
 	} else {
-	    snprintf(b, SNBUFFERSIZE-strlen(b), " (bb req/reply/hold=%d/%d/%d)", report->common->bbsize, \
+	    n = snprintf(b, SNBUFFERSIZE-strlen(b), " (bb req/reply/hold=%d/%d/%d)", report->common->bbsize, \
 		     report->common->bbreplysize, report->common->bbhold);
 	}
-	b += strlen(b);
+	FAIL_exit((n < 0), "fail append bb");
+	FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow bb");
+	b += n;
     }
     if (isL2LengthCheck(report->common)) {
-	snprintf(b, SNBUFFERSIZE-strlen(b), " (l2mode)");
-	b += strlen(b);
+	n = snprintf(b, SNBUFFERSIZE-strlen(b), " (l2mode)");
+	FAIL_exit((n < 0), "fail append l2");
+	FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow l2");
+	b += n;
     }
     if (isUDP(report->common) && isNoUDPfin(report->common)) {
-	snprintf(b, SNBUFFERSIZE-strlen(b), " (no-udp-fin)");
-	b += strlen(b);
+	n = snprintf(b, SNBUFFERSIZE-strlen(b), " (no-udp-fin)");
+	FAIL_exit((n < 0), "fail append ufin");
+	FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow ufin");
+	b += n;
     }
     if (isTripTime(report->common)) {
-	snprintf(b, SNBUFFERSIZE-strlen(b), " (trip-times)");
-	b += strlen(b);
+	n = snprintf(b, SNBUFFERSIZE-strlen(b), " (trip-times)");
+	FAIL_exit((n < 0), "fail append tt");
+	FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow tt");
+	b += n;
     }
     if (isEnhanced(report->common)) {
 #if HAVE_DECL_TCP_CONGESTION
@@ -2690,58 +2715,71 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
 	    Socklen_t len = sizeof(cca);
 	    int rc;
 	    if ((rc = getsockopt(report->common->socket, IPPROTO_TCP, TCP_CONGESTION, &cca, &len)) == 0) {
-	        cca[len]='\0';
+	        cca[len - 1] = '\0';
 	    }
 	    if (rc != SOCKET_ERROR) {
-	        snprintf(b, SNBUFFERSIZE-strlen(b), " (%s)", cca);
-	        b += strlen(b);
+	        n = snprintf(b, SNBUFFERSIZE-strlen(b), " (%s)", cca);
+		FAIL_exit((n < 0), "fail append cca");
+		FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow cca");
+		b += n;
 	    }
 	}
 #endif
     }
     if (isOverrideTOS(report->common)) {
+	n  = 0;
 	if (isFullDuplex(report->common)) {
-	    snprintf(b, SNBUFFERSIZE-strlen(b), " (tos rx/tx=0x%x,dscp=%d,ecn=%d, /0x%x,dscp=%d,ecn=%d)", report->common->TOS, \
+	    n = snprintf(b, SNBUFFERSIZE-strlen(b), " (tos rx/tx=0x%x,dscp=%d,ecn=%d, /0x%x,dscp=%d,ecn=%d)", report->common->TOS, \
 		     DSCP_VALUE(report->common->TOS), ECN_VALUE(report->common->TOS), \
 		     report->common->RTOS, \
 		     DSCP_VALUE(report->common->RTOS), ECN_VALUE(report->common->RTOS));
 	} else if (isReverse(report->common)) {
-	    snprintf(b, SNBUFFERSIZE-strlen(b), " (tos rx=0x%x,dscp=%d,ecn=%d)", report->common->TOS,  \
+	    n = snprintf(b, SNBUFFERSIZE-strlen(b), " (tos rx=0x%x,dscp=%d,ecn=%d)", report->common->TOS,  \
 		     DSCP_VALUE(report->common->TOS), ECN_VALUE(report->common->TOS));
 	}
-	b += strlen(b);
+	FAIL_exit((n < 0 ), "fail append o-tos");
+	FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow o-tos");
+	b += n;
     } else if (report->common->TOS) {
 	if (isFullDuplex(report->common) || isBounceBack(report->common)) {
-	    snprintf(b, SNBUFFERSIZE-strlen(b), " (tos rx/tx=0x%x,dscp=%d,ecn=%d/0x%x,dscp=%d,ecn=%d)", report->common->TOS, \
+	    n = snprintf(b, SNBUFFERSIZE-strlen(b), " (tos rx/tx=0x%x,dscp=%d,ecn=%d/0x%x,dscp=%d,ecn=%d)", report->common->TOS, \
 		     DSCP_VALUE(report->common->TOS), ECN_VALUE(report->common->TOS), \
 		     report->common->TOS, \
 		     DSCP_VALUE(report->common->TOS), ECN_VALUE(report->common->TOS));
 	} else if (isReverse(report->common)) {
-	    snprintf(b, SNBUFFERSIZE-strlen(b), " (tos rx=0x%x,dscp=%d,ecn=%d)", report->common->TOS, \
+	    n = snprintf(b, SNBUFFERSIZE-strlen(b), " (tos rx=0x%x,dscp=%d,ecn=%d)", report->common->TOS, \
 		     DSCP_VALUE(report->common->TOS), ECN_VALUE(report->common->TOS));
 	} else {
-	    snprintf(b, SNBUFFERSIZE-strlen(b), " (tos tx=0x%x,dscp=%d,ecn=%d)", report->common->TOS, \
+	    n = snprintf(b, SNBUFFERSIZE-strlen(b), " (tos tx=0x%x,dscp=%d,ecn=%d)", report->common->TOS, \
 		     DSCP_VALUE(report->common->TOS), ECN_VALUE(report->common->TOS));
 	}
-	b += strlen(b);
+	FAIL_exit((n < 0), "fail append tos");
+	FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow tos");
+	b += n;
     }
     if (isEnhanced(report->common) || isPeerVerDetect(report->common)) {
 	if (report->peerversion[0] != '\0') {
-	    snprintf(b, SNBUFFERSIZE-strlen(b), "%s", report->peerversion);
-	    b += strlen(b);
+	    n = snprintf(b, SNBUFFERSIZE-strlen(b), "%s", report->peerversion);
+	    FAIL_exit((n < 0), "fail append peer ver");
+	    FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow peer ver");
+	    b += n;
 	}
     }
 #if HAVE_DECL_TCP_QUICKACK
     if (isTcpQuickAck(report->common) && !isBounceBack(report->common)) {
-	snprintf(b, SNBUFFERSIZE-strlen(b), " (qack)");
-	b += strlen(b);
+	n = snprintf(b, SNBUFFERSIZE-strlen(b), " (qack)");
+	FAIL_exit((n < 0), "fail append peer qack");
+	FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow peer qack");
+	b += n;
     }
 #endif
 #if HAVE_TCP_STATS
     if (!isUDP(report->common) && (report->tcpinitstats.isValid) && isEnhanced(report->common)) {
-	snprintf(b, SNBUFFERSIZE-strlen(b), " (icwnd/mss/irtt=%" PRIdMAX "/%" PRIuLEAST32 "/%" PRIuLEAST32 ")", \
+	n = snprintf(b, SNBUFFERSIZE-strlen(b), " (icwnd/mss/irtt=%" PRIdMAX "/%" PRIuLEAST32 "/%" PRIuLEAST32 ")", \
 		 report->tcpinitstats.cwnd, report->tcpinitstats.mss_negotiated, report->tcpinitstats.rtt);
-	b += strlen(b);
+	FAIL_exit((n < 0), "fail append tcpstats");
+	FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow tcpstats");
+	b += n;
     }
 #endif
     if ((isFullDuplex(report->common) || !isServerReverse(report->common)) \
@@ -2751,11 +2789,13 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
 	    iperf_formattime(timestr, sizeof(timestr), report->connect_timestamp, \
 			     (isEnhanced(report->common) ? Milliseconds : Seconds), isUTC(report->common), YearThruSecTZ);
 	    if (!isUDP(report->common) && (report->common->ThreadMode == kMode_Client) && (report->tcpinitstats.connecttime > 0)) {
-		snprintf(b, SNBUFFERSIZE-strlen(b), " (ct=%4.2f ms) on %s", report->tcpinitstats.connecttime, timestr);
+		n = snprintf(b, SNBUFFERSIZE-strlen(b), " (ct=%4.2f ms) on %s", report->tcpinitstats.connecttime, timestr);
 	    } else {
-		snprintf(b, SNBUFFERSIZE-strlen(b), " on %s", timestr);
+		n = snprintf(b, SNBUFFERSIZE-strlen(b), " on %s", timestr);
 	    }
-	    b += strlen(b);
+	    FAIL_exit((n < 0), "fail append ct");
+	    FAIL_exit((strlen(linebuffer) >= SNBUFFERSIZE), "buffer overflow ct");
+	    b += n;
 	}
     }
     if (local->sa_family == AF_INET) {
@@ -2784,44 +2824,44 @@ void reporter_print_connection_report (struct ConnectionInfo *report) {
 #endif
 #if HAVE_IPV6
     if (report->common->KeyCheck) {
-	if (isEnhanced(report->common) && report->common->Ifrname && (strlen(report->common->Ifrname) < SNBUFFERSIZE-strlen(b))) {
+	if (isEnhanced(report->common) && report->common->Ifrname) {
 	    printf(report_peer_dev, report->common->transferIDStr, local_addr, report->common->Ifrname, \
 		   (local->sa_family == AF_INET ? ntohs(((struct sockaddr_in*)local)->sin_port) : \
 		    ntohs(((struct sockaddr_in6*)local)->sin6_port)), \
 		   remote_addr, (peer->sa_family == AF_INET ? ntohs(((struct sockaddr_in*)peer)->sin_port) : \
-				 ntohs(((struct sockaddr_in6*)peer)->sin6_port)), outbuffer);
+				 ntohs(((struct sockaddr_in6*)peer)->sin6_port)), linebuffer);
 	} else {
 	    printf(report_peer, report->common->transferIDStr, local_addr, \
 		   (local->sa_family == AF_INET ? ntohs(((struct sockaddr_in*)local)->sin_port) : \
 		    ntohs(((struct sockaddr_in6*)local)->sin6_port)), \
 		   remote_addr, (peer->sa_family == AF_INET ? ntohs(((struct sockaddr_in*)peer)->sin_port) : \
-				 ntohs(((struct sockaddr_in6*)peer)->sin6_port)), outbuffer);
+				 ntohs(((struct sockaddr_in6*)peer)->sin6_port)), linebuffer);
 	}
     } else {
 	printf(report_peer_fail, local_addr, \
 	       (local->sa_family == AF_INET ? ntohs(((struct sockaddr_in*)local)->sin_port) : \
 		ntohs(((struct sockaddr_in6*)local)->sin6_port)), \
 	       remote_addr, (peer->sa_family == AF_INET ? ntohs(((struct sockaddr_in*)peer)->sin_port) : \
-			     ntohs(((struct sockaddr_in6*)peer)->sin6_port)), outbuffer);
+			     ntohs(((struct sockaddr_in6*)peer)->sin6_port)), linebuffer);
     }
 
 #else
     if (report->common->KeyCheck) {
-	if (isEnhanced(report->common) && report->common->Ifrname  && (strlen(report->common->Ifrname) < SNBUFFERSIZE-strlen(b))) {
+	if (isEnhanced(report->common) && report->common->Ifrname) {
 	    printf(report_peer_dev, report->common->transferIDStr, local_addr, report->common->Ifrname, \
 		   local_addr, (local->sa_family == AF_INET ? ntohs(((struct sockaddr_in*)local)->sin_port) : 0), \
 		   remote_addr, (peer->sa_family == AF_INET ? ntohs(((struct sockaddr_in*)peer)->sin_port) :  0), \
-		   outbuffer);
+		   linebuffer);
 	} else {
 	    printf(report_peer, report->common->transferIDStr, \
 		   local_addr, (local->sa_family == AF_INET ? ntohs(((struct sockaddr_in*)local)->sin_port) : 0), \
 		   remote_addr, (peer->sa_family == AF_INET ? ntohs(((struct sockaddr_in*)peer)->sin_port) :  0), \
-		   outbuffer);
+		   linebuffer);
 	}
     } else {
 	printf(report_peer_fail, local_addr, (local->sa_family == AF_INET ? ntohs(((struct sockaddr_in*)local)->sin_port) : 0), \
 	       remote_addr, (peer->sa_family == AF_INET ? ntohs(((struct sockaddr_in*)peer)->sin_port) :  0), \
-	       outbuffer);
+	       linebuffer);
     }
 #endif
     if ((report->common->ThreadMode == kMode_Server) ||			\
